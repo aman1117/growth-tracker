@@ -34,7 +34,8 @@ func main() {
 	if port == "" {
 		port = "8000"
 	}
-	if err := app.Listen(port); err != nil {
+	addr := "0.0.0.0:" + port
+	if err := app.Listen(addr); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	} else {
 		fmt.Println("Server is running at http://localhost:" + port)

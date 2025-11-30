@@ -53,16 +53,14 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({ name, hours, onClick
             }}>
                 {displayName}
             </span>
-            {isActive && (
-                <span style={{
-                    marginTop: '0.25rem',
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: 'var(--text-primary)'
-                }}>
-                    {hours}h
-                </span>
-            )}
+            <span style={{
+                marginTop: '0.25rem',
+                fontSize: '1rem',
+                fontWeight: 700,
+                color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)'
+            }}>
+                {hours}h
+            </span>
         </div>
     );
 };

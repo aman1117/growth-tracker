@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aman1117/backend/models"
@@ -12,6 +13,7 @@ type ActivityRequest struct {
 	Username string              `json:"username"`
 	Activity models.ActivityName `json:"activity"`
 	Hours    float32             `json:"hours"`
+	Date     string              `json:"date"`
 }
 
 type ActivityDTO struct {
@@ -24,6 +26,15 @@ type GetActivityRequest struct {
 	Username  string `json:"username"`
 	StartDate string `json:"start_date"`
 	EndDate   string `json:"end_date"`
+}
+
+type GetUsersRequest struct {
+	Username string `json:"username"`
+}
+type UserDTO struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	ID       uint   `json:"id"`
 }
 
 func CreateActivityHandler(c *fiber.Ctx) error {
@@ -55,11 +66,19 @@ func CreateActivityHandler(c *fiber.Ctx) error {
 			"error":   "Invalid activity name",
 		})
 	}
+	const layout = "2006-01-02"
 
+	date, err := time.Parse(layout, body.Date)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "Invalid date format, use YYYY-MM-DD",
+		})
+	}
 	db := utils.GetDB()
 	// find all the records for this person for current day.
 	todayActivities := []models.Activity{}
-	result := db.Where("user_id = ? AND date(created_at) = date('now')", c.Locals("user_id").(uint)).Find(&todayActivities)
+	result := db.Where("user_id = ? AND date(created_at) = ?", c.Locals("user_id").(uint), date).Find(&todayActivities)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
@@ -123,13 +142,6 @@ func GetActivityHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	if body.Username != c.Locals("username").(string) {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   "you are not authorized to get activity for this username",
-		})
-	}
-
 	const layout = "2006-01-02"
 
 	startDate, err := time.Parse(layout, body.StartDate)
@@ -156,9 +168,17 @@ func GetActivityHandler(c *fiber.Ctx) error {
 	}
 
 	db := utils.GetDB()
-	// find all the records for this person for current day.
 	activities := []models.Activity{}
-	result := db.Where("user_id = ? AND date(created_at) BETWEEN ? AND ?", c.Locals("user_id").(uint), startDate, endDate).Find(&activities)
+	user := models.User{}
+	result := db.Where("username = ?", body.Username).Find(&user)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "Failed to find user",
+		})
+	}
+	fmt.Println(user.ID)
+	result = db.Where("user_id = ? AND date(created_at) BETWEEN ? AND ?", user.ID, startDate, endDate).Find(&activities)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
@@ -180,6 +200,44 @@ func ToActivityDTOs(in []models.Activity) []ActivityDTO {
 			ID:            a.ID,
 			Name:          models.ActivityName(a.Name),
 			DurationHours: a.DurationHours,
+		})
+	}
+	return out
+}
+
+func GetUsersHandler(c *fiber.Ctx) error {
+
+	var body GetUsersRequest
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "Invalid request body",
+		})
+	}
+
+	db := utils.GetDB()
+	users := []models.User{}
+	// find user by username with ILIKE
+	result := db.Where("username ILIKE ?", body.Username+"%").Find(&users)
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "Failed to find users",
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"data":    SanitizeUsers(users),
+	})
+}
+
+func SanitizeUsers(in []models.User) []UserDTO {
+	out := make([]UserDTO, 0, len(in))
+	for _, a := range in {
+		out = append(out, UserDTO{
+			ID:       a.ID,
+			Username: a.Username,
+			Email:    a.Email,
 		})
 	}
 	return out

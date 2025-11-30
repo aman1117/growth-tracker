@@ -45,7 +45,9 @@ func RegisterHandler(c *fiber.Ctx) error {
 			"error":   "Password must be at least 8 characters long",
 		})
 	}
-
+	body.Email = strings.TrimSpace(body.Email)
+	body.Username = strings.TrimSpace(body.Username)
+	body.Password = strings.TrimSpace(body.Password)
 	if err := CreateUser(body.Email, body.Username, body.Password); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
@@ -76,7 +78,8 @@ func LoginHandler(c *fiber.Ctx) error {
 			"error":   "All fields are required",
 		})
 	}
-
+	body.Password = strings.TrimSpace(body.Password)
+	body.Identifier = strings.TrimSpace(body.Identifier)
 	user, err := GetUserByIdentifier(body.Identifier)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

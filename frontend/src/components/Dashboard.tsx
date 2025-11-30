@@ -7,6 +7,7 @@ import { DateNavigator } from './DateNavigator';
 import { ActivityTile } from './ActivityTile';
 import { ActivityModal } from './ActivityModal';
 import { Toast } from './Toast';
+import { useParams } from 'react-router-dom';
 import {
     Moon, BookOpen, Utensils, Users, Sparkles,
     Dumbbell, Film, Home, Coffee, Palette,
@@ -34,9 +35,14 @@ const ACTIVITY_CONFIG: Record<ActivityName, { icon: any, color: string }> = {
 
 export const Dashboard: React.FC = () => {
     const { user } = useAuth();
+    const { username: routeUsername } = useParams<{ username: string }>();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [activities, setActivities] = useState<Record<string, number>>({});
     const [loading, setLoading] = useState(true);
+
+    // Determine if we are viewing another user's profile
+    const targetUsername = routeUsername || user?.username;
+    const isReadOnly = routeUsername && routeUsername !== user?.username;
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,18 +56,24 @@ export const Dashboard: React.FC = () => {
     };
 
     const fetchActivities = useCallback(async () => {
-        if (!user) return;
+        if (!targetUsername) return;
         setLoading(true);
         try {
             const dateStr = formatDateForApi(currentDate);
             const res = await api.post('/get-activities', {
-                username: user.username,
+                username: targetUsername,
                 start_date: dateStr,
                 end_date: dateStr
             });
 
             if (res.success) {
                 const activityMap: Record<string, number> = {};
+                // Initialize all activities with 0
+                ACTIVITY_NAMES.forEach(name => {
+                    activityMap[name] = 0;
+                });
+
+                // Update with actual data from backend
                 res.data.forEach((a: Activity) => {
                     activityMap[a.name] = a.hours;
                 });
@@ -73,7 +85,7 @@ export const Dashboard: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentDate, user]);
+    }, [currentDate, targetUsername]);
 
     useEffect(() => {
         fetchActivities();
@@ -97,6 +109,7 @@ export const Dashboard: React.FC = () => {
     };
 
     const handleActivityClick = (name: ActivityName) => {
+        if (isReadOnly) return;
         if (currentDate > new Date()) return;
 
         setSelectedActivity(name);
@@ -108,9 +121,10 @@ export const Dashboard: React.FC = () => {
 
         try {
             const res = await api.post('/create-activity', {
-                username: user.username,
+                username: targetUsername,
                 activity: selectedActivity,
-                hours: hours
+                hours: hours,
+                date: formatDateForApi(currentDate)
             });
 
             if (res.success) {
@@ -131,6 +145,21 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="container" style={{ paddingBottom: '2rem' }}>
+            {isReadOnly && (
+                <div style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    border: '1px solid var(--border)',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)'
+                }}>
+                    Viewing {targetUsername}'s Dashboard
+                </div>
+            )}
+
             <DateNavigator
                 currentDate={currentDate}
                 onPrev={handlePrevDay}

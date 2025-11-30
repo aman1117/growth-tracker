@@ -37,6 +37,7 @@ func main() {
 	})
 	app.Post("/register", services.RegisterHandler)
 	app.Post("/login", services.LoginHandler)
+	app.Post("/users", services.AuthMiddleware, services.GetUsersHandler)
 
 	app.Post("/create-activity", services.AuthMiddleware, services.CreateActivityHandler)
 	app.Post("/get-activities", services.AuthMiddleware, services.GetActivityHandler)

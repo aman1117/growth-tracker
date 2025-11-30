@@ -34,6 +34,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/user/:username"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </Layout>
       </AuthProvider>

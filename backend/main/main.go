@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
+
+	"github.com/robfig/cron/v3"
 
 	"github.com/aman1117/backend/models"
 	"github.com/aman1117/backend/services"
@@ -22,6 +26,29 @@ func main() {
 		log.Fatalf("AutoMigrate failed: %v", err)
 	}
 	fmt.Println("DB Migrations Successful")
+
+	loc, err := time.LoadLocation("Asia/Kolkata")
+	if err != nil {
+		log.Fatalf("failed to load IST timezone: %v", err)
+	}
+
+	c := cron.New(
+		cron.WithLocation(loc),
+		cron.WithSeconds(), // allows specifying seconds in the spec
+	)
+	_, err = c.AddFunc("0 0 0 * * *", func() {
+		if err := utils.RunDailyJob(context.Background()); err != nil {
+			log.Printf("daily job failed: %v", err)
+		} else {
+			log.Println("daily job completed successfully")
+		}
+	})
+	if err != nil {
+		log.Fatalf("failed to add cron job: %v", err)
+	}
+
+	c.Start()
+	defer c.Stop()
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"errors"
 	"log"
 	"os"
@@ -89,4 +90,32 @@ func ParseToken(tokenStr string) (*Claims, error) {
 	}
 
 	return claims, nil
+}
+
+func RunDailyJob(ctx context.Context) error {
+	db := GetDB().WithContext(ctx)
+
+	var users []models.User
+	if err := db.Find(&users).Error; err != nil {
+		return err
+	}
+
+	for _, user := range users {
+		for _, activity := range models.ActivityNames {
+			var activityModel models.Activity
+
+			if err := db.
+				Where("user_id = ? AND name = ? AND activity_date = CURRENT_DATE", user.ID, activity).
+				Attrs(models.Activity{
+					UserID:        user.ID,
+					Name:          activity,
+					DurationHours: 0,
+				}).
+				FirstOrCreate(&activityModel).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

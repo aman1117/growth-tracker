@@ -56,7 +56,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
             await onSave(numHours);
             onClose();
         } catch (err) {
-            setError('Failed to save activity');
+            setError(err instanceof Error ? err.message : 'Failed to save activity');
         } finally {
             setLoading(false);
         }

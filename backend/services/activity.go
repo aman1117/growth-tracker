@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/aman1117/backend/models"
@@ -67,7 +66,6 @@ func CreateActivityHandler(c *fiber.Ctx) error {
 	db := utils.GetDB()
 	// find all the records for this person for current day.
 	todayActivities := []models.Activity{}
-	fmt.Println("BBBBB")
 	result := db.Where("user_id = ? AND date(created_at) = date('now')", c.Locals("user_id").(uint)).Find(&todayActivities)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -75,10 +73,11 @@ func CreateActivityHandler(c *fiber.Ctx) error {
 			"error":   "Failed to find activities",
 		})
 	}
-	// if already present, update the duration_hours with the same activityName or create a new record
+	isPresent := false
 	if len(todayActivities) > 0 {
 		for _, activity := range todayActivities {
 			if activity.Name == models.ActivityName(body.Activity) {
+				isPresent = true
 				activity.DurationHours = body.Hours
 				result = db.Save(&activity)
 				if result.Error != nil {
@@ -91,8 +90,7 @@ func CreateActivityHandler(c *fiber.Ctx) error {
 			}
 		}
 	}
-	if len(todayActivities) == 0 {
-		fmt.Println("I am here")
+	if !isPresent {
 		activity := models.Activity{
 			UserID:        c.Locals("user_id").(uint),
 			Name:          models.ActivityName(body.Activity),

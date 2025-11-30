@@ -19,6 +19,7 @@ type ActivityDTO struct {
 	ID            uint                `json:"id"`
 	Name          models.ActivityName `json:"name"`
 	DurationHours float32             `json:"hours"`
+	Date          string              `json:"date"`
 }
 
 type GetActivityRequest struct {
@@ -222,6 +223,7 @@ func ToActivityDTOs(in []models.Activity) []ActivityDTO {
 			ID:            a.ID,
 			Name:          models.ActivityName(a.Name),
 			DurationHours: a.DurationHours,
+			Date:          a.ActivityDate.Format("2006-01-02"),
 		})
 	}
 	return out

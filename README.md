@@ -140,4 +140,5 @@ Response:
   - Columns for each activity detail (name, type, duration, etc.)
   - A foreign key `user_id` referencing the `users` table
 - [x] Add Add, Update, Get Logic for `activity` table
+- [ ] Enforce 24hr total rule for activities
 - [ ] Make code structure as done by professional dev.

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aman1117/backend/models"
@@ -66,6 +67,7 @@ func CreateActivityHandler(c *fiber.Ctx) error {
 	db := utils.GetDB()
 	// find all the records for this person for current day.
 	todayActivities := []models.Activity{}
+	fmt.Println("BBBBB")
 	result := db.Where("user_id = ? AND date(created_at) = date('now')", c.Locals("user_id").(uint)).Find(&todayActivities)
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -88,20 +90,21 @@ func CreateActivityHandler(c *fiber.Ctx) error {
 				break
 			}
 		}
-		if len(todayActivities) == 0 {
-			activity := models.Activity{
-				UserID:        c.Locals("user_id").(uint),
-				Name:          models.ActivityName(body.Activity),
-				DurationHours: body.Hours,
-			}
-			result = db.Create(&activity)
+	}
+	if len(todayActivities) == 0 {
+		fmt.Println("I am here")
+		activity := models.Activity{
+			UserID:        c.Locals("user_id").(uint),
+			Name:          models.ActivityName(body.Activity),
+			DurationHours: body.Hours,
 		}
-		if result.Error != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"success": false,
-				"error":   "Failed to create activity",
-			})
-		}
+		result = db.Create(&activity)
+	}
+	if result.Error != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "Failed to create activity",
+		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

@@ -64,6 +64,9 @@ func AddStreak(userID uint, date time.Time, isCron bool) error {
 		if result.Error != nil {
 			return result.Error
 		}
+		if streak.Current != 0 {
+			return nil
+		}
 		streakTouUpdate.Current = streak.Current + 1
 		streakTouUpdate.Longest = max(streak.Longest, streakTouUpdate.Current)
 		if err := db.Save(&streakTouUpdate).Error; err != nil {

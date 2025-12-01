@@ -1,5 +1,5 @@
-// const API_URL = 'https://northern-mariellen-aman1117-e5652442.koyeb.app';
-const API_URL = 'http://localhost:8000';
+const API_URL = 'https://northern-mariellen-aman1117-e5652442.koyeb.app';
+// const API_URL = 'http://localhost:8000';
 
 export const api = {
     async get(endpoint: string) {

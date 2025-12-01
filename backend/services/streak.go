@@ -33,7 +33,6 @@ func AddStreak(userID uint, date time.Time, isCron bool) error {
 	result := db.
 		Where("user_id = ?", userID).
 		Order("activity_date DESC").
-		Offset(1).
 		Limit(1).
 		Find(&streak)
 
@@ -56,6 +55,14 @@ func AddStreak(userID uint, date time.Time, isCron bool) error {
 		}
 		return nil
 	}
+
+	_ = db.
+		Where("user_id = ?", userID).
+		Order("activity_date DESC").
+		Offset(1).
+		Limit(1).
+		Find(&streak)
+
 	if streak.ID != 0 {
 		// find streak of current date and update it
 		streakTouUpdate := models.Streak{}

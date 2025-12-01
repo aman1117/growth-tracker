@@ -54,6 +54,16 @@ export const StreakCard: React.FC<StreakCardProps> = ({ username, date }) => {
         );
     }
 
+    const isToday = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}` === date;
+    };
+
+    const showCurrentStreak = isToday();
+
     return (
         <div style={{
             backgroundColor: 'var(--bg-secondary)',
@@ -69,14 +79,18 @@ export const StreakCard: React.FC<StreakCardProps> = ({ username, date }) => {
             boxShadow: '0 0 10px rgba(253, 224, 71, 0.1)',
             flexWrap: 'wrap'
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Flame className="w-4 h-4" style={{ color: '#facc15' }} />
-                <span style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
-                    Current Streak: {streak.current}
-                </span>
-            </div>
-            <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--text-primary)', opacity: 0.2, display: 'none' }} className="desktop-divider" />
-            <span style={{ opacity: 0.5, display: 'inline-block', fontSize: '0.9rem' }} className="mobile-divider">|</span>
+            {showCurrentStreak && (
+                <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Flame className="w-4 h-4" style={{ color: '#facc15' }} />
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                            Current Streak: {streak.current}
+                        </span>
+                    </div>
+                    <div style={{ width: '1px', height: '20px', backgroundColor: 'var(--text-primary)', opacity: 0.2, display: 'none' }} className="desktop-divider" />
+                    <span style={{ opacity: 0.5, display: 'inline-block', fontSize: '0.9rem' }} className="mobile-divider">|</span>
+                </>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                     Longest Streak: {streak.longest}

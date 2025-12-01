@@ -6,6 +6,7 @@ import (
 	"github.com/aman1117/backend/models"
 	"github.com/aman1117/backend/utils"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 type GetStreakRequest struct {
@@ -71,6 +72,26 @@ func AddStreak(userID uint, date time.Time, isCron bool) error {
 			return err
 		}
 		return nil
+	} else {
+		streakTouUpdate := models.Streak{}
+		result = db.Where("user_id = ? AND activity_date = ?", userID, date).First(&streakTouUpdate)
+		if result.Error != nil {
+			if result.Error != gorm.ErrRecordNotFound {
+				return result.Error
+			}
+		}
+		if streakTouUpdate.ID != 0 {
+			return nil
+		}
+		streak := models.Streak{
+			UserID:       userID,
+			Current:      1,
+			Longest:      1,
+			ActivityDate: date,
+		}
+		if err := db.Create(&streak).Error; err != nil {
+			return err
+		}
 	}
 	return nil
 }

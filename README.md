@@ -147,6 +147,8 @@ Response:
 - [x] Streaks
 - [x] send emails when streak breaks ( current is 0 for last day record)
 - [ ] Completed Hours out of 24hr
+- [ ] Micro Interactions
+- [x] Only show username in search card not email
 - [ ] Notes for each activity
 - [ ] Drag Tiles
 - [ ] Zap logging integrate

@@ -15,6 +15,15 @@ export const api = {
             method: 'GET',
             headers,
         });
+
+        if (res.status === 401) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('user_id');
+            window.location.href = '/login';
+            throw new Error('Unauthorized');
+        }
+
         return res.json();
     },
 
@@ -32,6 +41,15 @@ export const api = {
             headers,
             body: JSON.stringify(body),
         });
+
+        if (res.status === 401) {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('user_id');
+            window.location.href = '/login';
+            throw new Error('Unauthorized');
+        }
+
         return res.json();
     },
 

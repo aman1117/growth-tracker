@@ -154,3 +154,5 @@ Response:
 - [ ] Zap logging integrate
 - [ ] Weekly and Monthly activity summary.
 - [ ] Make code structure as done by professional dev.
+- [ ] Make Profile private/public.
+- [ ] Reset Password

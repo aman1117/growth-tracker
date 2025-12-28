@@ -36,6 +36,7 @@ func main() {
 		cron.WithLocation(loc),
 		cron.WithSeconds(), // allows specifying seconds in the spec
 	)
+	// Midnight cron job for streak processing
 	_, err = c.AddFunc("0 0 0 * * *", func() {
 		if err := services.CronJob(context.Background()); err != nil {
 			log.Printf("daily job failed: %v", err)
@@ -45,6 +46,17 @@ func main() {
 	})
 	if err != nil {
 		log.Fatalf("failed to add cron job: %v", err)
+	}
+
+	_, err = c.AddFunc("0 0 9 * * *", func() {
+		if err := services.SendStreakReminderEmails(); err != nil {
+			log.Printf("email reminder job failed: %v", err)
+		} else {
+			log.Println("email reminder job completed successfully")
+		}
+	})
+	if err != nil {
+		log.Fatalf("failed to add email cron job: %v", err)
 	}
 
 	c.Start()
@@ -72,7 +84,6 @@ func main() {
 
 	app.Post("/get-streak", services.AuthMiddleware, services.GetStreakHandler)
 
-	app.Post("/send-email", services.AuthMiddleware, services.SendEmailHandler)
 	port := utils.GetFromEnv("PORT")
 	if port == "" {
 		port = "8000"

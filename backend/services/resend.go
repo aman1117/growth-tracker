@@ -6,7 +6,6 @@ import (
 
 	"github.com/aman1117/backend/models"
 	"github.com/aman1117/backend/utils"
-	"github.com/gofiber/fiber/v2"
 	"github.com/resend/resend-go/v3"
 )
 
@@ -26,28 +25,14 @@ func InitResendClient() (*resend.Client, error) {
 	return resendClient, nil
 }
 
-func SendEmailHandler(c *fiber.Ctx) error {
-	username, ok := c.Locals("username").(string)
-	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Unauthorized",
-		})
-	}
-
-	if username != "aman1117" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"message": "Unauthorized",
-		})
-	}
-
+// SendStreakReminderEmails sends reminder emails to users who missed their streak yesterday
+// This is called by the cron job at 9 AM IST
+func SendStreakReminderEmails() error {
 	db := utils.GetDB()
 
 	loc, err := time.LoadLocation("Asia/Kolkata")
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"success": false,
-			"error":   "Failed to load timezone",
-		})
+		return fmt.Errorf("failed to load timezone: %v", err)
 	}
 
 	yesterday := time.Now().In(loc).AddDate(0, 0, -1).Format("2006-01-02")
@@ -63,10 +48,8 @@ func SendEmailHandler(c *fiber.Ctx) error {
 		).
 		Find(&users)
 	if len(users) == 0 {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"success": true,
-			"message": "No users found who missed their streak yesterday",
-		})
+		fmt.Println("No users found who missed their streak yesterday")
+		return nil
 	}
 
 	client, err := InitResendClient()
@@ -112,8 +95,6 @@ func SendEmailHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"success": true,
-		"message": fmt.Sprintf("Sent emails to %d users, %d were not successful", len(users), notSuccessful),
-	})
+	fmt.Printf("Sent emails to %d users, %d were not successful\n", len(users), notSuccessful)
+	return nil
 }

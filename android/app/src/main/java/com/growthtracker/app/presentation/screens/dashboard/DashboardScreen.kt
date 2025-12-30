@@ -59,6 +59,7 @@ import androidx.compose.ui.zIndex
 import com.growthtracker.app.domain.model.ActivityType
 import com.growthtracker.app.presentation.components.ActivityModal
 import com.growthtracker.app.presentation.components.AppToast
+import com.growthtracker.app.presentation.components.HoursSummaryCard
 import com.growthtracker.app.presentation.components.SearchSheet
 import com.growthtracker.app.presentation.theme.StreakGold
 import java.time.LocalDate
@@ -178,7 +179,12 @@ fun DashboardScreen(
                     isNextDisabled = state.currentDate >= LocalDate.now()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                // Hours Summary Card
+                HoursSummaryCard(
+                    totalHours = state.activities.values.sum()
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // Activities Grid
                 if (state.isLoading && !state.isRefreshing) {
@@ -265,12 +271,21 @@ private fun StreakCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isToday) {
-                Icon(
-                    imageVector = Icons.Default.LocalFireDepartment,
-                    contentDescription = null,
-                    tint = StreakGold,
-                    modifier = Modifier.size(20.dp)
-                )
+                // Soft Icon Container for Fire
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(StreakGold.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocalFireDepartment,
+                        contentDescription = null,
+                        tint = StreakGold,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Current Streak: ${streak.current}",
@@ -354,7 +369,7 @@ private fun ActivityTile(
 ) {
     val isActive = hours > 0
     val backgroundColor = if (isActive) {
-        activity.color.copy(alpha = 0.1f)
+        activity.color.copy(alpha = 0.08f)
     } else {
         Color.Transparent
     }
@@ -376,14 +391,26 @@ private fun ActivityTile(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = activity.icon,
-                contentDescription = activity.displayName,
-                modifier = Modifier.size(32.dp),
-                tint = if (isActive) activity.color else MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Soft Icon Container
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(
+                        if (isActive) activity.color.copy(alpha = 0.12f)
+                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = activity.icon,
+                    contentDescription = activity.displayName,
+                    modifier = Modifier.size(24.dp),
+                    tint = if (isActive) activity.color else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = activity.displayName,

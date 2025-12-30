@@ -36,11 +36,26 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({ name, hours, onClick
             }}
             className="activity-tile"
         >
-            <Icon
-                size={32}
-                color={isActive ? color : 'var(--text-secondary)'}
-                style={{ marginBottom: '0.5rem', transition: 'color 0.2s' }}
-            />
+            {/* Duotone Icon Container */}
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '50%',
+                    backgroundColor: isActive ? `${color}12` : 'var(--border)',
+                    marginBottom: '0.5rem',
+                    transition: 'background-color 0.2s',
+                }}
+            >
+                <Icon
+                    size={26}
+                    color={isActive ? color : 'var(--text-secondary)'}
+                    style={{ transition: 'color 0.2s' }}
+                />
+            </div>
 
             <span style={{
                 fontSize: '0.75rem',

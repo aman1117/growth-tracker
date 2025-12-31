@@ -94,7 +94,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                 style={{
                     height: '140px',
                     marginBottom: '1rem',
-                    borderRadius: '12px',
+                    borderRadius: '8px',
                 }}
             />
         );
@@ -105,7 +105,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
             style={{
                 backgroundColor: 'var(--bg-secondary)',
                 border: '1px solid var(--border)',
-                borderRadius: '12px',
+                borderRadius: '8px',
                 marginBottom: '1rem',
                 overflow: 'hidden',
                 transition: 'all 0.3s ease',

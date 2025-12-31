@@ -201,7 +201,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                         width: '100%',
                         maxWidth: '600px',
                         backgroundColor: 'var(--bg-primary)',
-                        borderRadius: '12px',
+                                    borderRadius: '8px',
                         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                         border: '1px solid var(--border)',
                         overflow: 'hidden',

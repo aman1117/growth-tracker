@@ -33,7 +33,7 @@ export const HoursSummary: React.FC<HoursSummaryProps> = ({ activities, loading 
                 style={{
                     height: '80px',
                     marginBottom: '1rem',
-                    borderRadius: '0',
+                    borderRadius: '8px',
                 }}
             />
         );
@@ -44,6 +44,7 @@ export const HoursSummary: React.FC<HoursSummaryProps> = ({ activities, loading 
             style={{
                 backgroundColor: 'var(--bg-secondary)',
                 border: '1px solid var(--border)',
+                borderRadius: '8px',
                 padding: '1rem 1.25rem',
                 marginBottom: '1rem',
                 display: 'flex',

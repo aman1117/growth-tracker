@@ -126,8 +126,7 @@ input {
   transition: all 0.2s;
   border: 1px solid transparent;
   width: 100%;
-  border-radius: 0;
-  /* Sharp */
+  border-radius: 8px;
 }
 
 .btn-primary {
@@ -170,8 +169,7 @@ input {
   color: var(--text-primary);
   font-size: 1rem;
   transition: border-color 0.2s;
-  border-radius: 0;
-  /* Sharp */
+  border-radius: 8px;
 }
 
 .input-field:focus {
@@ -182,8 +180,7 @@ input {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border);
   padding: 1.5rem;
-  border-radius: 0;
-  /* Sharp */
+  border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 

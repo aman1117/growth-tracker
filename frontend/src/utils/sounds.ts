@@ -10,34 +10,37 @@ const getAudioContext = (): AudioContext => {
     return audioContext;
 };
 
-// Soft "pop" sound for activity updates
+// Cute, uplifting two-tone chime for activity updates
 export const playActivitySound = () => {
     try {
         const ctx = getAudioContext();
-        
-        // Clean, subtle click like iOS/macOS
-        const oscillator = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        
-        // Add a filter for warmth
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 1500;
+        const now = ctx.currentTime;
 
-        oscillator.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(ctx.destination);
+        // Shared envelope for a gentle fade
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(0, now);
+        env.gain.linearRampToValueAtTime(0.16, now + 0.012);
+        env.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        env.connect(ctx.destination);
 
-        oscillator.frequency.setValueAtTime(1800, ctx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.03);
-        oscillator.type = 'triangle';
+        const makeTone = (startFreq: number, endFreq: number, delay: number) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
 
-        // Very short, snappy
-        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(startFreq, now + delay);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, now + delay + 0.08);
 
-        oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.08);
+            gain.gain.setValueAtTime(1, now + delay);
+            osc.connect(gain).connect(env);
+
+            osc.start(now + delay);
+            osc.stop(now + delay + 0.2);
+        };
+
+        // Slightly offset dual tones for a "sparkly" feel
+        makeTone(640, 1280, 0);
+        makeTone(960, 1920, 0.03);
     } catch (e) {
         console.log('Audio not supported');
     }

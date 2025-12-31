@@ -15,25 +15,29 @@ export const playActivitySound = () => {
     try {
         const ctx = getAudioContext();
         
-        // Create a warmer, more satisfying "pop" sound
+        // Clean, subtle click like iOS/macOS
         const oscillator = ctx.createOscillator();
         const gainNode = ctx.createGain();
+        
+        // Add a filter for warmth
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1500;
 
-        oscillator.connect(gainNode);
+        oscillator.connect(filter);
+        filter.connect(gainNode);
         gainNode.connect(ctx.destination);
 
-        // Start higher and drop for a "pop" effect
-        oscillator.frequency.setValueAtTime(600, ctx.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.08);
-        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(1800, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.03);
+        oscillator.type = 'triangle';
 
-        // Smooth envelope
-        gainNode.gain.setValueAtTime(0, ctx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.015);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        // Very short, snappy
+        gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
 
         oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.15);
+        oscillator.stop(ctx.currentTime + 0.08);
     } catch (e) {
         console.log('Audio not supported');
     }

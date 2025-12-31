@@ -15,6 +15,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Claims struct {
@@ -47,6 +48,7 @@ func GetDB() *gorm.DB {
 		var err error
 		db, err = gorm.Open(postgres.Open(psql), &gorm.Config{
 			PrepareStmt: true, // Cache prepared statements for better performance
+			Logger: logger.Default.LogMode(logger.Info), // Log ALL SQL queries
 		})
 		if err != nil {
 			panic("failed to connect database")

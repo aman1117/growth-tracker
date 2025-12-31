@@ -1,6 +1,7 @@
 package services
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -9,6 +10,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
+
+// Username validation regex: lowercase letters, numbers, underscore, dot
+var validUsername = regexp.MustCompile(`^[a-z0-9_.]+$`)
 
 type registerRequest struct {
 	Email    string `json:"email"`
@@ -45,8 +49,24 @@ func RegisterHandler(c *fiber.Ctx) error {
 			"error":   "Password must be at least 8 characters long",
 		})
 	}
+
+	// Validate username format
+	if !validUsername.MatchString(body.Username) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "Username can only contain lowercase letters, numbers, _ and .",
+		})
+	}
+
+	if len(body.Username) < 3 || len(body.Username) > 20 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "Username must be between 3 and 20 characters",
+		})
+	}
+
 	body.Email = strings.TrimSpace(body.Email)
-	body.Username = strings.TrimSpace(body.Username)
+	body.Username = strings.ToLower(strings.TrimSpace(body.Username))
 	body.Password = strings.TrimSpace(body.Password)
 	if err := CreateUser(body.Email, body.Username, body.Password); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

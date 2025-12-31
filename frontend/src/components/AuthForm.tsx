@@ -15,9 +15,19 @@ export const AuthForm: React.FC = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
+    // Username validation: lowercase letters, numbers, underscore, dot only
+    const isValidUsername = (name: string) => /^[a-z0-9_.]+$/.test(name);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+
+        // Validate username format on registration
+        if (!isLogin && !isValidUsername(username)) {
+            setToast({ message: 'Username can only contain lowercase letters, numbers, _ and .', type: 'error' });
+            setLoading(false);
+            return;
+        }
 
         try {
             if (isLogin) {
@@ -82,8 +92,11 @@ export const AuthForm: React.FC = () => {
                             type="text"
                             className="input-field"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={(e) => setUsername(e.target.value.toLowerCase())}
                             required
+                            pattern="[a-z0-9_.]+"
+                            title="Only lowercase letters, numbers, underscore and dot allowed"
+                            placeholder={isLogin ? '' : 'e.g. john_doe'}
                         />
                     </div>
 

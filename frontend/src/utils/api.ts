@@ -1,5 +1,5 @@
-const API_URL = 'https://growth-tracker-api.yellowwater-07aa7c55.centralindia.azurecontainerapps.io';
-// const API_URL = 'http://localhost:8000';
+// const API_URL = 'https://growth-tracker-api.yellowwater-07aa7c55.centralindia.azurecontainerapps.io';
+const API_URL = 'http://localhost:8000';
 
 export const api = {
     async get(endpoint: string) {

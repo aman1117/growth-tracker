@@ -94,5 +94,6 @@ Track time across **16 life categories**:
 - [x] Dark Theme
 - [ ] Reset Password/Username
 - [ ] Friends
+- [x] Username validation to have small char / numbers / _ / .
 - [ ] Unit test cases
 

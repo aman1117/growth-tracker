@@ -328,3 +328,32 @@ h3 {
 [data-theme='dark'] .btn-primary:hover {
   background-color: var(--accent-hover);
 }
+
+/* Drag and Drop Styles */
+.activity-tile:hover .drag-handle {
+  opacity: 0.8 !important;
+}
+
+.activity-tile .drag-handle:hover {
+  opacity: 1 !important;
+}
+
+.activity-tile[style*="opacity: 0.5"] {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Metro Tile Styles */
+.metro-tile {
+  transition: transform 0.1s ease, filter 0.2s ease;
+}
+
+.metro-tile:active {
+  transform: scale(0.98);
+}
+
+/* Corner handles hover */
+.metro-tile div[style*="cursor: ne-resize"]:hover,
+.metro-tile div[style*="cursor: nw-resize"]:hover {
+  background-color: var(--accent) !important;
+  transform: scale(1.1);
+}

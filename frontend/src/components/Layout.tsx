@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, TrendingUp, Search, User as UserIcon, X } from 'lucide-react';
+import { LogOut, TrendingUp, Search, User as UserIcon, X, Settings2 } from 'lucide-react';
 import { api } from '../utils/api';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -81,26 +81,38 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                         <div style={{
                             background: 'var(--logo-bg)',
                             color: 'var(--logo-color)',
-                            padding: '0.25rem',
-                            borderRadius: '6px',
+                            padding: '0.4rem',
+                            borderRadius: '8px',
                             display: 'flex',
                             transition: 'background-color 0.3s ease'
                         }}>
-                            <TrendingUp size={20} strokeWidth={2.5} color="var(--logo-color)" />
+                            <TrendingUp size={22} strokeWidth={2.5} color="var(--logo-color)" />
                         </div>
-                        <h1 style={{
-                            fontSize: '1.125rem',
-                            fontWeight: 700,
-                            color: 'var(--text-primary)',
-                            letterSpacing: '-0.025em'
-                        }}>
-                            Growth Tracker
-                        </h1>
                     </div>
 
                     {user && (
                         <div className="flex items-center gap-4">
                             <ThemeToggle />
+                            <button
+                                onClick={() => {
+                                    window.dispatchEvent(new CustomEvent('toggleEditMode'));
+                                }}
+                                className="btn-outline"
+                                style={{
+                                    padding: '0.5rem',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'var(--text-secondary)',
+                                    width: '36px',
+                                    height: '36px'
+                                }}
+                                title="Customize tiles"
+                            >
+                                <Settings2 size={16} />
+                            </button>
                             <button
                                 onClick={() => setIsSearchOpen(true)}
                                 className="btn-outline"

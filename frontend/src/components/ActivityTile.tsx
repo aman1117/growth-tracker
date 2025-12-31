@@ -107,7 +107,8 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                 transition: isDraggingProp ? 'none' : 'all 0.15s ease',
                 position: 'relative',
                 borderRadius: '8px',
-                touchAction: 'none',
+                // Only disable touch scrolling when tile is selected and ready to drag
+                touchAction: isSelected && isDraggable ? 'none' : 'manipulation',
                 overflow: 'hidden',
                 border: isActive ? `1px solid ${color}` : '1px solid var(--border)',
                 boxShadow: isActive ? `0 2px 8px ${color}40` : 'none',

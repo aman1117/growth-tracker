@@ -10,27 +10,30 @@ const getAudioContext = (): AudioContext => {
     return audioContext;
 };
 
-// Soft "tick" sound for activity updates
+// Soft "pop" sound for activity updates
 export const playActivitySound = () => {
     try {
         const ctx = getAudioContext();
+        
+        // Create a warmer, more satisfying "pop" sound
         const oscillator = ctx.createOscillator();
         const gainNode = ctx.createGain();
 
         oscillator.connect(gainNode);
         gainNode.connect(ctx.destination);
 
-        // Soft, pleasant frequency
-        oscillator.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
+        // Start higher and drop for a "pop" effect
+        oscillator.frequency.setValueAtTime(600, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.08);
         oscillator.type = 'sine';
 
-        // Quick fade in and out for a soft "tick"
+        // Smooth envelope
         gainNode.gain.setValueAtTime(0, ctx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+        gainNode.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.015);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
 
         oscillator.start(ctx.currentTime);
-        oscillator.stop(ctx.currentTime + 0.1);
+        oscillator.stop(ctx.currentTime + 0.15);
     } catch (e) {
         console.log('Audio not supported');
     }

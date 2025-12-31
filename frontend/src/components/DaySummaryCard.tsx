@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../utils/api';
-import { Flame, ChevronLeft, ChevronRight, Clock, CheckCircle2, Trophy } from 'lucide-react';
+import { Flame, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 
 interface DaySummaryCardProps {
     username: string;
@@ -84,7 +84,6 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     const totalHours = Object.values(activities).reduce<number>((sum, hours) => sum + hours, 0);
     const maxHours = 24;
     const percentage = Math.min((totalHours / maxHours) * 100, 100);
-    const remainingHours = Math.max(maxHours - totalHours, 0);
     const isComplete = totalHours >= maxHours;
 
     if (loading || streakLoading) {
@@ -92,7 +91,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
             <div
                 className="skeleton"
                 style={{
-                    height: '140px',
+                    height: '56px',
                     marginBottom: '1rem',
                     borderRadius: '8px',
                 }}
@@ -103,196 +102,119 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     return (
         <div
             style={{
-                backgroundColor: 'var(--bg-secondary)',
-                border: '1px solid var(--border)',
+                background: isComplete 
+                    ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%)'
+                    : 'linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.06) 100%)',
+                border: isComplete 
+                    ? '1px solid rgba(34, 197, 94, 0.2)' 
+                    : '1px solid rgba(251, 191, 36, 0.2)',
                 borderRadius: '8px',
                 marginBottom: '1rem',
-                overflow: 'hidden',
-                transition: 'all 0.3s ease',
+                padding: '0.75rem 1rem',
             }}
         >
-            {/* Top Section: Date Navigator */}
+            {/* Single Row: Navigation + Progress + Streaks */}
             <div
                 style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 1rem',
-                    borderBottom: '1px solid var(--border)',
+                    gap: '1rem',
                 }}
             >
-                <button
-                    onClick={onPrev}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-primary)',
-                        cursor: 'pointer',
-                        padding: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '8px',
-                        transition: 'background-color 0.2s',
-                    }}
-                >
-                    <ChevronLeft size={22} />
-                </button>
-
-                <span
-                    style={{
-                        fontSize: '1rem',
-                        fontWeight: 700,
-                        color: 'var(--text-primary)',
-                        letterSpacing: '0.02em',
-                    }}
-                >
-                    {formatDate(currentDate)}
-                </span>
-
-                <button
-                    onClick={onNext}
-                    disabled={isNextDisabled}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-primary)',
-                        cursor: isNextDisabled ? 'not-allowed' : 'pointer',
-                        padding: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '8px',
-                        opacity: isNextDisabled ? 0.3 : 1,
-                        transition: 'background-color 0.2s',
-                    }}
-                >
-                    <ChevronRight size={22} />
-                </button>
-            </div>
-
-            {/* Middle Section: Hours Progress */}
-            <div style={{ padding: '1rem 1.25rem' }}>
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: '0.75rem',
-                    }}
-                >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {isComplete ? (
-                            <CheckCircle2 size={18} color="var(--success)" />
-                        ) : (
-                            <Clock size={18} color="var(--text-secondary)" />
-                        )}
-                        <span
-                            style={{
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                                color: isComplete ? 'var(--success)' : 'var(--text-secondary)',
-                            }}
-                        >
-                            {isComplete ? 'Day Complete!' : `${remainingHours}h remaining`}
-                        </span>
-                    </div>
-                    <span
+                {/* Date Navigation */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button
+                        onClick={onPrev}
                         style={{
-                            fontSize: '1.5rem',
-                            fontWeight: 700,
-                            color: 'var(--text-primary)',
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            padding: '0.25rem',
+                            display: 'flex',
+                            alignItems: 'center',
                         }}
                     >
-                        {totalHours}
-                        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-secondary)' }}>
-                            /{maxHours}h
-                        </span>
+                        <ChevronLeft size={18} />
+                    </button>
+                    <span
+                        style={{
+                            fontSize: '0.875rem',
+                            fontWeight: 600,
+                            color: 'var(--text-primary)',
+                            minWidth: '80px',
+                            textAlign: 'center',
+                        }}
+                    >
+                        {formatDate(currentDate)}
                     </span>
+                    <button
+                        onClick={onNext}
+                        disabled={isNextDisabled}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            cursor: isNextDisabled ? 'not-allowed' : 'pointer',
+                            padding: '0.25rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            opacity: isNextDisabled ? 0.3 : 1,
+                        }}
+                    >
+                        <ChevronRight size={18} />
+                    </button>
                 </div>
 
                 {/* Progress Bar */}
-                <div
-                    style={{
-                        width: '100%',
-                        height: '8px',
-                        backgroundColor: 'var(--progress-track)',
-                        borderRadius: '4px',
-                        overflow: 'hidden',
-                    }}
-                >
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div
                         style={{
-                            width: `${percentage}%`,
-                            height: '100%',
-                            backgroundColor: isComplete ? 'var(--success)' : 'var(--accent)',
-                            borderRadius: '4px',
-                            transition: 'width 0.4s ease, background-color 0.3s ease',
-                        }}
-                    />
-                </div>
-            </div>
-
-            {/* Bottom Section: Streaks */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '1.5rem',
-                    padding: '0.75rem 1rem',
-                    borderTop: '1px solid var(--border)',
-                    backgroundColor: 'var(--icon-bg-muted)',
-                }}
-            >
-                {isToday() && (
-                    <>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    width: '28px',
-                                    height: '28px',
-                                    borderRadius: '50%',
-                                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                                }}
-                            >
-                                <Flame size={16} color="#f59e0b" />
-                            </div>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                                {streak.current}
-                            </span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                day streak
-                            </span>
-                        </div>
-
-                        <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--border)' }} />
-                    </>
-                )}
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '28px',
-                            height: '28px',
-                            borderRadius: '50%',
-                            backgroundColor: 'rgba(234, 179, 8, 0.15)',
+                            flex: 1,
+                            height: '6px',
+                            backgroundColor: 'var(--progress-track)',
+                            borderRadius: '3px',
+                            overflow: 'hidden',
                         }}
                     >
-                        <Trophy size={14} color="var(--accent)" />
+                        <div
+                            style={{
+                                width: `${percentage}%`,
+                                height: '100%',
+                                backgroundColor: isComplete ? 'var(--success)' : 'var(--accent)',
+                                borderRadius: '3px',
+                                transition: 'width 0.4s ease',
+                            }}
+                        />
                     </div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {streak.longest}
+                    <span
+                        style={{
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            color: isComplete ? 'var(--success)' : 'var(--text-primary)',
+                            minWidth: '45px',
+                        }}
+                    >
+                        {totalHours}/{maxHours}h
                     </span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        best streak
-                    </span>
+                </div>
+
+                {/* Streaks */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    {isToday() && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Flame size={14} fill="#fcd34d" color="#f59e0b" />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                                {streak.current}
+                            </span>
+                        </div>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Trophy size={13} fill="#fef08a" color="#eab308" />
+                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                            {streak.longest}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

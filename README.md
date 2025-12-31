@@ -157,5 +157,7 @@ Response:
 - [ ] Reset Password
 - [ ] Custom Tile
 - [x] Dark Theme
-- [ ] Reset Password
+- [ ] Reset Password/Username
 - [ ] Friends
+- [ ] Unit test cases
+

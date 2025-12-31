@@ -16,9 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -74,9 +74,9 @@ fun HoursSummaryCard(
     }
 
     val statusIcon: ImageVector = when {
-        totalHours >= maxHours -> Icons.Default.CheckCircle
-        totalHours > maxHours -> Icons.Default.Warning
-        else -> Icons.Default.AccessTime
+        totalHours >= maxHours -> Icons.Outlined.CheckCircle
+        totalHours > maxHours -> Icons.Outlined.Warning
+        else -> Icons.Outlined.AccessTime
     }
 
     Card(

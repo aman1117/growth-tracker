@@ -19,10 +19,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -113,24 +113,24 @@ private fun ToastContent(
 ) {
     val (backgroundColor, iconColor, icon) = when (type) {
         ToastType.SUCCESS -> Triple(
-            Color(0xFF10B981),
+            Color(0xFF22C55E), // Match frontend success color
             Color.White,
-            Icons.Default.CheckCircle
+            Icons.Outlined.CheckCircle
         )
         ToastType.ERROR -> Triple(
             Color(0xFFEF4444),
             Color.White,
-            Icons.Default.Error
+            Icons.Outlined.ErrorOutline
         )
         ToastType.WARNING -> Triple(
-            Color(0xFFF59E0B),
+            Color(0xFFF59E0B), // Match frontend accent
             Color.White,
-            Icons.Default.Warning
+            Icons.Outlined.Warning
         )
         ToastType.INFO -> Triple(
             Color(0xFF3B82F6),
             Color.White,
-            Icons.Default.Info
+            Icons.Outlined.Info
         )
     }
 
@@ -138,12 +138,12 @@ private fun ToastContent(
         modifier = Modifier
             .shadow(
                 elevation = 8.dp,
-                shape = RoundedCornerShape(50),
+                shape = RoundedCornerShape(8.dp), // Slightly rounded but not pill
                 spotColor = backgroundColor.copy(alpha = 0.3f)
             )
             .background(
                 color = backgroundColor,
-                shape = RoundedCornerShape(50)
+                shape = RoundedCornerShape(8.dp)
             )
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,

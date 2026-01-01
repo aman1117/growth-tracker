@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Toast } from './Toast';
 
 export const AuthForm: React.FC = () => {
@@ -115,6 +115,21 @@ export const AuthForm: React.FC = () => {
                     <button type="submit" className="btn btn-primary" disabled={loading}>
                         {loading ? 'Processing...' : (isLogin ? 'Login' : 'Register')}
                     </button>
+
+                    {isLogin && (
+                        <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
+                            <Link 
+                                to="/forgot-password"
+                                style={{ 
+                                    fontSize: '0.8rem', 
+                                    color: 'var(--text-muted)', 
+                                    textDecoration: 'none' 
+                                }}
+                            >
+                                Forgot password?
+                            </Link>
+                        </div>
+                    )}
                 </form>
 
                 <div className="mt-4 text-center">

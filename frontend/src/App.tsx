@@ -5,6 +5,8 @@ import { ThemeProvider } from './context/ThemeContext';
 import { Layout } from './components/Layout';
 import { AuthForm } from './components/AuthForm';
 import { Dashboard } from './components/Dashboard';
+import { ForgotPassword } from './components/ForgotPassword';
+import { ResetPassword } from './components/ResetPassword';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,6 +30,8 @@ function App() {
           <Layout>
             <Routes>
               <Route path="/login" element={<AuthForm />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/"
                 element={

@@ -25,6 +25,14 @@ func main() {
 		log.Fatalf("DB connection failed: %v", err)
 	}
 
+	// Initialize Redis
+	if err := utils.InitRedis(); err != nil {
+		log.Printf(" Redis initialization failed: %v", err)
+		log.Println("Password reset functionality will be disabled")
+	} else {
+		fmt.Println("Redis connection successful")
+	}
+
 	if err := db.AutoMigrate(&models.User{}, &models.Activity{}, &models.Streak{}, &models.TileConfig{}); err != nil {
 		log.Fatalf("AutoMigrate failed: %v", err)
 	}
@@ -94,6 +102,10 @@ func main() {
 	app.Post("/update-username", services.AuthMiddleware, services.UpdateUsernameHandler)
 	app.Post("/update-privacy", services.AuthMiddleware, services.UpdatePrivacyHandler)
 	app.Get("/get-privacy", services.AuthMiddleware, services.GetPrivacyHandler)
+
+	app.Post("/auth/forgot-password", services.ForgotPasswordHandler)
+	app.Post("/auth/reset-password", services.ResetPasswordHandler)
+	app.Get("/auth/reset-password/validate", services.ValidateResetTokenHandler)
 
 	port := utils.GetFromEnv("PORT")
 	if port == "" {

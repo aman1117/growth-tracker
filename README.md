@@ -77,22 +77,17 @@ Track time across **16 life categories**:
 ## TODOs
 
 - [ ] Add weekly and monthly analytics dashboard
-- [ ] Implement streak recovery (grace days)
 - [ ] Add activity reminders / notifications
 - [ ] Social features - follow users, leaderboards
 - [ ] Export data to CSV/PDF
-- [ ] iOS app
-- [ ] Widgets for Android home screen
 - [ ] Activity suggestions based on patterns
 - [ ] Goal setting per activity category
-- [ ] Integration with calendar apps
 - [ ] Notes for each activity
-- [ ] Weekly and monthly activity summary
-- [ ] Make profile private/public option
-- [ ] Reset password functionality
+- [x] Make profile private/public option
+- [x] Reset password functionality
 - [ ] Custom activity tiles
 - [x] Dark Theme
-- [ ] Reset Password/Username
+- [x] Reset Password/Username
 - [ ] Friends
 - [x] Username validation to have small char / numbers / _ / .
 - [ ] Unit test cases

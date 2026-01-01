@@ -91,4 +91,5 @@ Track time across **16 life categories**:
 - [ ] Friends
 - [x] Username validation to have small char / numbers / _ / .
 - [ ] Unit test cases
+- [ ] Profile Photo
 

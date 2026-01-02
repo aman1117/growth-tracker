@@ -111,7 +111,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 src="/logo.png" 
                                 alt="Growth Tracker" 
                                 style={{ 
-                                    height: '26px', 
+                                    height: '30px', 
                                     width: 'auto',
                                     filter: 'var(--logo-filter)'
                                 }} 

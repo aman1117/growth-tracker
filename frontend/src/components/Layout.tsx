@@ -164,7 +164,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             }}>
                                 {/* Search Input Container */}
                                 <div 
-                                    onClick={() => !isSearchOpen && setIsSearchOpen(true)}
+                                    onClick={() => {
+                                        if (!isSearchOpen) {
+                                            setIsSearchOpen(true);
+                                            // Focus immediately on click for mobile keyboard
+                                            searchInputRef.current?.focus();
+                                        }
+                                    }}
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
@@ -201,11 +207,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                             outline: 'none',
                                             fontSize: '0.9375rem',
                                             color: 'var(--text-primary)',
-                                            width: isSearchOpen ? '100%' : '0px',
+                                            flex: isSearchOpen ? 1 : 0,
+                                            width: isSearchOpen ? 'auto' : '1px',
+                                            minWidth: isSearchOpen ? '0' : '1px',
                                             opacity: isSearchOpen ? 1 : 0,
                                             fontWeight: 400,
                                             padding: 0,
-                                            transition: 'width 0.3s ease, opacity 0.2s ease'
+                                            transition: 'flex 0.3s ease, opacity 0.2s ease',
+                                            position: isSearchOpen ? 'relative' : 'absolute'
                                         }}
                                     />
                                     {searchQuery.length > 0 && isSearchOpen && (

@@ -29,7 +29,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     // Focus input when search opens
     useEffect(() => {
         if (isSearchOpen && searchInputRef.current) {
-            setTimeout(() => searchInputRef.current?.focus(), 100);
+            // Longer delay to ensure animation completes and input is visible
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+                setIsSearchFocused(true);
+            }, 350);
         }
     }, [isSearchOpen]);
 

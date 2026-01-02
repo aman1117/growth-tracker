@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Search, User as UserIcon, X, Settings2, Lock, ChevronLeft } from 'lucide-react';
+import { Search, User as UserIcon, X, Settings2, Lock, ChevronLeft } from 'lucide-react';
 import { api } from '../utils/api';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';

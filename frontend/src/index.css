@@ -35,6 +35,11 @@
   --icon-bg-muted: rgba(0, 0, 0, 0.05);
   --logo-bg: #422006;
   --logo-color: #ffffff;
+  
+  /* Glass effect */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 /* Dark Theme - Warm Amber/Brown */
@@ -65,7 +70,7 @@
   /* Green 400 */
   
   /* Header specific */
-  --header-bg: rgba(28, 20, 16, 0.9);
+  --header-bg: rgba(28, 20, 16, 0.85);
   --modal-overlay: rgba(0, 0, 0, 0.7);
   --shadow-sm: rgba(0, 0, 0, 0.2);
   --shadow-md: rgba(0, 0, 0, 0.3);
@@ -77,6 +82,11 @@
   --icon-bg-muted: rgba(255, 255, 255, 0.08);
   --logo-bg: #fef3c7;
   --logo-color: #1c1410;
+  
+  /* Glass effect */
+  --glass-bg: rgba(37, 28, 20, 0.75);
+  --glass-border: rgba(61, 48, 34, 0.6);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -163,25 +173,30 @@ input {
 }
 
 .input-field {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid var(--glass-border);
   padding: 0.75rem;
   color: var(--text-primary);
   font-size: 1rem;
-  transition: border-color 0.2s;
-  border-radius: 8px;
+  transition: all 0.2s ease;
+  border-radius: 10px;
 }
 
 .input-field:focus {
-  border-color: var(--text-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.15);
 }
 
 .card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
   padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  box-shadow: var(--glass-shadow);
 }
 
 .text-center {

@@ -157,12 +157,13 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: 'var(--modal-overlay)',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 zIndex: 100,
-                backdropFilter: 'blur(4px)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
                 paddingTop: '15vh'
             }}
             onClick={onClose}
@@ -171,10 +172,12 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                 style={{
                     width: '100%',
                     maxWidth: '300px',
-                    backgroundColor: 'var(--bg-primary)',
-                    borderRadius: '10px',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid var(--border)',
+                    background: 'var(--glass-bg)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    borderRadius: '14px',
+                    boxShadow: 'var(--glass-shadow)',
+                    border: '1px solid var(--glass-border)',
                     overflow: 'hidden',
                     margin: '0 1rem'
                 }}

@@ -200,27 +200,30 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: 'var(--modal-overlay)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     display: 'flex',
                     alignItems: 'flex-start',
                     justifyContent: 'center',
                     zIndex: 100,
-                    backdropFilter: 'blur(4px)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
                     paddingTop: '10vh'
                 }} onClick={() => setIsSearchOpen(false)}>
                     <div style={{
                         width: '100%',
                         maxWidth: '320px',
-                        backgroundColor: 'var(--bg-primary)',
-                        borderRadius: '10px',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                        border: '1px solid var(--border)',
+                        background: 'var(--glass-bg)',
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                        borderRadius: '14px',
+                        boxShadow: 'var(--glass-shadow)',
+                        border: '1px solid var(--glass-border)',
                         overflow: 'hidden',
                         margin: '0 1rem'
                     }} onClick={e => e.stopPropagation()}>
                         <div style={{
                             padding: '0.75rem 1rem',
-                            borderBottom: '1px solid var(--border)',
+                            borderBottom: '1px solid var(--glass-border)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.6rem'

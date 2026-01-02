@@ -198,8 +198,8 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                         </span>
                         <span style={{
                             fontSize: config.hoursSize,
-                            fontWeight: 400,
-                            color: isActive ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)'
+                            fontWeight: 600,
+                            color: isActive ? 'rgba(255,255,255,0.95)' : 'var(--text-primary)'
                         }}>
                             {hours}h
                         </span>

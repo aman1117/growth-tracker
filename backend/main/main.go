@@ -14,14 +14,14 @@ import (
 )
 
 func main() {
-	// Initialize Zap logger first
+	// Initialize environment variables FIRST (loads .env file)
+	utils.InitDB()
+
+	// Initialize Zap logger (after env is loaded)
 	utils.InitLogger()
 	defer utils.SyncLogger()
 
 	log := utils.Sugar // Use sugared logger for convenience
-
-	// Initialize environment variables once at startup
-	utils.InitDB()
 
 	db := utils.GetDB()
 	if err := db.Error; err != nil {

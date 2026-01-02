@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Search, User as UserIcon, X, Settings2, Lock } from 'lucide-react';
+import { TrendingUp, Search, User as UserIcon, X, Settings2, Lock, ChevronLeft } from 'lucide-react';
 import { api } from '../utils/api';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';
@@ -22,14 +22,28 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
     const searchInputRef = useRef<HTMLInputElement>(null);
+    const searchContainerRef = useRef<HTMLDivElement>(null);
 
     // Focus input when search opens
     useEffect(() => {
         if (isSearchOpen && searchInputRef.current) {
-            searchInputRef.current.focus();
+            setTimeout(() => searchInputRef.current?.focus(), 100);
         }
     }, [isSearchOpen]);
+
+    // Close search dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+                setIsSearchFocused(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Debounced Search
     useEffect(() => {
@@ -46,7 +60,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             } else {
                 setSearchResults([]);
             }
-        }, 500);
+        }, 300);
 
         return () => clearTimeout(timer);
     }, [searchQuery]);
@@ -54,6 +68,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     const handleUserClick = (username: string) => {
         navigate(`/user/${username}`);
         setIsSearchOpen(false);
+        setIsSearchFocused(false);
+        setSearchQuery('');
+        setSearchResults([]);
+    };
+
+    const closeSearch = () => {
+        setIsSearchOpen(false);
+        setIsSearchFocused(false);
         setSearchQuery('');
         setSearchResults([]);
     };
@@ -72,61 +94,256 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 transition: 'background-color 0.3s ease, border-color 0.3s ease'
             }}>
                 <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 1.5rem' }}>
-                    <div
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
-                        onClick={() => navigate('/')}
-                    >
-                        <div style={{
-                            background: 'var(--logo-bg)',
-                            color: 'var(--logo-color)',
-                            padding: '0.4rem',
-                            borderRadius: '8px',
-                            display: 'flex',
-                            transition: 'background-color 0.3s ease'
-                        }}>
-                            <TrendingUp size={22} strokeWidth={2.5} color="var(--logo-color)" />
+                    {!isSearchOpen && (
+                        <div
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+                            onClick={() => navigate('/')}
+                        >
+                            <div style={{
+                                background: 'var(--logo-bg)',
+                                color: 'var(--logo-color)',
+                                padding: '0.4rem',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                transition: 'background-color 0.3s ease'
+                            }}>
+                                <TrendingUp size={22} strokeWidth={2.5} color="var(--logo-color)" />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {user && (
-                        <div className="flex items-center gap-4">
+                        <div 
+                            ref={searchContainerRef}
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '0.75rem', 
+                                flex: 1, 
+                                marginLeft: isSearchOpen ? '0' : '1rem',
+                                position: 'relative',
+                                justifyContent: 'flex-end',
+                                transition: 'margin-left 0.3s ease'
+                            }}
+                        >
+                            {/* Back button - only visible when expanded, positioned far left */}
                             <button
-                                onClick={() => {
-                                    window.dispatchEvent(new CustomEvent('toggleEditMode'));
-                                }}
-                                className="btn-outline"
+                                onClick={closeSearch}
                                 style={{
-                                    padding: '0.5rem',
-                                    border: '1px solid var(--border)',
+                                    padding: '0.25rem',
+                                    border: 'none',
                                     borderRadius: '50%',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    color: 'var(--text-secondary)',
-                                    width: '36px',
-                                    height: '36px'
-                                }}
-                                title="Customize tiles"
-                            >
-                                <Settings2 size={16} />
-                            </button>
-                            <button
-                                onClick={() => setIsSearchOpen(true)}
-                                className="btn-outline"
-                                style={{
-                                    padding: '0.5rem',
-                                    border: '1px solid var(--border)',
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'var(--text-secondary)',
-                                    width: '36px',
-                                    height: '36px'
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--text-primary)',
+                                    cursor: 'pointer',
+                                    flexShrink: 0,
+                                    width: isSearchOpen ? '32px' : '0px',
+                                    opacity: isSearchOpen ? 1 : 0,
+                                    overflow: 'hidden',
+                                    transition: 'width 0.3s ease, opacity 0.2s ease',
+                                    marginRight: isSearchOpen ? '0.25rem' : '0'
                                 }}
                             >
-                                <Search size={16} />
+                                <ChevronLeft size={24} />
                             </button>
+
+                            {/* Animated Search Bar */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                flex: isSearchOpen ? 1 : 'unset',
+                                position: 'relative',
+                                justifyContent: 'flex-end'
+                            }}>
+                                {/* Search Input Container */}
+                                <div 
+                                    onClick={() => !isSearchOpen && setIsSearchOpen(true)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: isSearchOpen ? '0.5rem' : '0',
+                                        padding: isSearchOpen ? '0.5rem 1rem' : '0',
+                                        backgroundColor: 'var(--bg-secondary)',
+                                        borderRadius: '9999px',
+                                        border: isSearchFocused && isSearchOpen ? '1px solid var(--accent)' : '1px solid transparent',
+                                        cursor: isSearchOpen ? 'text' : 'pointer',
+                                        flex: isSearchOpen ? 1 : 'unset',
+                                        width: isSearchOpen ? 'auto' : '36px',
+                                        height: '36px',
+                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        position: 'relative',
+                                        overflow: 'hidden'
+                                    }}
+                                >
+                                    <Search 
+                                        size={16} 
+                                        color="var(--text-secondary)" 
+                                        style={{ flexShrink: 0 }}
+                                    />
+                                    <input
+                                        ref={searchInputRef}
+                                        type="text"
+                                        placeholder="Search"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onFocus={() => setIsSearchFocused(true)}
+                                        style={{
+                                            border: 'none',
+                                            background: 'transparent',
+                                            outline: 'none',
+                                            fontSize: '0.9375rem',
+                                            color: 'var(--text-primary)',
+                                            width: isSearchOpen ? '100%' : '0px',
+                                            opacity: isSearchOpen ? 1 : 0,
+                                            fontWeight: 400,
+                                            padding: 0,
+                                            transition: 'width 0.3s ease, opacity 0.2s ease'
+                                        }}
+                                    />
+                                    {searchQuery.length > 0 && isSearchOpen && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSearchQuery('');
+                                                searchInputRef.current?.focus();
+                                            }}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                color: 'var(--text-secondary)',
+                                                cursor: 'pointer',
+                                                padding: '0.125rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0
+                                            }}
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Search Results Dropdown */}
+                                {isSearchOpen && isSearchFocused && (searchResults.length > 0 || searchQuery.length > 0) && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 'calc(100% + 8px)',
+                                        left: isSearchOpen ? '36px' : '0',
+                                        right: 0,
+                                        backgroundColor: 'var(--bg-primary)',
+                                        borderRadius: '12px',
+                                        border: '1px solid var(--border)',
+                                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                        overflow: 'hidden',
+                                        zIndex: 100,
+                                        maxHeight: '320px',
+                                        overflowY: 'auto',
+                                        animation: 'dropdownFadeIn 0.2s ease-out'
+                                    }}>
+                                        <style>{`
+                                            @keyframes dropdownFadeIn {
+                                                from { opacity: 0; transform: translateY(-8px); }
+                                                to { opacity: 1; transform: translateY(0); }
+                                            }
+                                        `}</style>
+                                        {searchResults.length > 0 ? (
+                                            searchResults.map((result) => (
+                                                <div
+                                                    key={result.id}
+                                                    onClick={() => handleUserClick(result.username)}
+                                                    style={{
+                                                        padding: '0.75rem 1rem',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.75rem',
+                                                        borderBottom: '1px solid var(--border)',
+                                                        transition: 'background-color 0.15s'
+                                                    }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                >
+                                                    <div style={{
+                                                        width: '40px',
+                                                        height: '40px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: 'var(--avatar-bg)',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        overflow: 'hidden',
+                                                        flexShrink: 0
+                                                    }}>
+                                                        {result.profile_pic ? (
+                                                            <img 
+                                                                src={result.profile_pic} 
+                                                                alt={result.username}
+                                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                            />
+                                                        ) : (
+                                                            <UserIcon size={18} color="var(--text-secondary)" />
+                                                        )}
+                                                    </div>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ 
+                                                            fontSize: '0.9375rem', 
+                                                            fontWeight: 600, 
+                                                            color: 'var(--text-primary)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px'
+                                                        }}>
+                                                            @{result.username}
+                                                            {result.is_private && (
+                                                                <Lock size={12} color="var(--text-secondary)" />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : searchQuery.length > 0 ? (
+                                            <div style={{ 
+                                                padding: '2rem 1rem', 
+                                                textAlign: 'center', 
+                                                color: 'var(--text-secondary)', 
+                                                fontSize: '0.875rem' 
+                                            }}>
+                                                No users found
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Edit tiles button - hide when search is open */}
+                            {!isSearchOpen && (
+                                <button
+                                    onClick={() => {
+                                        window.dispatchEvent(new CustomEvent('toggleEditMode'));
+                                    }}
+                                    style={{
+                                        padding: 0,
+                                        border: 'none',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: 'var(--bg-secondary)',
+                                        color: 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        width: '36px',
+                                        height: '36px'
+                                    }}
+                                    title="Customize tiles"
+                                >
+                                    <Settings2 size={16} />
+                                </button>
+                            )}
 
                             <ProfileDropdown />
                         </div>
@@ -141,147 +358,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <main style={{ flex: 1, paddingTop: '0.5rem' }}>
                 {children}
             </main>
-
-            {/* Search Modal */}
-            {isSearchOpen && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'center',
-                    zIndex: 100,
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    paddingTop: '10vh'
-                }} onClick={() => setIsSearchOpen(false)}>
-                    <div style={{
-                        width: '100%',
-                        maxWidth: '320px',
-                        background: 'var(--glass-bg)',
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        borderRadius: '14px',
-                        boxShadow: 'var(--glass-shadow)',
-                        border: '1px solid var(--glass-border)',
-                        overflow: 'hidden',
-                        margin: '0 1rem'
-                    }} onClick={e => e.stopPropagation()}>
-                        <div style={{
-                            padding: '0.75rem 1rem',
-                            borderBottom: '1px solid var(--glass-border)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.6rem'
-                        }}>
-                            <Search size={16} color="var(--text-secondary)" />
-                            <input
-                                ref={searchInputRef}
-                                type="text"
-                                placeholder="Search users..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                style={{
-                                    border: 'none',
-                                    background: 'transparent',
-                                    outline: 'none',
-                                    fontSize: '0.9rem',
-                                    color: 'var(--text-primary)',
-                                    width: '100%',
-                                    fontWeight: 500
-                                }}
-                            />
-                            <button
-                                onClick={() => {
-                                    if (searchQuery.length > 0) {
-                                        setSearchQuery('');
-                                        searchInputRef.current?.focus();
-                                    } else {
-                                        setIsSearchOpen(false);
-                                    }
-                                }}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--text-secondary)',
-                                    cursor: 'pointer',
-                                    padding: '0.25rem'
-                                }}
-                            >
-                                <X size={16} />
-                            </button>
-                        </div>
-
-                        {searchResults.length > 0 && (
-                            <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
-                                {searchResults.map((result) => (
-                                    <div
-                                        key={result.id}
-                                        onClick={() => handleUserClick(result.username)}
-                                        style={{
-                                            padding: '0.5rem 0.75rem',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.6rem',
-                                            borderBottom: '1px solid var(--border)',
-                                            transition: 'background-color 0.2s'
-                                        }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                    >
-                                        <div style={{
-                                            width: '32px',
-                                            height: '32px',
-                                            borderRadius: '50%',
-                                            backgroundColor: 'var(--bg-secondary)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            overflow: 'hidden'
-                                        }}>
-                                            {result.profile_pic ? (
-                                                <img 
-                                                    src={result.profile_pic} 
-                                                    alt={result.username}
-                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                                />
-                                            ) : (
-                                                <UserIcon size={16} color="var(--text-secondary)" />
-                                            )}
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ 
-                                                fontSize: '0.875rem', 
-                                                fontWeight: 600, 
-                                                color: 'var(--text-primary)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '4px'
-                                            }}>
-                                                {result.username}
-                                                {result.is_private && (
-                                                    <Lock size={12} color="var(--text-secondary)" />
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {searchQuery.length > 0 && searchResults.length === 0 && (
-                            <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                                No users found
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

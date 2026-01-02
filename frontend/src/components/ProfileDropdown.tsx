@@ -47,34 +47,29 @@ export const ProfileDropdown: React.FC = () => {
                 style={{
                     display: 'flex',
                     alignItems: 'center',
-                    padding: '0.25rem',
+                    justifyContent: 'center',
+                    padding: 0,
                     borderRadius: '50%',
-                    border: '1px solid var(--border)',
-                    backgroundColor: isOpen ? 'var(--bg-secondary)' : 'transparent',
+                    border: 'none',
+                    backgroundColor: 'transparent',
                     cursor: 'pointer',
-                    transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                    if (!isOpen) e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
-                }}
-                onMouseLeave={(e) => {
-                    if (!isOpen) e.currentTarget.style.backgroundColor = 'transparent';
+                    width: '36px',
+                    height: '36px'
                 }}
             >
                 <div
                     style={{
-                        width: '28px',
-                        height: '28px',
+                        width: '36px',
+                        height: '36px',
                         borderRadius: '50%',
                         backgroundColor: 'var(--avatar-bg)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: 700,
-                        fontSize: '0.75rem',
+                        fontSize: '0.875rem',
                         color: 'var(--text-primary)',
                         textTransform: 'uppercase',
-                        transition: 'background-color 0.3s ease',
                         overflow: 'hidden'
                     }}
                 >

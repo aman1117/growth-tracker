@@ -453,7 +453,7 @@ export const Dashboard: React.FC = () => {
                     alignItems: 'center',
                     gap: '0.75rem',
                     border: '1px solid var(--border)',
-                    fontWeight: 600,
+                    fontWeight: 400,
                     color: 'var(--text-primary)'
                 }}>
                     <div 

@@ -1,8 +1,12 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"mime/multipart"
 	"path/filepath"
@@ -15,6 +19,7 @@ import (
 	"github.com/aman1117/backend/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"golang.org/x/image/draw"
 )
 
 var blobClient *azblob.Client
@@ -102,8 +107,21 @@ func UploadProfilePictureHandler(c *fiber.Ctx) error {
 	}
 	defer src.Close()
 
-	// Generate unique blob name
-	blobName := fmt.Sprintf("%d/%s%s", userID, uuid.New().String(), ext)
+	// Compress and resize the image
+	compressedData, err := compressImage(src, ext)
+	if err != nil {
+		utils.Sugar.Warnw("Image compression failed, uploading original", "error", err)
+		// Reset file pointer and use original
+		src.Seek(0, 0)
+		compressedData = nil
+	}
+
+	// Generate unique blob name (always save as .jpg after compression)
+	outputExt := ".jpg"
+	if compressedData == nil {
+		outputExt = ext // Use original extension if compression failed
+	}
+	blobName := fmt.Sprintf("%d/%s%s", userID, uuid.New().String(), outputExt)
 
 	// Delete old profile picture if exists
 	var user models.User
@@ -129,8 +147,17 @@ func UploadProfilePictureHandler(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	contentType := getContentType(ext)
-	_, err = blobClient.UploadStream(ctx, containerName, blobName, src, &azblob.UploadStreamOptions{
+	var uploadReader io.Reader
+	var contentType string
+	if compressedData != nil {
+		uploadReader = bytes.NewReader(compressedData)
+		contentType = "image/jpeg"
+	} else {
+		uploadReader = src
+		contentType = getContentType(ext)
+	}
+
+	_, err = blobClient.UploadStream(ctx, containerName, blobName, uploadReader, &azblob.UploadStreamOptions{
 		HTTPHeaders: &blob.HTTPHeaders{
 			BlobContentType: &contentType,
 		},
@@ -282,4 +309,55 @@ func (r *fileReader) Seek(offset int64, whence int) (int64, error) {
 		return 0, fmt.Errorf("file does not support seeking")
 	}
 	return seeker.Seek(offset, whence)
+}
+
+// compressImage resizes and compresses an image to JPEG format
+// Max dimensions: 400x400px, Quality: 80%
+func compressImage(src io.Reader, ext string) ([]byte, error) {
+	// Decode the image based on format
+	var img image.Image
+	var err error
+
+	switch ext {
+	case ".jpg", ".jpeg":
+		img, err = jpeg.Decode(src)
+	case ".png":
+		img, err = png.Decode(src)
+	default:
+		// For unsupported formats (webp, heic), return error to use original
+		return nil, fmt.Errorf("compression not supported for %s", ext)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode image: %w", err)
+	}
+
+	// Calculate new dimensions (max 400x400, maintain aspect ratio)
+	bounds := img.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+	maxSize := 400
+
+	if width > maxSize || height > maxSize {
+		if width > height {
+			height = height * maxSize / width
+			width = maxSize
+		} else {
+			width = width * maxSize / height
+			height = maxSize
+		}
+	}
+
+	// Create resized image
+	resized := image.NewRGBA(image.Rect(0, 0, width, height))
+	draw.CatmullRom.Scale(resized, resized.Bounds(), img, bounds, draw.Over, nil)
+
+	// Encode to JPEG with 80% quality
+	var buf bytes.Buffer
+	err = jpeg.Encode(&buf, resized, &jpeg.Options{Quality: 80})
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode image: %w", err)
+	}
+
+	return buf.Bytes(), nil
 }

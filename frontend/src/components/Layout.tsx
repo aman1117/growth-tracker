@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Search, User as UserIcon, X, Settings2, Lock } from 'lucide-react';
 import { api } from '../utils/api';
-import { ProfileDialog } from './ProfileDialog';
+import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';
 
 interface SearchResult {
@@ -15,7 +15,7 @@ interface SearchResult {
 }
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     // Search State
@@ -23,15 +23,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const searchInputRef = useRef<HTMLInputElement>(null);
-    
-    // Profile Dialog State
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-    const handleLogout = () => {
-        setIsProfileOpen(false);
-        logout();
-        navigate('/login');
-    };
 
     // Focus input when search opens
     useEffect(() => {
@@ -137,61 +128,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 <Search size={16} />
                             </button>
 
-                            <button
-                                onClick={() => setIsProfileOpen(true)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.25rem 0.75rem 0.25rem 0.25rem',
-                                    borderRadius: '20px',
-                                    border: '1px solid var(--border)',
-                                    backgroundColor: 'transparent',
-                                    cursor: 'pointer',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
-                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                            >
-                                <div
-                                    style={{
-                                        width: '28px',
-                                        height: '28px',
-                                        borderRadius: '50%',
-                                        backgroundColor: 'var(--avatar-bg)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: 700,
-                                        fontSize: '0.75rem',
-                                        color: 'var(--text-primary)',
-                                        textTransform: 'uppercase',
-                                        transition: 'background-color 0.3s ease',
-                                        overflow: 'hidden'
-                                    }}
-                                >
-                                    {user.profilePic ? (
-                                        <img
-                                            src={user.profilePic}
-                                            alt={user.username}
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                objectFit: 'cover'
-                                            }}
-                                        />
-                                    ) : (
-                                        user.username.charAt(0)
-                                    )}
-                                </div>
-                                <span style={{
-                                    fontSize: '0.85rem',
-                                    fontWeight: 500,
-                                    color: 'var(--text-primary)'
-                                }}>
-                                    {user.username}
-                                </span>
-                            </button>
+                            <ProfileDropdown />
                         </div>
                     )}
                     
@@ -345,13 +282,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     </div>
                 </div>
             )}
-
-            {/* Profile Dialog */}
-            <ProfileDialog
-                isOpen={isProfileOpen}
-                onClose={() => setIsProfileOpen(false)}
-                onLogout={handleLogout}
-            />
         </div>
     );
 };

@@ -31,7 +31,7 @@ import {
     Moon, BookOpen, Utensils, Users, Sparkles,
     Dumbbell, Film, Home, Coffee, Palette,
     Plane, ShoppingBag, Sofa, Gamepad2, Briefcase,
-    Lock
+    Lock, X
 } from 'lucide-react';
 
 // Activity Configuration Map
@@ -164,6 +164,10 @@ export const Dashboard: React.FC = () => {
     // Private account state (when viewing someone else's private profile)
     const [isPrivateAccount, setIsPrivateAccount] = useState(false);
 
+    // Target user's profile pic (when viewing another user's dashboard)
+    const [targetProfilePic, setTargetProfilePic] = useState<string | null>(null);
+    const [showTargetFullscreenPic, setShowTargetFullscreenPic] = useState(false);
+
     // DnD Sensors
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -259,6 +263,28 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         fetchActivities();
     }, [fetchActivities]);
+
+    // Fetch target user's profile pic when viewing another user's dashboard
+    useEffect(() => {
+        const fetchTargetUserProfile = async () => {
+            if (isReadOnly && targetUsername) {
+                try {
+                    const res = await api.post('/users', { username: targetUsername });
+                    if (res.success && res.data && res.data.length > 0) {
+                        const exactMatch = res.data.find((u: { username: string }) => 
+                            u.username.toLowerCase() === targetUsername.toLowerCase()
+                        );
+                        if (exactMatch && exactMatch.profile_pic) {
+                            setTargetProfilePic(exactMatch.profile_pic);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch target user profile', err);
+                }
+            }
+        };
+        fetchTargetUserProfile();
+    }, [isReadOnly, targetUsername]);
 
     // Fetch tile config from backend - always fetch
     useEffect(() => {
@@ -420,15 +446,50 @@ export const Dashboard: React.FC = () => {
             {isReadOnly && (
                 <div style={{
                     backgroundColor: 'var(--bg-secondary)',
-                    padding: '1rem',
+                    padding: '0.75rem 1rem',
                     marginBottom: '1rem',
                     borderRadius: '8px',
-                    textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
                     border: '1px solid var(--border)',
                     fontWeight: 600,
                     color: 'var(--text-primary)'
                 }}>
-                    Viewing {targetUsername}'s Dashboard
+                    <div 
+                        onClick={() => targetProfilePic && setShowTargetFullscreenPic(true)}
+                        style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            backgroundColor: 'var(--avatar-bg)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '1.125rem',
+                            color: 'var(--text-primary)',
+                            textTransform: 'uppercase',
+                            overflow: 'hidden',
+                            flexShrink: 0,
+                            cursor: targetProfilePic ? 'zoom-in' : 'default',
+                            border: '2px solid var(--border)'
+                        }}>
+                        {targetProfilePic ? (
+                            <img
+                                src={targetProfilePic}
+                                alt={targetUsername}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
+                            />
+                        ) : (
+                            targetUsername?.charAt(0)
+                        )}
+                    </div>
+                    <span>Viewing {targetUsername}'s Dashboard</span>
                 </div>
             )}
 
@@ -678,6 +739,75 @@ export const Dashboard: React.FC = () => {
                     type={toast.type}
                     onClose={() => setToast(null)}
                 />
+            )}
+
+            {/* Fullscreen Target Profile Picture */}
+            {showTargetFullscreenPic && targetProfilePic && (
+                <div
+                    onClick={() => setShowTargetFullscreenPic(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10000,
+                        cursor: 'zoom-out',
+                        animation: 'fadeIn 0.2s ease-out'
+                    }}
+                >
+                    <button
+                        onClick={() => setShowTargetFullscreenPic(false)}
+                        style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            color: 'white',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <X size={24} />
+                    </button>
+                    <img
+                        src={targetProfilePic}
+                        alt={targetUsername || ''}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            maxWidth: '90vw',
+                            maxHeight: '90vh',
+                            objectFit: 'contain',
+                            borderRadius: '8px',
+                            cursor: 'default',
+                            animation: 'scaleIn 0.2s ease-out'
+                        }}
+                    />
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '30px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        color: 'white',
+                        fontSize: '1rem',
+                        fontWeight: 500,
+                        padding: '8px 16px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        borderRadius: '20px'
+                    }}>
+                        @{targetUsername}
+                    </div>
+                </div>
             )}
         </div>
     );

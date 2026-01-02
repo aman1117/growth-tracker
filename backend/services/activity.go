@@ -234,7 +234,7 @@ func GetActivityHandler(c *fiber.Ctx) error {
 	// Find user by username
 	var user models.User
 	if err := db.Where("username = ?", body.Username).First(&user).Error; err != nil {
-		utils.Sugar.Warnw("Activity fetch failed - user not found", "username", body.Username)
+		utils.LogWithUserID(currentUserID).Warnw("Activity fetch failed - user not found", "target_username", body.Username)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success":    false,
 			"error":      "Failed to find user",
@@ -260,7 +260,7 @@ func GetActivityHandler(c *fiber.Ctx) error {
 		startDate,
 		endDate,
 	).Find(&activities).Error; err != nil {
-		utils.Sugar.Errorw("Activity fetch failed", "username", body.Username, "error", err)
+		utils.Sugar.Errorw("Activity fetch failed", "user_id", user.ID, "username", body.Username, "error", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success":    false,
 			"error":      "Failed to find activities",

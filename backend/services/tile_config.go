@@ -114,7 +114,7 @@ func GetTileConfigByUsernameHandler(c *fiber.Ctx) error {
 	// First check if the user exists and is private
 	var user models.User
 	if err := db.Where("username = ?", req.Username).First(&user).Error; err != nil {
-		utils.Sugar.Warnw("Tile config fetch failed - user not found", "username", req.Username)
+		utils.LogWithUserID(currentUserID).Warnw("Tile config fetch failed - user not found", "target_username", req.Username)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"success":    false,
 			"error":      "User not found",

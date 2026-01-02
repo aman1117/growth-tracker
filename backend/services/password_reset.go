@@ -98,7 +98,7 @@ func ForgotPasswordHandler(c *fiber.Ctx) error {
 	rawToken, tokenHash, err := utils.GenerateResetToken()
 	if err != nil {
 		// Log error internally but return success to user
-		utils.Sugar.Errorw("Error generating reset token", "email", req.Email, "error", err)
+		utils.Sugar.Errorw("Error generating reset token", "user_id", user.ID, "email", req.Email, "error", err)
 		return c.Status(fiber.StatusOK).JSON(successResponse)
 	}
 
@@ -110,7 +110,7 @@ func ForgotPasswordHandler(c *fiber.Ctx) error {
 
 	// Send email with reset link
 	if err := sendPasswordResetEmail(user.Email, user.Username, rawToken); err != nil {
-		utils.Sugar.Errorw("Error sending reset email", "email", user.Email, "error", err)
+		utils.Sugar.Errorw("Error sending reset email", "user_id", user.ID, "email", user.Email, "error", err)
 		// Still return success - don't reveal email sending issues
 	}
 

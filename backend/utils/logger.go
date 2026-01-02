@@ -47,10 +47,10 @@ func (aw *AxiomWriter) Write(p []byte) (n int, err error) {
 	if err := json.Unmarshal(p, &entry); err != nil {
 		// If not valid JSON, wrap it
 		entry = map[string]interface{}{
-			"message":   string(p),
-			"_time":     time.Now().Format(time.RFC3339Nano),
-			"app":       "growth-tracker",
-			"env":       os.Getenv("ENV"),
+			"message": string(p),
+			"_time":   time.Now().Format(time.RFC3339Nano),
+			"app":     "growth-tracker",
+			"env":     os.Getenv("ENV"),
 		}
 	} else {
 		// Add Axiom timestamp and metadata

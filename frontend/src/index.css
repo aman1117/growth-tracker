@@ -21,7 +21,7 @@
   /* Neutral 300 */
   --error: #ef4444;
   --success: #22c55e;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Nunito Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   
   /* Header specific */
   --header-bg: rgba(255, 255, 255, 0.85);

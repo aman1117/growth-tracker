@@ -489,7 +489,7 @@ export const Dashboard: React.FC = () => {
                             targetUsername?.charAt(0)
                         )}
                     </div>
-                    <span>Viewing {targetUsername}</span>
+                    <span>Viewing {targetUsername}'s Dashboard</span>
                 </div>
             )}
 

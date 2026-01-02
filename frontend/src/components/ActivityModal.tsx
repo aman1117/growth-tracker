@@ -306,7 +306,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                         </div>
                     </div>
 
-                    <div className="flex gap-3" style={{ marginTop: '0.75rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
                         <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}>
                             Cancel
                         </button>

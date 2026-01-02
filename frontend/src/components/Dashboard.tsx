@@ -135,6 +135,7 @@ export const Dashboard: React.FC = () => {
     const { username: routeUsername } = useParams<{ username: string }>();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [activities, setActivities] = useState<Record<string, number>>({});
+    const [activityNotes, setActivityNotes] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     // Always show loading for other users, or check localStorage for own profile
     const isViewingOther = routeUsername && routeUsername !== user?.username;
@@ -229,6 +230,7 @@ export const Dashboard: React.FC = () => {
             if (res.success) {
                 setIsPrivateAccount(false);
                 const activityMap: Record<string, number> = {};
+                const notesMap: Record<string, string> = {};
                 // Initialize all activities with 0
                 ACTIVITY_NAMES.forEach(name => {
                     activityMap[name] = 0;
@@ -237,8 +239,12 @@ export const Dashboard: React.FC = () => {
                 // Update with actual data from backend
                 res.data.forEach((a: Activity) => {
                     activityMap[a.name] = a.hours;
+                    if (a.note) {
+                        notesMap[a.name] = a.note;
+                    }
                 });
                 setActivities(activityMap);
+                setActivityNotes(notesMap);
             } else if (res.error_code === 'ACCOUNT_PRIVATE') {
                 setIsPrivateAccount(true);
             }
@@ -355,7 +361,7 @@ export const Dashboard: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleSaveActivity = async (hours: number) => {
+    const handleSaveActivity = async (hours: number, note?: string) => {
         if (!user || !selectedActivity) return;
 
         try {
@@ -363,7 +369,8 @@ export const Dashboard: React.FC = () => {
                 username: targetUsername,
                 activity: selectedActivity,
                 hours: hours,
-                date: formatDateForApi(currentDate)
+                date: formatDateForApi(currentDate),
+                note: note || null,
             });
 
             if (res.success) {
@@ -387,6 +394,17 @@ export const Dashboard: React.FC = () => {
                     ...prev,
                     [selectedActivity]: hours
                 }));
+                
+                // Update notes
+                setActivityNotes(prev => {
+                    const newNotes = { ...prev };
+                    if (note) {
+                        newNotes[selectedActivity] = note;
+                    } else {
+                        delete newNotes[selectedActivity];
+                    }
+                    return newNotes;
+                });
             } else {
                 throw new Error(res.error);
             }
@@ -592,6 +610,7 @@ export const Dashboard: React.FC = () => {
                                         onSelect={setSelectedTile}
                                         isOtherSelected={selectedTile !== null && selectedTile !== name}
                                         isDragging={activeDragId === name}
+                                        hasNote={!isReadOnly && !!activityNotes[name]}
                                     />
                                 );
                             })}
@@ -635,6 +654,7 @@ export const Dashboard: React.FC = () => {
                 onSave={handleSaveActivity}
                 activityName={selectedActivity}
                 currentHours={selectedActivity ? (activities[selectedActivity] || 0) : 0}
+                currentNote={selectedActivity ? activityNotes[selectedActivity] : undefined}
             />
 
             {toast && (

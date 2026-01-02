@@ -13,6 +13,7 @@ type ActivityRequest struct {
 	Activity models.ActivityName `json:"activity"`
 	Hours    float32             `json:"hours"`
 	Date     string              `json:"date"`
+	Note     *string             `json:"note,omitempty"`
 }
 
 type ActivityDTO struct {
@@ -20,6 +21,7 @@ type ActivityDTO struct {
 	Name          models.ActivityName `json:"name"`
 	DurationHours float32             `json:"hours"`
 	Date          string              `json:"date"`
+	Note          *string             `json:"note"`
 }
 
 type GetActivityRequest struct {
@@ -134,6 +136,7 @@ func CreateActivityHandler(c *fiber.Ctx) error {
 
 	if existing != nil {
 		existing.DurationHours = body.Hours
+		existing.Note = body.Note
 		if err := db.Save(existing).Error; err != nil {
 			log.Errorw("Failed to update activity", "error", err)
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -159,6 +162,7 @@ func CreateActivityHandler(c *fiber.Ctx) error {
 			Name:          activityNameVal,
 			DurationHours: body.Hours,
 			ActivityDate:  date,
+			Note:          body.Note,
 		}
 		if err := db.Create(&activity).Error; err != nil {
 			log.Errorw("Failed to create activity", "error", err)
@@ -270,21 +274,28 @@ func GetActivityHandler(c *fiber.Ctx) error {
 		})
 	}
 
+	// Only include notes if user is viewing their own activities
+	isOwnProfile := user.ID == currentUserID
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
-		"data":    ToActivityDTOs(activities), // only name + duration etc.
+		"data":    ToActivityDTOs(activities, isOwnProfile),
 	})
 }
 
-func ToActivityDTOs(in []models.Activity) []ActivityDTO {
+func ToActivityDTOs(in []models.Activity, includeNotes bool) []ActivityDTO {
 	out := make([]ActivityDTO, 0, len(in))
 	for _, a := range in {
-		out = append(out, ActivityDTO{
+		dto := ActivityDTO{
 			ID:            a.ID,
 			Name:          models.ActivityName(a.Name),
 			DurationHours: a.DurationHours,
 			Date:          a.ActivityDate.Format("2006-01-02"),
-		})
+		}
+		// Only include notes for own profile
+		if includeNotes {
+			dto.Note = a.Note
+		}
+		out = append(out, dto)
 	}
 	return out
 }

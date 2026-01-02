@@ -18,6 +18,7 @@ interface ActivityTileProps {
     onSelect?: (name: ActivityName | null) => void;
     isOtherSelected?: boolean;
     isDragging?: boolean;
+    hasNote?: boolean;
 }
 
 const sizeConfig = {
@@ -46,6 +47,7 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
     onSelect,
     isOtherSelected = false,
     isDragging: isDraggingProp = false,
+    hasNote = false,
 }) => {
     const {
         attributes,
@@ -122,6 +124,24 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
             onClick={handleTileClick}
             {...(isSelected ? { ...attributes, ...listeners } : {})}
         >
+            {/* Note Badge - simple dot indicator */}
+            {hasNote && !isSelected && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: size === 'small' ? '6px' : '10px',
+                        right: size === 'small' ? '6px' : '10px',
+                        width: size === 'small' ? '10px' : '12px',
+                        height: size === 'small' ? '10px' : '12px',
+                        borderRadius: '50%',
+                        backgroundColor: isActive ? 'rgba(255,255,255,0.9)' : 'var(--accent)',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        zIndex: 10,
+                    }}
+                    title="Has note"
+                />
+            )}
+
             {/* When selected: show only size label */}
             {isSelected && isDraggable ? (
                 <span style={{

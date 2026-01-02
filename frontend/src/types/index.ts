@@ -16,6 +16,7 @@ export interface Activity {
     id: number;
     name: string;
     hours: number;
+    note?: string;
 }
 
 export interface ActivityResponse {

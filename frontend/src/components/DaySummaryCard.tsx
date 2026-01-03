@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { api } from '../services/api';
 import { Flame, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 
@@ -7,6 +7,7 @@ interface DaySummaryCardProps {
     currentDate: Date;
     onPrev: () => void;
     onNext: () => void;
+    onDateChange: (date: Date) => void;
     isNextDisabled: boolean;
     activities: Record<string, number>;
     loading?: boolean;
@@ -22,12 +23,14 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     currentDate,
     onPrev,
     onNext,
+    onDateChange,
     isNextDisabled,
     activities,
     loading = false
 }) => {
     const [streak, setStreak] = useState<StreakData>({ current: 0, longest: 0 });
     const [streakLoading, setStreakLoading] = useState(true);
+    const dateInputRef = useRef<HTMLInputElement>(null);
 
     const formatDateForApi = (date: Date) => {
         const year = date.getFullYear();
@@ -78,6 +81,35 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     const isToday = () => {
         const today = new Date();
         return currentDate.toDateString() === today.toDateString();
+    };
+
+    const handleDateClick = () => {
+        dateInputRef.current?.showPicker();
+    };
+
+    const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedDate = new Date(e.target.value + 'T00:00:00');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate <= today) {
+            onDateChange(selectedDate);
+        }
+    };
+
+    const handleGoToToday = () => {
+        onDateChange(new Date());
+    };
+
+    const formatDateForInput = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const getTodayForInput = () => {
+        return formatDateForInput(new Date());
     };
 
     // Hours calculation
@@ -132,7 +164,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                 }}
             >
                 {/* Date Navigation */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     <button
                         onClick={onPrev}
                         style={{
@@ -147,17 +179,53 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     >
                         <ChevronLeft size={18} />
                     </button>
-                    <span
+                    <button
+                        onClick={handleDateClick}
                         style={{
-                            fontSize: '0.875rem',
-                            fontWeight: 400,
+                            fontSize: '0.85rem',
+                            fontWeight: 500,
                             color: 'var(--text-primary)',
-                            minWidth: '80px',
-                            textAlign: 'center',
+                            background: 'var(--tile-glass-bg)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)',
+                            border: '1px solid var(--tile-glass-border)',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                            cursor: 'pointer',
+                            padding: '0.4rem 0.85rem',
+                            borderRadius: '10px',
+                            transition: 'all 0.2s ease',
+                            whiteSpace: 'nowrap',
                         }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'var(--tile-glass-bg-active)';
+                            e.currentTarget.style.borderColor = 'var(--tile-glass-border-active)';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'var(--tile-glass-bg)';
+                            e.currentTarget.style.borderColor = 'var(--tile-glass-border)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+                        }}
+                        title="Click to select date"
                     >
                         {formatDate(currentDate)}
-                    </span>
+                    </button>
+                    <input
+                        ref={dateInputRef}
+                        type="date"
+                        value={formatDateForInput(currentDate)}
+                        max={getTodayForInput()}
+                        onChange={handleDateInputChange}
+                        style={{
+                            position: 'absolute',
+                            opacity: 0,
+                            width: 0,
+                            height: 0,
+                            pointerEvents: 'none',
+                        }}
+                    />
                     <button
                         onClick={onNext}
                         disabled={isNextDisabled}
@@ -174,6 +242,42 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     >
                         <ChevronRight size={18} />
                     </button>
+                    {!isToday() && (
+                        <button
+                            onClick={handleGoToToday}
+                            style={{
+                                fontSize: '0.85rem',
+                                fontWeight: 500,
+                                color: 'var(--text-primary)',
+                                background: 'var(--tile-glass-bg)',
+                                backdropFilter: 'blur(8px)',
+                                WebkitBackdropFilter: 'blur(8px)',
+                                border: '1px solid var(--tile-glass-border)',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                                cursor: 'pointer',
+                                padding: '0.4rem 0.85rem',
+                                marginLeft: '0.25rem',
+                                borderRadius: '10px',
+                                transition: 'all 0.2s ease',
+                                whiteSpace: 'nowrap',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'var(--tile-glass-bg-active)';
+                                e.currentTarget.style.borderColor = 'var(--tile-glass-border-active)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'var(--tile-glass-bg)';
+                                e.currentTarget.style.borderColor = 'var(--tile-glass-border)';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+                            }}
+                            title="Go to today"
+                        >
+                            Today
+                        </button>
+                    )}
                 </div>
 
                 {/* Progress Bar */}
@@ -227,6 +331,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     </div>
                 </div>
             </div>
+
         </div>
     );
 };

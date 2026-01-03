@@ -373,6 +373,28 @@ export const Dashboard: React.FC = () => {
         }, 150);
     };
 
+    const handleDateChange = (newDate: Date) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const targetDate = new Date(newDate);
+        targetDate.setHours(0, 0, 0, 0);
+        const currentDateNorm = new Date(currentDate);
+        currentDateNorm.setHours(0, 0, 0, 0);
+
+        // Determine animation direction based on date comparison
+        if (targetDate < currentDateNorm) {
+            setAnimationDirection('right');
+        } else if (targetDate > currentDateNorm) {
+            setAnimationDirection('left');
+        }
+
+        setTilesAnimating(true);
+        setTimeout(() => {
+            setCurrentDate(newDate);
+            setTimeout(() => setTilesAnimating(false), 50);
+        }, 150);
+    };
+
     const isNextDisabled = () => {
         const today = new Date();
         return currentDate.toDateString() === today.toDateString() || currentDate > today;
@@ -550,6 +572,7 @@ export const Dashboard: React.FC = () => {
                     currentDate={currentDate}
                     onPrev={handlePrevDay}
                     onNext={handleNextDay}
+                    onDateChange={handleDateChange}
                     isNextDisabled={isNextDisabled()}
                     activities={activities}
                     loading={loading}

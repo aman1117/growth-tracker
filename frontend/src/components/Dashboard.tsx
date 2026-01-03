@@ -269,6 +269,10 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         const fetchTargetUserProfile = async () => {
             if (isReadOnly && targetUsername) {
+                // Reset state when switching users
+                setTargetProfilePic(null);
+                setTargetBio(null);
+                
                 try {
                     const res = await api.post('/users', { username: targetUsername });
                     if (res.success && res.data && res.data.length > 0) {
@@ -276,15 +280,9 @@ export const Dashboard: React.FC = () => {
                             u.username.toLowerCase() === targetUsername.toLowerCase()
                         );
                         if (exactMatch) {
-                            if (exactMatch.profile_pic) {
-                                setTargetProfilePic(exactMatch.profile_pic);
-                            }
+                            setTargetProfilePic(exactMatch.profile_pic || null);
                             // Bio is only returned for public profiles (backend handles privacy)
-                            if (exactMatch.bio) {
-                                setTargetBio(exactMatch.bio);
-                            } else {
-                                setTargetBio(null);
-                            }
+                            setTargetBio(exactMatch.bio || null);
                         }
                     }
                 } catch (err) {

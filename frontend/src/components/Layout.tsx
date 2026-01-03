@@ -101,17 +101,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 zIndex: 50,
                 transition: 'background-color 0.3s ease, border-color 0.3s ease'
             }}>
-                <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 1.5rem' }}>
+                <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 1rem' }}>
                     {!isSearchOpen && (
                         <div
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', flexShrink: 0 }}
                             onClick={() => navigate('/')}
                         >
                             <img 
                                 src="/logo.png" 
                                 alt="Growth Tracker" 
                                 style={{ 
-                                    height: '30px', 
+                                    height: '24px', 
                                     width: 'auto',
                                     filter: 'var(--logo-filter)'
                                 }} 
@@ -125,9 +125,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '0.75rem', 
+                                gap: '0.5rem', 
                                 flex: 1, 
-                                marginLeft: isSearchOpen ? '0' : '1rem',
+                                marginLeft: isSearchOpen ? '0' : '0.5rem',
                                 position: 'relative',
                                 justifyContent: 'flex-end',
                                 transition: 'margin-left 0.3s ease'
@@ -137,7 +137,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                             <button
                                 onClick={closeSearch}
                                 style={{
-                                    padding: '0.25rem',
+                                    padding: '0',
                                     border: 'none',
                                     borderRadius: '50%',
                                     display: 'flex',
@@ -147,14 +147,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     color: 'var(--text-primary)',
                                     cursor: 'pointer',
                                     flexShrink: 0,
-                                    width: isSearchOpen ? '32px' : '0px',
+                                    width: isSearchOpen ? '20px' : '0px',
                                     opacity: isSearchOpen ? 1 : 0,
                                     overflow: 'hidden',
                                     transition: 'width 0.3s ease, opacity 0.2s ease',
-                                    marginRight: isSearchOpen ? '0.25rem' : '0'
+                                    marginRight: '0'
                                 }}
                             >
-                                <ChevronLeft size={24} />
+                                <ChevronLeft size={20} />
                             </button>
 
                             {/* Animated Search Bar */}
@@ -163,7 +163,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 alignItems: 'center',
                                 flex: isSearchOpen ? 1 : 'unset',
                                 position: 'relative',
-                                justifyContent: 'flex-end'
+                                justifyContent: isSearchOpen ? 'stretch' : 'flex-end'
                             }}>
                                 {/* Search Input Container */}
                                 <div 
@@ -185,15 +185,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         border: isSearchFocused && isSearchOpen ? '1px solid var(--accent)' : '1px solid transparent',
                                         cursor: isSearchOpen ? 'text' : 'pointer',
                                         flex: isSearchOpen ? 1 : 'unset',
-                                        width: isSearchOpen ? 'auto' : '36px',
-                                        height: '36px',
+                                        width: isSearchOpen ? 'auto' : '32px',
+                                        height: '32px',
                                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                         position: 'relative',
                                         overflow: 'hidden'
                                     }}
                                 >
                                     <Search 
-                                        size={16} 
+                                        size={14} 
                                         color="var(--icon-btn-color)" 
                                         style={{ flexShrink: 0 }}
                                     />
@@ -352,12 +352,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         backgroundColor: 'var(--icon-btn-bg)',
                                         color: 'var(--icon-btn-color)',
                                         cursor: 'pointer',
-                                        width: '36px',
-                                        height: '36px'
+                                        width: '32px',
+                                        height: '32px'
                                     }}
                                     title="Customize tiles"
                                 >
-                                    <Settings2 size={16} />
+                                    <Settings2 size={14} />
                                 </button>
                             )}
 
@@ -378,8 +378,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         backgroundColor: 'var(--icon-btn-bg)',
                                         color: 'var(--icon-btn-color)',
                                         cursor: 'pointer',
-                                        width: '36px',
-                                        height: '36px',
+                                        width: '32px',
+                                        height: '32px',
                                         transition: 'all 0.2s ease'
                                     }}
                                     title="Analytics"
@@ -392,7 +392,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         e.currentTarget.style.color = 'var(--icon-btn-color)';
                                     }}
                                 >
-                                    <BarChart3 size={16} />
+                                    <BarChart3 size={14} />
                                 </button>
                             )}
 

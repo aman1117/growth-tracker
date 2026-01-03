@@ -180,16 +180,19 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         justifyContent: 'center',
                                         gap: isSearchOpen ? '0.5rem' : '0',
                                         padding: isSearchOpen ? '0.5rem 1rem' : '0',
-                                        backgroundColor: isSearchOpen ? 'var(--bg-secondary)' : 'var(--icon-btn-bg)',
+                                        background: isSearchOpen ? 'var(--bg-secondary)' : 'rgba(255, 255, 255, 0.15)',
+                                        backdropFilter: isSearchOpen ? 'none' : 'blur(12px)',
+                                        WebkitBackdropFilter: isSearchOpen ? 'none' : 'blur(12px)',
                                         borderRadius: '9999px',
-                                        border: isSearchFocused && isSearchOpen ? '1px solid var(--accent)' : '1px solid transparent',
+                                        border: isSearchFocused && isSearchOpen ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.2)',
                                         cursor: isSearchOpen ? 'text' : 'pointer',
                                         flex: isSearchOpen ? 1 : 'unset',
                                         width: isSearchOpen ? 'auto' : '32px',
                                         height: '32px',
                                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                         position: 'relative',
-                                        overflow: 'hidden'
+                                        overflow: 'hidden',
+                                        boxShadow: isSearchOpen ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1)'
                                     }}
                                 >
                                     <Search 
@@ -350,16 +353,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     }}
                                     style={{
                                         padding: 0,
-                                        border: 'none',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
                                         borderRadius: '50%',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        backgroundColor: 'var(--icon-btn-bg)',
+                                        background: 'rgba(255, 255, 255, 0.15)',
+                                        backdropFilter: 'blur(12px)',
+                                        WebkitBackdropFilter: 'blur(12px)',
                                         color: 'var(--icon-btn-color)',
                                         cursor: 'pointer',
                                         width: '32px',
-                                        height: '32px'
+                                        height: '32px',
+                                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                                        transition: 'all 0.2s ease'
                                     }}
                                     title="Customize tiles"
                                 >
@@ -376,16 +383,19 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     }}
                                     style={{
                                         padding: 0,
-                                        border: 'none',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
                                         borderRadius: '50%',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        backgroundColor: 'var(--icon-btn-bg)',
+                                        background: 'rgba(255, 255, 255, 0.15)',
+                                        backdropFilter: 'blur(12px)',
+                                        WebkitBackdropFilter: 'blur(12px)',
                                         color: 'var(--icon-btn-color)',
                                         cursor: 'pointer',
                                         width: '32px',
                                         height: '32px',
+                                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                                         transition: 'all 0.2s ease'
                                     }}
                                     title="Analytics"

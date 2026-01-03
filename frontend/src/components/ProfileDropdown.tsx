@@ -63,7 +63,9 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onOpen }) => {
                     background: 'linear-gradient(135deg, #0095f6 0%, #0077e6 100%)',
                     cursor: 'pointer',
                     width: '34px',
-                    height: '34px'
+                    height: '34px',
+                    boxShadow: '0 2px 8px rgba(0, 149, 246, 0.3)',
+                    transition: 'all 0.2s ease'
                 }}
             >
                 <div

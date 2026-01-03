@@ -157,7 +157,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     flexWrap: 'nowrap',
                 }}
             >
@@ -175,12 +175,12 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                             alignItems: 'center',
                         }}
                     >
-                        <ChevronLeft size={16} />
+                        <ChevronLeft size={18} />
                     </button>
                     <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '8px' }}>
                         <button
                             style={{
-                                fontSize: '0.75rem',
+                                fontSize: '0.8rem',
                                 fontWeight: 500,
                                 color: 'var(--text-primary)',
                                 background: 'var(--tile-glass-bg)',
@@ -231,13 +231,13 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                             opacity: isNextDisabled ? 0.3 : 1,
                         }}
                     >
-                        <ChevronRight size={16} />
+                        <ChevronRight size={18} />
                     </button>
                     {!isToday() && (
                         <button
                             onClick={handleGoToToday}
                             style={{
-                                fontSize: '0.75rem',
+                                fontSize: '0.8rem',
                                 fontWeight: 500,
                                 color: 'var(--text-primary)',
                                 background: 'var(--tile-glass-bg)',
@@ -272,16 +272,18 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                 </div>
 
                 {/* Right side: Progress (today only) + Hours + Streaks */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
                     {/* Progress Bar - Only on today */}
                     {isToday() && !isComplete && (
                         <div
                             style={{
-                                width: '60px',
+                                width: '50px',
+                                minWidth: '30px',
                                 height: '5px',
                                 backgroundColor: 'var(--progress-track)',
                                 borderRadius: '3px',
                                 overflow: 'hidden',
+                                flexShrink: 1,
                             }}
                         >
                             <div
@@ -299,7 +301,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     {/* Hours Display */}
                     <span
                         style={{
-                            fontSize: '0.7rem',
+                            fontSize: '0.8rem',
                             fontWeight: isComplete ? 500 : 400,
                             color: isComplete ? 'var(--success)' : 'var(--text-primary)',
                             whiteSpace: 'nowrap',
@@ -311,15 +313,15 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     {/* Streaks */}
                     {isToday() && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <Flame size={12} fill="#f87171" color="#ef4444" />
-                            <span style={{ fontSize: '0.7rem', fontWeight: 400, color: 'var(--text-primary)' }}>
+                            <Flame size={14} fill="#f87171" color="#ef4444" />
+                            <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--text-primary)' }}>
                                 {streak.current}
                             </span>
                         </div>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Trophy size={12} fill="#fbbf24" color="#f59e0b" />
-                        <span style={{ fontSize: '0.7rem', fontWeight: 400, color: 'var(--text-primary)' }}>
+                        <Trophy size={14} fill="#fbbf24" color="#f59e0b" />
+                        <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--text-primary)' }}>
                             {streak.longest}
                         </span>
                     </div>

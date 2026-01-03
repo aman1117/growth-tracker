@@ -112,11 +112,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
-    minHeight: '100vh',
+    minHeight: 'calc(100vh - 80px)',
+    paddingTop: '15vh',
     padding: '2rem',
-    backgroundColor: 'var(--bg-primary, #0f0f0f)',
   },
   content: {
     textAlign: 'center',
@@ -126,7 +126,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '1.5rem',
   },
   icon: {
-    color: 'var(--text-danger, #ef4444)',
+    color: 'var(--error, #ef4444)',
   },
   title: {
     fontSize: '1.5rem',

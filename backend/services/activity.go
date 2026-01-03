@@ -316,8 +316,8 @@ func GetUsersHandler(c *fiber.Ctx) error {
 
 	db := utils.GetDB()
 	users := []models.User{}
-	// find user by username with ILIKE (include private users - they'll be marked as private in response)
-	result := db.Where("username ILIKE ?", "%"+body.Username+"%").Find(&users)
+	// find user by username with ILIKE, exclude private users from search results
+	result := db.Where("username ILIKE ? AND is_private = ?", "%"+body.Username+"%", false).Find(&users)
 	if result.Error != nil {
 		utils.LogWithContext(traceID, currentUserID).Errorw("User search failed", "query", body.Username, "error", result.Error)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

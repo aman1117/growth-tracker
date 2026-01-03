@@ -170,6 +170,10 @@ export const Dashboard: React.FC = () => {
     const [targetBio, setTargetBio] = useState<string | null>(null);
     const [showTargetFullscreenPic, setShowTargetFullscreenPic] = useState(false);
 
+    // Tile animation state for day transitions
+    const [tilesAnimating, setTilesAnimating] = useState(false);
+    const [animationDirection, setAnimationDirection] = useState<'left' | 'right'>('left');
+
     // DnD Sensors
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -371,15 +375,25 @@ export const Dashboard: React.FC = () => {
     }, [isEditMode, isReadOnly, tileOrder, tileSizes]);
 
     const handlePrevDay = () => {
-        const newDate = new Date(currentDate);
-        newDate.setDate(newDate.getDate() - 1);
-        setCurrentDate(newDate);
+        setAnimationDirection('right');
+        setTilesAnimating(true);
+        setTimeout(() => {
+            const newDate = new Date(currentDate);
+            newDate.setDate(newDate.getDate() - 1);
+            setCurrentDate(newDate);
+            setTimeout(() => setTilesAnimating(false), 50);
+        }, 150);
     };
 
     const handleNextDay = () => {
-        const newDate = new Date(currentDate);
-        newDate.setDate(newDate.getDate() + 1);
-        setCurrentDate(newDate);
+        setAnimationDirection('left');
+        setTilesAnimating(true);
+        setTimeout(() => {
+            const newDate = new Date(currentDate);
+            newDate.setDate(newDate.getDate() + 1);
+            setCurrentDate(newDate);
+            setTimeout(() => setTilesAnimating(false), 50);
+        }, 150);
     };
 
     const isNextDisabled = () => {
@@ -704,16 +718,51 @@ export const Dashboard: React.FC = () => {
                     </p>
                 </div>
             ) : (
-                <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                >
-                    <SortableContext items={tileOrder} strategy={rectSortingStrategy}>
-                        <div 
-                            style={{
-                                display: 'grid',
+                <>
+                    <style>{`
+                        @keyframes slideOutLeft {
+                            from { opacity: 1; transform: translateX(0); }
+                            to { opacity: 0; transform: translateX(-20px); }
+                        }
+                        @keyframes slideOutRight {
+                            from { opacity: 1; transform: translateX(0); }
+                            to { opacity: 0; transform: translateX(20px); }
+                        }
+                        @keyframes slideInLeft {
+                            from { opacity: 0; transform: translateX(20px); }
+                            to { opacity: 1; transform: translateX(0); }
+                        }
+                        @keyframes slideInRight {
+                            from { opacity: 0; transform: translateX(-20px); }
+                            to { opacity: 1; transform: translateX(0); }
+                        }
+                        .tiles-slide-out-left {
+                            animation: slideOutLeft 0.15s ease-out forwards;
+                        }
+                        .tiles-slide-out-right {
+                            animation: slideOutRight 0.15s ease-out forwards;
+                        }
+                        .tiles-slide-in-left {
+                            animation: slideInLeft 0.25s ease-out forwards;
+                        }
+                        .tiles-slide-in-right {
+                            animation: slideInRight 0.25s ease-out forwards;
+                        }
+                    `}</style>
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext items={tileOrder} strategy={rectSortingStrategy}>
+                            <div 
+                                className={tilesAnimating 
+                                    ? (animationDirection === 'left' ? 'tiles-slide-out-left' : 'tiles-slide-out-right')
+                                    : (animationDirection === 'left' ? 'tiles-slide-in-left' : 'tiles-slide-in-right')
+                                }
+                                style={{
+                                    display: 'grid',
                                 gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
                                 gridAutoRows: '100px',
                                 gap: '8px',
@@ -778,7 +827,8 @@ export const Dashboard: React.FC = () => {
                             </div>
                         ) : null}
                     </DragOverlay>
-                </DndContext>
+                    </DndContext>
+                </>
             )}
 
             <ActivityModal

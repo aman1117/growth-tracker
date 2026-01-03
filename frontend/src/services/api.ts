@@ -6,7 +6,7 @@
  */
 
 import { env } from '../config/env';
-import { STORAGE_KEYS } from '../constants/storage';
+import { API_ROUTES, STORAGE_KEYS } from '../constants';
 
 // ============================================================================
 // Types
@@ -291,7 +291,7 @@ export const api = {
    * Get AI insights for a user
    */
   async getInsights(username: string): Promise<InsightsResponse> {
-    return apiClient.post<InsightsResponse>('/get-insights', { username });
+    return apiClient.post<InsightsResponse>(API_ROUTES.ANALYTICS.INSIGHTS, { username });
   },
 
   /**
@@ -301,7 +301,7 @@ export const api = {
     username: string,
     weekStart: string
   ): Promise<WeekAnalyticsResponse> {
-    return apiClient.post<WeekAnalyticsResponse>('/get-week-analytics', {
+    return apiClient.post<WeekAnalyticsResponse>(API_ROUTES.ANALYTICS.WEEK, {
       username,
       week_start: weekStart,
     });
@@ -320,19 +320,19 @@ export const api = {
  */
 export const authApi = {
   login: (email: string, password: string) =>
-    apiClient.post<AuthResponse>('/login', { email, password }),
+    apiClient.post<AuthResponse>(API_ROUTES.AUTH.LOGIN, { email, password }),
 
   register: (username: string, email: string, password: string) =>
-    apiClient.post<AuthResponse>('/signup', { username, email, password }),
+    apiClient.post<AuthResponse>(API_ROUTES.AUTH.SIGNUP, { username, email, password }),
 
   forgotPassword: (email: string) =>
     apiClient.post<{ success: boolean; message?: string; error?: string }>(
-      '/forgot-password',
+      API_ROUTES.AUTH.FORGOT_PASSWORD,
       { email }
     ),
 
   resetPassword: (token: string, password: string) =>
-    apiClient.post<{ success: boolean; error?: string }>('/reset-password', {
+    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.AUTH.RESET_PASSWORD, {
       token,
       password,
     }),
@@ -340,37 +340,37 @@ export const authApi = {
 
 export const userApi = {
   search: (username: string) =>
-    apiClient.post<UserSearchResponse>('/users', { username }),
+    apiClient.post<UserSearchResponse>(API_ROUTES.USER.SEARCH, { username }),
 
-  getProfile: () => apiClient.get<ProfileResponse>('/profile'),
+  getProfile: () => apiClient.get<ProfileResponse>(API_ROUTES.USER.PROFILE),
 
   updateProfile: (data: { username?: string; bio?: string }) =>
-    apiClient.post<ProfileResponse>('/update-profile', data),
+    apiClient.post<ProfileResponse>(API_ROUTES.USER.UPDATE_PROFILE, data),
 
-  getPrivacy: () => apiClient.get<PrivacyResponse>('/get-privacy'),
+  getPrivacy: () => apiClient.get<PrivacyResponse>(API_ROUTES.PRIVACY.GET),
 
   updatePrivacy: (isPrivate: boolean) =>
-    apiClient.post<PrivacyResponse>('/update-privacy', { is_private: isPrivate }),
+    apiClient.post<PrivacyResponse>(API_ROUTES.PRIVACY.UPDATE, { is_private: isPrivate }),
 
   uploadProfilePic: (file: File) =>
-    apiClient.uploadFile<UploadResponse>('/profile/upload-picture', file, 'image'),
+    apiClient.uploadFile<UploadResponse>(API_ROUTES.USER.UPLOAD_PICTURE, file, 'image'),
 
   deleteProfilePic: () =>
-    apiClient.delete<{ success: boolean; error?: string }>('/profile/picture'),
+    apiClient.delete<{ success: boolean; error?: string }>(API_ROUTES.USER.DELETE_PICTURE),
 
   updatePassword: (currentPassword: string, newPassword: string) =>
-    apiClient.post<{ success: boolean; error?: string }>('/change-password', {
+    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.CHANGE_PASSWORD, {
       current_password: currentPassword,
       new_password: newPassword,
     }),
 
   deleteAccount: () =>
-    apiClient.delete<{ success: boolean; error?: string }>('/delete-account'),
+    apiClient.delete<{ success: boolean; error?: string }>(API_ROUTES.USER.DELETE_ACCOUNT),
 };
 
 export const activityApi = {
   getActivities: (username: string, startDate: string, endDate: string) =>
-    apiClient.post<GetActivitiesResponse>('/get-activities', {
+    apiClient.post<GetActivitiesResponse>(API_ROUTES.ACTIVITY.GET, {
       username,
       start_date: startDate,
       end_date: endDate,
@@ -382,7 +382,7 @@ export const activityApi = {
     date: string,
     note?: string
   ) =>
-    apiClient.post<LogActivityResponse>('/log-activity', {
+    apiClient.post<LogActivityResponse>(API_ROUTES.ACTIVITY.LOG, {
       name,
       hours,
       date,
@@ -392,18 +392,18 @@ export const activityApi = {
 
 export const streakApi = {
   getStreak: (username: string, date: string) =>
-    apiClient.post<GetStreakResponse>('/get-streak', { username, date }),
+    apiClient.post<GetStreakResponse>(API_ROUTES.STREAK.GET, { username, date }),
 };
 
 export const analyticsApi = {
   getWeekAnalytics: (username: string, weekStart: string) =>
-    apiClient.post<WeekAnalyticsResponse>('/get-week-analytics', {
+    apiClient.post<WeekAnalyticsResponse>(API_ROUTES.ANALYTICS.WEEK, {
       username,
       week_start: weekStart,
     }),
 
   getInsights: (username: string) =>
-    apiClient.post<InsightsResponse>('/get-insights', { username }),
+    apiClient.post<InsightsResponse>(API_ROUTES.ANALYTICS.INSIGHTS, { username }),
 };
 
 export const tileConfigApi = {
@@ -412,10 +412,10 @@ export const tileConfigApi = {
       success: boolean;
       data?: { order: string[]; sizes: Record<string, string> };
       error?: string;
-    }>('/get-tile-config', { username }),
+    }>(API_ROUTES.TILE_CONFIG.GET, { username }),
 
   saveTileConfig: (order: string[], sizes: Record<string, string>) =>
-    apiClient.post<{ success: boolean; error?: string }>('/save-tile-config', {
+    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.TILE_CONFIG.SAVE, {
       order,
       sizes,
     }),

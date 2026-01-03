@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Search, User as UserIcon, X, Settings2, Lock, ChevronLeft } from 'lucide-react';
+import { Search, User as UserIcon, X, Settings2, Lock, ChevronLeft, BarChart3 } from 'lucide-react';
 import { api } from '../utils/api';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';
@@ -358,6 +358,41 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     title="Customize tiles"
                                 >
                                     <Settings2 size={16} />
+                                </button>
+                            )}
+
+                            {/* Analytics button - hide when search is open */}
+                            {!isSearchOpen && (
+                                <button
+                                    onClick={() => {
+                                        closeSearch();
+                                        navigate('/analytics');
+                                    }}
+                                    style={{
+                                        padding: 0,
+                                        border: 'none',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: 'var(--icon-btn-bg)',
+                                        color: 'var(--icon-btn-color)',
+                                        cursor: 'pointer',
+                                        width: '36px',
+                                        height: '36px',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    title="Analytics"
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'var(--accent)';
+                                        e.currentTarget.style.color = 'white';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'var(--icon-btn-bg)';
+                                        e.currentTarget.style.color = 'var(--icon-btn-color)';
+                                    }}
+                                >
+                                    <BarChart3 size={16} />
                                 </button>
                             )}
 

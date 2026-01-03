@@ -8,6 +8,7 @@ import { Dashboard } from './components/Dashboard';
 import { ForgotPassword } from './components/ForgotPassword';
 import { ResetPassword } from './components/ResetPassword';
 import { SettingsPage } from './components/SettingsPage';
+import { AnalyticsPage } from './components/AnalyticsPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -54,6 +55,22 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <SettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <ProtectedRoute>
+                    <AnalyticsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analytics/:username"
+                element={
+                  <ProtectedRoute>
+                    <AnalyticsPage />
                   </ProtectedRoute>
                 }
               />

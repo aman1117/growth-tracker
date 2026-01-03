@@ -107,6 +107,7 @@ func main() {
 	app.Post("/get-activities", services.AuthMiddleware, services.GetActivityHandler)
 
 	app.Post("/get-streak", services.AuthMiddleware, services.GetStreakHandler)
+	app.Post("/get-week-analytics", services.AuthMiddleware, services.GetWeekAnalyticsHandler)
 
 	app.Get("/tile-config", services.AuthMiddleware, services.GetTileConfigHandler)
 	app.Post("/tile-config", services.AuthMiddleware, services.SaveTileConfigHandler)

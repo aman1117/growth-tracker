@@ -25,13 +25,13 @@ import { ActivityTile } from './ActivityTile';
 import type { TileSize } from './ActivityTile';
 import { ActivityModal } from './ActivityModal';
 import { Toast } from './Toast';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
 import {
     Moon, BookOpen, Utensils, Users, Sparkles,
     Dumbbell, Film, Home, Coffee, Palette,
     Plane, ShoppingBag, Sofa, Gamepad2, Briefcase,
-    Lock, X
+    Lock, X, BarChart3
 } from 'lucide-react';
 
 // Activity Configuration Map
@@ -133,6 +133,7 @@ const saveTileSizes = (sizes: Record<ActivityName, TileSize>) => {
 export const Dashboard: React.FC = () => {
     const { user } = useAuth();
     const { username: routeUsername } = useParams<{ username: string }>();
+    const navigate = useNavigate();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [activities, setActivities] = useState<Record<string, number>>({});
     const [activityNotes, setActivityNotes] = useState<Record<string, string>>({});
@@ -453,28 +454,26 @@ export const Dashboard: React.FC = () => {
             {isReadOnly && (
                 <div style={{
                     backgroundColor: 'var(--bg-secondary)',
-                    padding: '0.75rem 1rem',
+                    padding: '0.875rem 1rem',
                     marginBottom: '1rem',
-                    borderRadius: '8px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.75rem',
-                    border: '1px solid var(--border)',
-                    fontWeight: 400,
-                    color: 'var(--text-primary)'
+                    gap: '0.75rem'
                 }}>
                     <div 
                         onClick={() => targetProfilePic && setShowTargetFullscreenPic(true)}
                         style={{
-                            width: '44px',
-                            height: '44px',
+                            width: '40px',
+                            height: '40px',
                             borderRadius: '50%',
                             backgroundColor: 'var(--avatar-bg)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontWeight: 700,
-                            fontSize: '1.125rem',
+                            fontSize: '1rem',
                             color: 'var(--text-primary)',
                             textTransform: 'uppercase',
                             overflow: 'hidden',
@@ -497,22 +496,57 @@ export const Dashboard: React.FC = () => {
                         )}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'block', fontWeight: 500 }}>
-                            Viewing {targetUsername}'s dashboard
+                        <span style={{ 
+                            display: 'block', 
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            color: 'var(--text-primary)'
+                        }}>
+                            @{targetUsername}
                         </span>
                         {targetBio && (
-                            <p style={{
-                                margin: '0.25rem 0 0',
-                                fontSize: '0.85rem',
+                            <span style={{
+                                display: 'block',
+                                fontSize: '0.8rem',
                                 color: 'var(--text-secondary)',
-                                fontWeight: 400,
+                                marginTop: '0.125rem',
                                 lineHeight: 1.4,
                                 wordBreak: 'break-word'
                             }}>
                                 {targetBio}
-                            </p>
+                            </span>
                         )}
                     </div>
+                    {/* Analytics button */}
+                    <button
+                        onClick={() => navigate(`/analytics?user=${targetUsername}`)}
+                        style={{
+                            padding: '0.5rem',
+                            backgroundColor: 'transparent',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--accent)';
+                            e.currentTarget.style.borderColor = 'var(--accent)';
+                            e.currentTarget.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.borderColor = 'var(--border)';
+                            e.currentTarget.style.color = 'var(--text-secondary)';
+                        }}
+                        title="View Analytics"
+                    >
+                        <BarChart3 size={16} />
+                    </button>
                 </div>
             )}
 

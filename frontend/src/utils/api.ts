@@ -1,5 +1,5 @@
-const API_URL = 'https://growth-tracker-api.yellowwater-07aa7c55.centralindia.azurecontainerapps.io';
-// const API_URL = 'http://localhost:8000';
+// const API_URL = 'https://growth-tracker-api.yellowwater-07aa7c55.centralindia.azurecontainerapps.io';
+const API_URL = 'http://localhost:8000';
 
 export const api = {
     async get(endpoint: string) {
@@ -107,5 +107,9 @@ export const api = {
 
     async getInsights(username: string) {
         return this.post('/get-insights', { username });
+    },
+
+    async getWeekAnalytics(username: string, weekStart: string) {
+        return this.post('/get-week-analytics', { username, week_start: weekStart });
     }
 };

@@ -950,9 +950,13 @@ export const AnalyticsPage: React.FC = () => {
                                                     top: '-14px',
                                                     fontSize: '0.55rem',
                                                     color: '#eab308',
-                                                    backgroundColor: 'var(--bg-primary)',
-                                                    padding: '0 4px',
-                                                    fontWeight: 500
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                                    backdropFilter: 'blur(8px)',
+                                                    WebkitBackdropFilter: 'blur(8px)',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    fontWeight: 500,
+                                                    border: '1px solid rgba(234, 179, 8, 0.2)'
                                                 }}>
                                                     avg {avgHours.toFixed(1)}h
                                                 </span>

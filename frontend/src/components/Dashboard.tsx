@@ -664,8 +664,7 @@ export const Dashboard: React.FC = () => {
                     gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
                     gridAutoRows: '100px',
                     gap: '8px',
-                    padding: '8px',
-                    backgroundColor: 'var(--bg-primary)'
+                    padding: '8px'
                 }}>
                     {Array.from({ length: 8 }).map((_, i) => (
                         <div
@@ -775,7 +774,6 @@ export const Dashboard: React.FC = () => {
                                 gridAutoRows: '100px',
                                 gap: '8px',
                                 padding: '8px',
-                                backgroundColor: 'var(--bg-primary)',
                             }}
                             onClick={() => {
                                 if (isEditMode && selectedTile) {

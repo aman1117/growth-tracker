@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
 import { api } from '../services/api';
-import { Toast } from './Toast';
+import { Toast } from './ui';
+import { APP_ROUTES } from '../constants/routes';
 
 export const ForgotPassword: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -39,7 +40,7 @@ export const ForgotPassword: React.FC = () => {
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
                         The link will expire in 15 minutes.
                     </p>
-                    <Link to="/login" style={{ textDecoration: 'none' }}>
+                    <Link to={APP_ROUTES.LOGIN} style={{ textDecoration: 'none' }}>
                         <button className="btn btn-primary">
                             Back to Login
                         </button>
@@ -77,7 +78,7 @@ export const ForgotPassword: React.FC = () => {
 
                 <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
                     <Link 
-                        to="/login"
+                        to={APP_ROUTES.LOGIN}
                         style={{ 
                             fontSize: '0.75rem', 
                             color: 'var(--text-secondary)', 

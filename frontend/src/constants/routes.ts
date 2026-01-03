@@ -1,8 +1,11 @@
 /**
  * API Routes Constants
- * 
+ *
  * Centralized definition of all API endpoints used in the application.
  * This prevents typos and makes endpoint changes easier to manage.
+ *
+ * These routes must match the backend routes defined in:
+ * backend/internal/routes/routes.go
  */
 
 export const API_ROUTES = {
@@ -10,10 +13,11 @@ export const API_ROUTES = {
   // Authentication
   // ============================================================================
   AUTH: {
+    REGISTER: '/register',
     LOGIN: '/login',
-    SIGNUP: '/signup',
-    FORGOT_PASSWORD: '/forgot-password',
-    RESET_PASSWORD: '/reset-password',
+    FORGOT_PASSWORD: '/auth/forgot-password',
+    RESET_PASSWORD: '/auth/reset-password',
+    VALIDATE_RESET_TOKEN: '/auth/reset-password/validate',
   },
 
   // ============================================================================
@@ -22,11 +26,12 @@ export const API_ROUTES = {
   USER: {
     SEARCH: '/users',
     PROFILE: '/profile',
-    UPDATE_PROFILE: '/update-profile',
+    UPDATE_USERNAME: '/update-username',
+    UPDATE_BIO: '/update-bio',
+    GET_BIO: '/get-bio',
     UPLOAD_PICTURE: '/profile/upload-picture',
     DELETE_PICTURE: '/profile/picture',
     CHANGE_PASSWORD: '/change-password',
-    DELETE_ACCOUNT: '/delete-account',
   },
 
   // ============================================================================
@@ -41,8 +46,8 @@ export const API_ROUTES = {
   // Activities
   // ============================================================================
   ACTIVITY: {
+    CREATE: '/create-activity',
     GET: '/get-activities',
-    LOG: '/log-activity',
   },
 
   // ============================================================================
@@ -57,24 +62,38 @@ export const API_ROUTES = {
   // ============================================================================
   ANALYTICS: {
     WEEK: '/get-week-analytics',
-    INSIGHTS: '/get-insights',
   },
 
   // ============================================================================
   // Tile Configuration
   // ============================================================================
   TILE_CONFIG: {
-    GET: '/get-tile-config',
-    SAVE: '/save-tile-config',
+    GET: '/tile-config',
+    SAVE: '/tile-config',
+    GET_BY_USER: '/tile-config/user',
   },
 } as const;
 
-// Type for route values
-export type ApiRoute = 
-  | typeof API_ROUTES.AUTH[keyof typeof API_ROUTES.AUTH]
-  | typeof API_ROUTES.USER[keyof typeof API_ROUTES.USER]
-  | typeof API_ROUTES.PRIVACY[keyof typeof API_ROUTES.PRIVACY]
-  | typeof API_ROUTES.ACTIVITY[keyof typeof API_ROUTES.ACTIVITY]
-  | typeof API_ROUTES.STREAK[keyof typeof API_ROUTES.STREAK]
-  | typeof API_ROUTES.ANALYTICS[keyof typeof API_ROUTES.ANALYTICS]
-  | typeof API_ROUTES.TILE_CONFIG[keyof typeof API_ROUTES.TILE_CONFIG];
+/**
+ * Frontend Application Routes
+ */
+export const APP_ROUTES = {
+  HOME: '/',
+  LOGIN: '/login',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  SETTINGS: '/settings',
+  ANALYTICS: '/analytics',
+  USER_PROFILE: (username: string) => `/user/${username}`,
+  USER_ANALYTICS: (username: string) => `/analytics?user=${username}`,
+} as const;
+
+// Type for API route values
+export type ApiRoute =
+  | (typeof API_ROUTES.AUTH)[keyof typeof API_ROUTES.AUTH]
+  | (typeof API_ROUTES.USER)[keyof typeof API_ROUTES.USER]
+  | (typeof API_ROUTES.PRIVACY)[keyof typeof API_ROUTES.PRIVACY]
+  | (typeof API_ROUTES.ACTIVITY)[keyof typeof API_ROUTES.ACTIVITY]
+  | (typeof API_ROUTES.STREAK)[keyof typeof API_ROUTES.STREAK]
+  | (typeof API_ROUTES.ANALYTICS)[keyof typeof API_ROUTES.ANALYTICS]
+  | (typeof API_ROUTES.TILE_CONFIG)[keyof typeof API_ROUTES.TILE_CONFIG];

@@ -4,7 +4,8 @@ import {
     ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown,
     ArrowUpDown, ChevronDown, Users, Check, Search, X, Lock, Coffee
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../store';
+import { APP_ROUTES } from '../constants/routes';
 import { api } from '../services/api';
 import { ACTIVITY_CONFIG } from '../constants';
 import type { WeekAnalyticsResponse, DayAnalytics, ActivitySummary } from '../types';
@@ -188,13 +189,13 @@ export const AnalyticsPage: React.FC = () => {
 
     const handleBack = () => {
         setIsExiting(true);
-        setTimeout(() => navigate('/'), 200);
+        setTimeout(() => navigate(APP_ROUTES.HOME), 200);
     };
 
     const handleUserSelect = (username: string) => {
         setShowUserSelector(false);
         setSearchQuery('');
-        navigate(`/analytics?user=${username}`);
+        navigate(APP_ROUTES.USER_ANALYTICS(username));
     };
 
     const toggleSortOrder = () => {
@@ -208,7 +209,7 @@ export const AnalyticsPage: React.FC = () => {
         : [];
 
     if (!user) {
-        navigate('/login');
+        navigate(APP_ROUTES.LOGIN);
         return null;
     }
 

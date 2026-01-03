@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../store';
+import { APP_ROUTES } from '../constants/routes';
 import { api } from '../services/api';
 import { useNavigate, Link } from 'react-router-dom';
-import { Toast } from './Toast';
+import { Toast } from './ui';
 
 export const AuthForm: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -37,7 +38,7 @@ export const AuthForm: React.FC = () => {
                     const token = res.access_token;
                     const payload = JSON.parse(atob(token.split('.')[1]));
                     login(token, payload.username, payload.user_id);
-                    navigate('/');
+                    navigate(APP_ROUTES.HOME);
                 } else {
                     setToast({ message: res.error || 'Login failed', type: 'error' });
                 }
@@ -51,7 +52,7 @@ export const AuthForm: React.FC = () => {
                         const token = loginRes.access_token;
                         const payload = JSON.parse(atob(token.split('.')[1]));
                         login(token, payload.username, payload.user_id);
-                        navigate('/');
+                        navigate(APP_ROUTES.HOME);
                     } else {
                         setIsLogin(true);
                         setToast({ message: 'Registration successful, please login.', type: 'success' });

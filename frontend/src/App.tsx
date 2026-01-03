@@ -1,26 +1,51 @@
-import React from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { useAuth, useThemeStore } from './store';
+import { APP_ROUTES } from './constants/routes';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Layout } from './components/Layout';
-import { AuthForm } from './components/AuthForm';
-import { Dashboard } from './components/Dashboard';
-import { ForgotPassword } from './components/ForgotPassword';
-import { ResetPassword } from './components/ResetPassword';
-import { SettingsPage } from './components/SettingsPage';
-import { AnalyticsPage } from './components/AnalyticsPage';
+import { LoadingSpinner } from './components/ui';
+
+// Lazy load route components for code splitting
+const AuthForm = lazy(() => import('./components/AuthForm').then(m => ({ default: m.AuthForm })));
+const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
+const ForgotPassword = lazy(() => import('./components/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import('./components/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const SettingsPage = lazy(() => import('./components/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const AnalyticsPage = lazy(() => import('./components/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+
+/**
+ * Loading fallback component for Suspense
+ */
+const PageLoader: React.FC = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+    <LoadingSpinner size="lg" />
+  </div>
+);
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="container text-center mt-4">Loading...</div>;
+    return <PageLoader />;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to={APP_ROUTES.LOGIN} />;
   }
+
+  return <>{children}</>;
+};
+
+/**
+ * Theme initializer component - initializes theme on app mount
+ */
+const ThemeInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const initializeTheme = useThemeStore((state) => state.initializeTheme);
+
+  useEffect(() => {
+    initializeTheme();
+  }, [initializeTheme]);
 
   return <>{children}</>;
 };
@@ -28,16 +53,16 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
+      <ThemeInitializer>
         <Router>
-          <AuthProvider>
-            <Layout>
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/login" element={<AuthForm />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path={APP_ROUTES.LOGIN} element={<AuthForm />} />
+                <Route path={APP_ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+                <Route path={APP_ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
                 <Route
-                  path="/"
+                  path={APP_ROUTES.HOME}
                   element={
                     <ProtectedRoute>
                       <ErrorBoundary>
@@ -57,7 +82,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/settings"
+                  path={APP_ROUTES.SETTINGS}
                   element={
                     <ProtectedRoute>
                       <ErrorBoundary>
@@ -67,7 +92,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/analytics"
+                  path={APP_ROUTES.ANALYTICS}
                   element={
                     <ProtectedRoute>
                       <ErrorBoundary>
@@ -87,10 +112,10 @@ function App() {
                   }
                 />
               </Routes>
-            </Layout>
-          </AuthProvider>
+            </Suspense>
+          </Layout>
         </Router>
-      </ThemeProvider>
+      </ThemeInitializer>
     </ErrorBoundary>
   );
 }

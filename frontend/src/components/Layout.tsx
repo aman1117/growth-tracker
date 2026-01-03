@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../store';
+import { APP_ROUTES } from '../constants/routes';
 import { useNavigate } from 'react-router-dom';
 import { Search, User as UserIcon, X, Settings2, Lock, ChevronLeft, BarChart3 } from 'lucide-react';
 import { api } from '../services/api';
@@ -74,7 +75,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     }, [searchQuery]);
 
     const handleUserClick = (username: string) => {
-        navigate(`/user/${username}`);
+        navigate(APP_ROUTES.USER_PROFILE(username));
         setIsSearchOpen(false);
         setIsSearchFocused(false);
         setSearchQuery('');
@@ -105,7 +106,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     {!isSearchOpen && (
                         <div
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', flexShrink: 0 }}
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate(APP_ROUTES.HOME)}
                         >
                             <img 
                                 src="/logo.png" 
@@ -379,7 +380,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 <button
                                     onClick={() => {
                                         closeSearch();
-                                        navigate('/analytics');
+                                        navigate(APP_ROUTES.ANALYTICS);
                                     }}
                                     style={{
                                         padding: 0,

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, User, Palette, LogOut, Check, Lock, Key, Camera, Trash2 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth, useTheme } from '../store';
 import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
-import { Toast } from './Toast';
+import { Toast } from './ui';
 
 interface ProfileDialogProps {
     isOpen: boolean;

@@ -1,0 +1,375 @@
+// Package services contains business logic for the application.
+package services
+
+import (
+	"errors"
+	"time"
+
+	"github.com/aman1117/backend/internal/repository"
+	"github.com/aman1117/backend/pkg/models"
+	"golang.org/x/crypto/bcrypt"
+)
+
+// AuthService handles authentication-related business logic
+type AuthService struct {
+	userRepo *repository.UserRepository
+}
+
+// NewAuthService creates a new AuthService
+func NewAuthService(userRepo *repository.UserRepository) *AuthService {
+	return &AuthService{userRepo: userRepo}
+}
+
+// Register creates a new user account
+func (s *AuthService) Register(email, username, password string) error {
+	// Hash the password
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	return s.userRepo.Create(email, username, string(hash))
+}
+
+// Authenticate validates user credentials and returns the user if valid
+func (s *AuthService) Authenticate(identifier, password string) (*models.User, error) {
+	user, err := s.userRepo.FindByIdentifier(identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return nil, errors.New("invalid password")
+	}
+
+	return user, nil
+}
+
+// GetUserByID retrieves a user by their ID
+func (s *AuthService) GetUserByID(userID uint) (*models.User, error) {
+	return s.userRepo.FindByID(userID)
+}
+
+// GetUserByEmail retrieves a user by their email
+func (s *AuthService) GetUserByEmail(email string) (*models.User, error) {
+	return s.userRepo.FindByEmail(email)
+}
+
+// GetUserByUsername retrieves a user by their username
+func (s *AuthService) GetUserByUsername(username string) (*models.User, error) {
+	return s.userRepo.FindByUsername(username)
+}
+
+// UpdateUsername updates a user's username
+func (s *AuthService) UpdateUsername(userID uint, newUsername string) error {
+	return s.userRepo.UpdateUsername(userID, newUsername)
+}
+
+// ChangePassword validates the current password and updates to a new one
+func (s *AuthService) ChangePassword(userID uint, currentPassword, newPassword string) error {
+	user, err := s.userRepo.FindByID(userID)
+	if err != nil || user == nil {
+		return errors.New("user not found")
+	}
+
+	// Verify current password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(currentPassword)); err != nil {
+		return errors.New("current password is incorrect")
+	}
+
+	// Hash new password
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	return s.userRepo.UpdatePassword(userID, string(hash))
+}
+
+// ResetPassword sets a new password without validating the old one
+func (s *AuthService) ResetPassword(userID uint, newPassword string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	return s.userRepo.UpdatePassword(userID, string(hash))
+}
+
+// ==================== Profile Service ====================
+
+// ProfileService handles profile-related business logic
+type ProfileService struct {
+	userRepo *repository.UserRepository
+}
+
+// NewProfileService creates a new ProfileService
+func NewProfileService(userRepo *repository.UserRepository) *ProfileService {
+	return &ProfileService{userRepo: userRepo}
+}
+
+// GetProfile retrieves a user's full profile
+func (s *ProfileService) GetProfile(userID uint) (*models.User, error) {
+	return s.userRepo.FindByID(userID)
+}
+
+// UpdatePrivacy updates a user's privacy setting
+func (s *ProfileService) UpdatePrivacy(userID uint, isPrivate bool) error {
+	return s.userRepo.UpdatePrivacy(userID, isPrivate)
+}
+
+// GetPrivacy gets a user's privacy setting
+func (s *ProfileService) GetPrivacy(userID uint) (bool, error) {
+	return s.userRepo.GetPrivacy(userID)
+}
+
+// UpdateBio updates a user's bio
+func (s *ProfileService) UpdateBio(userID uint, bio string) error {
+	return s.userRepo.UpdateBio(userID, bio)
+}
+
+// GetBio gets a user's bio
+func (s *ProfileService) GetBio(userID uint) (*string, error) {
+	return s.userRepo.GetBio(userID)
+}
+
+// UpdateProfilePic updates a user's profile picture URL
+func (s *ProfileService) UpdateProfilePic(userID uint, url *string) error {
+	return s.userRepo.UpdateProfilePic(userID, url)
+}
+
+// SearchUsers searches for users by username (excludes private users)
+func (s *ProfileService) SearchUsers(query string) ([]models.User, error) {
+	return s.userRepo.SearchByUsername(query)
+}
+
+// CanViewProfile checks if the current user can view another user's profile
+func (s *ProfileService) CanViewProfile(targetUser *models.User, currentUserID uint) bool {
+	if targetUser == nil {
+		return false
+	}
+	// User can always view their own profile
+	if targetUser.ID == currentUserID {
+		return true
+	}
+	// Otherwise, only if the target user is not private
+	return !targetUser.IsPrivate
+}
+
+// ==================== Activity Service ====================
+
+// ActivityService handles activity-related business logic
+type ActivityService struct {
+	activityRepo *repository.ActivityRepository
+	streakSvc    *StreakService
+}
+
+// NewActivityService creates a new ActivityService
+func NewActivityService(activityRepo *repository.ActivityRepository, streakSvc *StreakService) *ActivityService {
+	return &ActivityService{
+		activityRepo: activityRepo,
+		streakSvc:    streakSvc,
+	}
+}
+
+// CreateOrUpdateActivity creates or updates an activity for a user
+func (s *ActivityService) CreateOrUpdateActivity(userID uint, name models.ActivityName, hours float32, date time.Time, note *string) error {
+	// Get all activities for this day
+	dayActivities, err := s.activityRepo.FindByUserAndDate(userID, date)
+	if err != nil {
+		return err
+	}
+
+	// Calculate total hours and find existing activity
+	var totalHours float32
+	var existing *models.Activity
+
+	for i := range dayActivities {
+		a := &dayActivities[i]
+		totalHours += a.DurationHours
+		if a.Name == name {
+			existing = a
+		}
+	}
+
+	// Calculate new total
+	var newTotal float32
+	if existing != nil {
+		newTotal = totalHours - existing.DurationHours + hours
+	} else {
+		newTotal = totalHours + hours
+	}
+
+	if newTotal > 24 {
+		return errors.New("total hours cannot be more than 24")
+	}
+
+	// Update or create activity
+	if existing != nil {
+		existing.DurationHours = hours
+		existing.Note = note
+		if err := s.activityRepo.Update(existing); err != nil {
+			return err
+		}
+	} else {
+		activity := &models.Activity{
+			UserID:        userID,
+			Name:          name,
+			DurationHours: hours,
+			ActivityDate:  date,
+			Note:          note,
+		}
+		if err := s.activityRepo.Create(activity); err != nil {
+			return err
+		}
+	}
+
+	// Update streak
+	return s.streakSvc.AddStreak(userID, date, false)
+}
+
+// GetActivities retrieves activities for a user within a date range
+func (s *ActivityService) GetActivities(userID uint, startDate, endDate time.Time) ([]models.Activity, error) {
+	return s.activityRepo.FindByUserAndDateRange(userID, startDate, endDate)
+}
+
+// ==================== Streak Service ====================
+
+// StreakService handles streak-related business logic
+type StreakService struct {
+	streakRepo *repository.StreakRepository
+}
+
+// NewStreakService creates a new StreakService
+func NewStreakService(streakRepo *repository.StreakRepository) *StreakService {
+	return &StreakService{streakRepo: streakRepo}
+}
+
+// AddStreak updates or creates a streak record
+func (s *StreakService) AddStreak(userID uint, date time.Time, isCron bool) error {
+	now := time.Now().In(date.Location())
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, date.Location())
+
+	// Only process today's date for regular updates
+	if date.Before(today) && !isCron {
+		return nil
+	}
+
+	// Get the latest streak
+	streak, err := s.streakRepo.FindLatestByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	if isCron {
+		// Cron job creates a new day's streak record with current = 0 (broken)
+		longest := 0
+		if streak != nil {
+			longest = streak.Longest
+		}
+		newStreak := &models.Streak{
+			UserID:       userID,
+			Current:      0,
+			Longest:      longest,
+			ActivityDate: date,
+		}
+		return s.streakRepo.Create(newStreak)
+	}
+
+	// Get previous streak for calculating continuation
+	previousStreak, _ := s.streakRepo.FindPreviousByUser(userID)
+	current := 0
+	if previousStreak != nil {
+		current = previousStreak.Current
+	}
+
+	if previousStreak != nil && previousStreak.ID != 0 {
+		// Find streak for current date and update it
+		streakToUpdate, err := s.streakRepo.FindByUserAndDate(userID, date)
+		if err != nil {
+			return err
+		}
+		if streakToUpdate == nil {
+			return nil
+		}
+		if streakToUpdate.Current != 0 {
+			return nil // Already updated
+		}
+		streakToUpdate.Current = current + 1
+		if streak != nil && streak.Longest > streakToUpdate.Current {
+			streakToUpdate.Longest = streak.Longest
+		} else {
+			streakToUpdate.Longest = streakToUpdate.Current
+		}
+		return s.streakRepo.Update(streakToUpdate)
+	}
+
+	// No previous streak - check if there's a streak for today
+	streakToUpdate, _ := s.streakRepo.FindByUserAndDate(userID, date)
+	if streakToUpdate != nil && streakToUpdate.ID != 0 {
+		return nil // Already exists
+	}
+
+	// Create new streak
+	newStreak := &models.Streak{
+		UserID:       userID,
+		Current:      current + 1,
+		Longest:      1,
+		ActivityDate: date,
+	}
+	return s.streakRepo.Create(newStreak)
+}
+
+// GetStreak retrieves streak data for a user on a specific date
+func (s *StreakService) GetStreak(userID uint, date time.Time) (*models.Streak, error) {
+	return s.streakRepo.FindByUserAndDate(userID, date)
+}
+
+// GetLatestStreak retrieves the latest streak for a user
+func (s *StreakService) GetLatestStreak(userID uint) (*models.Streak, error) {
+	return s.streakRepo.FindLatestByUser(userID)
+}
+
+// GetAllStreaks retrieves all streaks for a user
+func (s *StreakService) GetAllStreaks(userID uint) ([]models.Streak, error) {
+	return s.streakRepo.FindAllByUser(userID)
+}
+
+// ==================== Tile Config Service ====================
+
+// TileConfigService handles tile configuration business logic
+type TileConfigService struct {
+	tileRepo *repository.TileConfigRepository
+	userRepo *repository.UserRepository
+}
+
+// NewTileConfigService creates a new TileConfigService
+func NewTileConfigService(tileRepo *repository.TileConfigRepository, userRepo *repository.UserRepository) *TileConfigService {
+	return &TileConfigService{
+		tileRepo: tileRepo,
+		userRepo: userRepo,
+	}
+}
+
+// GetConfig retrieves tile config for a user
+func (s *TileConfigService) GetConfig(userID uint) (*models.TileConfig, error) {
+	return s.tileRepo.FindByUserID(userID)
+}
+
+// GetConfigByUsername retrieves tile config by username
+func (s *TileConfigService) GetConfigByUsername(username string) (*models.TileConfig, error) {
+	user, err := s.userRepo.FindByUsername(username)
+	if err != nil || user == nil {
+		return nil, errors.New("user not found")
+	}
+	return s.tileRepo.FindByUserID(user.ID)
+}
+
+// SaveConfig saves tile config for a user
+func (s *TileConfigService) SaveConfig(userID uint, config models.JSONB) error {
+	return s.tileRepo.Save(userID, config)
+}

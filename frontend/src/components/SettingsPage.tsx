@@ -4,10 +4,11 @@ import {
     ArrowLeft, User, Key, Lock, Camera, Trash2, X, 
     LogOut, AlertTriangle, ChevronRight, Pencil 
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../store';
 import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
-import { Toast } from './Toast';
+import { Toast } from './ui';
+import { APP_ROUTES } from '../constants/routes';
 
 export const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -58,7 +59,7 @@ export const SettingsPage: React.FC = () => {
     }, []);
 
     if (!user) {
-        navigate('/login');
+        navigate(APP_ROUTES.LOGIN);
         return null;
     }
 
@@ -134,7 +135,7 @@ export const SettingsPage: React.FC = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
+        navigate(APP_ROUTES.LOGIN);
     };
 
     const handleBack = () => {

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Loader2, XCircle, CheckCircle } from 'lucide-react';
 import { api } from '../services/api';
-import { Toast } from './Toast';
+import { Toast } from './ui';
+import { APP_ROUTES } from '../constants/routes';
 
 export const ResetPassword: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -99,7 +100,7 @@ export const ResetPassword: React.FC = () => {
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
                         This reset link is invalid or has expired.
                     </p>
-                    <Link to="/forgot-password" style={{ textDecoration: 'none' }}>
+                    <Link to={APP_ROUTES.FORGOT_PASSWORD} style={{ textDecoration: 'none' }}>
                         <button className="btn btn-primary">
                             Request New Link
                         </button>
@@ -121,7 +122,7 @@ export const ResetPassword: React.FC = () => {
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
                         You can now log in with your new password.
                     </p>
-                    <button className="btn btn-primary" onClick={() => navigate('/login')}>
+                    <button className="btn btn-primary" onClick={() => navigate(APP_ROUTES.LOGIN)}>
                         Go to Login
                     </button>
                 </div>
@@ -172,7 +173,7 @@ export const ResetPassword: React.FC = () => {
 
                 <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
                     <Link 
-                        to="/login"
+                        to={APP_ROUTES.LOGIN}
                         style={{ 
                             fontSize: '0.75rem', 
                             color: 'var(--text-secondary)', 

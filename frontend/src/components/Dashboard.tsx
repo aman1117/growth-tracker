@@ -16,7 +16,7 @@ import {
     sortableKeyboardCoordinates,
     rectSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../store';
 import { api } from '../services/api';
 import { ACTIVITY_NAMES } from '../types';
 import type { ActivityName, Activity } from '../types';
@@ -25,7 +25,8 @@ import { DaySummaryCard } from './DaySummaryCard';
 import { ActivityTile } from './ActivityTile';
 import type { TileSize } from './ActivityTile';
 import { ActivityModal } from './ActivityModal';
-import { Toast } from './Toast';
+import { Toast } from './ui';
+import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
 import { Lock, X, BarChart3, Sparkles } from 'lucide-react';
@@ -512,7 +513,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                     {/* Analytics button */}
                     <button
-                        onClick={() => navigate(`/analytics?user=${targetUsername}`)}
+                        onClick={() => targetUsername && navigate(APP_ROUTES.USER_ANALYTICS(targetUsername))}
                         style={{
                             padding: '0.5rem',
                             backgroundColor: 'transparent',

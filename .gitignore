@@ -5,3 +5,10 @@ msft.env
 deploy-azure.ps1
 diagnose/
 node_modules
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib

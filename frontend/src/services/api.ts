@@ -240,7 +240,6 @@ import type {
   PrivacyResponse,
   UploadResponse,
   LogActivityResponse,
-  InsightsResponse,
 } from '../types/api';
 import type { WeekAnalyticsResponse } from '../types';
 
@@ -288,13 +287,6 @@ export const api = {
   },
 
   /**
-   * Get AI insights for a user
-   */
-  async getInsights(username: string): Promise<InsightsResponse> {
-    return apiClient.post<InsightsResponse>(API_ROUTES.ANALYTICS.INSIGHTS, { username });
-  },
-
-  /**
    * Get weekly analytics for a user
    */
   async getWeekAnalytics(
@@ -319,11 +311,11 @@ export const api = {
  * for both request and response types.
  */
 export const authApi = {
-  login: (email: string, password: string) =>
-    apiClient.post<AuthResponse>(API_ROUTES.AUTH.LOGIN, { email, password }),
+  login: (identifier: string, password: string) =>
+    apiClient.post<AuthResponse>(API_ROUTES.AUTH.LOGIN, { identifier, password }),
 
   register: (username: string, email: string, password: string) =>
-    apiClient.post<AuthResponse>(API_ROUTES.AUTH.SIGNUP, { username, email, password }),
+    apiClient.post<AuthResponse>(API_ROUTES.AUTH.REGISTER, { username, email, password }),
 
   forgotPassword: (email: string) =>
     apiClient.post<{ success: boolean; message?: string; error?: string }>(
@@ -336,6 +328,11 @@ export const authApi = {
       token,
       password,
     }),
+
+  validateResetToken: (token: string) =>
+    apiClient.get<{ success: boolean; valid: boolean; error?: string }>(
+      `${API_ROUTES.AUTH.VALIDATE_RESET_TOKEN}?token=${token}`
+    ),
 };
 
 export const userApi = {
@@ -344,8 +341,13 @@ export const userApi = {
 
   getProfile: () => apiClient.get<ProfileResponse>(API_ROUTES.USER.PROFILE),
 
-  updateProfile: (data: { username?: string; bio?: string }) =>
-    apiClient.post<ProfileResponse>(API_ROUTES.USER.UPDATE_PROFILE, data),
+  updateUsername: (username: string) =>
+    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_USERNAME, { username }),
+
+  updateBio: (bio: string) =>
+    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_BIO, { bio }),
+
+  getBio: () => apiClient.get<{ success: boolean; bio?: string }>(API_ROUTES.USER.GET_BIO),
 
   getPrivacy: () => apiClient.get<PrivacyResponse>(API_ROUTES.PRIVACY.GET),
 
@@ -358,14 +360,11 @@ export const userApi = {
   deleteProfilePic: () =>
     apiClient.delete<{ success: boolean; error?: string }>(API_ROUTES.USER.DELETE_PICTURE),
 
-  updatePassword: (currentPassword: string, newPassword: string) =>
+  changePassword: (currentPassword: string, newPassword: string) =>
     apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.CHANGE_PASSWORD, {
       current_password: currentPassword,
       new_password: newPassword,
     }),
-
-  deleteAccount: () =>
-    apiClient.delete<{ success: boolean; error?: string }>(API_ROUTES.USER.DELETE_ACCOUNT),
 };
 
 export const activityApi = {
@@ -376,14 +375,16 @@ export const activityApi = {
       end_date: endDate,
     }),
 
-  logActivity: (
-    name: string,
+  createActivity: (
+    username: string,
+    activity: string,
     hours: number,
     date: string,
     note?: string
   ) =>
-    apiClient.post<LogActivityResponse>(API_ROUTES.ACTIVITY.LOG, {
-      name,
+    apiClient.post<LogActivityResponse>(API_ROUTES.ACTIVITY.CREATE, {
+      username,
+      activity,
       hours,
       date,
       note,
@@ -401,22 +402,25 @@ export const analyticsApi = {
       username,
       week_start: weekStart,
     }),
-
-  getInsights: (username: string) =>
-    apiClient.post<InsightsResponse>(API_ROUTES.ANALYTICS.INSIGHTS, { username }),
 };
 
 export const tileConfigApi = {
-  getTileConfig: (username: string) =>
+  getConfig: () =>
+    apiClient.get<{
+      success: boolean;
+      data?: { order: string[]; sizes: Record<string, string> };
+      error?: string;
+    }>(API_ROUTES.TILE_CONFIG.GET),
+
+  saveConfig: (config: { order: string[]; sizes: Record<string, string> }) =>
+    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.TILE_CONFIG.SAVE, {
+      config,
+    }),
+
+  getConfigByUsername: (username: string) =>
     apiClient.post<{
       success: boolean;
       data?: { order: string[]; sizes: Record<string, string> };
       error?: string;
-    }>(API_ROUTES.TILE_CONFIG.GET, { username }),
-
-  saveTileConfig: (order: string[], sizes: Record<string, string>) =>
-    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.TILE_CONFIG.SAVE, {
-      order,
-      sizes,
-    }),
+    }>(API_ROUTES.TILE_CONFIG.GET_BY_USER, { username }),
 };

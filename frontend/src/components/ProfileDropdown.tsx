@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, Sun, Moon, Monitor } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
+import { useAuth, useTheme } from '../store';
+import { APP_ROUTES } from '../constants/routes';
 
 interface ProfileDropdownProps {
     onOpen?: () => void;
@@ -157,7 +157,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onOpen }) => {
                     <button
                         onClick={() => {
                             closeDropdown();
-                            navigate('/settings');
+                            navigate(APP_ROUTES.SETTINGS);
                         }}
                         style={{
                             width: '100%',

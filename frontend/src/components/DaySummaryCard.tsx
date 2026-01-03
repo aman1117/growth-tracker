@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Flame, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 
@@ -30,7 +30,6 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
 }) => {
     const [streak, setStreak] = useState<StreakData>({ current: 0, longest: 0 });
     const [streakLoading, setStreakLoading] = useState(true);
-    const dateInputRef = useRef<HTMLInputElement>(null);
 
     const formatDateForApi = (date: Date) => {
         const year = date.getFullYear();
@@ -81,10 +80,6 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     const isToday = () => {
         const today = new Date();
         return currentDate.toDateString() === today.toDateString();
-    };
-
-    const handleDateClick = () => {
-        dateInputRef.current?.showPicker();
     };
 
     const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,53 +174,44 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     >
                         <ChevronLeft size={18} />
                     </button>
-                    <button
-                        onClick={handleDateClick}
-                        style={{
-                            fontSize: '0.85rem',
-                            fontWeight: 500,
-                            color: 'var(--text-primary)',
-                            background: 'var(--tile-glass-bg)',
-                            backdropFilter: 'blur(8px)',
-                            WebkitBackdropFilter: 'blur(8px)',
-                            border: '1px solid var(--tile-glass-border)',
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                            cursor: 'pointer',
-                            padding: '0.4rem 0.85rem',
-                            borderRadius: '10px',
-                            transition: 'all 0.2s ease',
-                            whiteSpace: 'nowrap',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'var(--tile-glass-bg-active)';
-                            e.currentTarget.style.borderColor = 'var(--tile-glass-border-active)';
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'var(--tile-glass-bg)';
-                            e.currentTarget.style.borderColor = 'var(--tile-glass-border)';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-                        }}
-                        title="Click to select date"
-                    >
-                        {formatDate(currentDate)}
-                    </button>
-                    <input
-                        ref={dateInputRef}
-                        type="date"
-                        value={formatDateForInput(currentDate)}
-                        max={getTodayForInput()}
-                        onChange={handleDateInputChange}
-                        style={{
-                            position: 'absolute',
-                            opacity: 0,
-                            width: 0,
-                            height: 0,
-                            pointerEvents: 'none',
-                        }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            style={{
+                                fontSize: '0.85rem',
+                                fontWeight: 500,
+                                color: 'var(--text-primary)',
+                                background: 'var(--tile-glass-bg)',
+                                backdropFilter: 'blur(8px)',
+                                WebkitBackdropFilter: 'blur(8px)',
+                                border: '1px solid var(--tile-glass-border)',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                                cursor: 'pointer',
+                                padding: '0.4rem 0.85rem',
+                                borderRadius: '10px',
+                                transition: 'all 0.2s ease',
+                                whiteSpace: 'nowrap',
+                                pointerEvents: 'none',
+                            }}
+                        >
+                            {formatDate(currentDate)}
+                        </button>
+                        <input
+                            type="date"
+                            value={formatDateForInput(currentDate)}
+                            max={getTodayForInput()}
+                            onChange={handleDateInputChange}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                opacity: 0,
+                                cursor: 'pointer',
+                                fontSize: '16px', // Prevents iOS zoom on focus
+                            }}
+                        />
+                    </div>
                     <button
                         onClick={onNext}
                         disabled={isNextDisabled}

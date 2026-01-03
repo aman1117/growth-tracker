@@ -1176,7 +1176,7 @@ const BioDialog: React.FC<{
                             border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
                             backgroundColor: 'var(--bg-secondary)',
                             color: 'var(--text-primary)',
-                            fontSize: '0.9375rem',
+                            fontSize: '16px',
                             outline: 'none',
                             resize: 'none',
                             fontFamily: 'inherit'

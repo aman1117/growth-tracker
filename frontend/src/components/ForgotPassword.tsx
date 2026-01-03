@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
-import { api } from '../utils/api';
+import { api } from '../services/api';
 import { Toast } from './Toast';
 
 export const ForgotPassword: React.FC = () => {

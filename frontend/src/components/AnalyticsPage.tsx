@@ -2,34 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown,
-    ArrowUpDown, ChevronDown, Users, Check,
-    Moon, BookOpen, Utensils, Users as UsersIcon, Sparkles,
-    Dumbbell, Film, Home, Coffee, Palette,
-    Plane, ShoppingBag, Sofa, Gamepad2, Briefcase, Search, X, Lock
+    ArrowUpDown, ChevronDown, Users, Check, Search, X, Lock, Coffee
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../utils/api';
-import type { ActivityName, WeekAnalyticsResponse, DayAnalytics, ActivitySummary } from '../types';
-
-// Activity Configuration Map
-const ACTIVITY_CONFIG: Record<ActivityName, { icon: any, color: string, label: string }> = {
-    sleep: { icon: Moon, color: '#6366f1', label: 'Sleep' },
-    study: { icon: BookOpen, color: '#3b82f6', label: 'Study' },
-    book_reading: { icon: BookOpen, color: '#0ea5e9', label: 'Reading' },
-    eating: { icon: Utensils, color: '#f59e0b', label: 'Eating' },
-    friends: { icon: UsersIcon, color: '#ec4899', label: 'Friends' },
-    grooming: { icon: Sparkles, color: '#8b5cf6', label: 'Grooming' },
-    workout: { icon: Dumbbell, color: '#ef4444', label: 'Workout' },
-    reels: { icon: Film, color: '#f43f5e', label: 'Reels' },
-    family: { icon: Home, color: '#10b981', label: 'Family' },
-    idle: { icon: Coffee, color: '#64748b', label: 'Idle' },
-    creative: { icon: Palette, color: '#d946ef', label: 'Creative' },
-    travelling: { icon: Plane, color: '#06b6d4', label: 'Travelling' },
-    errand: { icon: ShoppingBag, color: '#f97316', label: 'Errand' },
-    rest: { icon: Sofa, color: '#84cc16', label: 'Rest' },
-    entertainment: { icon: Gamepad2, color: '#a855f7', label: 'Entertainment' },
-    office: { icon: Briefcase, color: '#0f766e', label: 'Office' },
-};
+import { api } from '../services/api';
+import { ACTIVITY_CONFIG } from '../constants';
+import type { WeekAnalyticsResponse, DayAnalytics, ActivitySummary } from '../types';
 
 interface SearchResult {
     id: number;

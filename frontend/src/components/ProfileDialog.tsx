@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, User, Palette, LogOut, Check, Lock, Key, Camera, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { api } from '../utils/api';
+import { api } from '../services/api';
+import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
 import { Toast } from './Toast';
 
 interface ProfileDialogProps {
@@ -77,19 +78,17 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
         if (!file) return;
 
         // Validate file type (including HEIC from iPhones)
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
         // Also check extension as some browsers don't report HEIC mime type correctly
         const ext = file.name.toLowerCase().split('.').pop();
-        const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
         
-        if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext || '')) {
-            setToast({ message: 'Only JPG, PNG, WebP, and HEIC images are allowed', type: 'error' });
+        if (!VALIDATION.ALLOWED_IMAGE_TYPES.includes(file.type) && !VALIDATION.ALLOWED_IMAGE_EXTENSIONS.includes(ext || '')) {
+            setToast({ message: VALIDATION_MESSAGES.FILE_TYPE_ERROR, type: 'error' });
             return;
         }
 
-        // Validate file size (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            setToast({ message: 'Image size must be less than 5MB', type: 'error' });
+        // Validate file size
+        if (file.size > VALIDATION.MAX_FILE_SIZE) {
+            setToast({ message: VALIDATION_MESSAGES.FILE_SIZE_ERROR, type: 'error' });
             return;
         }
 
@@ -99,7 +98,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
         try {
             const res = await api.uploadFile('/profile/upload-picture', file);
             if (res.success) {
-                updateProfilePic(res.profile_pic);
+                updateProfilePic(res.profile_pic ?? null);
                 setToast({ message: 'Profile picture updated!', type: 'success' });
             } else {
                 setToast({ message: res.error || 'Failed to upload image', type: 'error' });

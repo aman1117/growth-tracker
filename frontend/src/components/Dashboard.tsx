@@ -17,9 +17,10 @@ import {
     rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../utils/api';
+import { api } from '../services/api';
 import { ACTIVITY_NAMES } from '../types';
 import type { ActivityName, Activity } from '../types';
+import { ACTIVITY_CONFIG, STORAGE_KEYS } from '../constants';
 import { DaySummaryCard } from './DaySummaryCard';
 import { ActivityTile } from './ActivityTile';
 import type { TileSize } from './ActivityTile';
@@ -27,35 +28,10 @@ import { ActivityModal } from './ActivityModal';
 import { Toast } from './Toast';
 import { useParams, useNavigate } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
-import {
-    Moon, BookOpen, Utensils, Users, Sparkles,
-    Dumbbell, Film, Home, Coffee, Palette,
-    Plane, ShoppingBag, Sofa, Gamepad2, Briefcase,
-    Lock, X, BarChart3
-} from 'lucide-react';
+import { Lock, X, BarChart3, Sparkles } from 'lucide-react';
 
-// Activity Configuration Map
-const ACTIVITY_CONFIG: Record<ActivityName, { icon: any, color: string }> = {
-    sleep: { icon: Moon, color: '#6366f1' }, // Indigo
-    study: { icon: BookOpen, color: '#3b82f6' }, // Blue
-    book_reading: { icon: BookOpen, color: '#0ea5e9' }, // Sky
-    eating: { icon: Utensils, color: '#f59e0b' }, // Amber
-    friends: { icon: Users, color: '#ec4899' }, // Pink
-    grooming: { icon: Sparkles, color: '#8b5cf6' }, // Violet
-    workout: { icon: Dumbbell, color: '#ef4444' }, // Red
-    reels: { icon: Film, color: '#f43f5e' }, // Rose
-    family: { icon: Home, color: '#10b981' }, // Emerald
-    idle: { icon: Coffee, color: '#64748b' }, // Slate
-    creative: { icon: Palette, color: '#d946ef' }, // Fuchsia
-    travelling: { icon: Plane, color: '#06b6d4' }, // Cyan
-    errand: { icon: ShoppingBag, color: '#f97316' }, // Orange
-    rest: { icon: Sofa, color: '#84cc16' }, // Lime
-    entertainment: { icon: Gamepad2, color: '#a855f7' }, // Purple
-    office: { icon: Briefcase, color: '#0f766e' }, // Teal
-};
-
-const STORAGE_KEY = 'growth-tracker-tile-order';
-const SIZE_STORAGE_KEY = 'growth-tracker-tile-sizes';
+const STORAGE_KEY = STORAGE_KEYS.TILE_ORDER;
+const SIZE_STORAGE_KEY = STORAGE_KEYS.TILE_SIZES;
 
 // Default tile configuration
 const getDefaultTileSizes = (): Record<ActivityName, TileSize> => {

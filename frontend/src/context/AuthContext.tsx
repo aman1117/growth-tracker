@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { STORAGE_KEYS } from '../constants/storage';
 
 
 interface AuthContextType {
@@ -19,11 +20,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('access_token');
-        const username = localStorage.getItem('username');
-        const userId = localStorage.getItem('user_id');
-        const profilePic = localStorage.getItem('profile_pic');
-        const bio = localStorage.getItem('bio');
+        const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+        const username = localStorage.getItem(STORAGE_KEYS.USERNAME);
+        const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+        const profilePic = localStorage.getItem(STORAGE_KEYS.PROFILE_PIC);
+        const bio = localStorage.getItem(STORAGE_KEYS.BIO);
 
         if (token && username && userId) {
             setUser({ username, id: parseInt(userId), profilePic: profilePic || null, bio: bio || null });
@@ -32,33 +33,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const login = (token: string, username: string, userId: number, profilePic?: string | null, bio?: string | null) => {
-        localStorage.setItem('access_token', token);
-        localStorage.setItem('username', username);
-        localStorage.setItem('user_id', userId.toString());
+        localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+        localStorage.setItem(STORAGE_KEYS.USERNAME, username);
+        localStorage.setItem(STORAGE_KEYS.USER_ID, userId.toString());
         if (profilePic) {
-            localStorage.setItem('profile_pic', profilePic);
+            localStorage.setItem(STORAGE_KEYS.PROFILE_PIC, profilePic);
         } else {
-            localStorage.removeItem('profile_pic');
+            localStorage.removeItem(STORAGE_KEYS.PROFILE_PIC);
         }
         if (bio) {
-            localStorage.setItem('bio', bio);
+            localStorage.setItem(STORAGE_KEYS.BIO, bio);
         } else {
-            localStorage.removeItem('bio');
+            localStorage.removeItem(STORAGE_KEYS.BIO);
         }
         setUser({ username, id: userId, profilePic, bio });
     };
 
     const logout = () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('username');
-        localStorage.removeItem('user_id');
-        localStorage.removeItem('profile_pic');
-        localStorage.removeItem('bio');
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USERNAME);
+        localStorage.removeItem(STORAGE_KEYS.USER_ID);
+        localStorage.removeItem(STORAGE_KEYS.PROFILE_PIC);
+        localStorage.removeItem(STORAGE_KEYS.BIO);
         setUser(null);
     };
 
     const updateUsername = (newUsername: string) => {
-        localStorage.setItem('username', newUsername);
+        localStorage.setItem(STORAGE_KEYS.USERNAME, newUsername);
         if (user) {
             setUser({ ...user, username: newUsername });
         }
@@ -66,9 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateProfilePic = (url: string | null) => {
         if (url) {
-            localStorage.setItem('profile_pic', url);
+            localStorage.setItem(STORAGE_KEYS.PROFILE_PIC, url);
         } else {
-            localStorage.removeItem('profile_pic');
+            localStorage.removeItem(STORAGE_KEYS.PROFILE_PIC);
         }
         if (user) {
             setUser({ ...user, profilePic: url });
@@ -77,9 +78,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateBio = (bio: string | null) => {
         if (bio) {
-            localStorage.setItem('bio', bio);
+            localStorage.setItem(STORAGE_KEYS.BIO, bio);
         } else {
-            localStorage.removeItem('bio');
+            localStorage.removeItem(STORAGE_KEYS.BIO);
         }
         if (user) {
             setUser({ ...user, bio });

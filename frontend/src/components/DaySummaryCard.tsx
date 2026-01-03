@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { api } from '../utils/api';
+import { api } from '../services/api';
 import { Flame, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 
 interface DaySummaryCardProps {

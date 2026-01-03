@@ -1,3 +1,5 @@
+@import './styles/animations.css';
+
 :root {
   /* Light Theme - Clean Neutral White */
   --bg-primary: #ffffff;

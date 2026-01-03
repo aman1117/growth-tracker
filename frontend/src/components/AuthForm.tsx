@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../utils/api';
+import { api } from '../services/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { Toast } from './Toast';
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Loader2, XCircle, CheckCircle } from 'lucide-react';
-import { api } from '../utils/api';
+import { api } from '../services/api';
 import { Toast } from './Toast';
 
 export const ResetPassword: React.FC = () => {

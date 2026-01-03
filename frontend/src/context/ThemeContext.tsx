@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { STORAGE_KEYS } from '../constants/storage';
 
 type ThemePreference = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';
@@ -18,13 +19,13 @@ const getSystemTheme = (): ResolvedTheme => {
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [theme, setThemeState] = useState<ThemePreference>(() => {
-        const stored = localStorage.getItem('growth-tracker-theme') as ThemePreference;
+        const stored = localStorage.getItem(STORAGE_KEYS.THEME) as ThemePreference;
         if (stored && ['light', 'dark', 'system'].includes(stored)) return stored;
         return 'system';
     });
 
     const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
-        const stored = localStorage.getItem('growth-tracker-theme') as ThemePreference;
+        const stored = localStorage.getItem(STORAGE_KEYS.THEME) as ThemePreference;
         if (stored === 'light') return 'light';
         if (stored === 'dark') return 'dark';
         return getSystemTheme();
@@ -49,7 +50,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             root.removeAttribute('data-theme');
         }
         
-        localStorage.setItem('growth-tracker-theme', theme);
+        localStorage.setItem(STORAGE_KEYS.THEME, theme);
     }, [theme]);
 
     // Listen for system theme changes

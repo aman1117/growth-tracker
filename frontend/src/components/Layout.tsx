@@ -383,14 +383,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         transition: 'all 0.2s ease'
                                     }}
                                     title="Analytics"
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = 'var(--accent)';
-                                        e.currentTarget.style.color = 'white';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = 'var(--icon-btn-bg)';
-                                        e.currentTarget.style.color = 'var(--icon-btn-color)';
-                                    }}
                                 >
                                     <BarChart3 size={14} />
                                 </button>

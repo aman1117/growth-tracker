@@ -361,8 +361,8 @@ export const AnalyticsPage: React.FC = () => {
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Users size={16} color="var(--text-secondary)" />
-                            <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                            <Users size={18} color="var(--text-secondary)" />
+                            <span style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.95rem' }}>
                                 {targetUsername}
                             </span>
                         </div>

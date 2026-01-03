@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     ArrowLeft, User, Key, Lock, Camera, Trash2, X, 
-    LogOut, AlertTriangle, ChevronRight 
+    LogOut, AlertTriangle, ChevronRight, Pencil 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../utils/api';
@@ -10,7 +10,7 @@ import { Toast } from './Toast';
 
 export const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
-    const { user, logout, updateUsername, updateProfilePic } = useAuth();
+    const { user, logout, updateUsername, updateProfilePic, updateBio } = useAuth();
     
     // Dialog states
     const [showUsernameDialog, setShowUsernameDialog] = useState(false);
@@ -18,6 +18,7 @@ export const SettingsPage: React.FC = () => {
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [showFullscreenPic, setShowFullscreenPic] = useState(false);
     const [showPicDialog, setShowPicDialog] = useState(false);
+    const [showBioDialog, setShowBioDialog] = useState(false);
     
     // Profile picture state
     const [isUploadingPic, setIsUploadingPic] = useState(false);
@@ -42,8 +43,13 @@ export const SettingsPage: React.FC = () => {
                 }
             });
             api.get('/profile').then(res => {
-                if (res.success && res.profile_pic) {
-                    updateProfilePic(res.profile_pic);
+                if (res.success) {
+                    if (res.profile_pic) {
+                        updateProfilePic(res.profile_pic);
+                    }
+                    if (res.bio !== undefined) {
+                        updateBio(res.bio);
+                    }
                 }
             });
         }
@@ -299,6 +305,29 @@ export const SettingsPage: React.FC = () => {
                         }}>
                             @{user.username}
                         </h2>
+                        <div 
+                            onClick={() => setShowBioDialog(true)}
+                            style={{ 
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                marginTop: '0.25rem',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <p style={{ 
+                                fontSize: '0.8rem', 
+                                color: user.bio ? 'var(--text-secondary)' : 'var(--accent)',
+                                margin: 0,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                maxWidth: '280px'
+                            }}>
+                                {user.bio || '+ Add bio'}
+                            </p>
+                            <Pencil size={12} color="var(--accent)" style={{ flexShrink: 0 }} />
+                        </div>
                     </div>
                 </div>
 
@@ -452,6 +481,17 @@ export const SettingsPage: React.FC = () => {
                 onClose={() => setShowPasswordDialog(false)}
                 onSuccess={() => {
                     setToast({ message: 'Password changed successfully!', type: 'success' });
+                }}
+            />
+
+            {/* Bio Dialog */}
+            <BioDialog
+                isOpen={showBioDialog}
+                onClose={() => setShowBioDialog(false)}
+                currentBio={user.bio || ''}
+                onSuccess={(newBio) => {
+                    updateBio(newBio || null);
+                    setToast({ message: 'Bio updated!', type: 'success' });
                 }}
             />
 
@@ -1026,6 +1066,159 @@ const PasswordDialog: React.FC<{
                         }}
                     >
                         {isLoading ? 'Saving...' : 'Update'}
+                    </button>
+                </div>
+            </form>
+        </DialogWrapper>
+    );
+};
+
+// Bio Dialog
+const BioDialog: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    currentBio: string;
+    onSuccess: (newBio: string) => void;
+}> = ({ isOpen, onClose, currentBio, onSuccess }) => {
+    const [bio, setBio] = useState(currentBio);
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setBio(currentBio);
+            setError('');
+        }
+    }, [isOpen, currentBio]);
+
+    if (!isOpen) return null;
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        const trimmedBio = bio.trim();
+        
+        if (trimmedBio.length > 150) {
+            setError('Bio must be 150 characters or less');
+            return;
+        }
+
+        if (trimmedBio === currentBio) {
+            onClose();
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const res = await api.post('/update-bio', { bio: trimmedBio });
+            if (res.success) {
+                onSuccess(res.bio || '');
+                onClose();
+            } else {
+                setError(res.error || 'Failed to update bio');
+            }
+        } catch (err) {
+            setError('Failed to update bio');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <DialogWrapper onClose={onClose}>
+            <form onSubmit={handleSubmit}>
+                <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginBottom: '1rem'
+                }}>
+                    <h3 style={{ 
+                        margin: 0, 
+                        fontSize: '1.125rem', 
+                        fontWeight: 600,
+                        color: 'var(--text-primary)'
+                    }}>
+                        Edit bio
+                    </h3>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            padding: '0.25rem'
+                        }}
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
+
+                <div style={{ marginBottom: '0.75rem' }}>
+                    <textarea
+                        value={bio}
+                        onChange={(e) => {
+                            setBio(e.target.value);
+                            setError('');
+                        }}
+                        placeholder="Write a short bio..."
+                        maxLength={150}
+                        autoFocus
+                        rows={4}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            borderRadius: '8px',
+                            border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
+                            backgroundColor: 'var(--bg-secondary)',
+                            color: 'var(--text-primary)',
+                            fontSize: '0.9375rem',
+                            outline: 'none',
+                            resize: 'none',
+                            fontFamily: 'inherit'
+                        }}
+                    />
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: '0.5rem'
+                    }}>
+                        <span style={{ 
+                            fontSize: '0.75rem', 
+                            color: bio.length > 150 ? '#ef4444' : 'var(--text-secondary)' 
+                        }}>
+                            {bio.length}/150
+                        </span>
+                        {error && (
+                            <span style={{ 
+                                color: '#ef4444', 
+                                fontSize: '0.75rem'
+                            }}>
+                                {error}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+                    <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}>
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="btn btn-primary"
+                        style={{
+                            flex: 1,
+                            padding: '0.6rem',
+                            fontSize: '0.85rem',
+                            opacity: isLoading ? 0.7 : 1
+                        }}
+                    >
+                        {isLoading ? 'Saving...' : 'Save'}
                     </button>
                 </div>
             </form>

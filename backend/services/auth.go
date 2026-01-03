@@ -451,3 +451,83 @@ func ChangePasswordHandler(c *fiber.Ctx) error {
 		"message": "Password changed successfully",
 	})
 }
+
+type updateBioRequest struct {
+	Bio string `json:"bio"`
+}
+
+func UpdateBioHandler(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success":    false,
+			"error":      "Unauthorized",
+			"error_code": "UNAUTHORIZED",
+		})
+	}
+
+	var body updateBioRequest
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success":    false,
+			"error":      "Invalid request body",
+			"error_code": "INVALID_REQUEST",
+		})
+	}
+
+	bio := strings.TrimSpace(body.Bio)
+
+	// Validate bio length (max 150 characters)
+	if len(bio) > 150 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success":    false,
+			"error":      "Bio must be 150 characters or less",
+			"error_code": "BIO_TOO_LONG",
+		})
+	}
+
+	traceID, _ := c.Locals("trace_id").(string)
+	log := utils.LogWithContext(traceID, userID)
+	if err := UpdateBio(userID, bio); err != nil {
+		log.Errorw("Bio update failed", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success":    false,
+			"error":      "Failed to update bio",
+			"error_code": "UPDATE_FAILED",
+		})
+	}
+
+	log.Infow("Bio updated", "bio_length", len(bio))
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"message": "Bio updated successfully",
+		"bio":     bio,
+	})
+}
+
+func GetBioHandler(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"success":    false,
+			"error":      "Unauthorized",
+			"error_code": "UNAUTHORIZED",
+		})
+	}
+
+	bio, err := GetUserBio(userID)
+	if err != nil {
+		traceID, _ := c.Locals("trace_id").(string)
+		utils.LogWithContext(traceID, userID).Errorw("Failed to get bio", "error", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"success":    false,
+			"error":      "Failed to get bio",
+			"error_code": "FETCH_FAILED",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+		"bio":     bio,
+	})
+}

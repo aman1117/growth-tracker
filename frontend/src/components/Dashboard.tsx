@@ -164,8 +164,9 @@ export const Dashboard: React.FC = () => {
     // Private account state (when viewing someone else's private profile)
     const [isPrivateAccount, setIsPrivateAccount] = useState(false);
 
-    // Target user's profile pic (when viewing another user's dashboard)
+    // Target user's profile pic and bio (when viewing another user's dashboard)
     const [targetProfilePic, setTargetProfilePic] = useState<string | null>(null);
+    const [targetBio, setTargetBio] = useState<string | null>(null);
     const [showTargetFullscreenPic, setShowTargetFullscreenPic] = useState(false);
 
     // DnD Sensors
@@ -264,7 +265,7 @@ export const Dashboard: React.FC = () => {
         fetchActivities();
     }, [fetchActivities]);
 
-    // Fetch target user's profile pic when viewing another user's dashboard
+    // Fetch target user's profile pic and bio when viewing another user's dashboard
     useEffect(() => {
         const fetchTargetUserProfile = async () => {
             if (isReadOnly && targetUsername) {
@@ -274,8 +275,16 @@ export const Dashboard: React.FC = () => {
                         const exactMatch = res.data.find((u: { username: string }) => 
                             u.username.toLowerCase() === targetUsername.toLowerCase()
                         );
-                        if (exactMatch && exactMatch.profile_pic) {
-                            setTargetProfilePic(exactMatch.profile_pic);
+                        if (exactMatch) {
+                            if (exactMatch.profile_pic) {
+                                setTargetProfilePic(exactMatch.profile_pic);
+                            }
+                            // Bio is only returned for public profiles (backend handles privacy)
+                            if (exactMatch.bio) {
+                                setTargetBio(exactMatch.bio);
+                            } else {
+                                setTargetBio(null);
+                            }
                         }
                     }
                 } catch (err) {
@@ -489,7 +498,23 @@ export const Dashboard: React.FC = () => {
                             targetUsername?.charAt(0)
                         )}
                     </div>
-                    <span>Viewing {targetUsername}'s Dashboard</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontWeight: 500 }}>
+                            Viewing {targetUsername}'s Dashboard
+                        </span>
+                        {targetBio && (
+                            <p style={{
+                                margin: '0.25rem 0 0',
+                                fontSize: '0.85rem',
+                                color: 'var(--text-secondary)',
+                                fontWeight: 400,
+                                lineHeight: 1.4,
+                                wordBreak: 'break-word'
+                            }}>
+                                {targetBio}
+                            </p>
+                        )}
+                    </div>
                 </div>
             )}
 

@@ -38,6 +38,7 @@ type UserDTO struct {
 	Email      string  `json:"email"`
 	ID         uint    `json:"id"`
 	ProfilePic *string `json:"profile_pic"`
+	Bio        *string `json:"bio,omitempty"` // Only included for public profiles
 	IsPrivate  bool    `json:"is_private"`
 }
 
@@ -335,13 +336,18 @@ func GetUsersHandler(c *fiber.Ctx) error {
 func SanitizeUsers(in []models.User) []UserDTO {
 	out := make([]UserDTO, 0, len(in))
 	for _, a := range in {
-		out = append(out, UserDTO{
+		dto := UserDTO{
 			ID:         a.ID,
 			Username:   a.Username,
 			Email:      a.Email,
 			ProfilePic: a.ProfilePic,
 			IsPrivate:  a.IsPrivate,
-		})
+		}
+		// Only include bio for public profiles
+		if !a.IsPrivate {
+			dto.Bio = a.Bio
+		}
+		out = append(out, dto)
 	}
 	return out
 }

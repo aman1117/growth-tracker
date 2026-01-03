@@ -234,6 +234,7 @@ func GetProfileHandler(c *fiber.Ctx) error {
 		"profile_pic": user.ProfilePic,
 		"username":    user.Username,
 		"email":       user.Email,
+		"bio":         user.Bio,
 	})
 }
 

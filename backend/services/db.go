@@ -70,3 +70,22 @@ func UpdateUserPassword(userID uint, hashedPassword string) error {
 	result := db.Model(&models.User{}).Where("id = ?", userID).Update("password_hash", hashedPassword)
 	return result.Error
 }
+
+func UpdateBio(userID uint, bio string) error {
+	db := utils.GetDB()
+	var bioPtr *string
+	if bio != "" {
+		bioPtr = &bio
+	}
+	result := db.Model(&models.User{}).Where("id = ?", userID).Update("bio", bioPtr)
+	return result.Error
+}
+
+func GetUserBio(userID uint) (*string, error) {
+	db := utils.GetDB()
+	var user models.User
+	if err := db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return user.Bio, nil
+}

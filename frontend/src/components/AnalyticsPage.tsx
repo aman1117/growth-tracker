@@ -429,7 +429,7 @@ export const AnalyticsPage: React.FC = () => {
                                             border: 'none',
                                             background: 'transparent',
                                             outline: 'none',
-                                            fontSize: '0.875rem',
+                                            fontSize: '16px',
                                             color: 'var(--text-primary)'
                                         }}
                                     />

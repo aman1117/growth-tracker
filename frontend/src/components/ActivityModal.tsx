@@ -89,10 +89,12 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'center',
             zIndex: 100,
-            padding: '1rem'
+            padding: '1rem',
+            paddingTop: '15vh',
+            overflowY: 'auto',
         }}
         onClick={(e) => {
             if (e.target === e.currentTarget) onClose();

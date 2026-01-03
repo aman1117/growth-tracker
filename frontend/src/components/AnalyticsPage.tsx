@@ -189,13 +189,22 @@ export const AnalyticsPage: React.FC = () => {
 
     const handleBack = () => {
         setIsExiting(true);
-        setTimeout(() => navigate(APP_ROUTES.HOME), 200);
+        setTimeout(() => {
+            // Safe navigation: use history if available, otherwise go home
+            if (window.history.length > 2 && window.history.state?.idx > 0) {
+                navigate(-1);
+            } else {
+                navigate(APP_ROUTES.HOME, { replace: true });
+            }
+        }, 200);
     };
 
     const handleUserSelect = (username: string) => {
         setShowUserSelector(false);
         setSearchQuery('');
-        navigate(APP_ROUTES.USER_ANALYTICS(username));
+        // Replace instead of push to avoid polluting history stack
+        // Back button will go to where user was before analytics, not between user switches
+        navigate(APP_ROUTES.USER_ANALYTICS(username), { replace: true });
     };
 
     const toggleSortOrder = () => {

@@ -82,6 +82,7 @@ export const AnalyticsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
     const [analytics, setAnalytics] = useState<WeekAnalyticsResponse | null>(null);
+    const [isPrivateAccount, setIsPrivateAccount] = useState(false);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
     const [activityFilter, setActivityFilter] = useState<string>('all');
     const [showActivityFilter, setShowActivityFilter] = useState(false);
@@ -151,6 +152,7 @@ export const AnalyticsPage: React.FC = () => {
         setLoading(true);
         setAnimateStats(false);
         setAnimateBars(false);
+        setIsPrivateAccount(false);
         
         try {
             const res = await api.getWeekAnalytics(targetUsername, formatDateForApi(weekStart));
@@ -168,6 +170,9 @@ export const AnalyticsPage: React.FC = () => {
                 // Trigger animations after data loads
                 setTimeout(() => setAnimateStats(true), 100);
                 setTimeout(() => setAnimateBars(true), 300);
+            } else if (res.error_code === 'ACCOUNT_PRIVATE') {
+                setIsPrivateAccount(true);
+                setAnalytics(null);
             } else {
                 setAnalytics(null);
             }
@@ -1054,6 +1059,43 @@ export const AnalyticsPage: React.FC = () => {
                             )}
                         </div>
                     </>
+                ) : isPrivateAccount ? (
+                    <div className="card" style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '2rem 1.5rem',
+                        textAlign: 'center',
+                    }}>
+                        <div style={{
+                            width: '56px',
+                            height: '56px',
+                            borderRadius: '50%',
+                            border: '2px solid var(--border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '12px',
+                        }}>
+                            <Lock size={24} style={{ color: 'var(--text-secondary)' }} />
+                        </div>
+                        <h3 style={{
+                            margin: '0 0 6px 0',
+                            fontSize: '1rem',
+                            fontWeight: 600,
+                            color: 'var(--text-primary)',
+                        }}>
+                            This Account is Private
+                        </h3>
+                        <p style={{
+                            margin: 0,
+                            fontSize: '0.8rem',
+                            color: 'var(--text-secondary)',
+                        }}>
+                            @{targetUsername}'s analytics data is not visible to others.
+                        </p>
+                    </div>
                 ) : (
                     <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
                         <p style={{ color: 'var(--text-secondary)' }}>

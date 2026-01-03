@@ -89,11 +89,16 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     if (loading || streakLoading) {
         return (
             <div
-                className="skeleton"
+                className="skeleton-glass"
                 style={{
                     height: '56px',
                     marginBottom: '1rem',
-                    borderRadius: '8px',
+                    borderRadius: '20px',
+                    background: 'var(--tile-glass-bg)',
+                    backdropFilter: 'blur(var(--tile-glass-blur))',
+                    WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
+                    border: '1px solid var(--tile-glass-border)',
+                    boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
                 }}
             />
         );
@@ -103,12 +108,17 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
         <div
             style={{
                 background: isComplete 
-                    ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%)'
-                    : 'var(--bg-secondary)',
+                    ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)'
+                    : 'var(--tile-glass-bg)',
+                backdropFilter: 'blur(var(--tile-glass-blur))',
+                WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
                 border: isComplete 
-                    ? '1px solid rgba(34, 197, 94, 0.2)' 
-                    : '1px solid var(--border)',
-                borderRadius: '8px',
+                    ? '1px solid rgba(34, 197, 94, 0.3)' 
+                    : '1px solid var(--tile-glass-border)',
+                boxShadow: isComplete 
+                    ? 'var(--tile-glass-shadow), var(--tile-glass-inner-glow), 0 0 20px rgba(34, 197, 94, 0.1)'
+                    : 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
+                borderRadius: '20px',
                 marginBottom: '1rem',
                 padding: '0.75rem 1rem',
             }}

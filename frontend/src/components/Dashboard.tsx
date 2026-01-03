@@ -467,11 +467,14 @@ export const Dashboard: React.FC = () => {
         <div className="container" style={{ paddingBottom: '2rem' }}>
             {isReadOnly && (
                 <div style={{
-                    backgroundColor: 'var(--bg-secondary)',
+                    background: 'var(--tile-glass-bg)',
+                    backdropFilter: 'blur(var(--tile-glass-blur))',
+                    WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
                     padding: '0.875rem 1rem',
                     marginBottom: '1rem',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border)',
+                    borderRadius: '20px',
+                    border: '1px solid var(--tile-glass-border)',
+                    boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.75rem'
@@ -667,13 +670,18 @@ export const Dashboard: React.FC = () => {
                     {Array.from({ length: 8 }).map((_, i) => (
                         <div
                             key={i}
-                            className="skeleton"
+                            className="skeleton-glass"
                             style={{
                                 gridColumn: i < 2 ? 'span 2' : 'span 1',
                                 gridRow: i === 0 ? 'span 2' : 'span 1',
                                 width: '100%',
                                 height: '100%',
-                                borderRadius: '4px',
+                                borderRadius: '24px',
+                                background: 'var(--tile-glass-bg)',
+                                backdropFilter: 'blur(var(--tile-glass-blur))',
+                                WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
+                                border: '1px solid var(--tile-glass-border)',
+                                boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
                             }}
                         />
                     ))}

@@ -280,6 +280,18 @@ export const AnalyticsPage: React.FC = () => {
                     transform: translateY(-2px);
                     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
                 }
+                .glass-card {
+                    background: var(--tile-glass-bg) !important;
+                    backdrop-filter: blur(var(--tile-glass-blur)) !important;
+                    -webkit-backdrop-filter: blur(var(--tile-glass-blur)) !important;
+                    border: 1px solid var(--tile-glass-border) !important;
+                    box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow) !important;
+                    border-radius: 20px !important;
+                }
+                .glass-card:hover {
+                    transform: translateY(-2px);
+                    box-shadow: var(--tile-glass-shadow-active), var(--tile-glass-inner-glow) !important;
+                }
                 .bar-segment {
                     transition: opacity 0.2s ease, transform 0.2s ease;
                 }
@@ -295,10 +307,25 @@ export const AnalyticsPage: React.FC = () => {
                     transform: translateX(4px);
                 }
                 .skeleton {
-                    background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-tertiary, rgba(255,255,255,0.1)) 50%, var(--bg-secondary) 75%);
+                    background: var(--tile-glass-bg);
+                    backdrop-filter: blur(var(--tile-glass-blur));
+                    -webkit-backdrop-filter: blur(var(--tile-glass-blur));
+                    border: 1px solid var(--tile-glass-border);
+                    box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
+                    border-radius: 20px;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .skeleton::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
                     background-size: 200% 100%;
-                    animation: shimmer 1.5s infinite;
-                    border-radius: 8px;
+                    animation: shimmer 2s ease-in-out infinite;
                 }
             `}</style>
             
@@ -355,14 +382,17 @@ export const AnalyticsPage: React.FC = () => {
                         style={{
                             width: '100%',
                             padding: '0.75rem 1rem',
-                            backgroundColor: 'var(--bg-secondary)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '12px',
+                            background: 'var(--tile-glass-bg)',
+                            backdropFilter: 'blur(var(--tile-glass-blur))',
+                            WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
+                            border: '1px solid var(--tile-glass-border)',
+                            boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
+                            borderRadius: '20px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             cursor: 'pointer',
-                            transition: 'all 0.2s ease'
+                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
                         }}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -387,23 +417,26 @@ export const AnalyticsPage: React.FC = () => {
                             top: 'calc(100% + 4px)',
                             left: 0,
                             right: 0,
-                            backgroundColor: 'var(--bg-primary)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '12px',
-                            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.2)',
+                            background: 'var(--tile-glass-bg)',
+                            backdropFilter: 'blur(16px)',
+                            WebkitBackdropFilter: 'blur(16px)',
+                            border: '1px solid var(--tile-glass-border)',
+                            borderRadius: '20px',
+                            boxShadow: 'var(--tile-glass-shadow-active)',
                             zIndex: 100,
                             overflow: 'hidden',
                             animation: 'dropdownSlide 0.2s ease-out'
                         }}>
                             {/* Search Input */}
-                            <div style={{ padding: '0.75rem', borderBottom: '1px solid var(--border)' }}>
+                            <div style={{ padding: '0.75rem', borderBottom: '1px solid var(--tile-glass-border)' }}>
                                 <div style={{
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '0.5rem',
                                     padding: '0.5rem 0.75rem',
-                                    backgroundColor: 'var(--bg-secondary)',
-                                    borderRadius: '8px'
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--tile-glass-border)'
                                 }}>
                                     <Search size={14} color="var(--text-secondary)" />
                                     <input
@@ -571,9 +604,10 @@ export const AnalyticsPage: React.FC = () => {
                 </div>
 
                 {/* Week Navigator */}
-                <div className="card" style={{ 
+                <div className="card glass-card" style={{ 
                     padding: '0.75rem 1rem', 
-                    marginBottom: '1rem'
+                    marginBottom: '1rem',
+                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}>
                     {/* Date Navigation Row */}
                     <div style={{
@@ -769,12 +803,13 @@ export const AnalyticsPage: React.FC = () => {
                     <>
                         {/* Weekly Bar Chart */}
                         <div 
-                            className="card" 
+                            className="card glass-card" 
                             style={{ 
                                 padding: '1rem', 
                                 marginBottom: '1rem',
                                 animation: animateBars ? 'fadeInUp 0.4s ease-out forwards' : 'none',
-                                opacity: animateBars ? 1 : 0
+                                opacity: animateBars ? 1 : 0,
+                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
                             }}
                         >
                             <div style={{ 
@@ -799,9 +834,11 @@ export const AnalyticsPage: React.FC = () => {
                                             alignItems: 'center',
                                             gap: '0.25rem',
                                             padding: '0.3rem 0.5rem',
-                                            backgroundColor: 'var(--bg-secondary)',
-                                            border: '1px solid var(--border)',
-                                            borderRadius: '6px',
+                                            background: 'var(--tile-glass-bg)',
+                                            backdropFilter: 'blur(8px)',
+                                            WebkitBackdropFilter: 'blur(8px)',
+                                            border: '1px solid var(--tile-glass-border)',
+                                            borderRadius: '10px',
                                             cursor: 'pointer',
                                             fontSize: '0.7rem',
                                             color: 'var(--text-secondary)',
@@ -820,10 +857,12 @@ export const AnalyticsPage: React.FC = () => {
                                             top: '100%',
                                             right: 0,
                                             marginTop: '0.25rem',
-                                            backgroundColor: 'var(--bg-secondary)',
-                                            border: '1px solid var(--border)',
-                                            borderRadius: '8px',
-                                            boxShadow: '0 4px 12px var(--shadow-lg)',
+                                            background: 'var(--tile-glass-bg)',
+                                            backdropFilter: 'blur(16px)',
+                                            WebkitBackdropFilter: 'blur(16px)',
+                                            border: '1px solid var(--tile-glass-border)',
+                                            borderRadius: '12px',
+                                            boxShadow: 'var(--tile-glass-shadow-active)',
                                             zIndex: 100,
                                             minWidth: '140px',
                                             maxHeight: '200px',
@@ -990,11 +1029,12 @@ export const AnalyticsPage: React.FC = () => {
 
                         {/* Activity Summary List */}
                         <div 
-                            className="card" 
+                            className="card glass-card" 
                             style={{ 
                                 padding: '1rem',
                                 animation: animateBars ? 'fadeInUp 0.4s ease-out 0.1s forwards' : 'none',
-                                opacity: animateBars ? 1 : 0
+                                opacity: animateBars ? 1 : 0,
+                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
                             }}
                         >
                             <div style={{ 
@@ -1018,21 +1058,23 @@ export const AnalyticsPage: React.FC = () => {
                                         alignItems: 'center',
                                         gap: '0.25rem',
                                         padding: '0.375rem 0.625rem',
-                                        backgroundColor: 'var(--bg-secondary)',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: '6px',
+                                        background: 'var(--tile-glass-bg)',
+                                        backdropFilter: 'blur(8px)',
+                                        WebkitBackdropFilter: 'blur(8px)',
+                                        border: '1px solid var(--tile-glass-border)',
+                                        borderRadius: '10px',
                                         cursor: 'pointer',
                                         fontSize: '0.75rem',
                                         color: 'var(--text-secondary)',
                                         transition: 'all 0.2s'
                                     }}
                                     onMouseEnter={(e) => {
-                                        e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                                        e.currentTarget.style.transform = 'translateY(-1px)';
                                         e.currentTarget.style.borderColor = 'var(--accent)';
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
-                                        e.currentTarget.style.borderColor = 'var(--border)';
+                                        e.currentTarget.style.transform = 'translateY(0)';
+                                        e.currentTarget.style.borderColor = 'var(--tile-glass-border)';
                                     }}
                                 >
                                     <ArrowUpDown size={12} />
@@ -1064,7 +1106,7 @@ export const AnalyticsPage: React.FC = () => {
                         </div>
                     </>
                 ) : isPrivateAccount ? (
-                    <div className="card" style={{
+                    <div className="card glass-card" style={{
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -1101,7 +1143,7 @@ export const AnalyticsPage: React.FC = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
+                    <div className="card glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
                         <p style={{ color: 'var(--text-secondary)' }}>
                             Unable to load analytics
                         </p>

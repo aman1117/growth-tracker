@@ -90,14 +90,29 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
         }
     };
 
+    // Glassmorphism styles
+    const glassStyle = {
+        background: isActive 
+            ? `linear-gradient(135deg, ${color}dd 0%, ${color}aa 100%)`
+            : 'var(--tile-glass-bg)',
+        backdropFilter: 'blur(var(--tile-glass-blur))',
+        WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
+        border: isActive 
+            ? '1px solid var(--tile-glass-border-active)'
+            : '1px solid var(--tile-glass-border)',
+        boxShadow: isActive 
+            ? `var(--tile-glass-shadow-active), var(--tile-glass-inner-glow-active), 0 4px 20px ${color}50`
+            : 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
+    };
+
     return (
         <div
             ref={setNodeRef}
             style={{
                 ...style,
+                ...glassStyle,
                 gridColumn: `span ${config.colSpan}`,
                 gridRow: `span ${config.rowSpan}`,
-                backgroundColor: isActive ? color : 'var(--bg-tertiary)',
                 padding: size === 'small' ? '0.5rem' : size === 'wide' ? '0.75rem' : '1rem',
                 cursor: isDraggingProp ? 'grabbing' : isDraggable ? 'pointer' : 'pointer',
                 display: 'flex',
@@ -106,21 +121,19 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                 justifyContent: 'center',
                 gap: size === 'small' ? '0.25rem' : size === 'wide' ? '0.75rem' : '0.5rem',
                 minHeight: size === 'small' ? '100px' : size === 'wide' ? '100px' : '208px',
-                transition: isDraggingProp ? 'none' : 'all 0.15s ease',
+                transition: isDraggingProp ? 'none' : 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                 position: 'relative',
-                borderRadius: '8px',
+                borderRadius: '24px',
                 // Only disable touch scrolling when tile is selected and ready to drag
                 touchAction: isSelected && isDraggable ? 'none' : 'manipulation',
                 overflow: 'hidden',
-                border: isActive ? `1px solid ${color}` : '1px solid var(--border)',
-                boxShadow: isActive ? `0 2px 8px ${color}40` : 'none',
                 // Grey out when another tile is selected
                 filter: isOtherSelected && !isSelected ? 'brightness(0.5) saturate(0.5)' : 'none',
                 // Selection border
                 outline: isSelected ? '3px solid var(--text-primary)' : 'none',
                 outlineOffset: '-1px',
             }}
-            className="activity-tile metro-tile"
+            className="activity-tile glass-tile"
             onClick={handleTileClick}
             {...(isSelected ? { ...attributes, ...listeners } : {})}
         >
@@ -164,9 +177,13 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                             width: `${config.iconBg}px`,
                             height: `${config.iconBg}px`,
                             borderRadius: '50%',
-                            backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'var(--icon-bg-muted)',
+                            backgroundColor: isActive ? 'rgba(255,255,255,0.2)' : 'rgba(255, 255, 255, 0.3)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)',
+                            border: isActive ? '1px solid rgba(255,255,255,0.25)' : '1px solid rgba(255,255,255,0.15)',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
                             flexShrink: 0,
-                            transition: 'all 0.2s ease',
+                            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                         }}
                     >
                         <Icon

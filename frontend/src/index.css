@@ -43,7 +43,18 @@
   /* Glass effect */
   --glass-bg: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(226, 232, 240, 0.8);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  
+  /* Glassmorphism Tiles */
+  --tile-glass-bg: rgba(255, 255, 255, 0.65);
+  --tile-glass-bg-active: rgba(255, 255, 255, 0.25);
+  --tile-glass-border: rgba(0, 0, 0, 0.06);
+  --tile-glass-border-active: rgba(255, 255, 255, 0.3);
+  --tile-glass-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --tile-glass-shadow-active: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --tile-glass-blur: 12px;
+  --tile-glass-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --tile-glass-inner-glow-active: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 /* Dark Theme - Clean Neutral Black */
@@ -94,6 +105,17 @@
   --glass-bg: rgba(10, 10, 10, 0.85);
   --glass-border: rgba(38, 38, 38, 0.8);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  /* Glassmorphism Tiles */
+  --tile-glass-bg: rgba(30, 30, 30, 0.6);
+  --tile-glass-bg-active: rgba(255, 255, 255, 0.1);
+  --tile-glass-border: rgba(255, 255, 255, 0.08);
+  --tile-glass-border-active: rgba(255, 255, 255, 0.15);
+  --tile-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --tile-glass-shadow-active: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --tile-glass-blur: 12px;
+  --tile-glass-inner-glow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  --tile-glass-inner-glow-active: inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 * {
@@ -314,11 +336,53 @@ h3 {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 .skeleton {
   background-color: var(--skeleton-bg);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   border-radius: 0;
   /* Match tile style */
+}
+
+/* Glass Skeleton for tiles */
+.skeleton-glass {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+[data-theme='dark'] .skeleton-glass::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
 }
 
 /* Theme Toggle Animation */
@@ -370,6 +434,46 @@ h3 {
 
 .metro-tile:active {
   transform: scale(0.98);
+}
+
+/* Glass Tile Styles */
+.glass-tile {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              filter 0.25s ease,
+              box-shadow 0.25s ease,
+              background 0.25s ease;
+}
+
+.glass-tile:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.glass-tile:active {
+  transform: scale(0.98);
+}
+
+/* Light theme glass tile adjustments */
+:root .glass-tile {
+  background-image: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.4) 0%, 
+    rgba(255, 255, 255, 0.1) 100%
+  );
+}
+
+/* Dark theme glass tile adjustments */
+[data-theme='dark'] .glass-tile {
+  background-image: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.08) 0%, 
+    rgba(255, 255, 255, 0.02) 100%
+  );
+}
+
+/* Icon in glass tile for dark mode */
+[data-theme='dark'] .glass-tile > div:first-child {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Corner handles hover */

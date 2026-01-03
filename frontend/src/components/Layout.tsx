@@ -314,7 +314,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                         whiteSpace: 'nowrap',
                                                         flex: 1
                                                     }}>
-                                                        @{result.username}
+                                                        {result.username}
                                                     </span>
                                                     {result.is_private && (
                                                         <Lock size={12} color="var(--text-secondary)" style={{ flexShrink: 0 }} />

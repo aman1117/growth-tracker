@@ -498,7 +498,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ display: 'block', fontWeight: 500 }}>
-                            Viewing {targetUsername}'s Dashboard
+                            Viewing {targetUsername}'s dashboard
                         </span>
                         {targetBio && (
                             <p style={{

@@ -205,7 +205,7 @@ export const AnalyticsPage: React.FC = () => {
 
     const handleBack = () => {
         setIsExiting(true);
-        setTimeout(() => navigate(-1), 200);
+        setTimeout(() => navigate('/'), 200);
     };
 
     const handleUserSelect = (username: string) => {

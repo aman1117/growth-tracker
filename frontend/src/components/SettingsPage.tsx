@@ -296,7 +296,7 @@ export const SettingsPage: React.FC = () => {
                         </button>
                     </div>
 
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                         <h2 style={{ 
                             fontSize: '1rem', 
                             fontWeight: 600, 
@@ -312,7 +312,8 @@ export const SettingsPage: React.FC = () => {
                                 alignItems: 'center',
                                 gap: '0.35rem',
                                 marginTop: '0.25rem',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                maxWidth: '100%'
                             }}
                         >
                             <p style={{ 
@@ -322,7 +323,8 @@ export const SettingsPage: React.FC = () => {
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap',
-                                maxWidth: '280px'
+                                flex: 1,
+                                minWidth: 0
                             }}>
                                 {user.bio || '+ Add bio'}
                             </p>

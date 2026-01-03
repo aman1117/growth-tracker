@@ -246,15 +246,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
                                 {/* Search Results Dropdown */}
                                 {isSearchOpen && isSearchFocused && (searchResults.length > 0 || searchQuery.length > 0) && (
-                                    <div style={{
+                                    <div className="search-dropdown" style={{
                                         position: 'absolute',
                                         top: 'calc(100% + 8px)',
                                         left: 0,
                                         right: 0,
-                                        backgroundColor: 'var(--bg-primary)',
-                                        borderRadius: '12px',
-                                        border: '1px solid var(--border)',
-                                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                                        background: 'rgba(255, 255, 255, 0.92)',
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        borderRadius: '20px',
+                                        border: '1px solid rgba(0, 0, 0, 0.08)',
+                                        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
                                         overflow: 'hidden',
                                         zIndex: 100,
                                         maxHeight: '280px',
@@ -265,6 +267,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                             @keyframes dropdownFadeIn {
                                                 from { opacity: 0; transform: translateY(-8px); }
                                                 to { opacity: 1; transform: translateY(0); }
+                                            }
+                                            [data-theme='dark'] .search-dropdown {
+                                                background: rgba(30, 30, 30, 0.95) !important;
+                                                border-color: rgba(255, 255, 255, 0.1) !important;
                                             }
                                         `}</style>
                                         {searchResults.length > 0 ? (
@@ -278,10 +284,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         gap: '0.5rem',
-                                                        borderBottom: index < searchResults.length - 1 ? '1px solid var(--border)' : 'none',
+                                                        borderBottom: index < searchResults.length - 1 ? '1px solid var(--tile-glass-border)' : 'none',
                                                         transition: 'background-color 0.15s'
                                                     }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
                                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                                 >
                                                     <div style={{

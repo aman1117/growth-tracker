@@ -177,7 +177,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     >
                         <ChevronLeft size={16} />
                     </button>
-                    <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '8px' }}>
                         <button
                             style={{
                                 fontSize: '0.75rem',
@@ -212,6 +212,8 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                                 opacity: 0,
                                 cursor: 'pointer',
                                 fontSize: '16px', // Prevents iOS zoom on focus
+                                margin: 0,
+                                padding: 0,
                             }}
                         />
                     </div>

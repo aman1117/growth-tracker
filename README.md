@@ -80,16 +80,10 @@ Track time across **16 life categories**:
 - [ ] Add activity reminders / notifications
 - [ ] Social features - follow users, leaderboards
 - [ ] Export data to CSV/PDF
-- [ ] Activity suggestions based on patterns
 - [ ] Goal setting per activity category
-- [x] Notes for each activity
-- [x] Make profile private/public option
-- [x] Reset password functionality
 - [ ] Custom activity tiles
-- [x] Dark Theme
-- [x] Reset Password/Username
 - [ ] Friends
-- [x] Username validation to have small char / numbers / _ / .
 - [ ] Unit test cases
-- [x] Profile Photo
+- [ ] Add attachments
+
 

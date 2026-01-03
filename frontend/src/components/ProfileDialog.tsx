@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { X, User, Palette, LogOut, Check, Lock, Key } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, User, Palette, LogOut, Check, Lock, Key, Camera, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { api } from '../utils/api';
+import { Toast } from './Toast';
 
 interface ProfileDialogProps {
     isOpen: boolean;
@@ -11,7 +12,7 @@ interface ProfileDialogProps {
 }
 
 export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, onLogout }) => {
-    const { user, updateUsername } = useAuth();
+    const { user, updateUsername, updateProfilePic } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const [isEditingUsername, setIsEditingUsername] = useState(false);
     const [newUsername, setNewUsername] = useState(user?.username || '');
@@ -19,6 +20,15 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
     const [isLoading, setIsLoading] = useState(false);
     const [isPrivate, setIsPrivate] = useState(false);
     const [isPrivacyLoading, setIsPrivacyLoading] = useState(false);
+
+    // Profile picture state
+    const [isUploadingPic, setIsUploadingPic] = useState(false);
+    const [showPicOptions, setShowPicOptions] = useState(false);
+    const [showFullscreenPic, setShowFullscreenPic] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    
+    // Toast state
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     // Change password state
     const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -28,7 +38,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
     const [isPasswordLoading, setIsPasswordLoading] = useState(false);
     const [passwordSuccess, setPasswordSuccess] = useState(false);
 
-    // Fetch privacy setting when dialog opens
+    // Fetch privacy setting and profile when dialog opens
     useEffect(() => {
         if (isOpen && user) {
             api.get('/get-privacy').then(res => {
@@ -36,8 +46,15 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                     setIsPrivate(res.is_private);
                 }
             });
+            // Fetch latest profile picture
+            api.get('/profile').then(res => {
+                if (res.success && res.profile_pic) {
+                    updateProfilePic(res.profile_pic);
+                }
+            });
         }
-    }, [isOpen, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
 
     if (!isOpen || !user) return null;
 
@@ -52,6 +69,67 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
             console.error('Failed to update privacy');
         } finally {
             setIsPrivacyLoading(false);
+        }
+    };
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type (including HEIC from iPhones)
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+        // Also check extension as some browsers don't report HEIC mime type correctly
+        const ext = file.name.toLowerCase().split('.').pop();
+        const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+        
+        if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext || '')) {
+            setToast({ message: 'Only JPG, PNG, WebP, and HEIC images are allowed', type: 'error' });
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setToast({ message: 'Image size must be less than 5MB', type: 'error' });
+            return;
+        }
+
+        setIsUploadingPic(true);
+        setShowPicOptions(false);
+
+        try {
+            const res = await api.uploadFile('/profile/upload-picture', file);
+            if (res.success) {
+                updateProfilePic(res.profile_pic);
+                setToast({ message: 'Profile picture updated!', type: 'success' });
+            } else {
+                setToast({ message: res.error || 'Failed to upload image', type: 'error' });
+            }
+        } catch (err) {
+            setToast({ message: 'Failed to upload image', type: 'error' });
+        } finally {
+            setIsUploadingPic(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const handleRemovePicture = async () => {
+        setIsUploadingPic(true);
+        setShowPicOptions(false);
+
+        try {
+            const res = await api.delete('/profile/picture');
+            if (res.success) {
+                updateProfilePic(null);
+                setToast({ message: 'Profile picture removed', type: 'success' });
+            } else {
+                setToast({ message: res.error || 'Failed to remove image', type: 'error' });
+            }
+        } catch (err) {
+            setToast({ message: 'Failed to remove image', type: 'error' });
+        } finally {
+            setIsUploadingPic(false);
         }
     };
 
@@ -157,12 +235,13 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: 'var(--modal-overlay)',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 zIndex: 100,
-                backdropFilter: 'blur(4px)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
                 paddingTop: '15vh'
             }}
             onClick={onClose}
@@ -171,10 +250,12 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                 style={{
                     width: '100%',
                     maxWidth: '300px',
-                    backgroundColor: 'var(--bg-primary)',
-                    borderRadius: '10px',
-                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid var(--border)',
+                    background: 'var(--glass-bg)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    borderRadius: '14px',
+                    boxShadow: 'var(--glass-shadow)',
+                    border: '1px solid var(--glass-border)',
                     overflow: 'hidden',
                     margin: '0 1rem'
                 }}
@@ -211,24 +292,144 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                 </div>
 
                 {/* Profile Avatar */}
-                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-                    <div
-                        style={{
-                            width: '48px',
-                            height: '48px',
-                            borderRadius: '50%',
-                            backgroundColor: 'var(--avatar-bg)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 700,
-                            fontSize: '1.25rem',
-                            color: 'var(--text-primary)',
-                            textTransform: 'uppercase'
-                        }}
-                    >
-                        {user.username.charAt(0)}
+                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                    {/* Hidden file input */}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        accept="image/jpeg,image/png,image/webp"
+                        style={{ display: 'none' }}
+                    />
+                    
+                    {/* Profile Picture Container */}
+                    <div style={{ position: 'relative' }}>
+                        <div
+                            style={{
+                                width: '72px',
+                                height: '72px',
+                                borderRadius: '12px',
+                                backgroundColor: 'var(--avatar-bg)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 700,
+                                fontSize: '1.5rem',
+                                color: 'var(--text-primary)',
+                                textTransform: 'uppercase',
+                                overflow: 'hidden',
+                                cursor: 'pointer',
+                                border: '2px solid var(--border)',
+                                transition: 'border-color 0.2s'
+                            }}
+                            onClick={() => setShowPicOptions(!showPicOptions)}
+                            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
+                            onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
+                        >
+                            {isUploadingPic ? (
+                                <div style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    border: '2px solid var(--text-secondary)',
+                                    borderTopColor: 'var(--accent)',
+                                    borderRadius: '50%',
+                                    animation: 'spin 1s linear infinite'
+                                }} />
+                            ) : user.profilePic ? (
+                                <img
+                                    src={user.profilePic}
+                                    alt={user.username}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowFullscreenPic(true);
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                        cursor: 'zoom-in'
+                                    }}
+                                />
+                            ) : (
+                                user.username.charAt(0)
+                            )}
+                        </div>
+                        
+                        {/* Camera icon overlay */}
+                        <div
+                            style={{
+                                position: 'absolute',
+                                bottom: '-4px',
+                                right: '-4px',
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                backgroundColor: 'var(--accent)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                            }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowPicOptions(!showPicOptions);
+                            }}
+                        >
+                            <Camera size={12} color="white" />
+                        </div>
                     </div>
+
+                    {/* Picture Options Dropdown */}
+                    {showPicOptions && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                gap: '0.5rem',
+                                marginTop: '0.25rem'
+                            }}
+                        >
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                style={{
+                                    padding: '0.4rem 0.75rem',
+                                    borderRadius: '6px',
+                                    border: 'none',
+                                    backgroundColor: 'var(--accent)',
+                                    color: 'white',
+                                    fontSize: '0.75rem',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.3rem'
+                                }}
+                            >
+                                <Camera size={12} />
+                                {user.profilePic ? 'Change' : 'Upload'}
+                            </button>
+                            {user.profilePic && (
+                                <button
+                                    onClick={handleRemovePicture}
+                                    style={{
+                                        padding: '0.4rem 0.75rem',
+                                        borderRadius: '6px',
+                                        border: '1px solid #ef4444',
+                                        backgroundColor: 'transparent',
+                                        color: '#ef4444',
+                                        fontSize: '0.75rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem'
+                                    }}
+                                >
+                                    <Trash2 size={12} />
+                                    Remove
+                                </button>
+                            )}
+                        </div>
+                    )}
+
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                         @{user.username}
                     </span>
@@ -581,6 +782,94 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                     </div>
                 </div>
             </div>
+
+            {/* Fullscreen Profile Picture Viewer */}
+            {showFullscreenPic && user.profilePic && (
+                <div
+                    onClick={() => setShowFullscreenPic(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10000,
+                        cursor: 'zoom-out',
+                        animation: 'fadeIn 0.2s ease-out'
+                    }}
+                >
+                    {/* Close button */}
+                    <button
+                        onClick={() => setShowFullscreenPic(false)}
+                        style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            color: 'white',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                    >
+                        <X size={24} />
+                    </button>
+                    
+                    {/* Profile image */}
+                    <img
+                        src={user.profilePic}
+                        alt={user.username}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            maxWidth: '90vw',
+                            maxHeight: '90vh',
+                            objectFit: 'contain',
+                            borderRadius: '8px',
+                            cursor: 'default',
+                            animation: 'scaleIn 0.2s ease-out'
+                        }}
+                    />
+                    
+                    {/* Username label */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: '30px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            color: 'white',
+                            fontSize: '1rem',
+                            fontWeight: 500,
+                            padding: '8px 16px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            borderRadius: '20px'
+                        }}
+                    >
+                        @{user.username}
+                    </div>
+                </div>
+            )}
+            
+            {/* Toast notification */}
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 };

@@ -70,13 +70,13 @@ export const StreakCard: React.FC<StreakCardProps> = ({ username, date }) => {
             padding: '1rem',
             marginBottom: '1rem',
             borderRadius: '8px',
-            border: '1px solid #fde047',
+            border: '1px solid var(--border-strong)',
             color: 'var(--text-primary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '0.75rem',
-            boxShadow: '0 0 10px rgba(253, 224, 71, 0.1)',
+            boxShadow: '0 1px 3px var(--shadow-sm)',
             flexWrap: 'wrap'
         }}>
             {showCurrentStreak && (
@@ -90,10 +90,10 @@ export const StreakCard: React.FC<StreakCardProps> = ({ username, date }) => {
                                 width: '32px',
                                 height: '32px',
                                 borderRadius: '50%',
-                                backgroundColor: 'rgba(250, 204, 21, 0.15)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
                             }}
                         >
-                            <Flame size={18} style={{ color: '#facc15' }} />
+                            <Flame size={18} style={{ color: '#ef4444' }} />
                         </div>
                         <span style={{ fontWeight: 600, fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                             Current Streak: {streak.current}

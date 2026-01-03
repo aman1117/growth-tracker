@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Mail } from 'lucide-react';
 import { api } from '../utils/api';
 import { Toast } from './Toast';
 
@@ -26,14 +27,16 @@ export const ForgotPassword: React.FC = () => {
 
     if (isSubmitted) {
         return (
-            <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+            <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
                 <div className="card text-center">
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📧</div>
-                    <h2 className="mb-4">Check Your Email</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                        If an account exists with <strong>{email}</strong>, we've sent a password reset link.
+                    <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+                        <Mail size={32} color="var(--accent)" />
+                    </div>
+                    <h2 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Check Your Email</h2>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '0.25rem', fontSize: '0.8rem' }}>
+                        If an account exists with <strong>{email}</strong>, we've sent a reset link.
                     </p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
                         The link will expire in 15 minutes.
                     </p>
                     <Link to="/login" style={{ textDecoration: 'none' }}>
@@ -47,10 +50,10 @@ export const ForgotPassword: React.FC = () => {
     }
 
     return (
-        <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+        <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
             <div className="card">
-                <h2 className="text-center mb-4">Forgot Password?</h2>
-                <p className="text-center" style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                <h2 className="text-center" style={{ marginBottom: '0.35rem', fontSize: '1.1rem' }}>Forgot Password?</h2>
+                <p className="text-center" style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.75rem' }}>
                     Enter your email and we'll send you a reset link
                 </p>
 
@@ -72,11 +75,11 @@ export const ForgotPassword: React.FC = () => {
                     </button>
                 </form>
 
-                <div className="mt-4 text-center">
+                <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
                     <Link 
                         to="/login"
                         style={{ 
-                            fontSize: '0.875rem', 
+                            fontSize: '0.75rem', 
                             color: 'var(--text-secondary)', 
                             textDecoration: 'none' 
                         }}

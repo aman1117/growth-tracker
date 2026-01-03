@@ -68,9 +68,9 @@ export const AuthForm: React.FC = () => {
     };
 
     return (
-        <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+        <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
             <div className="card">
-                <h2 className="text-center mb-4">{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
+                <h2 className="text-center" style={{ marginBottom: '0.75rem', fontSize: '1.1rem' }}>{isLogin ? 'Welcome Back' : 'Create Account'}</h2>
 
                 <form onSubmit={handleSubmit}>
                     {!isLogin && (
@@ -132,10 +132,10 @@ export const AuthForm: React.FC = () => {
                     )}
                 </form>
 
-                <div className="mt-4 text-center">
+                <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
                     <button
                         className="btn-outline"
-                        style={{ border: 'none', fontSize: '0.875rem', color: 'var(--text-secondary)' }}
+                        style={{ border: 'none', fontSize: '0.75rem', color: 'var(--text-secondary)' }}
                         onClick={() => {
                             setIsLogin(!isLogin);
                             setToast(null);

@@ -58,6 +58,9 @@ type Activity struct {
 	// decimal(4,2) allows values like 0.25, 1.50, 12.75 etc.
 	DurationHours float32 `gorm:"type:decimal(4,2);not null;check:duration_hours >= 0 AND duration_hours <= 24"`
 
+	// Optional note for the activity (max 500 characters)
+	Note *string `gorm:"type:varchar(500)"`
+
 	CreatedAt    time.Time `gorm:"not null;default:now();autoCreateTime"`
 	UpdatedAt    time.Time `gorm:"not null;default:now();autoUpdateTime"`
 	ActivityDate time.Time `gorm:"type:date;default:CURRENT_DATE;index:idx_activities_user_date"`

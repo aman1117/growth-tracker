@@ -36,6 +36,12 @@ func main() {
 		log.Info("Redis connection successful")
 	}
 
+	// Initialize Azure Blob Storage
+	if err := services.InitBlobStorage(); err != nil {
+		log.Warnf("Azure Blob Storage initialization failed: %v", err)
+		log.Warn("Profile picture upload will be disabled")
+	}
+
 	if err := db.AutoMigrate(&models.User{}, &models.Activity{}, &models.Streak{}, &models.TileConfig{}); err != nil {
 		log.Fatalf("AutoMigrate failed: %v", err)
 	}
@@ -114,6 +120,11 @@ func main() {
 	app.Post("/auth/forgot-password", services.ForgotPasswordHandler)
 	app.Post("/auth/reset-password", services.ResetPasswordHandler)
 	app.Get("/auth/reset-password/validate", services.ValidateResetTokenHandler)
+
+	// Profile picture endpoints
+	app.Post("/profile/upload-picture", services.AuthMiddleware, services.UploadProfilePictureHandler)
+	app.Delete("/profile/picture", services.AuthMiddleware, services.DeleteProfilePictureHandler)
+	app.Get("/profile", services.AuthMiddleware, services.GetProfileHandler)
 
 	port := utils.GetFromEnv("PORT")
 	if port == "" {

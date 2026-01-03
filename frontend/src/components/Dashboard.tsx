@@ -31,7 +31,7 @@ import {
     Moon, BookOpen, Utensils, Users, Sparkles,
     Dumbbell, Film, Home, Coffee, Palette,
     Plane, ShoppingBag, Sofa, Gamepad2, Briefcase,
-    Lock
+    Lock, X
 } from 'lucide-react';
 
 // Activity Configuration Map
@@ -135,6 +135,7 @@ export const Dashboard: React.FC = () => {
     const { username: routeUsername } = useParams<{ username: string }>();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [activities, setActivities] = useState<Record<string, number>>({});
+    const [activityNotes, setActivityNotes] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     // Always show loading for other users, or check localStorage for own profile
     const isViewingOther = routeUsername && routeUsername !== user?.username;
@@ -162,6 +163,10 @@ export const Dashboard: React.FC = () => {
 
     // Private account state (when viewing someone else's private profile)
     const [isPrivateAccount, setIsPrivateAccount] = useState(false);
+
+    // Target user's profile pic (when viewing another user's dashboard)
+    const [targetProfilePic, setTargetProfilePic] = useState<string | null>(null);
+    const [showTargetFullscreenPic, setShowTargetFullscreenPic] = useState(false);
 
     // DnD Sensors
     const sensors = useSensors(
@@ -229,6 +234,7 @@ export const Dashboard: React.FC = () => {
             if (res.success) {
                 setIsPrivateAccount(false);
                 const activityMap: Record<string, number> = {};
+                const notesMap: Record<string, string> = {};
                 // Initialize all activities with 0
                 ACTIVITY_NAMES.forEach(name => {
                     activityMap[name] = 0;
@@ -237,8 +243,12 @@ export const Dashboard: React.FC = () => {
                 // Update with actual data from backend
                 res.data.forEach((a: Activity) => {
                     activityMap[a.name] = a.hours;
+                    if (a.note) {
+                        notesMap[a.name] = a.note;
+                    }
                 });
                 setActivities(activityMap);
+                setActivityNotes(notesMap);
             } else if (res.error_code === 'ACCOUNT_PRIVATE') {
                 setIsPrivateAccount(true);
             }
@@ -253,6 +263,28 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         fetchActivities();
     }, [fetchActivities]);
+
+    // Fetch target user's profile pic when viewing another user's dashboard
+    useEffect(() => {
+        const fetchTargetUserProfile = async () => {
+            if (isReadOnly && targetUsername) {
+                try {
+                    const res = await api.post('/users', { username: targetUsername });
+                    if (res.success && res.data && res.data.length > 0) {
+                        const exactMatch = res.data.find((u: { username: string }) => 
+                            u.username.toLowerCase() === targetUsername.toLowerCase()
+                        );
+                        if (exactMatch && exactMatch.profile_pic) {
+                            setTargetProfilePic(exactMatch.profile_pic);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch target user profile', err);
+                }
+            }
+        };
+        fetchTargetUserProfile();
+    }, [isReadOnly, targetUsername]);
 
     // Fetch tile config from backend - always fetch
     useEffect(() => {
@@ -355,7 +387,7 @@ export const Dashboard: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleSaveActivity = async (hours: number) => {
+    const handleSaveActivity = async (hours: number, note?: string) => {
         if (!user || !selectedActivity) return;
 
         try {
@@ -363,7 +395,8 @@ export const Dashboard: React.FC = () => {
                 username: targetUsername,
                 activity: selectedActivity,
                 hours: hours,
-                date: formatDateForApi(currentDate)
+                date: formatDateForApi(currentDate),
+                note: note || null,
             });
 
             if (res.success) {
@@ -387,6 +420,17 @@ export const Dashboard: React.FC = () => {
                     ...prev,
                     [selectedActivity]: hours
                 }));
+                
+                // Update notes
+                setActivityNotes(prev => {
+                    const newNotes = { ...prev };
+                    if (note) {
+                        newNotes[selectedActivity] = note;
+                    } else {
+                        delete newNotes[selectedActivity];
+                    }
+                    return newNotes;
+                });
             } else {
                 throw new Error(res.error);
             }
@@ -402,15 +446,50 @@ export const Dashboard: React.FC = () => {
             {isReadOnly && (
                 <div style={{
                     backgroundColor: 'var(--bg-secondary)',
-                    padding: '1rem',
+                    padding: '0.75rem 1rem',
                     marginBottom: '1rem',
                     borderRadius: '8px',
-                    textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
                     border: '1px solid var(--border)',
-                    fontWeight: 600,
+                    fontWeight: 400,
                     color: 'var(--text-primary)'
                 }}>
-                    Viewing {targetUsername}'s Dashboard
+                    <div 
+                        onClick={() => targetProfilePic && setShowTargetFullscreenPic(true)}
+                        style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            backgroundColor: 'var(--avatar-bg)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '1.125rem',
+                            color: 'var(--text-primary)',
+                            textTransform: 'uppercase',
+                            overflow: 'hidden',
+                            flexShrink: 0,
+                            cursor: targetProfilePic ? 'zoom-in' : 'default',
+                            border: '2px solid var(--border)'
+                        }}>
+                        {targetProfilePic ? (
+                            <img
+                                src={targetProfilePic}
+                                alt={targetUsername}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
+                            />
+                        ) : (
+                            targetUsername?.charAt(0)
+                        )}
+                    </div>
+                    <span>Viewing {targetUsername}'s Dashboard</span>
                 </div>
             )}
 
@@ -436,7 +515,22 @@ export const Dashboard: React.FC = () => {
                     backgroundColor: 'var(--bg-secondary)',
                     borderRadius: '8px',
                     marginBottom: '0.5rem',
+                    border: '1px solid var(--border)',
+                    animation: 'editBarSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transformOrigin: 'top center',
                 }}>
+                    <style>{`
+                        @keyframes editBarSlideIn {
+                            0% {
+                                opacity: 0;
+                                transform: translateY(-10px) scale(0.95);
+                            }
+                            100% {
+                                opacity: 1;
+                                transform: translateY(0) scale(1);
+                            }
+                        }
+                    `}</style>
                     <span style={{
                         fontSize: '0.7rem',
                         color: 'var(--text-secondary)',
@@ -461,7 +555,7 @@ export const Dashboard: React.FC = () => {
                                 borderRadius: '4px',
                                 cursor: 'pointer',
                                 fontSize: '0.75rem',
-                                fontWeight: 500,
+                                fontWeight: 400,
                             }}
                         >
                             Cancel
@@ -475,8 +569,8 @@ export const Dashboard: React.FC = () => {
                             }}
                             style={{
                                 padding: '0.35rem 0.75rem',
-                                backgroundColor: 'var(--accent)',
-                                color: 'var(--text-primary)',
+                                backgroundColor: '#0095f6',
+                                color: '#ffffff',
                                 border: 'none',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
@@ -592,6 +686,7 @@ export const Dashboard: React.FC = () => {
                                         onSelect={setSelectedTile}
                                         isOtherSelected={selectedTile !== null && selectedTile !== name}
                                         isDragging={activeDragId === name}
+                                        hasNote={!isReadOnly && !!activityNotes[name]}
                                     />
                                 );
                             })}
@@ -635,6 +730,7 @@ export const Dashboard: React.FC = () => {
                 onSave={handleSaveActivity}
                 activityName={selectedActivity}
                 currentHours={selectedActivity ? (activities[selectedActivity] || 0) : 0}
+                currentNote={selectedActivity ? activityNotes[selectedActivity] : undefined}
             />
 
             {toast && (
@@ -643,6 +739,75 @@ export const Dashboard: React.FC = () => {
                     type={toast.type}
                     onClose={() => setToast(null)}
                 />
+            )}
+
+            {/* Fullscreen Target Profile Picture */}
+            {showTargetFullscreenPic && targetProfilePic && (
+                <div
+                    onClick={() => setShowTargetFullscreenPic(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10000,
+                        cursor: 'zoom-out',
+                        animation: 'fadeIn 0.2s ease-out'
+                    }}
+                >
+                    <button
+                        onClick={() => setShowTargetFullscreenPic(false)}
+                        style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            border: 'none',
+                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                            color: 'white',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <X size={24} />
+                    </button>
+                    <img
+                        src={targetProfilePic}
+                        alt={targetUsername || ''}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            maxWidth: '90vw',
+                            maxHeight: '90vh',
+                            objectFit: 'contain',
+                            borderRadius: '8px',
+                            cursor: 'default',
+                            animation: 'scaleIn 0.2s ease-out'
+                        }}
+                    />
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '30px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        color: 'white',
+                        fontSize: '1rem',
+                        fontWeight: 500,
+                        padding: '8px 16px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        borderRadius: '20px'
+                    }}>
+                        @{targetUsername}
+                    </div>
+                </div>
             )}
         </div>
     );

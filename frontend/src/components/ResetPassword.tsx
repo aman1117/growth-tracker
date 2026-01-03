@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { Loader2, XCircle, CheckCircle } from 'lucide-react';
 import { api } from '../utils/api';
 import { Toast } from './Toast';
 
@@ -75,10 +76,12 @@ export const ResetPassword: React.FC = () => {
     // Loading state
     if (isValidating) {
         return (
-            <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+            <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
                 <div className="card text-center">
-                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
-                    <p style={{ color: 'var(--text-secondary)' }}>Validating reset link...</p>
+                    <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+                        <Loader2 size={24} color="var(--text-muted)" style={{ animation: 'spin 1s linear infinite' }} />
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>Validating reset link...</p>
                 </div>
             </div>
         );
@@ -87,12 +90,14 @@ export const ResetPassword: React.FC = () => {
     // Invalid or expired token
     if (!isValidToken) {
         return (
-            <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+            <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
                 <div className="card text-center">
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
-                    <h2 className="mb-4">Invalid or Expired Link</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                        This password reset link is invalid or has expired. Please request a new one.
+                    <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+                        <XCircle size={32} color="#ef4444" />
+                    </div>
+                    <h2 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Invalid or Expired Link</h2>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
+                        This reset link is invalid or has expired.
                     </p>
                     <Link to="/forgot-password" style={{ textDecoration: 'none' }}>
                         <button className="btn btn-primary">
@@ -107,12 +112,14 @@ export const ResetPassword: React.FC = () => {
     // Success state
     if (success) {
         return (
-            <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+            <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
                 <div className="card text-center">
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-                    <h2 className="mb-4">Password Reset Successful!</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                        Your password has been updated. You can now log in with your new password.
+                    <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+                        <CheckCircle size={32} color="#22c55e" />
+                    </div>
+                    <h2 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Password Reset!</h2>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.8rem' }}>
+                        You can now log in with your new password.
                     </p>
                     <button className="btn btn-primary" onClick={() => navigate('/login')}>
                         Go to Login
@@ -124,10 +131,10 @@ export const ResetPassword: React.FC = () => {
 
     // Reset form
     return (
-        <div className="container" style={{ maxWidth: '400px', marginTop: '4rem' }}>
+        <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
             <div className="card">
-                <h2 className="text-center mb-4">Set New Password</h2>
-                <p className="text-center" style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                <h2 className="text-center" style={{ marginBottom: '0.35rem', fontSize: '1.1rem' }}>Set New Password</h2>
+                <p className="text-center" style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.75rem' }}>
                     Enter your new password below
                 </p>
 
@@ -163,11 +170,11 @@ export const ResetPassword: React.FC = () => {
                     </button>
                 </form>
 
-                <div className="mt-4 text-center">
+                <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
                     <Link 
                         to="/login"
                         style={{ 
-                            fontSize: '0.875rem', 
+                            fontSize: '0.75rem', 
                             color: 'var(--text-secondary)', 
                             textDecoration: 'none' 
                         }}

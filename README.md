@@ -82,7 +82,7 @@ Track time across **16 life categories**:
 - [ ] Export data to CSV/PDF
 - [ ] Activity suggestions based on patterns
 - [ ] Goal setting per activity category
-- [ ] Notes for each activity
+- [x] Notes for each activity
 - [x] Make profile private/public option
 - [x] Reset password functionality
 - [ ] Custom activity tiles
@@ -91,5 +91,5 @@ Track time across **16 life categories**:
 - [ ] Friends
 - [x] Username validation to have small char / numbers / _ / .
 - [ ] Unit test cases
-- [ ] Profile Photo
+- [x] Profile Photo
 

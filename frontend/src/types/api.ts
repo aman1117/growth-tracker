@@ -226,3 +226,41 @@ export interface LikeActionResponse {
   error?: string;
 }
 
+// ============================================================================
+// Badge Types
+// ============================================================================
+
+export interface Badge {
+  key: string;
+  name: string;
+  icon: string;
+  color: string;
+  threshold: number;
+  earned: boolean;
+  earned_at?: string;
+}
+
+export interface NextBadge {
+  key: string;
+  name: string;
+  icon: string;
+  color: string;
+  threshold: number;
+  progress: number;
+}
+
+export interface BadgesResponse {
+  success: boolean;
+  badges: Badge[];
+  next_badge?: NextBadge;
+  error?: string;
+}
+
+export interface GetBadgesByUsernameRequest {
+  username: string;
+}
+
+export interface StreakDataWithBadges extends StreakData {
+  new_badges?: Badge[];
+}
+

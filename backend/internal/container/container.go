@@ -21,6 +21,7 @@ type Container struct {
 	StreakRepo     *repository.StreakRepository
 	TileConfigRepo *repository.TileConfigRepository
 	LikeRepo       *repository.LikeRepository
+	BadgeRepo      *repository.BadgeRepository
 
 	// Services
 	AuthService       *services.AuthService
@@ -32,6 +33,7 @@ type Container struct {
 	EmailService      *services.EmailService
 	CronService       *services.CronService
 	BlobService       *services.BlobService
+	BadgeService      *services.BadgeService
 
 	// Handlers
 	TokenService         *handlers.TokenService
@@ -44,6 +46,7 @@ type Container struct {
 	PasswordResetHandler *handlers.PasswordResetHandler
 	BlobHandler          *handlers.BlobHandler
 	LikeHandler          *handlers.LikeHandler
+	BadgeHandler         *handlers.BadgeHandler
 
 	// Router
 	Router *routes.Router
@@ -59,6 +62,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.StreakRepo = repository.NewStreakRepository(db)
 	c.TileConfigRepo = repository.NewTileConfigRepository(db)
 	c.LikeRepo = repository.NewLikeRepository(db)
+	c.BadgeRepo = repository.NewBadgeRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -68,6 +72,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.AnalyticsService = services.NewAnalyticsService(c.ActivityRepo, c.StreakRepo, c.UserRepo)
 	c.TileConfigService = services.NewTileConfigService(c.TileConfigRepo, c.UserRepo)
 	c.BlobService = services.NewBlobService(c.UserRepo, &cfg.AzureStorage)
+	c.BadgeService = services.NewBadgeService(c.BadgeRepo, c.UserRepo)
 
 	// Initialize email service (optional)
 	if cfg.Email.ResendAPIKey != "" {
@@ -87,11 +92,12 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.AuthHandler = handlers.NewAuthHandler(c.AuthService, c.TokenService, c.ProfileService)
 	c.ProfileHandler = handlers.NewProfileHandler(c.ProfileService, c.AuthService)
 	c.ActivityHandler = handlers.NewActivityHandler(c.ActivityService, c.AuthService, c.ProfileService)
-	c.StreakHandler = handlers.NewStreakHandler(c.StreakService, c.AuthService, c.ProfileService)
+	c.StreakHandler = handlers.NewStreakHandler(c.StreakService, c.AuthService, c.ProfileService, c.BadgeService)
 	c.AnalyticsHandler = handlers.NewAnalyticsHandler(c.AnalyticsService, c.AuthService, c.ProfileService)
 	c.TileConfigHandler = handlers.NewTileConfigHandler(c.TileConfigService, c.AuthService, c.ProfileService)
 	c.PasswordResetHandler = handlers.NewPasswordResetHandler(c.AuthService, c.EmailService)
 	c.LikeHandler = handlers.NewLikeHandler(c.LikeRepo, c.AuthService, c.ProfileService)
+	c.BadgeHandler = handlers.NewBadgeHandler(c.BadgeService, c.AuthService)
 
 	// Initialize blob handler (optional)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -112,6 +118,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.PasswordResetHandler,
 		c.BlobHandler,
 		c.LikeHandler,
+		c.BadgeHandler,
 		c.TokenService,
 	)
 

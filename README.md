@@ -86,6 +86,10 @@ Track time across **16 life categories**:
 - [ ] Unit test cases
 - [ ] Add attachments
 - [ ] optimized photo upload
+- [ ] email verification
+- [ ] Story like updated their day.
+- [ ] Streak freeze days
+- [ ] Notifications like Aman just completed their day, log your days, 
 
 
 

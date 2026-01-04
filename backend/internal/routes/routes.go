@@ -21,6 +21,7 @@ type Router struct {
 	passwordResetHandler *handlers.PasswordResetHandler
 	blobHandler          *handlers.BlobHandler
 	likeHandler          *handlers.LikeHandler
+	badgeHandler         *handlers.BadgeHandler
 	tokenSvc             *handlers.TokenService
 }
 
@@ -35,6 +36,7 @@ func NewRouter(
 	passwordResetHandler *handlers.PasswordResetHandler,
 	blobHandler *handlers.BlobHandler,
 	likeHandler *handlers.LikeHandler,
+	badgeHandler *handlers.BadgeHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
@@ -47,6 +49,7 @@ func NewRouter(
 		passwordResetHandler: passwordResetHandler,
 		blobHandler:          blobHandler,
 		likeHandler:          likeHandler,
+		badgeHandler:         badgeHandler,
 		tokenSvc:             tokenSvc,
 	}
 }
@@ -108,6 +111,10 @@ func (r *Router) Setup(app *fiber.App) {
 	api.Post("/like-day", authMiddleware, apiRateLimiter, r.likeHandler.LikeDay)
 	api.Post("/unlike-day", authMiddleware, apiRateLimiter, r.likeHandler.UnlikeDay)
 	api.Post("/get-likes", authMiddleware, apiRateLimiter, r.likeHandler.GetLikes)
+
+	// Badges
+	api.Get("/badges", authMiddleware, apiRateLimiter, r.badgeHandler.GetBadges)
+	api.Post("/badges/user", authMiddleware, apiRateLimiter, r.badgeHandler.GetBadgesByUsername)
 
 	// Profile Management
 	api.Post("/update-username", authMiddleware, apiRateLimiter, r.authHandler.UpdateUsername)

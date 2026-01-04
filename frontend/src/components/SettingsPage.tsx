@@ -9,6 +9,8 @@ import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
 import { SnapToast, ProtectedImage } from './ui';
 import { APP_ROUTES } from '../constants/routes';
+import { BadgeShowcase } from './BadgeShowcase';
+import type { Badge } from '../types/api';
 
 export const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -29,6 +31,11 @@ export const SettingsPage: React.FC = () => {
     // Privacy state
     const [isPrivate, setIsPrivate] = useState(false);
     const [isPrivacyLoading, setIsPrivacyLoading] = useState(false);
+    
+    // Badges state
+    const [badges, setBadges] = useState<Badge[]>([]);
+    const [longestStreak, setLongestStreak] = useState(0);
+    const [badgesLoading, setBadgesLoading] = useState(true);
     
     // Toast
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -52,6 +59,19 @@ export const SettingsPage: React.FC = () => {
                     if (res.bio !== undefined) {
                         updateBio(res.bio);
                     }
+                }
+            });
+            // Fetch badges
+            api.get('/badges').then(res => {
+                if (res.success && res.badges) {
+                    setBadges(res.badges);
+                }
+            }).finally(() => setBadgesLoading(false));
+            // Fetch streak for longest
+            const today = new Date().toISOString().split('T')[0];
+            api.post('/get-streak', { username: user.username, date: today }).then(res => {
+                if (res.success && res.data) {
+                    setLongestStreak(res.data.longest);
                 }
             });
         }
@@ -342,6 +362,20 @@ export const SettingsPage: React.FC = () => {
                     style={{ display: 'none' }}
                 />
             </div>
+
+            {/* Badges Section - inside card */}
+            {!badgesLoading && badges.length > 0 && (
+                <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', marginBottom: '0.75rem' }}>
+                    <div style={{ padding: '0.75rem 1rem' }}>
+                        <BadgeShowcase
+                            badges={badges}
+                            longestStreak={longestStreak}
+                            showProgress={true}
+                            size="sm"
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* Account Settings */}
             <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)' }}>

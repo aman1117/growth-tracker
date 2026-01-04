@@ -16,14 +16,16 @@ type StreakHandler struct {
 	streakSvc  *services.StreakService
 	authSvc    *services.AuthService
 	profileSvc *services.ProfileService
+	badgeSvc   *services.BadgeService
 }
 
 // NewStreakHandler creates a new StreakHandler
-func NewStreakHandler(streakSvc *services.StreakService, authSvc *services.AuthService, profileSvc *services.ProfileService) *StreakHandler {
+func NewStreakHandler(streakSvc *services.StreakService, authSvc *services.AuthService, profileSvc *services.ProfileService, badgeSvc *services.BadgeService) *StreakHandler {
 	return &StreakHandler{
 		streakSvc:  streakSvc,
 		authSvc:    authSvc,
 		profileSvc: profileSvc,
+		badgeSvc:   badgeSvc,
 	}
 }
 
@@ -76,13 +78,20 @@ func (h *StreakHandler) GetStreak(c *fiber.Ctx) error {
 		return response.BadRequest(c, "Failed to find streak", constants.ErrCodeStreakNotFound)
 	}
 
+	// Check for new badges (only for own streak)
+	var newBadges []dto.BadgeDTO
+	if user.ID == currentUserID && h.badgeSvc != nil {
+		newBadges, _ = h.badgeSvc.CheckAndAwardBadges(user.ID, streak.Longest)
+	}
+
 	return response.JSON(c, dto.StreakResponse{
 		Success: true,
 		Data: dto.StreakDTO{
-			ID:      streak.ID,
-			Current: streak.Current,
-			Longest: streak.Longest,
-			Date:    streak.ActivityDate.Format(constants.DateFormat),
+			ID:        streak.ID,
+			Current:   streak.Current,
+			Longest:   streak.Longest,
+			Date:      streak.ActivityDate.Format(constants.DateFormat),
+			NewBadges: newBadges,
 		},
 	})
 }

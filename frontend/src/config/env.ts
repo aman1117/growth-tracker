@@ -18,7 +18,7 @@ interface EnvConfig {
  * Validated environment configuration
  */
 export const env: EnvConfig = {
-  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  apiUrl: 'http://localhost:8000',
   isDevelopment: import.meta.env.DEV,
   isProduction: import.meta.env.PROD,
 };

@@ -69,6 +69,7 @@ func AutoMigrate() error {
 		&models.Streak{},
 		&models.TileConfig{},
 		&models.Like{},
+		&models.UserBadge{},
 	)
 }
 

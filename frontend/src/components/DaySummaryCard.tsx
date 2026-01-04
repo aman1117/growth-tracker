@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Flame, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import { LikeButton } from './ui';
+import { renderBadgeIcon } from '../utils/badgeIcons';
+import type { Badge } from '../types/api';
 
 interface DaySummaryCardProps {
     username: string;
@@ -12,11 +14,14 @@ interface DaySummaryCardProps {
     isNextDisabled: boolean;
     activities: Record<string, number>;
     loading?: boolean;
+    onNewBadges?: (badges: Badge[]) => void;
+    onBadgesLoaded?: (badges: Badge[]) => void;
 }
 
 interface StreakData {
     current: number;
     longest: number;
+    new_badges?: Badge[];
 }
 
 export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
@@ -27,10 +32,14 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     onDateChange,
     isNextDisabled,
     activities,
-    loading = false
+    loading = false,
+    onNewBadges,
+    onBadgesLoaded,
 }) => {
     const [streak, setStreak] = useState<StreakData>({ current: 0, longest: 0 });
     const [streakLoading, setStreakLoading] = useState(true);
+    const [badges, setBadges] = useState<Badge[]>([]);
+    const [badgesLoading, setBadgesLoading] = useState(true);
 
     const formatDateForApi = (date: Date) => {
         const year = date.getFullYear();
@@ -50,6 +59,11 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                 const res = await api.post('/get-streak', { username, date: todayDate });
                 if (res.success && res.data) {
                     setStreak({ current: res.data.current, longest: res.data.longest });
+                    
+                    // Check for new badges
+                    if (res.data.new_badges && res.data.new_badges.length > 0 && onNewBadges) {
+                        onNewBadges(res.data.new_badges);
+                    }
                 } else {
                     setStreak({ current: 0, longest: 0 });
                 }
@@ -61,7 +75,30 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
             }
         };
         fetchStreak();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [username, todayDate]);
+
+    // Fetch badges
+    useEffect(() => {
+        const fetchBadges = async () => {
+            setBadgesLoading(true);
+            try {
+                const res = await api.post('/badges/user', { username });
+                if (res.success && res.badges) {
+                    setBadges(res.badges);
+                    if (onBadgesLoaded) {
+                        onBadgesLoaded(res.badges);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch badges:', error);
+            } finally {
+                setBadgesLoading(false);
+            }
+        };
+        fetchBadges();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [username]);
 
     const formatDate = (d: Date) => {
         const today = new Date();
@@ -116,7 +153,14 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     const percentage = Math.min((totalHours / maxHours) * 100, 100);
     const isComplete = totalHours >= maxHours;
 
-    if (loading || streakLoading) {
+    // Badge counts
+    const earnedBadges = badges.filter(b => b.earned);
+    // Get highest earned badge (highest threshold)
+    const currentBadge = earnedBadges.length > 0 
+        ? earnedBadges.reduce((prev, curr) => curr.threshold > prev.threshold ? curr : prev)
+        : null;
+
+    if (loading || streakLoading || badgesLoading) {
         return (
             <div
                 className="skeleton-glass"
@@ -346,6 +390,16 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                             best
                         </span>
                     </div>
+
+                    {/* Current Badge */}
+                    {currentBadge && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            {renderBadgeIcon(currentBadge.icon, currentBadge.color)}
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1 }}>
+                                {currentBadge.name}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Like Button */}

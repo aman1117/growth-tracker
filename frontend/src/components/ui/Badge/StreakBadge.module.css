@@ -1,0 +1,110 @@
+/**
+ * StreakBadge Styles
+ */
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+  transition: transform 0.2s ease;
+  width: 58px;
+  flex-shrink: 0;
+}
+
+.badge:hover {
+  transform: scale(1.08);
+}
+
+/* Size variants */
+.sm .iconWrapper {
+  width: 32px;
+  height: 32px;
+}
+
+.md .iconWrapper {
+  width: 36px;
+  height: 36px;
+}
+
+.lg .iconWrapper {
+  width: 44px;
+  height: 44px;
+}
+
+/* Icon wrapper */
+.iconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+/* Earned state */
+.earned .iconWrapper {
+  border-color: var(--badge-color);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--badge-color) 35%, transparent);
+  background: color-mix(in srgb, var(--badge-color) 10%, var(--card-bg));
+}
+
+.earned .icon {
+  color: var(--badge-color);
+}
+
+/* Locked state */
+.locked .iconWrapper {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.locked .icon {
+  color: var(--text-secondary);
+}
+
+.lockOverlay {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: var(--card-bg);
+  border-radius: 50%;
+  padding: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+/* Threshold label */
+.threshold {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.earned .threshold {
+  color: var(--badge-color);
+}
+
+/* Name label */
+.name {
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.2;
+  width: 100%;
+}
+
+.earned .name {
+  color: var(--badge-color);
+  font-weight: 600;
+}

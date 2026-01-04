@@ -20,15 +20,18 @@ import { useAuth } from '../store';
 import { api, ApiError } from '../services/api';
 import { ACTIVITY_NAMES } from '../types';
 import type { ActivityName, Activity } from '../types';
+import type { Badge } from '../types/api';
 import { ACTIVITY_CONFIG, STORAGE_KEYS } from '../constants';
 import { DaySummaryCard } from './DaySummaryCard';
 import { ActivityTile } from './ActivityTile';
 import type { TileSize } from './ActivityTile';
 import { ActivityModal } from './ActivityModal';
+import { BadgeUnlockModal } from './BadgeUnlockModal';
 import { SnapToast, ProtectedImage } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
+import { renderBadgeIcon } from '../utils/badgeIcons';
 import { Lock, X, BarChart3, Sparkles } from 'lucide-react';
 
 const STORAGE_KEY = STORAGE_KEYS.TILE_ORDER;
@@ -139,8 +142,31 @@ export const Dashboard: React.FC = () => {
     // Toast State
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
+    // Badge unlock modal state
+    const [newBadges, setNewBadges] = useState<Badge[]>([]);
+    const [showBadgeUnlockModal, setShowBadgeUnlockModal] = useState(false);
+
+    // DEV: Test confetti by running in console: window.dispatchEvent(new CustomEvent('test-badge-unlock'))
+    useEffect(() => {
+        const handleTestBadgeUnlock = () => {
+            setNewBadges([{
+                key: 'first_step',
+                name: 'First Step',
+                icon: 'Footprints',
+                color: '#22c55e',
+                threshold: 1,
+                earned: true,
+                earned_at: new Date().toISOString().split('T')[0],
+            }]);
+            setShowBadgeUnlockModal(true);
+        };
+        window.addEventListener('test-badge-unlock', handleTestBadgeUnlock);
+        return () => window.removeEventListener('test-badge-unlock', handleTestBadgeUnlock);
+    }, []);
+
     // Private account state (when viewing someone else's private profile)
     const [isPrivateAccount, setIsPrivateAccount] = useState(false);
+    const [privateAccountBadges, setPrivateAccountBadges] = useState<Badge[]>([]);
 
     // Target user's profile pic and bio (when viewing another user's dashboard)
     const [targetProfilePic, setTargetProfilePic] = useState<string | null>(null);
@@ -205,6 +231,18 @@ export const Dashboard: React.FC = () => {
 
     // Cache key for offline data
     const getCacheKey = (username: string, date: string) => `dashboard_${username}_${date}`;
+
+    // Fetch badges for private accounts (badges are always public)
+    const fetchBadgesForPrivateAccount = async (username: string) => {
+        try {
+            const res = await api.post('/badges/user', { username });
+            if (res.success && res.badges) {
+                setPrivateAccountBadges(res.badges);
+            }
+        } catch (error) {
+            console.error('Failed to fetch badges for private account:', error);
+        }
+    };
 
     // Save activities to localStorage for offline access
     const cacheActivities = (username: string, date: string, activities: Record<string, number>, notes: Record<string, string>) => {
@@ -272,11 +310,15 @@ export const Dashboard: React.FC = () => {
                 }
             } else if (res.error_code === 'ACCOUNT_PRIVATE') {
                 setIsPrivateAccount(true);
+                // Fetch badges for private accounts (badges are always public)
+                fetchBadgesForPrivateAccount(targetUsername);
             }
         } catch (err: unknown) {
             // Check if it's a private account error
             if (err instanceof ApiError && err.errorCode === 'ACCOUNT_PRIVATE') {
                 setIsPrivateAccount(true);
+                // Fetch badges for private accounts (badges are always public)
+                fetchBadgesForPrivateAccount(targetUsername);
             } else {
                 console.error('Failed to fetch activities', err);
                 
@@ -630,6 +672,10 @@ export const Dashboard: React.FC = () => {
                     isNextDisabled={isNextDisabled()}
                     activities={activities}
                     loading={loading}
+                    onNewBadges={(badges) => {
+                        setNewBadges(badges);
+                        setShowBadgeUnlockModal(true);
+                    }}
                 />
             )}
 
@@ -778,12 +824,49 @@ export const Dashboard: React.FC = () => {
                         Private Account
                     </h3>
                     <p style={{
-                        margin: 0,
+                        margin: '0 0 16px 0',
                         fontSize: '0.8rem',
                         color: 'var(--text-secondary)',
                     }}>
                         @{targetUsername}'s activity is hidden
                     </p>
+                    
+                    {/* Show badges (always public) */}
+                    {privateAccountBadges.filter(b => b.earned).length > 0 && (
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '8px',
+                            paddingTop: '16px',
+                            borderTop: '1px solid var(--tile-glass-border)',
+                            width: '100%',
+                        }}>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                Badges earned
+                            </span>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                {privateAccountBadges.filter(b => b.earned).map((badge) => (
+                                    <div
+                                        key={badge.key}
+                                        title={`${badge.name} - ${badge.threshold} day streak`}
+                                        style={{
+                                            width: '36px',
+                                            height: '36px',
+                                            borderRadius: '10px',
+                                            background: `color-mix(in srgb, ${badge.color} 15%, var(--bg-secondary))`,
+                                            border: `1px solid ${badge.color}40`,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {renderBadgeIcon(badge.icon, badge.color, 20)}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <>
@@ -982,6 +1065,16 @@ export const Dashboard: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Badge Unlock Modal */}
+            <BadgeUnlockModal
+                badges={newBadges}
+                isOpen={showBadgeUnlockModal}
+                onClose={() => {
+                    setShowBadgeUnlockModal(false);
+                    setNewBadges([]);
+                }}
+            />
         </div>
     );
 };

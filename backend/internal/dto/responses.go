@@ -121,10 +121,11 @@ type ActivitiesResponse struct {
 // StreakDTO represents streak data for API responses
 // @Description Streak information
 type StreakDTO struct {
-	ID      uint   `json:"id" example:"1"`
-	Current int    `json:"current" example:"7"`
-	Longest int    `json:"longest" example:"30"`
-	Date    string `json:"date" example:"2026-01-04"`
+	ID        uint       `json:"id" example:"1"`
+	Current   int        `json:"current" example:"7"`
+	Longest   int        `json:"longest" example:"30"`
+	Date      string     `json:"date" example:"2026-01-04"`
+	NewBadges []BadgeDTO `json:"new_badges,omitempty"`
 }
 
 // StreakResponse represents the streak response
@@ -217,4 +218,43 @@ type LikeActionResponse struct {
 	Success  bool  `json:"success" example:"true"`
 	Liked    bool  `json:"liked" example:"true"`
 	NewCount int64 `json:"new_count" example:"6"`
+}
+
+// ==================== Badge DTOs ====================
+
+// BadgeDTO represents a badge for API responses
+// @Description Badge information
+type BadgeDTO struct {
+	Key       string `json:"key" example:"spark_starter"`
+	Name      string `json:"name" example:"Spark Starter"`
+	Icon      string `json:"icon" example:"Zap"`
+	Color     string `json:"color" example:"#3b82f6"`
+	Threshold int    `json:"threshold" example:"7"`
+	Earned    bool   `json:"earned" example:"true"`
+	EarnedAt  string `json:"earned_at,omitempty" example:"2026-01-04"`
+}
+
+// NextBadgeDTO represents the next badge to earn
+// @Description Next badge to earn with progress
+type NextBadgeDTO struct {
+	Key       string `json:"key" example:"flame_keeper"`
+	Name      string `json:"name" example:"Flame Keeper"`
+	Icon      string `json:"icon" example:"Flame"`
+	Color     string `json:"color" example:"#f97316"`
+	Threshold int    `json:"threshold" example:"15"`
+	Progress  int    `json:"progress" example:"7"`
+}
+
+// BadgesResponse represents the badges list response
+// @Description List of badges
+type BadgesResponse struct {
+	Success   bool          `json:"success" example:"true"`
+	Badges    []BadgeDTO    `json:"badges"`
+	NextBadge *NextBadgeDTO `json:"next_badge,omitempty"`
+}
+
+// GetBadgesByUsernameRequest represents the request to get badges by username
+// @Description Request to get badges by username
+type GetBadgesByUsernameRequest struct {
+	Username string `json:"username" example:"john_doe"`
 }

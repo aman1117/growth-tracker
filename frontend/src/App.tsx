@@ -7,6 +7,7 @@ import { Layout } from './components/Layout';
 import { LoadingSpinner } from './components/ui';
 import { api } from './services/api';
 import { OfflineBanner } from './components/OfflineBanner';
+import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
 
 // Lazy load route components for code splitting
 const AuthForm = lazy(() => import('./components/AuthForm').then(m => ({ default: m.AuthForm })));
@@ -95,6 +96,7 @@ function App() {
       <ThemeInitializer>
         <ProfileInitializer>
           <OfflineBanner />
+          <PWAUpdatePrompt />
           <Router>
             <Layout>
             <Suspense fallback={<PageLoader />}>

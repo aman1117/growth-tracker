@@ -315,7 +315,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    paddingTop: '0.25rem',
+                    paddingTop: '0.5rem',
                     borderTop: '1px solid var(--tile-glass-border)',
                 }}
             >
@@ -323,22 +323,22 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     {/* Current Streak */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Flame size={18} fill="#f87171" color="#ef4444" />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                        <Flame size={18} fill="#f87171" color="#ef4444" style={{ display: 'block' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1 }}>
                             {streak.current}
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1 }}>
                             streak
                         </span>
                     </div>
 
                     {/* Best Streak */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Trophy size={18} fill="#fbbf24" color="#f59e0b" />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                        <Trophy size={18} fill="#fbbf24" color="#f59e0b" style={{ display: 'block' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1 }}>
                             {streak.longest}
                         </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1 }}>
                             best
                         </span>
                     </div>

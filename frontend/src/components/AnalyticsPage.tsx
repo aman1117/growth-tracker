@@ -575,11 +575,9 @@ export const AnalyticsPage: React.FC = () => {
                                                 {result.username}
                                             </div>
                                         </div>
-                                        {result.is_private ? (
-                                            <Lock size={14} color="var(--text-secondary)" />
-                                        ) : targetUsername === result.username ? (
+                                        {targetUsername === result.username && (
                                             <Check size={16} color="var(--accent)" />
-                                        ) : null}
+                                        )}
                                     </div>
                                 ))}
                                 {searchQuery && !isSearching && searchResults.length === 0 && (

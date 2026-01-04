@@ -113,7 +113,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
 
   const iconSize = size === 'sm' ? 16 : 20;
   const fontSize = size === 'sm' ? '0.75rem' : '0.875rem';
-  const gap = size === 'sm' ? '0.25rem' : '0.375rem';
+  const gap = size === 'sm' ? '0.35rem' : '0.5rem';
 
   const handleCountClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -174,6 +174,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
               fontWeight: 500,
               color: liked ? '#ef4444' : 'var(--text-secondary)',
               cursor: count > 0 ? 'pointer' : 'default',
+              lineHeight: 1,
             }}
             onMouseEnter={(e) => {
               if (count > 0) {

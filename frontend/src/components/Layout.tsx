@@ -327,9 +327,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                     }}>
                                                         {result.username}
                                                     </span>
-                                                    {result.is_private && (
-                                                        <Lock size={12} color="var(--text-secondary)" style={{ flexShrink: 0 }} />
-                                                    )}
                                                 </div>
                                             ))
                                         ) : searchQuery.length > 0 ? (

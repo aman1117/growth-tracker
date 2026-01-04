@@ -203,11 +203,44 @@ export const Dashboard: React.FC = () => {
         return `${year}-${month}-${day}`;
     };
 
+    // Cache key for offline data
+    const getCacheKey = (username: string, date: string) => `dashboard_${username}_${date}`;
+
+    // Save activities to localStorage for offline access
+    const cacheActivities = (username: string, date: string, activities: Record<string, number>, notes: Record<string, string>) => {
+        try {
+            const cacheKey = getCacheKey(username, date);
+            localStorage.setItem(cacheKey, JSON.stringify({ activities, notes, timestamp: Date.now() }));
+        } catch (e) {
+            // localStorage might be full or unavailable
+            console.warn('Failed to cache activities:', e);
+        }
+    };
+
+    // Load cached activities from localStorage
+    const loadCachedActivities = (username: string, date: string) => {
+        try {
+            const cacheKey = getCacheKey(username, date);
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                const data = JSON.parse(cached);
+                // Cache valid for 24 hours
+                if (Date.now() - data.timestamp < 24 * 60 * 60 * 1000) {
+                    return data;
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to load cached activities:', e);
+        }
+        return null;
+    };
+
     const fetchActivities = useCallback(async () => {
         if (!targetUsername) return;
         setLoading(true);
+        const dateStr = formatDateForApi(currentDate);
+        
         try {
-            const dateStr = formatDateForApi(currentDate);
             const res = await api.post('/get-activities', {
                 username: targetUsername,
                 start_date: dateStr,
@@ -232,6 +265,11 @@ export const Dashboard: React.FC = () => {
                 });
                 setActivities(activityMap);
                 setActivityNotes(notesMap);
+                
+                // Cache for offline access (only cache own data)
+                if (!isReadOnly) {
+                    cacheActivities(targetUsername, dateStr, activityMap, notesMap);
+                }
             } else if (res.error_code === 'ACCOUNT_PRIVATE') {
                 setIsPrivateAccount(true);
             }
@@ -241,12 +279,20 @@ export const Dashboard: React.FC = () => {
                 setIsPrivateAccount(true);
             } else {
                 console.error('Failed to fetch activities', err);
-                setToast({ message: 'Failed to load activities', type: 'error' });
+                
+                // Try to load from cache when offline
+                const cached = loadCachedActivities(targetUsername, dateStr);
+                if (cached) {
+                    setActivities(cached.activities);
+                    setActivityNotes(cached.notes);
+                } else {
+                    setToast({ message: 'Failed to load activities', type: 'error' });
+                }
             }
         } finally {
             setLoading(false);
         }
-    }, [currentDate, targetUsername]);
+    }, [currentDate, targetUsername, isReadOnly]);
 
     useEffect(() => {
         fetchActivities();

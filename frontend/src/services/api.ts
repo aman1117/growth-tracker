@@ -224,8 +224,9 @@ export class ApiError extends Error {
 
 /**
  * Pre-configured API client instance
+ * Adds /api prefix for cleaner routing and service worker caching
  */
-export const apiClient = new ApiClient(env.apiUrl);
+export const apiClient = new ApiClient(`${env.apiUrl}/api`);
 
 // ============================================================================
 // Backwards-Compatible API Object

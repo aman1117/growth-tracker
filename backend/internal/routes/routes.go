@@ -53,12 +53,12 @@ func NewRouter(
 
 // Setup configures all routes on the Fiber app
 func (r *Router) Setup(app *fiber.App) {
-	// Health check (no rate limit)
+	// Health check (no rate limit) - keep at root
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("API is running...")
 	})
 
-	// Swagger documentation (no rate limit)
+	// Swagger documentation (no rate limit) - keep at root
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// Middleware
@@ -68,14 +68,17 @@ func (r *Router) Setup(app *fiber.App) {
 	apiRateLimiter := middleware.APIRateLimiter()
 	uploadRateLimiter := middleware.UploadRateLimiter()
 
+	// API group - all routes under /api prefix
+	api := app.Group("/api")
+
 	// ==================== Public Routes ====================
 
 	// Authentication (strict rate limiting: 5 req/min)
-	app.Post("/register", authRateLimiter, r.authHandler.Register)
-	app.Post("/login", authRateLimiter, r.authHandler.Login)
+	api.Post("/register", authRateLimiter, r.authHandler.Register)
+	api.Post("/login", authRateLimiter, r.authHandler.Login)
 
 	// Password Reset (very strict rate limiting: 3 req/hour)
-	auth := app.Group("/auth")
+	auth := api.Group("/auth")
 	auth.Post("/forgot-password", passwordRateLimiter, r.passwordResetHandler.ForgotPassword)
 	auth.Post("/reset-password", passwordRateLimiter, r.passwordResetHandler.ResetPassword)
 	auth.Get("/reset-password/validate", passwordRateLimiter, r.passwordResetHandler.ValidateResetToken)
@@ -84,38 +87,38 @@ func (r *Router) Setup(app *fiber.App) {
 	// All protected routes have: auth middleware + API rate limiter (100 req/min)
 
 	// User Search
-	app.Post("/users", authMiddleware, apiRateLimiter, r.profileHandler.SearchUsers)
+	api.Post("/users", authMiddleware, apiRateLimiter, r.profileHandler.SearchUsers)
 
 	// Activities
-	app.Post("/create-activity", authMiddleware, apiRateLimiter, r.activityHandler.CreateActivity)
-	app.Post("/get-activities", authMiddleware, apiRateLimiter, r.activityHandler.GetActivities)
+	api.Post("/create-activity", authMiddleware, apiRateLimiter, r.activityHandler.CreateActivity)
+	api.Post("/get-activities", authMiddleware, apiRateLimiter, r.activityHandler.GetActivities)
 
 	// Streaks
-	app.Post("/get-streak", authMiddleware, apiRateLimiter, r.streakHandler.GetStreak)
+	api.Post("/get-streak", authMiddleware, apiRateLimiter, r.streakHandler.GetStreak)
 
 	// Analytics
-	app.Post("/get-week-analytics", authMiddleware, apiRateLimiter, r.analyticsHandler.GetWeekAnalytics)
+	api.Post("/get-week-analytics", authMiddleware, apiRateLimiter, r.analyticsHandler.GetWeekAnalytics)
 
 	// Tile Configuration
-	app.Get("/tile-config", authMiddleware, apiRateLimiter, r.tileConfigHandler.GetConfig)
-	app.Post("/tile-config", authMiddleware, apiRateLimiter, r.tileConfigHandler.SaveConfig)
-	app.Post("/tile-config/user", authMiddleware, apiRateLimiter, r.tileConfigHandler.GetConfigByUsername)
+	api.Get("/tile-config", authMiddleware, apiRateLimiter, r.tileConfigHandler.GetConfig)
+	api.Post("/tile-config", authMiddleware, apiRateLimiter, r.tileConfigHandler.SaveConfig)
+	api.Post("/tile-config/user", authMiddleware, apiRateLimiter, r.tileConfigHandler.GetConfigByUsername)
 
 	// Likes
-	app.Post("/like-day", authMiddleware, apiRateLimiter, r.likeHandler.LikeDay)
-	app.Post("/unlike-day", authMiddleware, apiRateLimiter, r.likeHandler.UnlikeDay)
-	app.Post("/get-likes", authMiddleware, apiRateLimiter, r.likeHandler.GetLikes)
+	api.Post("/like-day", authMiddleware, apiRateLimiter, r.likeHandler.LikeDay)
+	api.Post("/unlike-day", authMiddleware, apiRateLimiter, r.likeHandler.UnlikeDay)
+	api.Post("/get-likes", authMiddleware, apiRateLimiter, r.likeHandler.GetLikes)
 
 	// Profile Management
-	app.Post("/update-username", authMiddleware, apiRateLimiter, r.authHandler.UpdateUsername)
-	app.Post("/update-privacy", authMiddleware, apiRateLimiter, r.profileHandler.UpdatePrivacy)
-	app.Get("/get-privacy", authMiddleware, apiRateLimiter, r.profileHandler.GetPrivacy)
-	app.Post("/update-bio", authMiddleware, apiRateLimiter, r.profileHandler.UpdateBio)
-	app.Get("/get-bio", authMiddleware, apiRateLimiter, r.profileHandler.GetBio)
-	app.Post("/change-password", authMiddleware, authRateLimiter, r.authHandler.ChangePassword) // Strict rate limit for password change
+	api.Post("/update-username", authMiddleware, apiRateLimiter, r.authHandler.UpdateUsername)
+	api.Post("/update-privacy", authMiddleware, apiRateLimiter, r.profileHandler.UpdatePrivacy)
+	api.Get("/get-privacy", authMiddleware, apiRateLimiter, r.profileHandler.GetPrivacy)
+	api.Post("/update-bio", authMiddleware, apiRateLimiter, r.profileHandler.UpdateBio)
+	api.Get("/get-bio", authMiddleware, apiRateLimiter, r.profileHandler.GetBio)
+	api.Post("/change-password", authMiddleware, authRateLimiter, r.authHandler.ChangePassword) // Strict rate limit for password change
 
 	// Profile Picture (with upload-specific rate limiting)
-	profile := app.Group("/profile", authMiddleware)
+	profile := api.Group("/profile", authMiddleware)
 	profile.Get("", apiRateLimiter, r.profileHandler.GetProfile)
 	if r.blobHandler != nil {
 		profile.Post("/upload-picture", uploadRateLimiter, r.blobHandler.UploadProfilePicture)

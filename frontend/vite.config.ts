@@ -56,7 +56,8 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /\/api\/.*/i,
+            // Backend API - GET requests (cacheable for offline)
+            urlPattern: /\/api\/(get-.*|tile-config|profile|users)$/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -69,10 +70,13 @@ export default defineConfig({
               },
               networkTimeoutSeconds: 10
             }
+          },
+          {
+            // Backend API - Mutations (never cache)
+            urlPattern: /\/api\/(create-.*|update-.*|change-.*|delete-.*|auth\/.*)$/i,
+            handler: 'NetworkOnly',
           }
-        ],
-        navigateFallback: '/offline.html',
-        navigateFallbackDenylist: [/^\/api/]
+        ]
       },
       manifest: {
         name: 'Growth Tracker',

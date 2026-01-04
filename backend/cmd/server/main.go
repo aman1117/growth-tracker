@@ -24,7 +24,7 @@
 // @license.url https://opensource.org/licenses/MIT
 //
 // @host localhost:3000
-// @BasePath /
+// @BasePath /api
 //
 // @securityDefinitions.apikey BearerAuth
 // @in header

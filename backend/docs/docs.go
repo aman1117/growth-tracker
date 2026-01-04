@@ -1831,7 +1831,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:3000",
-	BasePath:         "/",
+	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Growth Tracker API",
 	Description:      "API for tracking daily activities, streaks, and analytics.\n\n## Features\n- User authentication with JWT tokens\n- Activity tracking with customizable types\n- Streak tracking to maintain consistency\n- Weekly analytics with daily breakdowns\n- Privacy controls for user profiles\n- Tile configuration for dashboard customization\n\n## Rate Limits\n- Login/Register: 5 requests per minute per IP\n- Password Reset: 3 requests per minute per IP\n- General API: 60 requests per minute per user",

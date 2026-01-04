@@ -323,7 +323,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     {/* Current Streak */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Flame size={16} fill="#f87171" color="#ef4444" />
+                        <Flame size={18} fill="#f87171" color="#ef4444" />
                         <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)' }}>
                             {streak.current}
                         </span>
@@ -334,7 +334,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
 
                     {/* Best Streak */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Trophy size={16} fill="#fbbf24" color="#f59e0b" />
+                        <Trophy size={18} fill="#fbbf24" color="#f59e0b" />
                         <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)' }}>
                             {streak.longest}
                         </span>

@@ -111,7 +111,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
     }
   }, [liked, count, loading, username, date, onLikeChange]);
 
-  const iconSize = size === 'sm' ? 14 : 18;
+  const iconSize = size === 'sm' ? 16 : 20;
   const fontSize = size === 'sm' ? '0.75rem' : '0.875rem';
   const gap = size === 'sm' ? '0.25rem' : '0.375rem';
 

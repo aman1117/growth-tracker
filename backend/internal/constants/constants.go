@@ -43,6 +43,12 @@ const (
 	TraceIDLength     = 8
 )
 
+// Likes cache constants
+const (
+	LikesCachePrefix = "likes:"
+	LikesCacheTTL    = 5 * time.Minute
+)
+
 // Error codes for consistent API responses
 const (
 	// Authentication errors

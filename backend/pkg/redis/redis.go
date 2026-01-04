@@ -158,3 +158,57 @@ func DeleteResetToken(ctx context.Context, rawToken string) error {
 
 	return client.Del(ctx, key).Err()
 }
+
+// ==================== Likes Cache Functions ====================
+
+// LikesCacheKey generates the Redis key for likes cache
+func LikesCacheKey(userID uint, date string) string {
+	return fmt.Sprintf("%s%d:%s", constants.LikesCachePrefix, userID, date)
+}
+
+// GetLikesCache retrieves cached likes data from Redis
+func GetLikesCache(ctx context.Context, userID uint, date string) (string, error) {
+	if client == nil {
+		return "", fmt.Errorf("redis client not initialized")
+	}
+
+	key := LikesCacheKey(userID, date)
+	value, err := client.Get(ctx, key).Result()
+	if err == goredis.Nil {
+		// Cache miss - this is normal, not an error
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to get likes cache for key %s: %w", key, err)
+	}
+
+	return value, nil
+}
+
+// SetLikesCache stores likes data in Redis cache
+func SetLikesCache(ctx context.Context, userID uint, date string, data string) error {
+	if client == nil {
+		return fmt.Errorf("redis client not initialized")
+	}
+
+	key := LikesCacheKey(userID, date)
+	if err := client.Set(ctx, key, data, constants.LikesCacheTTL).Err(); err != nil {
+		return fmt.Errorf("failed to set likes cache for key %s: %w", key, err)
+	}
+
+	return nil
+}
+
+// InvalidateLikesCache removes likes data from Redis cache
+func InvalidateLikesCache(ctx context.Context, userID uint, date string) error {
+	if client == nil {
+		return fmt.Errorf("redis client not initialized")
+	}
+
+	key := LikesCacheKey(userID, date)
+	if err := client.Del(ctx, key).Err(); err != nil {
+		return fmt.Errorf("failed to invalidate likes cache for key %s: %w", key, err)
+	}
+
+	return nil
+}

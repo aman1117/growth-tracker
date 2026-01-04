@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/aman1117/backend/internal/constants"
@@ -9,6 +11,7 @@ import (
 	"github.com/aman1117/backend/internal/repository"
 	"github.com/aman1117/backend/internal/response"
 	"github.com/aman1117/backend/internal/services"
+	"github.com/aman1117/backend/pkg/redis"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -141,6 +144,19 @@ func (h *LikeHandler) LikeDay(c *fiber.Ctx) error {
 		return response.InternalError(c, "Failed to like day", constants.ErrCodeCreateFailed)
 	}
 
+	// Invalidate likes cache
+	if redis.IsAvailable() {
+		ctx := context.Background()
+		dateStr := date.Format(constants.DateFormat)
+		if err := redis.InvalidateLikesCache(ctx, targetUser.ID, dateStr); err != nil {
+			log.Warnw("Failed to invalidate likes cache",
+				"liked_user_id", targetUser.ID,
+				"date", dateStr,
+				"error", err,
+			)
+		}
+	}
+
 	// Get new count
 	count, _ := h.likeRepo.CountLikesForDay(targetUser.ID, date)
 
@@ -232,6 +248,19 @@ func (h *LikeHandler) UnlikeDay(c *fiber.Ctx) error {
 		})
 	}
 
+	// Invalidate likes cache
+	if redis.IsAvailable() {
+		ctx := context.Background()
+		dateStr := date.Format(constants.DateFormat)
+		if err := redis.InvalidateLikesCache(ctx, targetUser.ID, dateStr); err != nil {
+			log.Warnw("Failed to invalidate likes cache",
+				"liked_user_id", targetUser.ID,
+				"date", dateStr,
+				"error", err,
+			)
+		}
+	}
+
 	// Get new count
 	count, _ := h.likeRepo.CountLikesForDay(targetUser.ID, date)
 
@@ -313,24 +342,95 @@ func (h *LikeHandler) GetLikes(c *fiber.Ctx) error {
 		return response.Forbidden(c, "Cannot view likes for a private account", constants.ErrCodeAccountPrivate)
 	}
 
-	// Get likes with user info
-	likes, err := h.likeRepo.GetLikesForDay(targetUser.ID, date)
-	if err != nil {
-		log.Errorw("Failed to get likes",
-			"liked_user_id", targetUser.ID,
-			"date", date.Format("2006-01-02"),
-			"error", err,
-		)
-		return response.InternalError(c, "Failed to get likes", constants.ErrCodeFetchFailed)
+	dateStr := date.Format(constants.DateFormat)
+	ctx := context.Background()
+	var likerDTOs []dto.LikerDTO
+
+	// Try to get likes from cache
+	if redis.IsAvailable() {
+		cachedData, err := redis.GetLikesCache(ctx, targetUser.ID, dateStr)
+		if err != nil {
+			log.Warnw("Failed to get likes from cache",
+				"liked_user_id", targetUser.ID,
+				"date", dateStr,
+				"error", err,
+			)
+		} else if cachedData != "" {
+			// Cache hit - unmarshal the cached data
+			if err := json.Unmarshal([]byte(cachedData), &likerDTOs); err != nil {
+				log.Warnw("Failed to unmarshal cached likes data",
+					"liked_user_id", targetUser.ID,
+					"date", dateStr,
+					"error", err,
+				)
+				likerDTOs = nil // Reset to fetch from DB
+			} else {
+				log.Infow("GetLikes cache hit",
+					"liked_user_id", targetUser.ID,
+					"date", dateStr,
+					"likes_count", len(likerDTOs),
+				)
+			}
+		}
 	}
 
-	// Check if current user has liked
+	// If cache miss or cache unavailable, fetch from database
+	if likerDTOs == nil {
+		likes, err := h.likeRepo.GetLikesForDay(targetUser.ID, date)
+		if err != nil {
+			log.Errorw("Failed to get likes",
+				"liked_user_id", targetUser.ID,
+				"date", dateStr,
+				"error", err,
+			)
+			return response.InternalError(c, "Failed to get likes", constants.ErrCodeFetchFailed)
+		}
+
+		// Convert to DTOs
+		likerDTOs = make([]dto.LikerDTO, len(likes))
+		for i, like := range likes {
+			likerDTOs[i] = dto.LikerDTO{
+				ID:         like.LikerID,
+				Username:   like.Username,
+				ProfilePic: like.ProfilePic,
+				LikedAt:    like.CreatedAt.Format(time.RFC3339),
+			}
+		}
+
+		// Cache the result
+		if redis.IsAvailable() {
+			cacheData, err := json.Marshal(likerDTOs)
+			if err != nil {
+				log.Warnw("Failed to marshal likes data for caching",
+					"liked_user_id", targetUser.ID,
+					"date", dateStr,
+					"error", err,
+				)
+			} else {
+				if err := redis.SetLikesCache(ctx, targetUser.ID, dateStr, string(cacheData)); err != nil {
+					log.Warnw("Failed to set likes cache",
+						"liked_user_id", targetUser.ID,
+						"date", dateStr,
+						"error", err,
+					)
+				} else {
+					log.Infow("GetLikes cached successfully",
+						"liked_user_id", targetUser.ID,
+						"date", dateStr,
+						"likes_count", len(likerDTOs),
+					)
+				}
+			}
+		}
+	}
+
+	// Check if current user has liked (not cached as it's user-specific)
 	userHasLiked, hasLikedErr := h.likeRepo.HasLiked(userID, targetUser.ID, date)
 	if hasLikedErr != nil {
 		log.Errorw("Failed to check if user has liked",
 			"liker_id", userID,
 			"liked_user_id", targetUser.ID,
-			"date", date.Format("2006-01-02"),
+			"date", dateStr,
 			"error", hasLikedErr,
 		)
 	}
@@ -338,26 +438,15 @@ func (h *LikeHandler) GetLikes(c *fiber.Ctx) error {
 	log.Infow("GetLikes result",
 		"current_user_id", userID,
 		"target_user_id", targetUser.ID,
-		"date", date.Format("2006-01-02"),
-		"likes_count", len(likes),
+		"date", dateStr,
+		"likes_count", len(likerDTOs),
 		"user_has_liked", userHasLiked,
 	)
-
-	// Convert to DTOs
-	likerDTOs := make([]dto.LikerDTO, len(likes))
-	for i, like := range likes {
-		likerDTOs[i] = dto.LikerDTO{
-			ID:         like.LikerID,
-			Username:   like.Username,
-			ProfilePic: like.ProfilePic,
-			LikedAt:    like.CreatedAt.Format(time.RFC3339),
-		}
-	}
 
 	return c.JSON(dto.LikesResponse{
 		Success:      true,
 		Data:         likerDTOs,
-		Count:        int64(len(likes)),
+		Count:        int64(len(likerDTOs)),
 		UserHasLiked: userHasLiked,
 	})
 }

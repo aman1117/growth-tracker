@@ -42,7 +42,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ForgotPasswordRequest"
+                            "$ref": "#/definitions/dto.ForgotPasswordRequest"
                         }
                     }
                 ],
@@ -50,7 +50,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Reset email sent (if user exists)",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse"
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     }
                 }
@@ -76,7 +76,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ResetPasswordRequest"
+                            "$ref": "#/definitions/dto.ResetPasswordRequest"
                         }
                     }
                 ],
@@ -84,13 +84,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Password reset successful",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse"
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid token or validation error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -121,7 +121,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ChangePasswordRequest"
+                            "$ref": "#/definitions/dto.ChangePasswordRequest"
                         }
                     }
                 ],
@@ -129,19 +129,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Password changed successfully",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse"
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Validation error or incorrect password",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -172,7 +172,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.CreateActivityRequest"
+                            "$ref": "#/definitions/dto.CreateActivityRequest"
                         }
                     }
                 ],
@@ -180,19 +180,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Activity updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse"
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Validation error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -223,7 +223,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.GetActivitiesRequest"
+                            "$ref": "#/definitions/dto.GetActivitiesRequest"
                         }
                     }
                 ],
@@ -233,7 +233,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.DataResponse"
+                                    "$ref": "#/definitions/dto.DataResponse"
                                 },
                                 {
                                     "type": "object",
@@ -241,7 +241,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ActivityDTO"
+                                                "$ref": "#/definitions/dto.ActivityDTO"
                                             }
                                         }
                                     }
@@ -252,19 +252,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Validation error or user not found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Private account",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -289,13 +289,70 @@ const docTemplate = `{
                     "200": {
                         "description": "Bio content",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.BioResponse"
+                            "$ref": "#/definitions/dto.BioResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/get-likes": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get all likes for a specific user's day (only visible if profile is public or it's your own day)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Likes"
+                ],
+                "summary": "Get likes for a day",
+                "parameters": [
+                    {
+                        "description": "Get likes request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetLikesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Likes data",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Private account",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -320,13 +377,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Privacy setting",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.PrivacyResponse"
+                            "$ref": "#/definitions/dto.PrivacyResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -357,7 +414,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.GetStreakRequest"
+                            "$ref": "#/definitions/dto.GetStreakRequest"
                         }
                     }
                 ],
@@ -365,25 +422,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Streak data",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.StreakResponse"
+                            "$ref": "#/definitions/dto.StreakResponse"
                         }
                     },
                     "400": {
                         "description": "Validation error or streak not found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Private account",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -414,7 +471,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.GetWeekAnalyticsRequest"
+                            "$ref": "#/definitions/dto.GetWeekAnalyticsRequest"
                         }
                     }
                 ],
@@ -422,25 +479,82 @@ const docTemplate = `{
                     "200": {
                         "description": "Weekly analytics data",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.WeekAnalyticsResponse"
+                            "$ref": "#/definitions/dto.WeekAnalyticsResponse"
                         }
                     },
                     "400": {
                         "description": "Validation error or user not found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Private account",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/like-day": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Like another user's day (only public profiles can be liked)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Likes"
+                ],
+                "summary": "Like a user's day",
+                "parameters": [
+                    {
+                        "description": "Like request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikeDayRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Like successful",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikeActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Private account",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -466,7 +580,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.LoginRequest"
+                            "$ref": "#/definitions/dto.LoginRequest"
                         }
                     }
                 ],
@@ -474,13 +588,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Login successful with JWT token",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.LoginResponse"
+                            "$ref": "#/definitions/dto.LoginResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid credentials",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -505,19 +619,19 @@ const docTemplate = `{
                     "200": {
                         "description": "User profile",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ProfileResponse"
+                            "$ref": "#/definitions/dto.ProfileResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -543,7 +657,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.RegisterRequest"
+                            "$ref": "#/definitions/dto.RegisterRequest"
                         }
                     }
                 ],
@@ -551,13 +665,13 @@ const docTemplate = `{
                     "201": {
                         "description": "User created successfully",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse"
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Validation error or user exists",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -582,13 +696,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Tile configuration",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.TileConfigResponse"
+                            "$ref": "#/definitions/dto.TileConfigResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -617,7 +731,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.SaveTileConfigRequest"
+                            "$ref": "#/definitions/dto.SaveTileConfigRequest"
                         }
                     }
                 ],
@@ -625,19 +739,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Config saved",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse"
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -668,7 +782,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.GetTileConfigByUsernameRequest"
+                            "$ref": "#/definitions/dto.GetTileConfigByUsernameRequest"
                         }
                     }
                 ],
@@ -676,25 +790,76 @@ const docTemplate = `{
                     "200": {
                         "description": "Tile configuration",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.TileConfigResponse"
+                            "$ref": "#/definitions/dto.TileConfigResponse"
                         }
                     },
                     "400": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Private account",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/unlike-day": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a like from a user's day",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Likes"
+                ],
+                "summary": "Unlike a user's day",
+                "parameters": [
+                    {
+                        "description": "Unlike request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikeDayRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Unlike successful",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikeActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -725,7 +890,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.UpdateBioRequest"
+                            "$ref": "#/definitions/dto.UpdateBioRequest"
                         }
                     }
                 ],
@@ -733,19 +898,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Bio updated",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.BioResponse"
+                            "$ref": "#/definitions/dto.BioResponse"
                         }
                     },
                     "400": {
                         "description": "Validation error",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -776,7 +941,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.UpdatePrivacyRequest"
+                            "$ref": "#/definitions/dto.UpdatePrivacyRequest"
                         }
                     }
                 ],
@@ -784,19 +949,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Privacy updated",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.PrivacyResponse"
+                            "$ref": "#/definitions/dto.PrivacyResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -827,7 +992,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.UpdateUsernameRequest"
+                            "$ref": "#/definitions/dto.UpdateUsernameRequest"
                         }
                     }
                 ],
@@ -835,19 +1000,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Username updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.UsernameUpdateResponse"
+                            "$ref": "#/definitions/dto.UsernameUpdateResponse"
                         }
                     },
                     "400": {
                         "description": "Validation error or username taken",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -878,7 +1043,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.SearchUsersRequest"
+                            "$ref": "#/definitions/dto.SearchUsersRequest"
                         }
                     }
                 ],
@@ -888,7 +1053,7 @@ const docTemplate = `{
                         "schema": {
                             "allOf": [
                                 {
-                                    "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.DataResponse"
+                                    "$ref": "#/definitions/dto.DataResponse"
                                 },
                                 {
                                     "type": "object",
@@ -896,7 +1061,7 @@ const docTemplate = `{
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.UserDTO"
+                                                "$ref": "#/definitions/dto.UserDTO"
                                             }
                                         }
                                     }
@@ -907,13 +1072,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -921,7 +1086,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "github_com_aman1117_backend_internal_dto.ActivityDTO": {
+        "dto.ActivityDTO": {
             "description": "Activity data",
             "type": "object",
             "properties": {
@@ -951,7 +1116,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.ActivitySummary": {
+        "dto.ActivitySummary": {
             "description": "Aggregated activity summary",
             "type": "object",
             "properties": {
@@ -969,7 +1134,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.BioResponse": {
+        "dto.BioResponse": {
             "description": "Bio retrieval result",
             "type": "object",
             "properties": {
@@ -983,7 +1148,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.ChangePasswordRequest": {
+        "dto.ChangePasswordRequest": {
             "description": "Change password for authenticated user",
             "type": "object",
             "properties": {
@@ -997,7 +1162,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.CreateActivityRequest": {
+        "dto.CreateActivityRequest": {
             "description": "Create or update an activity",
             "type": "object",
             "properties": {
@@ -1028,7 +1193,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.DataResponse": {
+        "dto.DataResponse": {
             "description": "Generic response with data payload",
             "type": "object",
             "properties": {
@@ -1039,7 +1204,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.DayActivityBreakdown": {
+        "dto.DayActivityBreakdown": {
             "description": "Activity breakdown for a day",
             "type": "object",
             "properties": {
@@ -1057,14 +1222,14 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.DayAnalytics": {
+        "dto.DayAnalytics": {
             "description": "Daily analytics data",
             "type": "object",
             "properties": {
                 "activities": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.DayActivityBreakdown"
+                        "$ref": "#/definitions/dto.DayActivityBreakdown"
                     }
                 },
                 "date": {
@@ -1081,7 +1246,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.ErrorResponse": {
+        "dto.ErrorResponse": {
             "description": "Generic error response",
             "type": "object",
             "properties": {
@@ -1099,7 +1264,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.ForgotPasswordRequest": {
+        "dto.ForgotPasswordRequest": {
             "description": "Password reset request initiation",
             "type": "object",
             "properties": {
@@ -1109,7 +1274,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.GetActivitiesRequest": {
+        "dto.GetActivitiesRequest": {
             "description": "Get activities for a date range",
             "type": "object",
             "properties": {
@@ -1129,7 +1294,22 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.GetStreakRequest": {
+        "dto.GetLikesRequest": {
+            "description": "Get likes for a specific day",
+            "type": "object",
+            "properties": {
+                "date": {
+                    "description": "Format: YYYY-MM-DD",
+                    "type": "string",
+                    "example": "2026-01-04"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
+        "dto.GetStreakRequest": {
             "description": "Get streak data for a specific date",
             "type": "object",
             "properties": {
@@ -1144,7 +1324,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.GetTileConfigByUsernameRequest": {
+        "dto.GetTileConfigByUsernameRequest": {
             "type": "object",
             "properties": {
                 "username": {
@@ -1152,7 +1332,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.GetWeekAnalyticsRequest": {
+        "dto.GetWeekAnalyticsRequest": {
             "description": "Get weekly analytics starting from a specific Monday",
             "type": "object",
             "properties": {
@@ -1167,7 +1347,87 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.LoginRequest": {
+        "dto.LikeActionResponse": {
+            "description": "Response for like/unlike action",
+            "type": "object",
+            "properties": {
+                "liked": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "new_count": {
+                    "type": "integer",
+                    "example": 6
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.LikeDayRequest": {
+            "description": "Like or unlike a user's day",
+            "type": "object",
+            "properties": {
+                "date": {
+                    "description": "Format: YYYY-MM-DD",
+                    "type": "string",
+                    "example": "2026-01-04"
+                },
+                "username": {
+                    "description": "User whose day is being liked",
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
+        "dto.LikerDTO": {
+            "description": "User who liked a day",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "liked_at": {
+                    "type": "string",
+                    "example": "2026-01-04T12:00:00Z"
+                },
+                "profile_pic": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc.jpg"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
+        "dto.LikesResponse": {
+            "description": "Likes data for a day",
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.LikerDTO"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "user_has_liked": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.LoginRequest": {
             "description": "User login request",
             "type": "object",
             "properties": {
@@ -1182,7 +1442,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.LoginResponse": {
+        "dto.LoginResponse": {
             "description": "Successful login response with JWT token",
             "type": "object",
             "properties": {
@@ -1209,7 +1469,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.PrivacyResponse": {
+        "dto.PrivacyResponse": {
             "description": "Privacy setting result",
             "type": "object",
             "properties": {
@@ -1223,7 +1483,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.ProfileResponse": {
+        "dto.ProfileResponse": {
             "description": "User profile information",
             "type": "object",
             "properties": {
@@ -1249,7 +1509,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.RegisterRequest": {
+        "dto.RegisterRequest": {
             "description": "User registration request",
             "type": "object",
             "properties": {
@@ -1267,7 +1527,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.ResetPasswordRequest": {
+        "dto.ResetPasswordRequest": {
             "description": "Password reset with token",
             "type": "object",
             "properties": {
@@ -1285,7 +1545,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.SaveTileConfigRequest": {
+        "dto.SaveTileConfigRequest": {
             "type": "object",
             "properties": {
                 "config": {
@@ -1293,7 +1553,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.SearchUsersRequest": {
+        "dto.SearchUsersRequest": {
             "description": "Search for users by username",
             "type": "object",
             "properties": {
@@ -1303,7 +1563,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.StreakDTO": {
+        "dto.StreakDTO": {
             "description": "Streak information",
             "type": "object",
             "properties": {
@@ -1325,7 +1585,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.StreakInfo": {
+        "dto.StreakInfo": {
             "description": "Streak information in analytics",
             "type": "object",
             "properties": {
@@ -1347,12 +1607,12 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.StreakResponse": {
+        "dto.StreakResponse": {
             "description": "Streak data response",
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.StreakDTO"
+                    "$ref": "#/definitions/dto.StreakDTO"
                 },
                 "success": {
                     "type": "boolean",
@@ -1360,7 +1620,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.SuccessResponse": {
+        "dto.SuccessResponse": {
             "description": "Generic success response",
             "type": "object",
             "properties": {
@@ -1374,7 +1634,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.TileConfigResponse": {
+        "dto.TileConfigResponse": {
             "type": "object",
             "properties": {
                 "data": {
@@ -1385,7 +1645,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.UpdateBioRequest": {
+        "dto.UpdateBioRequest": {
             "description": "Bio update request",
             "type": "object",
             "properties": {
@@ -1395,7 +1655,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.UpdatePrivacyRequest": {
+        "dto.UpdatePrivacyRequest": {
             "description": "Privacy setting update request",
             "type": "object",
             "properties": {
@@ -1405,7 +1665,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.UpdateUsernameRequest": {
+        "dto.UpdateUsernameRequest": {
             "description": "Username update request",
             "type": "object",
             "properties": {
@@ -1415,7 +1675,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.UserDTO": {
+        "dto.UserDTO": {
             "description": "User information for search results",
             "type": "object",
             "properties": {
@@ -1446,7 +1706,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.UsernameUpdateResponse": {
+        "dto.UsernameUpdateResponse": {
             "description": "Username update result",
             "type": "object",
             "properties": {
@@ -1464,20 +1724,20 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_aman1117_backend_internal_dto.WeekAnalyticsResponse": {
+        "dto.WeekAnalyticsResponse": {
             "description": "Weekly analytics data",
             "type": "object",
             "properties": {
                 "activity_summary": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.ActivitySummary"
+                        "$ref": "#/definitions/dto.ActivitySummary"
                     }
                 },
                 "daily_breakdown": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.DayAnalytics"
+                        "$ref": "#/definitions/dto.DayAnalytics"
                     }
                 },
                 "is_current_week": {
@@ -1493,7 +1753,7 @@ const docTemplate = `{
                     "example": 0
                 },
                 "streak": {
-                    "$ref": "#/definitions/github_com_aman1117_backend_internal_dto.StreakInfo"
+                    "$ref": "#/definitions/dto.StreakInfo"
                 },
                 "success": {
                     "type": "boolean",

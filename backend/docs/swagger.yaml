@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  github_com_aman1117_backend_internal_dto.ActivityDTO:
+  dto.ActivityDTO:
     description: Activity data
     properties:
       date:
@@ -20,7 +20,7 @@ definitions:
         example: Worked on Go project
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.ActivitySummary:
+  dto.ActivitySummary:
     description: Aggregated activity summary
     properties:
       name:
@@ -31,7 +31,7 @@ definitions:
         example: 15.5
         type: number
     type: object
-  github_com_aman1117_backend_internal_dto.BioResponse:
+  dto.BioResponse:
     description: Bio retrieval result
     properties:
       bio:
@@ -41,7 +41,7 @@ definitions:
         example: true
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.ChangePasswordRequest:
+  dto.ChangePasswordRequest:
     description: Change password for authenticated user
     properties:
       current_password:
@@ -51,7 +51,7 @@ definitions:
         example: NewPass123
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.CreateActivityRequest:
+  dto.CreateActivityRequest:
     description: Create or update an activity
     properties:
       activity:
@@ -72,7 +72,7 @@ definitions:
         example: john_doe
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.DataResponse:
+  dto.DataResponse:
     description: Generic response with data payload
     properties:
       data: {}
@@ -80,7 +80,7 @@ definitions:
         example: true
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.DayActivityBreakdown:
+  dto.DayActivityBreakdown:
     description: Activity breakdown for a day
     properties:
       hours:
@@ -91,12 +91,12 @@ definitions:
         - $ref: '#/definitions/models.ActivityName'
         example: study
     type: object
-  github_com_aman1117_backend_internal_dto.DayAnalytics:
+  dto.DayAnalytics:
     description: Daily analytics data
     properties:
       activities:
         items:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.DayActivityBreakdown'
+          $ref: '#/definitions/dto.DayActivityBreakdown'
         type: array
       date:
         example: "2026-01-04"
@@ -108,7 +108,7 @@ definitions:
         example: 8.5
         type: number
     type: object
-  github_com_aman1117_backend_internal_dto.ErrorResponse:
+  dto.ErrorResponse:
     description: Generic error response
     properties:
       error:
@@ -121,14 +121,14 @@ definitions:
         example: false
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.ForgotPasswordRequest:
+  dto.ForgotPasswordRequest:
     description: Password reset request initiation
     properties:
       email:
         example: user@example.com
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.GetActivitiesRequest:
+  dto.GetActivitiesRequest:
     description: Get activities for a date range
     properties:
       end_date:
@@ -143,7 +143,18 @@ definitions:
         example: john_doe
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.GetStreakRequest:
+  dto.GetLikesRequest:
+    description: Get likes for a specific day
+    properties:
+      date:
+        description: 'Format: YYYY-MM-DD'
+        example: "2026-01-04"
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
+  dto.GetStreakRequest:
     description: Get streak data for a specific date
     properties:
       date:
@@ -154,12 +165,12 @@ definitions:
         example: john_doe
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.GetTileConfigByUsernameRequest:
+  dto.GetTileConfigByUsernameRequest:
     properties:
       username:
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.GetWeekAnalyticsRequest:
+  dto.GetWeekAnalyticsRequest:
     description: Get weekly analytics starting from a specific Monday
     properties:
       username:
@@ -170,7 +181,65 @@ definitions:
         example: "2025-12-30"
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.LoginRequest:
+  dto.LikeActionResponse:
+    description: Response for like/unlike action
+    properties:
+      liked:
+        example: true
+        type: boolean
+      new_count:
+        example: 6
+        type: integer
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.LikeDayRequest:
+    description: Like or unlike a user's day
+    properties:
+      date:
+        description: 'Format: YYYY-MM-DD'
+        example: "2026-01-04"
+        type: string
+      username:
+        description: User whose day is being liked
+        example: john_doe
+        type: string
+    type: object
+  dto.LikerDTO:
+    description: User who liked a day
+    properties:
+      id:
+        example: 1
+        type: integer
+      liked_at:
+        example: "2026-01-04T12:00:00Z"
+        type: string
+      profile_pic:
+        example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
+  dto.LikesResponse:
+    description: Likes data for a day
+    properties:
+      count:
+        example: 5
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/dto.LikerDTO'
+        type: array
+      success:
+        example: true
+        type: boolean
+      user_has_liked:
+        example: true
+        type: boolean
+    type: object
+  dto.LoginRequest:
     description: User login request
     properties:
       identifier:
@@ -181,7 +250,7 @@ definitions:
         example: SecurePass123
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.LoginResponse:
+  dto.LoginResponse:
     description: Successful login response with JWT token
     properties:
       access_token:
@@ -201,7 +270,7 @@ definitions:
         example: Bearer
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.PrivacyResponse:
+  dto.PrivacyResponse:
     description: Privacy setting result
     properties:
       is_private:
@@ -211,7 +280,7 @@ definitions:
         example: true
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.ProfileResponse:
+  dto.ProfileResponse:
     description: User profile information
     properties:
       bio:
@@ -230,7 +299,7 @@ definitions:
         example: john_doe
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.RegisterRequest:
+  dto.RegisterRequest:
     description: User registration request
     properties:
       email:
@@ -243,7 +312,7 @@ definitions:
         example: john_doe
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.ResetPasswordRequest:
+  dto.ResetPasswordRequest:
     description: Password reset with token
     properties:
       confirm_password:
@@ -256,19 +325,19 @@ definitions:
         example: abc123def456
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.SaveTileConfigRequest:
+  dto.SaveTileConfigRequest:
     properties:
       config:
         $ref: '#/definitions/models.JSONB'
     type: object
-  github_com_aman1117_backend_internal_dto.SearchUsersRequest:
+  dto.SearchUsersRequest:
     description: Search for users by username
     properties:
       username:
         example: john
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.StreakDTO:
+  dto.StreakDTO:
     description: Streak information
     properties:
       current:
@@ -284,7 +353,7 @@ definitions:
         example: 30
         type: integer
     type: object
-  github_com_aman1117_backend_internal_dto.StreakInfo:
+  dto.StreakInfo:
     description: Streak information in analytics
     properties:
       current:
@@ -300,16 +369,16 @@ definitions:
         example: "2025-12-01"
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.StreakResponse:
+  dto.StreakResponse:
     description: Streak data response
     properties:
       data:
-        $ref: '#/definitions/github_com_aman1117_backend_internal_dto.StreakDTO'
+        $ref: '#/definitions/dto.StreakDTO'
       success:
         example: true
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.SuccessResponse:
+  dto.SuccessResponse:
     description: Generic success response
     properties:
       message:
@@ -319,35 +388,35 @@ definitions:
         example: true
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.TileConfigResponse:
+  dto.TileConfigResponse:
     properties:
       data:
         $ref: '#/definitions/models.JSONB'
       success:
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.UpdateBioRequest:
+  dto.UpdateBioRequest:
     description: Bio update request
     properties:
       bio:
         example: Software developer | Coffee enthusiast
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.UpdatePrivacyRequest:
+  dto.UpdatePrivacyRequest:
     description: Privacy setting update request
     properties:
       is_private:
         example: true
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.UpdateUsernameRequest:
+  dto.UpdateUsernameRequest:
     description: Username update request
     properties:
       new_username:
         example: new_username
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.UserDTO:
+  dto.UserDTO:
     description: User information for search results
     properties:
       bio:
@@ -370,7 +439,7 @@ definitions:
         example: john_doe
         type: string
     type: object
-  github_com_aman1117_backend_internal_dto.UsernameUpdateResponse:
+  dto.UsernameUpdateResponse:
     description: Username update result
     properties:
       message:
@@ -383,16 +452,16 @@ definitions:
         example: true
         type: boolean
     type: object
-  github_com_aman1117_backend_internal_dto.WeekAnalyticsResponse:
+  dto.WeekAnalyticsResponse:
     description: Weekly analytics data
     properties:
       activity_summary:
         items:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ActivitySummary'
+          $ref: '#/definitions/dto.ActivitySummary'
         type: array
       daily_breakdown:
         items:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.DayAnalytics'
+          $ref: '#/definitions/dto.DayAnalytics'
         type: array
       is_current_week:
         example: true
@@ -404,7 +473,7 @@ definitions:
         example: 0
         type: number
       streak:
-        $ref: '#/definitions/github_com_aman1117_backend_internal_dto.StreakInfo'
+        $ref: '#/definitions/dto.StreakInfo'
       success:
         example: true
         type: boolean
@@ -494,14 +563,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ForgotPasswordRequest'
+          $ref: '#/definitions/dto.ForgotPasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Reset email sent (if user exists)
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse'
+            $ref: '#/definitions/dto.SuccessResponse'
       summary: Request password reset
       tags:
       - Authentication
@@ -516,18 +585,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ResetPasswordRequest'
+          $ref: '#/definitions/dto.ResetPasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Password reset successful
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse'
+            $ref: '#/definitions/dto.SuccessResponse'
         "400":
           description: Invalid token or validation error
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: Reset password with token
       tags:
       - Authentication
@@ -542,22 +611,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ChangePasswordRequest'
+          $ref: '#/definitions/dto.ChangePasswordRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Password changed successfully
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse'
+            $ref: '#/definitions/dto.SuccessResponse'
         "400":
           description: Validation error or incorrect password
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Change password
@@ -574,22 +643,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.CreateActivityRequest'
+          $ref: '#/definitions/dto.CreateActivityRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Activity updated successfully
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse'
+            $ref: '#/definitions/dto.SuccessResponse'
         "400":
           description: Validation error
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create or update an activity
@@ -606,7 +675,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.GetActivitiesRequest'
+          $ref: '#/definitions/dto.GetActivitiesRequest'
       produces:
       - application/json
       responses:
@@ -614,25 +683,25 @@ paths:
           description: List of activities
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_aman1117_backend_internal_dto.DataResponse'
+            - $ref: '#/definitions/dto.DataResponse'
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ActivityDTO'
+                    $ref: '#/definitions/dto.ActivityDTO'
                   type: array
               type: object
         "400":
           description: Validation error or user not found
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "403":
           description: Private account
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get activities for a user
@@ -647,16 +716,53 @@ paths:
         "200":
           description: Bio content
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.BioResponse'
+            $ref: '#/definitions/dto.BioResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get bio
       tags:
       - Profile
+  /get-likes:
+    post:
+      consumes:
+      - application/json
+      description: Get all likes for a specific user's day (only visible if profile
+        is public or it's your own day)
+      parameters:
+      - description: Get likes request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GetLikesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Likes data
+          schema:
+            $ref: '#/definitions/dto.LikesResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Private account
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get likes for a day
+      tags:
+      - Likes
   /get-privacy:
     get:
       description: Get current account privacy setting
@@ -666,11 +772,11 @@ paths:
         "200":
           description: Privacy setting
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.PrivacyResponse'
+            $ref: '#/definitions/dto.PrivacyResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get privacy setting
@@ -687,26 +793,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.GetStreakRequest'
+          $ref: '#/definitions/dto.GetStreakRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Streak data
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.StreakResponse'
+            $ref: '#/definitions/dto.StreakResponse'
         "400":
           description: Validation error or streak not found
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "403":
           description: Private account
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get streak data
@@ -724,31 +830,67 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.GetWeekAnalyticsRequest'
+          $ref: '#/definitions/dto.GetWeekAnalyticsRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Weekly analytics data
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.WeekAnalyticsResponse'
+            $ref: '#/definitions/dto.WeekAnalyticsResponse'
         "400":
           description: Validation error or user not found
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "403":
           description: Private account
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get weekly analytics
       tags:
       - Analytics
+  /like-day:
+    post:
+      consumes:
+      - application/json
+      description: Like another user's day (only public profiles can be liked)
+      parameters:
+      - description: Like request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LikeDayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Like successful
+          schema:
+            $ref: '#/definitions/dto.LikeActionResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Private account
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Like a user's day
+      tags:
+      - Likes
   /login:
     post:
       consumes:
@@ -761,18 +903,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.LoginRequest'
+          $ref: '#/definitions/dto.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Login successful with JWT token
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.LoginResponse'
+            $ref: '#/definitions/dto.LoginResponse'
         "400":
           description: Invalid credentials
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: User login
       tags:
       - Authentication
@@ -785,15 +927,15 @@ paths:
         "200":
           description: User profile
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ProfileResponse'
+            $ref: '#/definitions/dto.ProfileResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get user profile
@@ -810,18 +952,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.RegisterRequest'
+          $ref: '#/definitions/dto.RegisterRequest'
       produces:
       - application/json
       responses:
         "201":
           description: User created successfully
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse'
+            $ref: '#/definitions/dto.SuccessResponse'
         "400":
           description: Validation error or user exists
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: Register a new user
       tags:
       - Authentication
@@ -834,11 +976,11 @@ paths:
         "200":
           description: Tile configuration
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.TileConfigResponse'
+            $ref: '#/definitions/dto.TileConfigResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get tile configuration
@@ -854,22 +996,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.SaveTileConfigRequest'
+          $ref: '#/definitions/dto.SaveTileConfigRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Config saved
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.SuccessResponse'
+            $ref: '#/definitions/dto.SuccessResponse'
         "400":
           description: Invalid request
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Save tile configuration
@@ -886,31 +1028,63 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.GetTileConfigByUsernameRequest'
+          $ref: '#/definitions/dto.GetTileConfigByUsernameRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Tile configuration
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.TileConfigResponse'
+            $ref: '#/definitions/dto.TileConfigResponse'
         "400":
           description: User not found
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "403":
           description: Private account
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get tile config by username
       tags:
       - Tile Config
+  /unlike-day:
+    post:
+      consumes:
+      - application/json
+      description: Remove a like from a user's day
+      parameters:
+      - description: Unlike request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LikeDayRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Unlike successful
+          schema:
+            $ref: '#/definitions/dto.LikeActionResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unlike a user's day
+      tags:
+      - Likes
   /update-bio:
     post:
       consumes:
@@ -922,22 +1096,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.UpdateBioRequest'
+          $ref: '#/definitions/dto.UpdateBioRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Bio updated
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.BioResponse'
+            $ref: '#/definitions/dto.BioResponse'
         "400":
           description: Validation error
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update bio
@@ -954,22 +1128,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.UpdatePrivacyRequest'
+          $ref: '#/definitions/dto.UpdatePrivacyRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Privacy updated
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.PrivacyResponse'
+            $ref: '#/definitions/dto.PrivacyResponse'
         "400":
           description: Invalid request
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update privacy setting
@@ -986,22 +1160,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.UpdateUsernameRequest'
+          $ref: '#/definitions/dto.UpdateUsernameRequest'
       produces:
       - application/json
       responses:
         "200":
           description: Username updated successfully
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.UsernameUpdateResponse'
+            $ref: '#/definitions/dto.UsernameUpdateResponse'
         "400":
           description: Validation error or username taken
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update username
@@ -1018,7 +1192,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_aman1117_backend_internal_dto.SearchUsersRequest'
+          $ref: '#/definitions/dto.SearchUsersRequest'
       produces:
       - application/json
       responses:
@@ -1026,21 +1200,21 @@ paths:
           description: List of users
           schema:
             allOf:
-            - $ref: '#/definitions/github_com_aman1117_backend_internal_dto.DataResponse'
+            - $ref: '#/definitions/dto.DataResponse'
             - properties:
                 data:
                   items:
-                    $ref: '#/definitions/github_com_aman1117_backend_internal_dto.UserDTO'
+                    $ref: '#/definitions/dto.UserDTO'
                   type: array
               type: object
         "400":
           description: Invalid request
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/github_com_aman1117_backend_internal_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Search users

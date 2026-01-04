@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ActivityName } from '../types';
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, Plus, Minus } from 'lucide-react';
 
 interface ActivityModalProps {
     isOpen: boolean;
@@ -198,22 +198,73 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                         >
                             Hours
                         </label>
-                        <input
-                            type="number"
-                            step="0.25"
-                            min="0"
-                            max="24"
-                            className="input-field"
-                            value={hours}
-                            onChange={(e) => setHours(e.target.value)}
-                            placeholder="e.g. 0.25"
-                            autoFocus
-                            style={{ 
-                                padding: '0.6rem 0.75rem', 
-                                fontSize: '0.9rem',
-                                width: '100%',
-                            }}
-                        />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const current = parseFloat(hours) || 0;
+                                    const newVal = Math.max(0, current - 0.5);
+                                    setHours(newVal.toString());
+                                }}
+                                style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--border)',
+                                    background: 'var(--bg-secondary)',
+                                    color: 'var(--text-primary)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease',
+                                    flexShrink: 0,
+                                }}
+                            >
+                                <Minus size={16} />
+                            </button>
+                            <input
+                                type="number"
+                                step="0.25"
+                                min="0"
+                                max="24"
+                                className="input-field"
+                                value={hours}
+                                onChange={(e) => setHours(e.target.value)}
+                                placeholder="e.g. 0.25"
+                                autoFocus
+                                style={{ 
+                                    padding: '0.6rem 0.75rem', 
+                                    fontSize: '0.9rem',
+                                    flex: 1,
+                                    textAlign: 'center',
+                                }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const current = parseFloat(hours) || 0;
+                                    const newVal = Math.min(24, current + 0.5);
+                                    setHours(newVal.toString());
+                                }}
+                                style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--border)',
+                                    background: 'var(--bg-secondary)',
+                                    color: 'var(--text-primary)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease',
+                                    flexShrink: 0,
+                                }}
+                            >
+                                <Plus size={16} />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Note Field - Clean expandable design */}

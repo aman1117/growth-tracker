@@ -519,7 +519,7 @@ export const Dashboard: React.FC = () => {
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ 
                             display: 'block', 
-                            fontWeight: 600,
+                            fontWeight: 700,
                             fontSize: '0.9rem',
                             color: 'var(--text-primary)'
                         }}>

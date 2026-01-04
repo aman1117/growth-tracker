@@ -77,7 +77,7 @@ Track time across **16 life categories**:
 ## TODOs
 
 - [ ] Add weekly and monthly analytics dashboard
-- [ ] Add activity reminders / notifications
+- [ ] Setup notifications so that in the long it will be easier to send notifications generically
 - [ ] Social features - follow users, leaderboards
 - [ ] Export data to CSV/PDF
 - [ ] Goal setting per activity category

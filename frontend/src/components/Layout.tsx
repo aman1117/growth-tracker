@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
 import { useNavigate } from 'react-router-dom';
-import { Search, User as UserIcon, X, Settings2, Lock, ChevronLeft, BarChart3 } from 'lucide-react';
+import { Search, User as UserIcon, X, Settings2, ChevronLeft, BarChart3 } from 'lucide-react';
 import { api } from '../services/api';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';

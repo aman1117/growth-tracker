@@ -129,10 +129,10 @@ func (r *UserRepository) UpdateProfilePic(userID uint, url *string) error {
 	return result.Error
 }
 
-// SearchByUsername searches for users by username (case-insensitive, excludes private users)
+// SearchByUsername searches for users by username (case-insensitive, includes all users)
 func (r *UserRepository) SearchByUsername(query string) ([]models.User, error) {
 	var users []models.User
-	result := r.db.Where("username ILIKE ? AND is_private = ?", "%"+query+"%", false).Find(&users)
+	result := r.db.Where("username ILIKE ?", "%"+query+"%").Find(&users)
 	return users, result.Error
 }
 

@@ -85,5 +85,9 @@ Track time across **16 life categories**:
 - [ ] Friends
 - [ ] Unit test cases
 - [ ] Add attachments
+- [ ] optimized photo upload
+- [ ] profile pic make not download
+- [ ] bug of private profile not showing
+- [ ] remove @ from username
 
 

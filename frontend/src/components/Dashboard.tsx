@@ -17,7 +17,7 @@ import {
     rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useAuth } from '../store';
-import { api } from '../services/api';
+import { api, ApiError } from '../services/api';
 import { ACTIVITY_NAMES } from '../types';
 import type { ActivityName, Activity } from '../types';
 import { ACTIVITY_CONFIG, STORAGE_KEYS } from '../constants';
@@ -235,9 +235,14 @@ export const Dashboard: React.FC = () => {
             } else if (res.error_code === 'ACCOUNT_PRIVATE') {
                 setIsPrivateAccount(true);
             }
-        } catch (err) {
-            console.error('Failed to fetch activities', err);
-            setToast({ message: 'Failed to load activities', type: 'error' });
+        } catch (err: unknown) {
+            // Check if it's a private account error
+            if (err instanceof ApiError && err.errorCode === 'ACCOUNT_PRIVATE') {
+                setIsPrivateAccount(true);
+            } else {
+                console.error('Failed to fetch activities', err);
+                setToast({ message: 'Failed to load activities', type: 'error' });
+            }
         } finally {
             setLoading(false);
         }
@@ -520,7 +525,8 @@ export const Dashboard: React.FC = () => {
                         }}>
                             @{targetUsername}
                         </span>
-                        {targetBio && (
+                        {/* Only show bio for non-private accounts */}
+                        {!isPrivateAccount && targetBio && (
                             <span style={{
                                 display: 'block',
                                 fontSize: '0.8rem',
@@ -533,36 +539,38 @@ export const Dashboard: React.FC = () => {
                             </span>
                         )}
                     </div>
-                    {/* Analytics button */}
-                    <button
-                        onClick={() => targetUsername && navigate(APP_ROUTES.USER_ANALYTICS(targetUsername))}
-                        style={{
-                            padding: '0.5rem',
-                            backgroundColor: 'transparent',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s ease',
-                            flexShrink: 0
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--accent)';
-                            e.currentTarget.style.borderColor = 'var(--accent)';
-                            e.currentTarget.style.color = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.borderColor = 'var(--border)';
-                            e.currentTarget.style.color = 'var(--text-secondary)';
-                        }}
-                        title="View Analytics"
-                    >
-                        <BarChart3 size={16} />
-                    </button>
+                    {/* Analytics button - only show for non-private accounts */}
+                    {!isPrivateAccount && (
+                        <button
+                            onClick={() => targetUsername && navigate(APP_ROUTES.USER_ANALYTICS(targetUsername))}
+                            style={{
+                                padding: '0.5rem',
+                                backgroundColor: 'transparent',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s ease',
+                                flexShrink: 0
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--accent)';
+                                e.currentTarget.style.borderColor = 'var(--accent)';
+                                e.currentTarget.style.color = 'white';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                                e.currentTarget.style.borderColor = 'var(--border)';
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                            }}
+                            title="View Analytics"
+                        >
+                            <BarChart3 size={16} />
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -691,37 +699,44 @@ export const Dashboard: React.FC = () => {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '48px 24px',
+                    padding: '32px 24px',
                     textAlign: 'center',
-                    backgroundColor: 'var(--bg-primary)',
-                    minHeight: '300px',
+                    margin: '8px',
+                    background: 'var(--tile-glass-bg)',
+                    backdropFilter: 'blur(var(--tile-glass-blur))',
+                    WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
+                    borderRadius: '24px',
+                    border: '1px solid var(--tile-glass-border)',
+                    boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
                 }}>
                     <div style={{
-                        width: '80px',
-                        height: '80px',
+                        width: '56px',
+                        height: '56px',
                         borderRadius: '50%',
-                        border: '2px solid var(--border)',
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                        border: '2px solid var(--tile-glass-border)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: '16px',
+                        marginBottom: '12px',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
                     }}>
-                        <Lock size={32} style={{ color: 'var(--text-secondary)' }} />
+                        <Lock size={24} style={{ color: 'var(--text-secondary)' }} />
                     </div>
                     <h3 style={{
-                        margin: '0 0 8px 0',
-                        fontSize: '1.1rem',
+                        margin: '0 0 4px 0',
+                        fontSize: '1rem',
                         fontWeight: 600,
                         color: 'var(--text-primary)',
                     }}>
-                        This Account is Private
+                        Private Account
                     </h3>
                     <p style={{
                         margin: 0,
-                        fontSize: '0.9rem',
+                        fontSize: '0.8rem',
                         color: 'var(--text-secondary)',
                     }}>
-                        @{targetUsername}'s activity data is not visible to others.
+                        @{targetUsername}'s activity is hidden
                     </p>
                 </div>
             ) : (

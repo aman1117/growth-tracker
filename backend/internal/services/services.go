@@ -142,7 +142,7 @@ func (s *ProfileService) UpdateProfilePic(userID uint, url *string) error {
 	return s.userRepo.UpdateProfilePic(userID, url)
 }
 
-// SearchUsers searches for users by username (excludes private users)
+// SearchUsers searches for users by username (includes private users)
 func (s *ProfileService) SearchUsers(query string) ([]models.User, error) {
 	return s.userRepo.SearchByUsername(query)
 }

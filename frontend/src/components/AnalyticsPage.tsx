@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
-import { api } from '../services/api';
+import { api, ApiError } from '../services/api';
 import { ACTIVITY_CONFIG } from '../constants';
 import type { WeekAnalyticsResponse, DayAnalytics, ActivitySummary } from '../types';
 
@@ -156,8 +156,14 @@ export const AnalyticsPage: React.FC = () => {
                 setAnalytics(null);
             }
         } catch (err) {
-            console.error('Failed to fetch analytics', err);
-            setAnalytics(null);
+            // Check if it's a private account error
+            if (err instanceof ApiError && err.errorCode === 'ACCOUNT_PRIVATE') {
+                setIsPrivateAccount(true);
+                setAnalytics(null);
+            } else {
+                console.error('Failed to fetch analytics', err);
+                setAnalytics(null);
+            }
         } finally {
             setLoading(false);
         }
@@ -529,17 +535,16 @@ export const AnalyticsPage: React.FC = () => {
                                 ) : searchResults.filter(r => r.username !== user?.username).map((result) => (
                                     <div
                                         key={result.id}
-                                        onClick={() => !result.is_private && handleUserSelect(result.username)}
+                                        onClick={() => handleUserSelect(result.username)}
                                         style={{
                                             padding: '0.75rem 1rem',
                                             display: 'flex',
                                             alignItems: 'center',
                                             gap: '0.75rem',
-                                            cursor: result.is_private ? 'not-allowed' : 'pointer',
-                                            opacity: result.is_private ? 0.5 : 1,
+                                            cursor: 'pointer',
                                             transition: 'background-color 0.15s'
                                         }}
-                                        onMouseEnter={(e) => !result.is_private && (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
                                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                     >
                                         <div style={{
@@ -1106,28 +1111,30 @@ export const AnalyticsPage: React.FC = () => {
                             width: '56px',
                             height: '56px',
                             borderRadius: '50%',
-                            border: '2px solid var(--border)',
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+                            border: '2px solid var(--tile-glass-border)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             marginBottom: '12px',
+                            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
                         }}>
                             <Lock size={24} style={{ color: 'var(--text-secondary)' }} />
                         </div>
                         <h3 style={{
-                            margin: '0 0 6px 0',
+                            margin: '0 0 4px 0',
                             fontSize: '1rem',
                             fontWeight: 600,
                             color: 'var(--text-primary)',
                         }}>
-                            This Account is Private
+                            Private Account
                         </h3>
                         <p style={{
                             margin: 0,
                             fontSize: '0.8rem',
                             color: 'var(--text-secondary)',
                         }}>
-                            @{targetUsername}'s analytics data is not visible to others.
+                            @{targetUsername}'s analytics are hidden
                         </p>
                     </div>
                 ) : (

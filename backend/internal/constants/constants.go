@@ -46,7 +46,7 @@ const (
 // Likes cache constants
 const (
 	LikesCachePrefix = "likes:"
-	LikesCacheTTL    = 5 * time.Minute
+	LikesCacheTTL    = 4 * time.Hour
 )
 
 // Error codes for consistent API responses

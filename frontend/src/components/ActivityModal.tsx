@@ -265,7 +265,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                                     border: 'none',
                                     background: 'transparent',
                                     color: 'var(--text-primary)',
-                                    fontSize: '0.85rem',
+                                    fontSize: '16px', // Prevents iOS Safari auto-zoom
                                     fontFamily: 'inherit',
                                     lineHeight: '1.5',
                                     resize: 'none',

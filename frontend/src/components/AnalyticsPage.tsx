@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown,
-    ArrowUpDown, ChevronDown, Users, Check, Search, X, Lock, Coffee
+    ArrowUpDown, ChevronDown, Users, Check, Search, X, Lock, Coffee, Flame, Trophy
 } from 'lucide-react';
 import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
@@ -746,7 +746,7 @@ export const AnalyticsPage: React.FC = () => {
                                     justifyContent: 'center',
                                     gap: '0.25rem'
                                 }}>
-                                    <span style={{ fontSize: '1rem' }}>🔥</span>
+                                    <Flame size={16} fill="#f87171" color="#ef4444" />
                                     {analytics.streak.current}
                                 </div>
                                 <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginTop: '0.2rem' }}>
@@ -768,7 +768,7 @@ export const AnalyticsPage: React.FC = () => {
                                     justifyContent: 'center',
                                     gap: '0.25rem'
                                 }}>
-                                    <span style={{ fontSize: '1rem' }}>🏆</span>
+                                    <Trophy size={16} fill="#fbbf24" color="#f59e0b" />
                                     {analytics.streak.longest}
                                 </div>
                                 <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginTop: '0.2rem' }}>

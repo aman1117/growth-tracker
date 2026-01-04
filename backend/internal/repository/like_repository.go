@@ -26,6 +26,7 @@ type LikeWithUser struct {
 	LikerID    uint
 	Username   string
 	ProfilePic *string
+	IsVerified bool
 	CreatedAt  time.Time
 }
 
@@ -169,7 +170,7 @@ func (r *LikeRepository) GetLikesForDay(likedUserID uint, likedDate time.Time) (
 	var likes []LikeWithUser
 
 	err := r.db.Table("likes").
-		Select("likes.id, likes.liker_id, users.username, users.profile_pic, likes.created_at").
+		Select("likes.id, likes.liker_id, users.username, users.profile_pic, users.is_verified, likes.created_at").
 		Joins("JOIN users ON users.id = likes.liker_id").
 		Where("likes.liked_user_id = ? AND likes.liked_date = DATE(?)", likedUserID, dateStr).
 		Order("likes.created_at DESC").

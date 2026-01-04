@@ -27,7 +27,7 @@ import { ActivityTile } from './ActivityTile';
 import type { TileSize } from './ActivityTile';
 import { ActivityModal } from './ActivityModal';
 import { BadgeUnlockModal } from './BadgeUnlockModal';
-import { SnapToast, ProtectedImage } from './ui';
+import { SnapToast, ProtectedImage, VerifiedBadge } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
@@ -171,6 +171,7 @@ export const Dashboard: React.FC = () => {
     // Target user's profile pic and bio (when viewing another user's dashboard)
     const [targetProfilePic, setTargetProfilePic] = useState<string | null>(null);
     const [targetBio, setTargetBio] = useState<string | null>(null);
+    const [targetIsVerified, setTargetIsVerified] = useState<boolean>(false);
     const [showTargetFullscreenPic, setShowTargetFullscreenPic] = useState(false);
 
     // Tile animation state for day transitions
@@ -347,6 +348,7 @@ export const Dashboard: React.FC = () => {
                 // Reset state when switching users
                 setTargetProfilePic(null);
                 setTargetBio(null);
+                setTargetIsVerified(false);
                 
                 try {
                     const res = await api.post('/users', { username: targetUsername });
@@ -358,6 +360,7 @@ export const Dashboard: React.FC = () => {
                             setTargetProfilePic(exactMatch.profile_pic || null);
                             // Bio is only returned for public profiles (backend handles privacy)
                             setTargetBio(exactMatch.bio || null);
+                            setTargetIsVerified(exactMatch.is_verified || false);
                         }
                     }
                 } catch (err) {
@@ -606,12 +609,15 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <span style={{ 
-                            display: 'block', 
+                            display: 'flex', 
+                            alignItems: 'center',
+                            gap: '0.2rem',
                             fontWeight: 700,
                             fontSize: '0.9rem',
                             color: 'var(--text-primary)'
                         }}>
                             {targetUsername}
+                            {targetIsVerified && <VerifiedBadge size={14} />}
                         </span>
                         {/* Only show bio for non-private accounts */}
                         {!isPrivateAccount && targetBio && (

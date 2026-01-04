@@ -393,6 +393,7 @@ func (h *LikeHandler) GetLikes(c *fiber.Ctx) error {
 				ID:         like.LikerID,
 				Username:   like.Username,
 				ProfilePic: like.ProfilePic,
+				IsVerified: like.IsVerified,
 				LikedAt:    like.CreatedAt.Format(time.RFC3339),
 			}
 		}

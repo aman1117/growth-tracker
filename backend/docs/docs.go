@@ -96,6 +96,91 @@ const docTemplate = `{
                 }
             }
         },
+        "/badges": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all badges for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Get user badges",
+                "responses": {
+                    "200": {
+                        "description": "User badges",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BadgesResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/badges/user": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve all badges for a user by username (badges are always public)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Badges"
+                ],
+                "summary": "Get user badges by username",
+                "parameters": [
+                    {
+                        "description": "Username",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetBadgesByUsernameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User badges",
+                        "schema": {
+                            "$ref": "#/definitions/dto.BadgesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/change-password": {
             "post": {
                 "security": [
@@ -1134,6 +1219,59 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.BadgeDTO": {
+            "description": "Badge information",
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "example": "#3b82f6"
+                },
+                "earned": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "earned_at": {
+                    "type": "string",
+                    "example": "2026-01-04"
+                },
+                "icon": {
+                    "type": "string",
+                    "example": "Zap"
+                },
+                "key": {
+                    "type": "string",
+                    "example": "spark_starter"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Spark Starter"
+                },
+                "threshold": {
+                    "type": "integer",
+                    "example": 7
+                }
+            }
+        },
+        "dto.BadgesResponse": {
+            "description": "List of badges",
+            "type": "object",
+            "properties": {
+                "badges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.BadgeDTO"
+                    }
+                },
+                "next_badge": {
+                    "$ref": "#/definitions/dto.NextBadgeDTO"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "dto.BioResponse": {
             "description": "Bio retrieval result",
             "type": "object",
@@ -1294,6 +1432,16 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GetBadgesByUsernameRequest": {
+            "description": "Request to get badges by username",
+            "type": "object",
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
         "dto.GetLikesRequest": {
             "description": "Get likes for a specific day",
             "type": "object",
@@ -1389,6 +1537,10 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "liked_at": {
                     "type": "string",
                     "example": "2026-01-04T12:00:00Z"
@@ -1469,6 +1621,36 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.NextBadgeDTO": {
+            "description": "Next badge to earn with progress",
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "example": "#f97316"
+                },
+                "icon": {
+                    "type": "string",
+                    "example": "Flame"
+                },
+                "key": {
+                    "type": "string",
+                    "example": "flame_keeper"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Flame Keeper"
+                },
+                "progress": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "threshold": {
+                    "type": "integer",
+                    "example": 15
+                }
+            }
+        },
         "dto.PrivacyResponse": {
             "description": "Privacy setting result",
             "type": "object",
@@ -1494,6 +1676,10 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "example": "john@example.com"
+                },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
                 },
                 "profile_pic": {
                     "type": "string",
@@ -1582,6 +1768,12 @@ const docTemplate = `{
                 "longest": {
                     "type": "integer",
                     "example": 30
+                },
+                "new_badges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.BadgeDTO"
+                    }
                 }
             }
         },
@@ -1693,6 +1885,10 @@ const docTemplate = `{
                     "example": 1
                 },
                 "is_private": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_verified": {
                     "type": "boolean",
                     "example": false
                 },

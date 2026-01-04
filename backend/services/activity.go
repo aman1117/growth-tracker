@@ -40,6 +40,7 @@ type UserDTO struct {
 	ProfilePic *string `json:"profile_pic"`
 	Bio        *string `json:"bio,omitempty"` // Only included for public profiles
 	IsPrivate  bool    `json:"is_private"`
+	IsVerified bool    `json:"is_verified"`
 }
 
 func CreateActivityHandler(c *fiber.Ctx) error {
@@ -342,6 +343,7 @@ func SanitizeUsers(in []models.User) []UserDTO {
 			Email:      a.Email,
 			ProfilePic: a.ProfilePic,
 			IsPrivate:  a.IsPrivate,
+			IsVerified: a.IsVerified,
 		}
 		// Only include bio for public profiles
 		if !a.IsPrivate {

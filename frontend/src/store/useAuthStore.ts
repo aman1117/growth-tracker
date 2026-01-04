@@ -14,6 +14,7 @@ export interface User {
   username: string;
   profilePic?: string | null;
   bio?: string | null;
+  isVerified?: boolean;
 }
 
 interface AuthState {

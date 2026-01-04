@@ -31,6 +31,44 @@ definitions:
         example: 15.5
         type: number
     type: object
+  dto.BadgeDTO:
+    description: Badge information
+    properties:
+      color:
+        example: '#3b82f6'
+        type: string
+      earned:
+        example: true
+        type: boolean
+      earned_at:
+        example: "2026-01-04"
+        type: string
+      icon:
+        example: Zap
+        type: string
+      key:
+        example: spark_starter
+        type: string
+      name:
+        example: Spark Starter
+        type: string
+      threshold:
+        example: 7
+        type: integer
+    type: object
+  dto.BadgesResponse:
+    description: List of badges
+    properties:
+      badges:
+        items:
+          $ref: '#/definitions/dto.BadgeDTO'
+        type: array
+      next_badge:
+        $ref: '#/definitions/dto.NextBadgeDTO'
+      success:
+        example: true
+        type: boolean
+    type: object
   dto.BioResponse:
     description: Bio retrieval result
     properties:
@@ -143,6 +181,13 @@ definitions:
         example: john_doe
         type: string
     type: object
+  dto.GetBadgesByUsernameRequest:
+    description: Request to get badges by username
+    properties:
+      username:
+        example: john_doe
+        type: string
+    type: object
   dto.GetLikesRequest:
     description: Get likes for a specific day
     properties:
@@ -212,6 +257,9 @@ definitions:
       id:
         example: 1
         type: integer
+      is_verified:
+        example: false
+        type: boolean
       liked_at:
         example: "2026-01-04T12:00:00Z"
         type: string
@@ -270,6 +318,28 @@ definitions:
         example: Bearer
         type: string
     type: object
+  dto.NextBadgeDTO:
+    description: Next badge to earn with progress
+    properties:
+      color:
+        example: '#f97316'
+        type: string
+      icon:
+        example: Flame
+        type: string
+      key:
+        example: flame_keeper
+        type: string
+      name:
+        example: Flame Keeper
+        type: string
+      progress:
+        example: 7
+        type: integer
+      threshold:
+        example: 15
+        type: integer
+    type: object
   dto.PrivacyResponse:
     description: Privacy setting result
     properties:
@@ -289,6 +359,9 @@ definitions:
       email:
         example: john@example.com
         type: string
+      is_verified:
+        example: false
+        type: boolean
       profile_pic:
         example: https://storage.blob.core.windows.net/pics/1/abc.jpg
         type: string
@@ -352,6 +425,10 @@ definitions:
       longest:
         example: 30
         type: integer
+      new_badges:
+        items:
+          $ref: '#/definitions/dto.BadgeDTO'
+        type: array
     type: object
   dto.StreakInfo:
     description: Streak information in analytics
@@ -430,6 +507,9 @@ definitions:
         example: 1
         type: integer
       is_private:
+        example: false
+        type: boolean
+      is_verified:
         example: false
         type: boolean
       profile_pic:
@@ -600,6 +680,59 @@ paths:
       summary: Reset password with token
       tags:
       - Authentication
+  /badges:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all badges for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User badges
+          schema:
+            $ref: '#/definitions/dto.BadgesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user badges
+      tags:
+      - Badges
+  /badges/user:
+    post:
+      consumes:
+      - application/json
+      description: Retrieve all badges for a user by username (badges are always public)
+      parameters:
+      - description: Username
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GetBadgesByUsernameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User badges
+          schema:
+            $ref: '#/definitions/dto.BadgesResponse'
+        "400":
+          description: User not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user badges by username
+      tags:
+      - Badges
   /change-password:
     post:
       consumes:

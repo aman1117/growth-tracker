@@ -12,6 +12,7 @@ type User struct {
 	ProfilePic   *string   `gorm:"default:null"`          // URL to profile picture, null for now
 	Bio          *string   `gorm:"default:null;size:150"` // User bio, max 150 characters
 	IsPrivate    bool      `gorm:"default:false"`
+	IsVerified   bool      `gorm:"default:false"` // Whether user has verified badge (Instagram-like)
 	CreatedAt    time.Time `gorm:"not null;default:now();autoCreateTime"`
 	UpdatedAt    time.Time `gorm:"not null;default:now();autoUpdateTime"`
 }

@@ -56,6 +56,7 @@ type UserDTO struct {
 	ProfilePic *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
 	Bio        *string `json:"bio,omitempty" example:"Software developer"` // Only included for public profiles
 	IsPrivate  bool    `json:"is_private" example:"false"`
+	IsVerified bool    `json:"is_verified" example:"false"`
 }
 
 // ProfileResponse represents the full profile response
@@ -66,6 +67,7 @@ type ProfileResponse struct {
 	Email      string  `json:"email" example:"john@example.com"`
 	ProfilePic *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
 	Bio        *string `json:"bio" example:"Software developer"`
+	IsVerified bool    `json:"is_verified" example:"false"`
 }
 
 // UsernameUpdateResponse represents the username update response
@@ -200,6 +202,7 @@ type LikerDTO struct {
 	ID         uint    `json:"id" example:"1"`
 	Username   string  `json:"username" example:"john_doe"`
 	ProfilePic *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	IsVerified bool    `json:"is_verified" example:"false"`
 	LikedAt    string  `json:"liked_at" example:"2026-01-04T12:00:00Z"`
 }
 

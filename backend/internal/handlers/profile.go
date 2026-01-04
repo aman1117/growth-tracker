@@ -171,6 +171,7 @@ func (h *ProfileHandler) GetProfile(c *fiber.Ctx) error {
 		Email:      user.Email,
 		ProfilePic: user.ProfilePic,
 		Bio:        user.Bio,
+		IsVerified: user.IsVerified,
 	})
 }
 
@@ -215,6 +216,7 @@ func sanitizeUsers(users []models.User) []dto.UserDTO {
 			Email:      u.Email,
 			ProfilePic: u.ProfilePic,
 			IsPrivate:  u.IsPrivate,
+			IsVerified: u.IsVerified,
 		}
 		// Only include bio for public profiles
 		if !u.IsPrivate {

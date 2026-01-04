@@ -73,6 +73,7 @@ export interface UserSearchResult {
   email: string;
   profile_pic?: string;
   is_private: boolean;
+  is_verified: boolean;
   bio?: string;
 }
 
@@ -82,6 +83,7 @@ export interface ProfileResponse {
   success: boolean;
   profile_pic?: string | null;
   bio?: string | null;
+  is_verified?: boolean;
   error?: string;
 }
 
@@ -208,6 +210,7 @@ export interface LikerDTO {
   id: number;
   username: string;
   profile_pic?: string;
+  is_verified?: boolean;
   liked_at: string;
 }
 

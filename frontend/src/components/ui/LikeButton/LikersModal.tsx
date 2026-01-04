@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { likeApi } from '../../../services/api';
 import type { LikerDTO } from '../../../types/api';
 import { ProtectedImage } from '../ProtectedImage';
+import { VerifiedBadge } from '../VerifiedBadge';
 
 export interface LikersModalProps {
   /** Username of the profile being viewed */
@@ -225,7 +226,7 @@ export const LikersModal: React.FC<LikersModalProps> = ({
                   )}
                 </div>
 
-                {/* Username */}
+                {/* Username with Verified Badge */}
                 <span style={{ 
                   fontSize: '0.875rem', 
                   fontWeight: 500, 
@@ -234,8 +235,12 @@ export const LikersModal: React.FC<LikersModalProps> = ({
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
                 }}>
                   {liker.username}
+                  {liker.is_verified && <VerifiedBadge size={14} />}
                 </span>
               </div>
             ))

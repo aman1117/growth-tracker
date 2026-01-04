@@ -12,3 +12,4 @@ export { LoadingSpinner, type LoadingSpinnerProps, type SpinnerSize } from './Lo
 export { Modal, type ModalProps } from './Modal';
 export { ProtectedImage } from './ProtectedImage';
 export { SnapToast, type SnapToastProps, type SnapToastType } from './SnapToast';
+export { VerifiedBadge, type VerifiedBadgeProps } from './VerifiedBadge';

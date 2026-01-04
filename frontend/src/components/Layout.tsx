@@ -6,7 +6,7 @@ import { Search, User as UserIcon, X, Settings2, ChevronLeft, BarChart3 } from '
 import { api } from '../services/api';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';
-import { ProtectedImage } from './ui';
+import { ProtectedImage, VerifiedBadge } from './ui';
 
 interface SearchResult {
     id: number;
@@ -14,6 +14,7 @@ interface SearchResult {
     email: string;
     profile_pic?: string;
     is_private: boolean;
+    is_verified?: boolean;
 }
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -323,9 +324,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
                                                         whiteSpace: 'nowrap',
-                                                        flex: 1
+                                                        flex: 1,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.15rem'
                                                     }}>
                                                         {result.username}
+                                                        {result.is_verified && <VerifiedBadge size={13} />}
                                                     </span>
                                                 </div>
                                             ))

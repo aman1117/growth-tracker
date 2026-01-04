@@ -6,6 +6,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Layout } from './components/Layout';
 import { LoadingSpinner } from './components/ui';
 import { api } from './services/api';
+import { OfflineBanner } from './components/OfflineBanner';
 
 // Lazy load route components for code splitting
 const AuthForm = lazy(() => import('./components/AuthForm').then(m => ({ default: m.AuthForm })));
@@ -93,6 +94,7 @@ function App() {
     <ErrorBoundary>
       <ThemeInitializer>
         <ProfileInitializer>
+          <OfflineBanner />
           <Router>
             <Layout>
             <Suspense fallback={<PageLoader />}>

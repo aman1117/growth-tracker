@@ -41,6 +41,21 @@ export default defineConfig({
             }
           },
           {
+            // Azure Blob Storage - Profile pictures
+            urlPattern: /^https:\/\/.*\.blob\.core\.windows\.net\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'profile-images-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
             urlPattern: /\/api\/.*/i,
             handler: 'NetworkFirst',
             options: {

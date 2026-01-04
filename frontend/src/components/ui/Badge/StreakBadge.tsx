@@ -62,7 +62,7 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
         />
         {!badge.earned && (
           <div className={styles.lockOverlay}>
-            <Lock size={iconSize * 0.35} />
+            <Lock size={iconSize * 0.5} />
           </div>
         )}
       </div>

@@ -80,7 +80,26 @@ export const SnapToast: React.FC<SnapToastProps> = ({
     return () => clearTimeout(timer);
   }, [duration, handleClose]);
 
-  // Swipe gesture handlers
+  // Swipe gesture handlers - use native event listener to call preventDefault
+  useEffect(() => {
+    const toast = toastRef.current;
+    if (!toast || !swipeable) return;
+
+    const handleTouchMoveNative = (e: TouchEvent) => {
+      // Prevent background scroll when dragging toast
+      if (isDragging) {
+        e.preventDefault();
+      }
+    };
+
+    // passive: false is required to call preventDefault on touchmove
+    toast.addEventListener('touchmove', handleTouchMoveNative, { passive: false });
+    
+    return () => {
+      toast.removeEventListener('touchmove', handleTouchMoveNative);
+    };
+  }, [swipeable, isDragging]);
+
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (!swipeable) return;
     setIsDragging(true);
@@ -106,23 +125,35 @@ export const SnapToast: React.FC<SnapToastProps> = ({
 
   const handleTouchEnd = useCallback(() => {
     if (!swipeable) return;
-    setIsDragging(false);
     
-    if (dragOffset > 50) {
-      handleClose();
+    // Dismiss if dragged more than 30px (lowered threshold for easier dismiss)
+    if (dragOffset > 30) {
+      // Keep dragging state true so it continues from current position
+      // Just call onClose directly - no need for exit animation when swiped
+      onClose();
     } else {
       setDragOffset(0);
+      setIsDragging(false);
     }
-  }, [swipeable, dragOffset, handleClose]);
+  }, [swipeable, dragOffset, onClose]);
 
   const displayIcon = icon || typeIcons[type];
 
+  // When swiping to dismiss, animate out from current drag position
+  const isSwipeDismissing = isDragging && dragOffset > 30;
+  
   const toastStyle: React.CSSProperties = {
     transform: isDragging 
       ? `translateX(-50%) translateY(${position === 'top' ? -dragOffset : dragOffset}px)`
       : undefined,
     opacity: isDragging ? Math.max(0.3, 1 - dragOffset / 100) : undefined,
     transition: isDragging ? 'none' : undefined,
+    // Hide immediately when swipe dismissing
+    ...(isSwipeDismissing && { 
+      opacity: 0,
+      transform: `translateX(-50%) translateY(${position === 'top' ? '-100px' : '100px'})`,
+      transition: 'all 0.15s ease-out'
+    }),
   };
 
   const toastElement = (

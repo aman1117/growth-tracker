@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
 import { api } from '../services/api';
-import { Toast } from './ui';
+import { SnapToast } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 
 export const ForgotPassword: React.FC = () => {
@@ -90,7 +90,7 @@ export const ForgotPassword: React.FC = () => {
                 </div>
             </div>
             {toast && (
-                <Toast
+                <SnapToast
                     message={toast.message}
                     type={toast.type}
                     onClose={() => setToast(null)}

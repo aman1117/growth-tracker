@@ -3,7 +3,7 @@ import { X, User, Palette, LogOut, Check, Lock, Key, Camera, Trash2 } from 'luci
 import { useAuth, useTheme } from '../store';
 import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
-import { Toast, ProtectedImage } from './ui';
+import { SnapToast, ProtectedImage } from './ui';
 
 interface ProfileDialogProps {
     isOpen: boolean;
@@ -868,7 +868,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
             
             {/* Toast notification */}
             {toast && (
-                <Toast
+                <SnapToast
                     message={toast.message}
                     type={toast.type}
                     onClose={() => setToast(null)}

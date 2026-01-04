@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
-import { api } from '../services/api';
+import { api, ApiError } from '../services/api';
 import { useNavigate, Link } from 'react-router-dom';
-import { Toast } from './ui';
+import { SnapToast } from './ui';
 
 export const AuthForm: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -62,7 +62,8 @@ export const AuthForm: React.FC = () => {
                 }
             }
         } catch (err) {
-            setToast({ message: 'An error occurred. Please try again.', type: 'error' });
+            const message = err instanceof ApiError ? err.message : 'An error occurred. Please try again.';
+            setToast({ message, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -147,7 +148,7 @@ export const AuthForm: React.FC = () => {
                 </div>
             </div>
             {toast && (
-                <Toast
+                <SnapToast
                     message={toast.message}
                     type={toast.type}
                     onClose={() => setToast(null)}

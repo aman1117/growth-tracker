@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../store';
 import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
-import { Toast, ProtectedImage } from './ui';
+import { SnapToast, ProtectedImage } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 
 export const SettingsPage: React.FC = () => {
@@ -574,7 +574,7 @@ export const SettingsPage: React.FC = () => {
 
             {/* Toast */}
             {toast && (
-                <Toast
+                <SnapToast
                     message={toast.message}
                     type={toast.type}
                     onClose={() => setToast(null)}

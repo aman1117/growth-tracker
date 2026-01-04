@@ -25,7 +25,7 @@ import { DaySummaryCard } from './DaySummaryCard';
 import { ActivityTile } from './ActivityTile';
 import type { TileSize } from './ActivityTile';
 import { ActivityModal } from './ActivityModal';
-import { Toast, ProtectedImage } from './ui';
+import { SnapToast, ProtectedImage } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
@@ -908,7 +908,7 @@ export const Dashboard: React.FC = () => {
             />
 
             {toast && (
-                <Toast
+                <SnapToast
                     message={toast.message}
                     type={toast.type}
                     onClose={() => setToast(null)}

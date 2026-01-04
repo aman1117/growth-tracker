@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Loader2, XCircle, CheckCircle } from 'lucide-react';
-import { api } from '../services/api';
-import { Toast } from './ui';
+import { api, ApiError } from '../services/api';
+import { SnapToast } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 
 export const ResetPassword: React.FC = () => {
@@ -67,8 +67,9 @@ export const ResetPassword: React.FC = () => {
             } else {
                 setToast({ message: res.error || 'Failed to reset password', type: 'error' });
             }
-        } catch {
-            setToast({ message: 'An error occurred. Please try again.', type: 'error' });
+        } catch (err) {
+            const message = err instanceof ApiError ? err.message : 'An error occurred. Please try again.';
+            setToast({ message, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -185,7 +186,7 @@ export const ResetPassword: React.FC = () => {
                 </div>
             </div>
             {toast && (
-                <Toast
+                <SnapToast
                     message={toast.message}
                     type={toast.type}
                     onClose={() => setToast(null)}

@@ -68,6 +68,7 @@ func AutoMigrate() error {
 		&models.Activity{},
 		&models.Streak{},
 		&models.TileConfig{},
+		&models.Like{},
 	)
 }
 

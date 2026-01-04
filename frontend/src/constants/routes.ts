@@ -72,6 +72,15 @@ export const API_ROUTES = {
     SAVE: '/tile-config',
     GET_BY_USER: '/tile-config/user',
   },
+
+  // ============================================================================
+  // Likes
+  // ============================================================================
+  LIKE: {
+    LIKE_DAY: '/like-day',
+    UNLIKE_DAY: '/unlike-day',
+    GET_LIKES: '/get-likes',
+  },
 } as const;
 
 /**
@@ -96,4 +105,5 @@ export type ApiRoute =
   | (typeof API_ROUTES.ACTIVITY)[keyof typeof API_ROUTES.ACTIVITY]
   | (typeof API_ROUTES.STREAK)[keyof typeof API_ROUTES.STREAK]
   | (typeof API_ROUTES.ANALYTICS)[keyof typeof API_ROUTES.ANALYTICS]
-  | (typeof API_ROUTES.TILE_CONFIG)[keyof typeof API_ROUTES.TILE_CONFIG];
+  | (typeof API_ROUTES.TILE_CONFIG)[keyof typeof API_ROUTES.TILE_CONFIG]
+  | (typeof API_ROUTES.LIKE)[keyof typeof API_ROUTES.LIKE];

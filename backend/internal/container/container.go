@@ -20,6 +20,7 @@ type Container struct {
 	ActivityRepo   *repository.ActivityRepository
 	StreakRepo     *repository.StreakRepository
 	TileConfigRepo *repository.TileConfigRepository
+	LikeRepo       *repository.LikeRepository
 
 	// Services
 	AuthService       *services.AuthService
@@ -42,6 +43,7 @@ type Container struct {
 	TileConfigHandler    *handlers.TileConfigHandler
 	PasswordResetHandler *handlers.PasswordResetHandler
 	BlobHandler          *handlers.BlobHandler
+	LikeHandler          *handlers.LikeHandler
 
 	// Router
 	Router *routes.Router
@@ -56,6 +58,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.ActivityRepo = repository.NewActivityRepository(db)
 	c.StreakRepo = repository.NewStreakRepository(db)
 	c.TileConfigRepo = repository.NewTileConfigRepository(db)
+	c.LikeRepo = repository.NewLikeRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -88,6 +91,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.AnalyticsHandler = handlers.NewAnalyticsHandler(c.AnalyticsService, c.AuthService, c.ProfileService)
 	c.TileConfigHandler = handlers.NewTileConfigHandler(c.TileConfigService, c.AuthService, c.ProfileService)
 	c.PasswordResetHandler = handlers.NewPasswordResetHandler(c.AuthService, c.EmailService)
+	c.LikeHandler = handlers.NewLikeHandler(c.LikeRepo, c.AuthService, c.ProfileService)
 
 	// Initialize blob handler (optional)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -107,6 +111,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.TileConfigHandler,
 		c.PasswordResetHandler,
 		c.BlobHandler,
+		c.LikeHandler,
 		c.TokenService,
 	)
 

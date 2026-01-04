@@ -20,6 +20,7 @@ type Router struct {
 	tileConfigHandler    *handlers.TileConfigHandler
 	passwordResetHandler *handlers.PasswordResetHandler
 	blobHandler          *handlers.BlobHandler
+	likeHandler          *handlers.LikeHandler
 	tokenSvc             *handlers.TokenService
 }
 
@@ -33,6 +34,7 @@ func NewRouter(
 	tileConfigHandler *handlers.TileConfigHandler,
 	passwordResetHandler *handlers.PasswordResetHandler,
 	blobHandler *handlers.BlobHandler,
+	likeHandler *handlers.LikeHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
@@ -44,6 +46,7 @@ func NewRouter(
 		tileConfigHandler:    tileConfigHandler,
 		passwordResetHandler: passwordResetHandler,
 		blobHandler:          blobHandler,
+		likeHandler:          likeHandler,
 		tokenSvc:             tokenSvc,
 	}
 }
@@ -97,6 +100,11 @@ func (r *Router) Setup(app *fiber.App) {
 	app.Get("/tile-config", authMiddleware, apiRateLimiter, r.tileConfigHandler.GetConfig)
 	app.Post("/tile-config", authMiddleware, apiRateLimiter, r.tileConfigHandler.SaveConfig)
 	app.Post("/tile-config/user", authMiddleware, apiRateLimiter, r.tileConfigHandler.GetConfigByUsername)
+
+	// Likes
+	app.Post("/like-day", authMiddleware, apiRateLimiter, r.likeHandler.LikeDay)
+	app.Post("/unlike-day", authMiddleware, apiRateLimiter, r.likeHandler.UnlikeDay)
+	app.Post("/get-likes", authMiddleware, apiRateLimiter, r.likeHandler.GetLikes)
 
 	// Profile Management
 	app.Post("/update-username", authMiddleware, apiRateLimiter, r.authHandler.UpdateUsername)

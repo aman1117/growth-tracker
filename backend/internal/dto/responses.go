@@ -190,3 +190,31 @@ type TileConfigResponse struct {
 	Success bool         `json:"success"`
 	Data    models.JSONB `json:"data"`
 }
+
+// ==================== Like DTOs ====================
+
+// LikerDTO represents a user who liked a day
+// @Description User who liked a day
+type LikerDTO struct {
+	ID         uint    `json:"id" example:"1"`
+	Username   string  `json:"username" example:"john_doe"`
+	ProfilePic *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	LikedAt    string  `json:"liked_at" example:"2026-01-04T12:00:00Z"`
+}
+
+// LikesResponse represents the response for getting likes on a day
+// @Description Likes data for a day
+type LikesResponse struct {
+	Success      bool       `json:"success" example:"true"`
+	Data         []LikerDTO `json:"data"`
+	Count        int64      `json:"count" example:"5"`
+	UserHasLiked bool       `json:"user_has_liked" example:"true"`
+}
+
+// LikeActionResponse represents the response for like/unlike actions
+// @Description Response for like/unlike action
+type LikeActionResponse struct {
+	Success  bool  `json:"success" example:"true"`
+	Liked    bool  `json:"liked" example:"true"`
+	NewCount int64 `json:"new_count" example:"6"`
+}

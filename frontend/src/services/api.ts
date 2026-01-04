@@ -240,6 +240,8 @@ import type {
   PrivacyResponse,
   UploadResponse,
   LogActivityResponse,
+  LikesResponse,
+  LikeActionResponse,
 } from '../types/api';
 import type { WeekAnalyticsResponse } from '../types';
 
@@ -423,4 +425,24 @@ export const tileConfigApi = {
       data?: { order: string[]; sizes: Record<string, string> };
       error?: string;
     }>(API_ROUTES.TILE_CONFIG.GET_BY_USER, { username }),
+};
+
+export const likeApi = {
+  /**
+   * Like a user's day
+   */
+  likeDay: (username: string, date: string) =>
+    apiClient.post<LikeActionResponse>(API_ROUTES.LIKE.LIKE_DAY, { username, date }),
+
+  /**
+   * Unlike a user's day
+   */
+  unlikeDay: (username: string, date: string) =>
+    apiClient.post<LikeActionResponse>(API_ROUTES.LIKE.UNLIKE_DAY, { username, date }),
+
+  /**
+   * Get likes for a user's day
+   */
+  getLikes: (username: string, date: string) =>
+    apiClient.post<LikesResponse>(API_ROUTES.LIKE.GET_LIKES, { username, date }),
 };

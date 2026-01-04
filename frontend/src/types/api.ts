@@ -189,3 +189,40 @@ export interface UploadResponse {
   profile_pic?: string;
   error?: string;
 }
+
+// ============================================================================
+// Like Types
+// ============================================================================
+
+export interface LikeDayRequest {
+  username: string;
+  date: string;
+}
+
+export interface GetLikesRequest {
+  username: string;
+  date: string;
+}
+
+export interface LikerDTO {
+  id: number;
+  username: string;
+  profile_pic?: string;
+  liked_at: string;
+}
+
+export interface LikesResponse {
+  success: boolean;
+  data: LikerDTO[];
+  count: number;
+  user_has_liked: boolean;
+  error?: string;
+}
+
+export interface LikeActionResponse {
+  success: boolean;
+  liked: boolean;
+  new_count: number;
+  error?: string;
+}
+

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Flame, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
+import { LikeButton } from './ui';
 
 interface DaySummaryCardProps {
     username: string;
@@ -118,7 +119,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
             <div
                 className="skeleton-glass"
                 style={{
-                    height: '56px',
+                    height: '88px',
                     marginBottom: '1rem',
                     borderRadius: '20px',
                     background: 'var(--tile-glass-bg)',
@@ -149,20 +150,21 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                 marginBottom: '1rem',
                 padding: '0.75rem 1rem',
                 overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
             }}
         >
-            {/* Single Row: Navigation + Hours + Streaks */}
+            {/* Row 1: Date Navigation + Hours */}
             <div
                 style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: '0.5rem',
-                    flexWrap: 'nowrap',
                 }}
             >
                 {/* Date Navigation */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     <button
                         onClick={onPrev}
                         style={{
@@ -180,7 +182,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '8px' }}>
                         <button
                             style={{
-                                fontSize: '0.8rem',
+                                fontSize: '0.85rem',
                                 fontWeight: 500,
                                 color: 'var(--text-primary)',
                                 background: 'var(--tile-glass-bg)',
@@ -189,7 +191,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                                 border: '1px solid var(--tile-glass-border)',
                                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
                                 cursor: 'pointer',
-                                padding: '0.3rem 0.6rem',
+                                padding: '0.35rem 0.75rem',
                                 borderRadius: '8px',
                                 transition: 'all 0.2s ease',
                                 whiteSpace: 'nowrap',
@@ -211,7 +213,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                                 height: '100%',
                                 opacity: 0,
                                 cursor: 'pointer',
-                                fontSize: '16px', // Prevents iOS zoom on focus
+                                fontSize: '16px',
                                 margin: 0,
                                 padding: 0,
                             }}
@@ -271,19 +273,16 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     )}
                 </div>
 
-                {/* Right side: Progress (today only) + Hours + Streaks */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
-                    {/* Progress Bar - Only on today */}
+                {/* Hours Display with Progress */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {isToday() && !isComplete && (
                         <div
                             style={{
-                                width: '50px',
-                                minWidth: '30px',
-                                height: '5px',
+                                width: '40px',
+                                height: '4px',
                                 backgroundColor: 'var(--progress-track)',
-                                borderRadius: '3px',
+                                borderRadius: '2px',
                                 overflow: 'hidden',
-                                flexShrink: 1,
                             }}
                         >
                             <div
@@ -291,43 +290,68 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                                     width: `${percentage}%`,
                                     height: '100%',
                                     backgroundColor: 'var(--accent)',
-                                    borderRadius: '3px',
+                                    borderRadius: '2px',
                                     transition: 'width 0.4s ease',
                                 }}
                             />
                         </div>
                     )}
-
-                    {/* Hours Display */}
                     <span
                         style={{
-                            fontSize: '0.8rem',
-                            fontWeight: isComplete ? 500 : 400,
+                            fontSize: '0.85rem',
+                            fontWeight: isComplete ? 600 : 500,
                             color: isComplete ? 'var(--success)' : 'var(--text-primary)',
                             whiteSpace: 'nowrap',
                         }}
                     >
                         {isComplete && '✓ '}{totalHours}/{maxHours}h
                     </span>
-
-                    {/* Streaks */}
-                    {isToday() && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <Flame size={14} fill="#f87171" color="#ef4444" />
-                            <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--text-primary)' }}>
-                                {streak.current}
-                            </span>
-                        </div>
-                    )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <Trophy size={14} fill="#fbbf24" color="#f59e0b" />
-                        <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--text-primary)' }}>
-                            {streak.longest}
-                        </span>
-                    </div>
                 </div>
             </div>
 
+            {/* Row 2: Streaks + Likes */}
+            <div
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingTop: '0.25rem',
+                    borderTop: '1px solid var(--tile-glass-border)',
+                }}
+            >
+                {/* Streaks */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {/* Current Streak */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Flame size={16} fill="#f87171" color="#ef4444" />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                            {streak.current}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            streak
+                        </span>
+                    </div>
+
+                    {/* Best Streak */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Trophy size={16} fill="#fbbf24" color="#f59e0b" />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                            {streak.longest}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            best
+                        </span>
+                    </div>
+                </div>
+
+                {/* Like Button */}
+                <LikeButton
+                    username={username}
+                    date={date}
+                    size="sm"
+                    showCount={true}
+                />
+            </div>
         </div>
     );
 };

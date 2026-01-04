@@ -119,3 +119,19 @@ type GetTileConfigByUsernameRequest struct {
 type SaveTileConfigRequest struct {
 	Config models.JSONB `json:"config"`
 }
+
+// ==================== Like DTOs ====================
+
+// LikeDayRequest represents the request to like/unlike a user's day
+// @Description Like or unlike a user's day
+type LikeDayRequest struct {
+	Username string `json:"username" example:"john_doe"` // User whose day is being liked
+	Date     string `json:"date" example:"2026-01-04"`   // Format: YYYY-MM-DD
+}
+
+// GetLikesRequest represents the request to get likes for a user's day
+// @Description Get likes for a specific day
+type GetLikesRequest struct {
+	Username string `json:"username" example:"john_doe"`
+	Date     string `json:"date" example:"2026-01-04"` // Format: YYYY-MM-DD
+}

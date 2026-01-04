@@ -303,7 +303,7 @@ export const SettingsPage: React.FC = () => {
                             color: 'var(--text-primary)',
                             margin: 0
                         }}>
-                            @{user.username}
+                            {user.username}
                         </h2>
                         <div 
                             onClick={() => setShowBioDialog(true)}
@@ -567,7 +567,7 @@ export const SettingsPage: React.FC = () => {
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                         borderRadius: '20px'
                     }}>
-                        @{user.username}
+                        {user.username}
                     </div>
                 </div>
             )}

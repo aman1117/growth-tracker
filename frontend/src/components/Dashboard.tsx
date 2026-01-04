@@ -523,7 +523,7 @@ export const Dashboard: React.FC = () => {
                             fontSize: '0.9rem',
                             color: 'var(--text-primary)'
                         }}>
-                            @{targetUsername}
+                            {targetUsername}
                         </span>
                         {/* Only show bio for non-private accounts */}
                         {!isPrivateAccount && targetBio && (
@@ -932,7 +932,7 @@ export const Dashboard: React.FC = () => {
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                         borderRadius: '20px'
                     }}>
-                        @{targetUsername}
+                        {targetUsername}
                     </div>
                 </div>
             )}

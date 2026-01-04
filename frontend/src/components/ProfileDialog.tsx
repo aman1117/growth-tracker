@@ -436,7 +436,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                     )}
 
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        @{user.username}
+                        {user.username}
                     </span>
                 </div>
 
@@ -861,7 +861,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                             borderRadius: '20px'
                         }}
                     >
-                        @{user.username}
+                        {user.username}
                     </div>
                 </div>
             )}

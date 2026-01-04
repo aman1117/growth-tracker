@@ -1,10 +1,11 @@
-import React, { Suspense, lazy, useEffect } from 'react';
+import React, { Suspense, lazy, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth, useThemeStore } from './store';
 import { APP_ROUTES } from './constants/routes';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Layout } from './components/Layout';
 import { LoadingSpinner } from './components/ui';
+import { api } from './services/api';
 
 // Lazy load route components for code splitting
 const AuthForm = lazy(() => import('./components/AuthForm').then(m => ({ default: m.AuthForm })));
@@ -50,12 +51,50 @@ const ThemeInitializer: React.FC<{ children: React.ReactNode }> = ({ children })
   return <>{children}</>;
 };
 
+/**
+ * Profile initializer component - fetches user profile on app load when authenticated
+ * This ensures the profile picture is available in the nav without visiting settings
+ */
+const ProfileInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading, updateProfilePic, updateBio } = useAuth();
+  const hasFetched = useRef(false);
+
+  useEffect(() => {
+    // Fetch profile once per session when authenticated
+    if (isAuthenticated && !isLoading && !hasFetched.current) {
+      hasFetched.current = true;
+      api.get<{ profile_pic?: string; bio?: string }>('/profile')
+        .then(data => {
+          if (data?.profile_pic) {
+            updateProfilePic(data.profile_pic);
+          }
+          if (data?.bio) {
+            updateBio(data.bio);
+          }
+        })
+        .catch(() => {
+          // Silently fail - profile data is not critical for app function
+        });
+    }
+  }, [isAuthenticated, isLoading, updateProfilePic, updateBio]);
+
+  // Reset fetch flag on logout so it fetches again on next login
+  useEffect(() => {
+    if (!isAuthenticated) {
+      hasFetched.current = false;
+    }
+  }, [isAuthenticated]);
+
+  return <>{children}</>;
+};
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeInitializer>
-        <Router>
-          <Layout>
+        <ProfileInitializer>
+          <Router>
+            <Layout>
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path={APP_ROUTES.LOGIN} element={<AuthForm />} />
@@ -115,6 +154,7 @@ function App() {
             </Suspense>
           </Layout>
         </Router>
+        </ProfileInitializer>
       </ThemeInitializer>
     </ErrorBoundary>
   );

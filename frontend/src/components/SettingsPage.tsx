@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../store';
 import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
-import { Toast } from './ui';
+import { Toast, ProtectedImage } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 
 export const SettingsPage: React.FC = () => {
@@ -257,7 +257,7 @@ export const SettingsPage: React.FC = () => {
                                     animation: 'spin 1s linear infinite'
                                 }} />
                             ) : user.profilePic ? (
-                                <img
+                                <ProtectedImage
                                     src={user.profilePic}
                                     alt={user.username}
                                     style={{
@@ -543,10 +543,9 @@ export const SettingsPage: React.FC = () => {
                     >
                         <X size={24} />
                     </button>
-                    <img
+                    <ProtectedImage
                         src={user.profilePic}
                         alt={user.username}
-                        onClick={(e) => e.stopPropagation()}
                         style={{
                             maxWidth: '90vw',
                             maxHeight: '90vh',

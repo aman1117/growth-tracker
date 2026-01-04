@@ -8,4 +8,5 @@ export { Card, type CardProps } from './Card';
 export { Input, type InputProps } from './Input';
 export { LoadingSpinner, type LoadingSpinnerProps, type SpinnerSize } from './LoadingSpinner';
 export { Modal, type ModalProps } from './Modal';
+export { ProtectedImage } from './ProtectedImage';
 export { Toast, type ToastProps, type ToastType } from './Toast';

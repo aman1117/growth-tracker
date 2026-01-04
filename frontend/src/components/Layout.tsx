@@ -6,6 +6,7 @@ import { Search, User as UserIcon, X, Settings2, Lock, ChevronLeft, BarChart3 } 
 import { api } from '../services/api';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';
+import { ProtectedImage } from './ui';
 
 interface SearchResult {
     id: number;
@@ -306,7 +307,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                         flexShrink: 0
                                                     }}>
                                                         {result.profile_pic ? (
-                                                            <img 
+                                                            <ProtectedImage 
                                                                 src={result.profile_pic} 
                                                                 alt={result.username}
                                                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}

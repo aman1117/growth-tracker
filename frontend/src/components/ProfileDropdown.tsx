@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Settings, Sun, Moon, Monitor } from 'lucide-react';
 import { useAuth, useTheme } from '../store';
 import { APP_ROUTES } from '../constants/routes';
+import { ProtectedImage } from './ui';
 
 interface ProfileDropdownProps {
     onOpen?: () => void;
@@ -97,7 +98,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onOpen }) => {
                         }}
                     >
                         {user.profilePic ? (
-                            <img
+                            <ProtectedImage
                                 src={user.profilePic}
                                 alt={user.username}
                                 style={{

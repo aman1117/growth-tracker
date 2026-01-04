@@ -8,6 +8,7 @@ import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
 import { ACTIVITY_CONFIG } from '../constants';
+import { ProtectedImage } from './ui';
 import type { WeekAnalyticsResponse, DayAnalytics, ActivitySummary } from '../types';
 
 interface SearchResult {
@@ -495,7 +496,7 @@ export const AnalyticsPage: React.FC = () => {
                                         overflow: 'hidden'
                                     }}>
                                         {user.profilePic ? (
-                                            <img 
+                                            <ProtectedImage 
                                                 src={user.profilePic} 
                                                 alt={user.username}
                                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -558,7 +559,7 @@ export const AnalyticsPage: React.FC = () => {
                                             overflow: 'hidden'
                                         }}>
                                             {result.profile_pic ? (
-                                                <img 
+                                                <ProtectedImage 
                                                     src={result.profile_pic} 
                                                     alt={result.username}
                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}

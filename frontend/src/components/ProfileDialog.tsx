@@ -3,7 +3,7 @@ import { X, User, Palette, LogOut, Check, Lock, Key, Camera, Trash2 } from 'luci
 import { useAuth, useTheme } from '../store';
 import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
-import { Toast } from './ui';
+import { Toast, ProtectedImage } from './ui';
 
 interface ProfileDialogProps {
     isOpen: boolean;
@@ -334,9 +334,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                                     animation: 'spin 1s linear infinite'
                                 }} />
                             ) : user.profilePic ? (
-                                <img
-                                    src={user.profilePic}
-                                    alt={user.username}
+                                <div
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setShowFullscreenPic(true);
@@ -344,10 +342,19 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                                     style={{
                                         width: '100%',
                                         height: '100%',
-                                        objectFit: 'cover',
                                         cursor: 'zoom-in'
                                     }}
-                                />
+                                >
+                                    <ProtectedImage
+                                        src={user.profilePic}
+                                        alt={user.username}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                </div>
                             ) : (
                                 user.username.charAt(0)
                             )}
@@ -826,10 +833,9 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                     </button>
                     
                     {/* Profile image */}
-                    <img
+                    <ProtectedImage
                         src={user.profilePic}
                         alt={user.username}
-                        onClick={(e) => e.stopPropagation()}
                         style={{
                             maxWidth: '90vw',
                             maxHeight: '90vh',

@@ -25,7 +25,7 @@ import { DaySummaryCard } from './DaySummaryCard';
 import { ActivityTile } from './ActivityTile';
 import type { TileSize } from './ActivityTile';
 import { ActivityModal } from './ActivityModal';
-import { Toast } from './ui';
+import { Toast, ProtectedImage } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
@@ -503,9 +503,9 @@ export const Dashboard: React.FC = () => {
                             border: '2px solid var(--border)'
                         }}>
                         {targetProfilePic ? (
-                            <img
+                            <ProtectedImage
                                 src={targetProfilePic}
-                                alt={targetUsername}
+                                alt={targetUsername || ''}
                                 style={{
                                     width: '100%',
                                     height: '100%',
@@ -908,10 +908,9 @@ export const Dashboard: React.FC = () => {
                     >
                         <X size={24} />
                     </button>
-                    <img
+                    <ProtectedImage
                         src={targetProfilePic}
                         alt={targetUsername || ''}
-                        onClick={(e) => e.stopPropagation()}
                         style={{
                             maxWidth: '90vw',
                             maxHeight: '90vh',

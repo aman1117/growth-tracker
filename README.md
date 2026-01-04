@@ -89,5 +89,6 @@ Track time across **16 life categories**:
 - [ ] profile pic make not download
 - [ ] bug of private profile not showing
 - [ ] remove @ from username
+- [ ] 
 
 

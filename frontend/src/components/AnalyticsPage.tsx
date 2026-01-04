@@ -8,7 +8,7 @@ import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
 import { ACTIVITY_CONFIG } from '../constants';
-import { ProtectedImage } from './ui';
+import { ProtectedImage, VerifiedBadge } from './ui';
 import type { WeekAnalyticsResponse, DayAnalytics, ActivitySummary } from '../types';
 
 interface SearchResult {
@@ -17,6 +17,7 @@ interface SearchResult {
     email: string;
     profile_pic?: string;
     is_private: boolean;
+    is_verified?: boolean;
 }
 
 // Get Monday of the week for a given date
@@ -78,8 +79,9 @@ export const AnalyticsPage: React.FC = () => {
     const searchInputRef = useRef<HTMLInputElement>(null);
     const userSelectorRef = useRef<HTMLDivElement>(null);
     
-    // Target username
+    // Target username and verification status
     const targetUsername = searchParams.get('user') || routeUsername || user?.username || '';
+    const [targetIsVerified, setTargetIsVerified] = useState<boolean>(false);
 
     // Close user selector when clicking outside
     useEffect(() => {
@@ -173,6 +175,29 @@ export const AnalyticsPage: React.FC = () => {
     useEffect(() => {
         fetchAnalytics();
     }, [fetchAnalytics]);
+
+    // Fetch target user's verification status
+    useEffect(() => {
+        const fetchTargetUserVerification = async () => {
+            if (!targetUsername) return;
+            
+            // Always fetch from API to get accurate verification status
+            try {
+                const res = await api.post('/users', { username: targetUsername });
+                if (res.success && res.data && res.data.length > 0) {
+                    const exactMatch = res.data.find((u: { username: string }) => 
+                        u.username.toLowerCase() === targetUsername.toLowerCase()
+                    );
+                    if (exactMatch) {
+                        setTargetIsVerified(exactMatch.is_verified || false);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch target user verification', err);
+            }
+        };
+        fetchTargetUserVerification();
+    }, [targetUsername]);
 
     const handlePrevWeek = () => {
         const newWeekStart = new Date(weekStart);
@@ -392,8 +417,9 @@ export const AnalyticsPage: React.FC = () => {
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Users size={18} color="var(--text-secondary)" />
-                            <span style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.95rem' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '2px', color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.95rem' }}>
                                 {targetUsername}
+                                {targetIsVerified && <VerifiedBadge size={14} />}
                             </span>
                         </div>
                         <ChevronDown 
@@ -571,8 +597,9 @@ export const AnalyticsPage: React.FC = () => {
                                             )}
                                         </div>
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.9rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.9rem' }}>
                                                 {result.username}
+                                                {result.is_verified && <VerifiedBadge size={12} />}
                                             </div>
                                         </div>
                                         {targetUsername === result.username && (

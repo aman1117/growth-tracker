@@ -40,12 +40,14 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     };
 
     const date = formatDateForApi(currentDate);
+    const todayDate = formatDateForApi(new Date());
 
     useEffect(() => {
         const fetchStreak = async () => {
             setStreakLoading(true);
             try {
-                const res = await api.post('/get-streak', { username, date });
+                // Always fetch best streak from today's date
+                const res = await api.post('/get-streak', { username, date: todayDate });
                 if (res.success && res.data) {
                     setStreak({ current: res.data.current, longest: res.data.longest });
                 } else {
@@ -59,7 +61,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
             }
         };
         fetchStreak();
-    }, [username, date]);
+    }, [username, todayDate]);
 
     const formatDate = (d: Date) => {
         const today = new Date();
@@ -321,16 +323,18 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
             >
                 {/* Streaks */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    {/* Current Streak */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Flame size={18} fill="#f87171" color="#ef4444" style={{ display: 'block' }} />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1 }}>
-                            {streak.current}
-                        </span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1 }}>
-                            streak
-                        </span>
-                    </div>
+                    {/* Current Streak - only show on Today */}
+                    {isToday() && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Flame size={18} fill="#f87171" color="#ef4444" style={{ display: 'block' }} />
+                            <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1 }}>
+                                {streak.current}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1 }}>
+                                streak
+                            </span>
+                        </div>
+                    )}
 
                     {/* Best Streak */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>

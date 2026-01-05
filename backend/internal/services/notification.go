@@ -195,12 +195,18 @@ func (s *NotificationService) NotifyLikeReceived(
 			return nil
 		}
 
-		// 3. Create the notification
+		// 3. Format the date nicely (e.g., "2 Jan, 2026")
+		formattedDate := likedDate
+		if parsedDate, err := time.Parse("2006-01-02", likedDate); err == nil {
+			formattedDate = parsedDate.Format("2 Jan, 2006")
+		}
+
+		// 4. Create the notification
 		notif := &models.Notification{
 			UserID: recipientUserID,
 			Type:   models.NotifTypeLikeReceived,
 			Title:  "New Like! ❤️",
-			Body:   fmt.Sprintf("%s liked your %s activities", likerUsername, likedDate),
+			Body:   fmt.Sprintf("%s liked your %s activities", likerUsername, formattedDate),
 			Metadata: models.LikeMetadata{
 				LikerID:       likerID,
 				LikerUsername: likerUsername,

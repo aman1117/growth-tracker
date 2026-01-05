@@ -4,6 +4,9 @@ export interface User {
     email: string;
 }
 
+// Re-export notification types
+export * from './notification';
+
 export interface AuthResponse {
     success: boolean;
     access_token?: string;

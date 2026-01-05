@@ -1,0 +1,603 @@
+/**
+ * Notification Component Styles
+ *
+ * Glassmorphism design matching the app's UI/UX.
+ * Uses CSS custom properties for theming support.
+ */
+
+/* ============================================================================
+   Container & Bell Button
+   ============================================================================ */
+
+.container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bellButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--icon-btn-color);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.bellButton:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.bellButton:active {
+  transform: scale(0.95);
+}
+
+.bellActive {
+  background: var(--accent);
+  color: white;
+}
+
+.bellActive:hover {
+  background: var(--accent-hover);
+  color: white;
+}
+
+/* Unread Badge */
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background: #ef4444;
+  border-radius: 100px;
+  border: 2px solid var(--bg-primary);
+  animation: badgePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  80% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ============================================================================
+   Panel - Glassmorphism Dropdown
+   ============================================================================ */
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 2rem);
+  max-height: 480px;
+  display: flex;
+  flex-direction: column;
+  
+  /* Solid dark background */
+  background: #1a1a1a;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  overflow: hidden;
+  z-index: 100;
+  
+  /* Animation */
+  animation: panelSlideIn 0.2s ease-out;
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes panelSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+.panelClosing {
+  animation: panelSlideOut 0.15s ease-in forwards;
+}
+
+/* Panel Header */
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.unreadBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: white;
+  background: var(--accent);
+  border-radius: 100px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.headerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.headerButton:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.headerButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Connection Status */
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.status-connected {
+  color: var(--success);
+}
+
+.status-connecting,
+.status-reconnecting {
+  color: var(--text-muted);
+}
+
+.status-disconnected {
+  color: var(--text-muted);
+}
+
+/* Panel List */
+.panelList {
+  flex: 1;
+  min-height: 200px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.panelList::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
+
+/* ============================================================================
+   Notification Item
+   ============================================================================ */
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.625rem 2.5rem 0.625rem 0.875rem; /* Extra right padding for delete button */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border);
+  animation: itemSlideIn 0.3s ease-out backwards;
+}
+
+/* Staggered entrance animation */
+.item:nth-child(1) { animation-delay: 0ms; }
+.item:nth-child(2) { animation-delay: 30ms; }
+.item:nth-child(3) { animation-delay: 60ms; }
+.item:nth-child(4) { animation-delay: 90ms; }
+.item:nth-child(5) { animation-delay: 120ms; }
+.item:nth-child(n+6) { animation-delay: 150ms; }
+
+@keyframes itemSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.item:hover {
+  background: var(--tile-glass-bg);
+}
+
+.itemUnread {
+  background: var(--icon-bg-muted);
+}
+
+.itemUnread:hover {
+  background: var(--tile-glass-bg-active);
+}
+
+/* Icon */
+.itemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 2px;
+  border-radius: 50%;
+  background: var(--tile-glass-bg);
+  flex-shrink: 0;
+}
+
+.iconLike {
+  color: #ef4444;
+}
+
+.iconBadge {
+  color: #f59e0b;
+}
+
+.iconStreak {
+  color: #f97316;
+}
+
+.iconWarning {
+  color: #eab308;
+}
+
+.iconSystem {
+  color: var(--accent);
+}
+
+/* Content */
+.itemContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.itemBody {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.itemTime {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+/* Username Link */
+.usernameLink {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.usernameLink:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+/* Unread Dot */
+.unreadDot {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 var(--accent);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 0 4px transparent;
+  }
+}
+
+/* Delete Button */
+.deleteButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.item:hover .deleteButton {
+  opacity: 1;
+}
+
+.deleteButton:hover {
+  background: var(--error);
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Item deletion animation */
+.itemDeleting {
+  animation: itemSlideOut 0.25s ease-in forwards;
+}
+
+@keyframes itemSlideOut {
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+    height: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+}
+
+/* New notification highlight */
+.itemNew {
+  animation: itemHighlight 1.5s ease-out;
+}
+
+@keyframes itemHighlight {
+  0% {
+    background: var(--accent);
+  }
+  100% {
+    background: var(--icon-bg-muted);
+  }
+}
+
+/* ============================================================================
+   Empty State & Loading
+   ============================================================================ */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  min-height: 200px;
+}
+
+.initialLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.emptyTitle {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.emptySubtitle {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.loadingMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.endOfList {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Spinning animation for loading */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   Mobile Responsive
+   ============================================================================ */
+
+/* Mobile panel - applied via JS class */
+.panelMobile {
+  position: fixed !important;
+  top: auto !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: 70vh;
+  border-radius: 20px 20px 0 0;
+  animation: panelSlideUp 0.3s ease-out;
+  z-index: 99999 !important;
+  
+  /* Solid dark background for mobile */
+  background: #1a1a1a !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-top: 1px solid #333 !important;
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+@keyframes panelSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Overlay Backdrop */
+.mobileOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 99998;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.mobileOverlayClosing {
+  animation: fadeOut 0.15s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

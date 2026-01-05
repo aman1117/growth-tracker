@@ -169,6 +169,18 @@ func setupCronJobs(c *container.Container, log *zap.SugaredLogger) {
 		log.Fatalf("Failed to add email cron job: %v", err)
 	}
 
+	// 3 AM IST cron job for notification cleanup
+	_, err = cronScheduler.AddFunc("0 0 3 * * *", func() {
+		if err := c.CronService.CleanupOldNotifications(context.Background()); err != nil {
+			log.Errorf("Notification cleanup job failed: %v", err)
+		} else {
+			log.Info("Notification cleanup job completed successfully")
+		}
+	})
+	if err != nil {
+		log.Fatalf("Failed to add notification cleanup cron job: %v", err)
+	}
+
 	cronScheduler.Start()
 	log.Info("Cron jobs scheduled")
 }

@@ -26,3 +26,12 @@ export {
   useThemePreference,
   useIsDarkMode,
 } from './useThemeStore';
+
+export {
+  useNotificationStore,
+  useNotifications,
+  useUnreadCount,
+  useWSStatus,
+  useNotificationsLoading,
+  useHasUnread,
+} from './useNotificationStore';

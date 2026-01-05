@@ -16,37 +16,41 @@ type Container struct {
 	Config *config.Config
 
 	// Repositories
-	UserRepo       *repository.UserRepository
-	ActivityRepo   *repository.ActivityRepository
-	StreakRepo     *repository.StreakRepository
-	TileConfigRepo *repository.TileConfigRepository
-	LikeRepo       *repository.LikeRepository
-	BadgeRepo      *repository.BadgeRepository
+	UserRepo         *repository.UserRepository
+	ActivityRepo     *repository.ActivityRepository
+	StreakRepo       *repository.StreakRepository
+	TileConfigRepo   *repository.TileConfigRepository
+	LikeRepo         *repository.LikeRepository
+	BadgeRepo        *repository.BadgeRepository
+	NotificationRepo *repository.NotificationRepository
 
 	// Services
-	AuthService       *services.AuthService
-	ProfileService    *services.ProfileService
-	ActivityService   *services.ActivityService
-	StreakService     *services.StreakService
-	AnalyticsService  *services.AnalyticsService
-	TileConfigService *services.TileConfigService
-	EmailService      *services.EmailService
-	CronService       *services.CronService
-	BlobService       *services.BlobService
-	BadgeService      *services.BadgeService
+	AuthService         *services.AuthService
+	ProfileService      *services.ProfileService
+	ActivityService     *services.ActivityService
+	StreakService       *services.StreakService
+	AnalyticsService    *services.AnalyticsService
+	TileConfigService   *services.TileConfigService
+	EmailService        *services.EmailService
+	CronService         *services.CronService
+	BlobService         *services.BlobService
+	BadgeService        *services.BadgeService
+	NotificationService *services.NotificationService
 
 	// Handlers
-	TokenService         *handlers.TokenService
-	AuthHandler          *handlers.AuthHandler
-	ProfileHandler       *handlers.ProfileHandler
-	ActivityHandler      *handlers.ActivityHandler
-	StreakHandler        *handlers.StreakHandler
-	AnalyticsHandler     *handlers.AnalyticsHandler
-	TileConfigHandler    *handlers.TileConfigHandler
-	PasswordResetHandler *handlers.PasswordResetHandler
-	BlobHandler          *handlers.BlobHandler
-	LikeHandler          *handlers.LikeHandler
-	BadgeHandler         *handlers.BadgeHandler
+	TokenService          *handlers.TokenService
+	AuthHandler           *handlers.AuthHandler
+	ProfileHandler        *handlers.ProfileHandler
+	ActivityHandler       *handlers.ActivityHandler
+	StreakHandler         *handlers.StreakHandler
+	AnalyticsHandler      *handlers.AnalyticsHandler
+	TileConfigHandler     *handlers.TileConfigHandler
+	PasswordResetHandler  *handlers.PasswordResetHandler
+	BlobHandler           *handlers.BlobHandler
+	LikeHandler           *handlers.LikeHandler
+	BadgeHandler          *handlers.BadgeHandler
+	NotificationHandler   *handlers.NotificationHandler
+	NotificationWSHandler *handlers.NotificationWSHandler
 
 	// Router
 	Router *routes.Router
@@ -63,6 +67,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.TileConfigRepo = repository.NewTileConfigRepository(db)
 	c.LikeRepo = repository.NewLikeRepository(db)
 	c.BadgeRepo = repository.NewBadgeRepository(db)
+	c.NotificationRepo = repository.NewNotificationRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -73,6 +78,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.TileConfigService = services.NewTileConfigService(c.TileConfigRepo, c.UserRepo)
 	c.BlobService = services.NewBlobService(c.UserRepo, &cfg.AzureStorage)
 	c.BadgeService = services.NewBadgeService(c.BadgeRepo, c.UserRepo)
+	c.NotificationService = services.NewNotificationService(c.NotificationRepo)
 
 	// Initialize email service (optional)
 	if cfg.Email.ResendAPIKey != "" {
@@ -83,7 +89,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	}
 
 	// Initialize cron service
-	c.CronService = services.NewCronService(c.UserRepo, c.StreakRepo, c.StreakService, c.EmailService)
+	c.CronService = services.NewCronService(c.UserRepo, c.StreakRepo, c.StreakService, c.EmailService, c.NotificationService)
 
 	// Initialize token service
 	c.TokenService = handlers.NewTokenService(&cfg.JWT)
@@ -96,8 +102,10 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.AnalyticsHandler = handlers.NewAnalyticsHandler(c.AnalyticsService, c.AuthService, c.ProfileService)
 	c.TileConfigHandler = handlers.NewTileConfigHandler(c.TileConfigService, c.AuthService, c.ProfileService)
 	c.PasswordResetHandler = handlers.NewPasswordResetHandler(c.AuthService, c.EmailService)
-	c.LikeHandler = handlers.NewLikeHandler(c.LikeRepo, c.AuthService, c.ProfileService)
+	c.LikeHandler = handlers.NewLikeHandler(c.LikeRepo, c.AuthService, c.ProfileService, c.NotificationService)
 	c.BadgeHandler = handlers.NewBadgeHandler(c.BadgeService, c.AuthService)
+	c.NotificationHandler = handlers.NewNotificationHandler(c.NotificationService)
+	c.NotificationWSHandler = handlers.NewNotificationWSHandler(c.NotificationService, c.TokenService)
 
 	// Initialize blob handler (optional)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -119,6 +127,8 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.BlobHandler,
 		c.LikeHandler,
 		c.BadgeHandler,
+		c.NotificationHandler,
+		c.NotificationWSHandler,
 		c.TokenService,
 	)
 

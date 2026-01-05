@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +6,8 @@ import { Search, User as UserIcon, X, Settings2, ChevronLeft, BarChart3 } from '
 import { api } from '../services/api';
 import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';
-import { ProtectedImage, VerifiedBadge } from './ui';
+import { ProtectedImage, VerifiedBadge, NotificationCenter } from './ui';
+import type { Notification, LikeMetadata } from '../types';
 
 interface SearchResult {
     id: number;
@@ -90,6 +91,35 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         setSearchQuery('');
         setSearchResults([]);
     };
+
+    // Type guard to check if metadata is LikeMetadata
+    const isLikeMetadata = (metadata: unknown): metadata is LikeMetadata => {
+        return (
+            metadata !== null &&
+            typeof metadata === 'object' &&
+            'liker_username' in metadata &&
+            'liked_date' in metadata
+        );
+    };
+
+    // Handle notification card click - navigate to liked date for like notifications
+    const handleNotificationClick = useCallback(
+        (notification: Notification) => {
+            if (notification.type === 'like_received' && isLikeMetadata(notification.metadata)) {
+                // Navigate to home with the liked date as a query parameter
+                navigate(`${APP_ROUTES.HOME}?date=${notification.metadata.liked_date}`);
+            }
+        },
+        [navigate]
+    );
+
+    // Handle username click - navigate to user profile
+    const handleUsernameClick = useCallback(
+        (username: string) => {
+            navigate(APP_ROUTES.USER_PROFILE(username));
+        },
+        [navigate]
+    );
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -406,6 +436,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 >
                                     <BarChart3 size={14} />
                                 </button>
+                            )}
+
+                            {/* Notifications - hide when search is open */}
+                            {!isSearchOpen && (
+                                <NotificationCenter
+                                    onNotificationClick={handleNotificationClick}
+                                    onUsernameClick={handleUsernameClick}
+                                />
                             )}
 
                             <ProfileDropdown onOpen={closeSearch} />

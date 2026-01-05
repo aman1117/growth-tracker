@@ -17,17 +17,19 @@ import (
 
 // LikeHandler handles like-related requests
 type LikeHandler struct {
-	likeRepo   *repository.LikeRepository
-	authSvc    *services.AuthService
-	profileSvc *services.ProfileService
+	likeRepo        *repository.LikeRepository
+	authSvc         *services.AuthService
+	profileSvc      *services.ProfileService
+	notificationSvc *services.NotificationService
 }
 
 // NewLikeHandler creates a new LikeHandler
-func NewLikeHandler(likeRepo *repository.LikeRepository, authSvc *services.AuthService, profileSvc *services.ProfileService) *LikeHandler {
+func NewLikeHandler(likeRepo *repository.LikeRepository, authSvc *services.AuthService, profileSvc *services.ProfileService, notificationSvc *services.NotificationService) *LikeHandler {
 	return &LikeHandler{
-		likeRepo:   likeRepo,
-		authSvc:    authSvc,
-		profileSvc: profileSvc,
+		likeRepo:        likeRepo,
+		authSvc:         authSvc,
+		profileSvc:      profileSvc,
+		notificationSvc: notificationSvc,
 	}
 }
 
@@ -152,6 +154,31 @@ func (h *LikeHandler) LikeDay(c *fiber.Ctx) error {
 			log.Warnw("Failed to invalidate likes cache",
 				"liked_user_id", targetUser.ID,
 				"date", dateStr,
+				"error", err,
+			)
+		}
+	}
+
+	// Send notification to the target user (if not liking own day)
+	// Uses NotifyLikeReceived which handles dedupe via NotificationDedupe table
+	if targetUser.ID != userID && h.notificationSvc != nil {
+		// Get current user's avatar for the notification
+		var likerAvatar string
+		if profile, err := h.profileSvc.GetProfile(userID); err == nil && profile != nil && profile.ProfilePic != nil {
+			likerAvatar = *profile.ProfilePic
+		}
+
+		if err := h.notificationSvc.NotifyLikeReceived(
+			context.Background(),
+			targetUser.ID,   // recipient
+			userID,          // liker
+			currentUsername, // liker username
+			likerAvatar,     // liker avatar
+			req.Date,        // liked date
+		); err != nil {
+			log.Warnw("Failed to create like notification",
+				"target_user_id", targetUser.ID,
+				"liker_id", userID,
 				"error", err,
 			)
 		}

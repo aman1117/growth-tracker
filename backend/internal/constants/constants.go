@@ -49,6 +49,35 @@ const (
 	LikesCacheTTL    = 4 * time.Hour
 )
 
+// Notification constants
+const (
+	// Redis keys
+	NotifChannelPrefix = "notif:channel:" // Pub/Sub channel per user
+	NotifPendingPrefix = "notif:pending:" // Fallback queue per user
+	NotifWSConnPrefix  = "notif:ws:conn:" // WebSocket connection tracking
+	NotifUnreadPrefix  = "notif:unread:"  // Cached unread count
+
+	// TTLs
+	NotifPendingTTL     = 24 * time.Hour   // Pending notifications expire after 24h
+	NotifUnreadCacheTTL = 5 * time.Minute  // Unread count cache TTL
+	NotifWSConnTTL      = 45 * time.Second // WebSocket connection tracking TTL (should be > ping interval)
+
+	// Cleanup settings
+	NotifReadRetentionDays   = 30 // Delete read notifications after 30 days
+	NotifUnreadRetentionDays = 90 // Delete unread notifications after 90 days
+
+	// Rate limiting
+	NotifMaxPerHour = 50 // Max notifications per user per hour
+
+	// WebSocket settings
+	WSMaxConnsPerUser = 5                // Max concurrent WebSocket connections per user
+	WSPingInterval    = 30 * time.Second // Heartbeat ping interval
+	WSPongTimeout     = 10 * time.Second // Pong response timeout
+	WSWriteTimeout    = 10 * time.Second // Write deadline
+	WSReadTimeout     = 60 * time.Second // Read deadline (should be > ping interval)
+	WSMaxMessageSize  = 512              // Max incoming message size (bytes)
+)
+
 // Error codes for consistent API responses
 const (
 	// Authentication errors
@@ -76,12 +105,13 @@ const (
 	ErrCodeHoursExceeded      = "HOURS_EXCEEDED"
 
 	// Resource errors
-	ErrCodeUserNotFound   = "USER_NOT_FOUND"
-	ErrCodeUserExists     = "USER_EXISTS"
-	ErrCodeUsernameTaken  = "USERNAME_TAKEN"
-	ErrCodeNotAuthorized  = "NOT_AUTHORIZED"
-	ErrCodeAccountPrivate = "ACCOUNT_PRIVATE"
-	ErrCodeStreakNotFound = "STREAK_NOT_FOUND"
+	ErrCodeUserNotFound         = "USER_NOT_FOUND"
+	ErrCodeUserExists           = "USER_EXISTS"
+	ErrCodeUsernameTaken        = "USERNAME_TAKEN"
+	ErrCodeNotAuthorized        = "NOT_AUTHORIZED"
+	ErrCodeAccountPrivate       = "ACCOUNT_PRIVATE"
+	ErrCodeStreakNotFound       = "STREAK_NOT_FOUND"
+	ErrCodeNotificationNotFound = "NOTIFICATION_NOT_FOUND"
 
 	// Operation errors
 	ErrCodeFetchFailed   = "FETCH_FAILED"

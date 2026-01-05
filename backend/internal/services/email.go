@@ -7,6 +7,7 @@ import (
 
 	"github.com/aman1117/backend/internal/config"
 	"github.com/aman1117/backend/internal/constants"
+	"github.com/aman1117/backend/internal/logger"
 	"github.com/aman1117/backend/internal/repository"
 	"github.com/aman1117/backend/pkg/models"
 	"github.com/resend/resend-go/v3"
@@ -167,6 +168,7 @@ type CronService struct {
 	streakRepo *repository.StreakRepository
 	streakSvc  *StreakService
 	emailSvc   *EmailService
+	notifSvc   *NotificationService
 }
 
 // NewCronService creates a new CronService
@@ -175,12 +177,14 @@ func NewCronService(
 	streakRepo *repository.StreakRepository,
 	streakSvc *StreakService,
 	emailSvc *EmailService,
+	notifSvc *NotificationService,
 ) *CronService {
 	return &CronService{
 		userRepo:   userRepo,
 		streakRepo: streakRepo,
 		streakSvc:  streakSvc,
 		emailSvc:   emailSvc,
+		notifSvc:   notifSvc,
 	}
 }
 
@@ -246,6 +250,27 @@ func (s *CronService) SendStreakReminderEmails() error {
 		if err := s.emailSvc.SendStreakReminderEmail(user.Email, user.Username); err != nil {
 			notSuccessful++
 		}
+	}
+
+	return nil
+}
+
+// CleanupOldNotifications removes old notifications based on retention policy
+// Should be called daily at off-peak hours (e.g., 3 AM)
+func (s *CronService) CleanupOldNotifications(ctx context.Context) error {
+	if s.notifSvc == nil {
+		return nil // Notification service not configured
+	}
+
+	deleted, err := s.notifSvc.CleanupOldNotifications(ctx)
+	if err != nil {
+		return fmt.Errorf("notification cleanup failed: %w", err)
+	}
+
+	if deleted > 0 {
+		logger.Sugar.Infow("Notification cleanup completed",
+			"deleted_count", deleted,
+		)
 	}
 
 	return nil

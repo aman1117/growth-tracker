@@ -1,26 +1,50 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { CheckCircle, AlertCircle, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
 interface ToastProps {
     message: string;
-    type: 'success' | 'error';
+    type: 'success' | 'error' | 'info';
     onClose: () => void;
 }
 
 export const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
     const [isExiting, setIsExiting] = useState(false);
 
+    const handleClose = useCallback(() => {
+        setIsExiting(true);
+        setTimeout(onClose, 300); // Wait for animation
+    }, [onClose]);
+
     useEffect(() => {
         const timer = setTimeout(() => {
             handleClose();
         }, 3000);
         return () => clearTimeout(timer);
-    }, []);
+    }, [handleClose]);
 
-    const handleClose = () => {
-        setIsExiting(true);
-        setTimeout(onClose, 300); // Wait for animation
+    const getBackgroundColor = () => {
+        switch (type) {
+            case 'success': return '#166534';
+            case 'error': return '#991b1b';
+            case 'info': return '#1e40af';
+        }
+    };
+
+    const getBorderColor = () => {
+        switch (type) {
+            case 'success': return '#22c55e';
+            case 'error': return '#ef4444';
+            case 'info': return '#3b82f6';
+        }
+    };
+
+    const getIcon = () => {
+        switch (type) {
+            case 'success': return <CheckCircle size={20} color="#22c55e" />;
+            case 'error': return <AlertCircle size={20} color="#fca5a5" />;
+            case 'info': return <Info size={20} color="#93c5fd" />;
+        }
     };
 
     return ReactDOM.createPortal(
@@ -31,7 +55,7 @@ export const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
                 top: '1rem',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                backgroundColor: type === 'success' ? '#166534' : '#991b1b',
+                backgroundColor: getBackgroundColor(),
                 color: '#ffffff',
                 padding: '0.75rem 1rem',
                 borderRadius: '8px',
@@ -41,14 +65,10 @@ export const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
                 alignItems: 'center',
                 gap: '0.75rem',
                 minWidth: '300px',
-                border: type === 'success' ? '1px solid #22c55e' : '1px solid #ef4444',
+                border: `1px solid ${getBorderColor()}`,
             }}
         >
-            {type === 'success' ? (
-                <CheckCircle size={20} color="#22c55e" />
-            ) : (
-                <AlertCircle size={20} color="#fca5a5" />
-            )}
+            {getIcon()}
 
             <span style={{ flex: 1, fontSize: '0.9rem', fontWeight: 500 }}>{message}</span>
 

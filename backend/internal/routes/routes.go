@@ -12,17 +12,19 @@ import (
 
 // Router holds all route handlers
 type Router struct {
-	authHandler          *handlers.AuthHandler
-	profileHandler       *handlers.ProfileHandler
-	activityHandler      *handlers.ActivityHandler
-	streakHandler        *handlers.StreakHandler
-	analyticsHandler     *handlers.AnalyticsHandler
-	tileConfigHandler    *handlers.TileConfigHandler
-	passwordResetHandler *handlers.PasswordResetHandler
-	blobHandler          *handlers.BlobHandler
-	likeHandler          *handlers.LikeHandler
-	badgeHandler         *handlers.BadgeHandler
-	tokenSvc             *handlers.TokenService
+	authHandler           *handlers.AuthHandler
+	profileHandler        *handlers.ProfileHandler
+	activityHandler       *handlers.ActivityHandler
+	streakHandler         *handlers.StreakHandler
+	analyticsHandler      *handlers.AnalyticsHandler
+	tileConfigHandler     *handlers.TileConfigHandler
+	passwordResetHandler  *handlers.PasswordResetHandler
+	blobHandler           *handlers.BlobHandler
+	likeHandler           *handlers.LikeHandler
+	badgeHandler          *handlers.BadgeHandler
+	notificationHandler   *handlers.NotificationHandler
+	notificationWSHandler *handlers.NotificationWSHandler
+	tokenSvc              *handlers.TokenService
 }
 
 // NewRouter creates a new Router with all handlers
@@ -37,20 +39,24 @@ func NewRouter(
 	blobHandler *handlers.BlobHandler,
 	likeHandler *handlers.LikeHandler,
 	badgeHandler *handlers.BadgeHandler,
+	notificationHandler *handlers.NotificationHandler,
+	notificationWSHandler *handlers.NotificationWSHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
-		authHandler:          authHandler,
-		profileHandler:       profileHandler,
-		activityHandler:      activityHandler,
-		streakHandler:        streakHandler,
-		analyticsHandler:     analyticsHandler,
-		tileConfigHandler:    tileConfigHandler,
-		passwordResetHandler: passwordResetHandler,
-		blobHandler:          blobHandler,
-		likeHandler:          likeHandler,
-		badgeHandler:         badgeHandler,
-		tokenSvc:             tokenSvc,
+		authHandler:           authHandler,
+		profileHandler:        profileHandler,
+		activityHandler:       activityHandler,
+		streakHandler:         streakHandler,
+		analyticsHandler:      analyticsHandler,
+		tileConfigHandler:     tileConfigHandler,
+		passwordResetHandler:  passwordResetHandler,
+		blobHandler:           blobHandler,
+		likeHandler:           likeHandler,
+		badgeHandler:          badgeHandler,
+		notificationHandler:   notificationHandler,
+		notificationWSHandler: notificationWSHandler,
+		tokenSvc:              tokenSvc,
 	}
 }
 
@@ -131,4 +137,18 @@ func (r *Router) Setup(app *fiber.App) {
 		profile.Post("/upload-picture", uploadRateLimiter, r.blobHandler.UploadProfilePicture)
 		profile.Delete("/picture", apiRateLimiter, r.blobHandler.DeleteProfilePicture)
 	}
+
+	// ==================== Notifications ====================
+	notifications := api.Group("/notifications", authMiddleware, apiRateLimiter)
+	notifications.Get("", r.notificationHandler.GetNotifications)
+	notifications.Get("/unread-count", r.notificationHandler.GetUnreadCount)
+	notifications.Patch("/:id/read", r.notificationHandler.MarkAsRead)
+	notifications.Patch("/read-all", r.notificationHandler.MarkAllAsRead)
+	notifications.Delete("/:id", r.notificationHandler.DeleteNotification)
+
+	// ==================== WebSocket ====================
+	// WebSocket route for real-time notifications
+	// Token is passed as query parameter: /api/ws/notifications?token=<jwt>
+	api.Use("/ws/notifications", r.notificationWSHandler.UpgradeMiddleware())
+	api.Get("/ws/notifications", r.notificationWSHandler.HandleConnection())
 }

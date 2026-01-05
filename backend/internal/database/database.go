@@ -70,6 +70,8 @@ func AutoMigrate() error {
 		&models.TileConfig{},
 		&models.Like{},
 		&models.UserBadge{},
+		&models.Notification{},
+		&models.NotificationDedupe{},
 	)
 }
 

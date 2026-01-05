@@ -29,7 +29,7 @@ import { ActivityModal } from './ActivityModal';
 import { BadgeUnlockModal } from './BadgeUnlockModal';
 import { SnapToast, ProtectedImage, VerifiedBadge } from './ui';
 import { APP_ROUTES } from '../constants/routes';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
 import { renderBadgeIcon } from '../utils/badgeIcons';
 import { Lock, X, BarChart3, Sparkles } from 'lucide-react';
@@ -110,11 +110,52 @@ const saveTileSizes = (sizes: Record<ActivityName, TileSize>) => {
     }
 };
 
+/**
+ * Parse date from URL search params
+ * @param searchParams - URL search params
+ * @returns Date object or null if invalid/not present
+ */
+const getDateFromSearchParams = (searchParams: URLSearchParams): Date | null => {
+    const dateParam = searchParams.get('date');
+    if (!dateParam) return null;
+    
+    // Parse YYYY-MM-DD format
+    const parsed = new Date(dateParam + 'T00:00:00');
+    if (isNaN(parsed.getTime())) return null;
+    
+    // Don't allow future dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (parsed > today) return null;
+    
+    return parsed;
+};
+
 export const Dashboard: React.FC = () => {
     const { user } = useAuth();
     const { username: routeUsername } = useParams<{ username: string }>();
     const navigate = useNavigate();
-    const [currentDate, setCurrentDate] = useState(new Date());
+    const [searchParams] = useSearchParams();
+    
+    // Initialize date from URL param or default to today
+    const [currentDate, setCurrentDate] = useState(() => {
+        return getDateFromSearchParams(searchParams) || new Date();
+    });
+    
+    // Sync date state when URL search params change (e.g., from notification click)
+    useEffect(() => {
+        const urlDate = getDateFromSearchParams(searchParams);
+        if (urlDate) {
+            const currentNorm = new Date(currentDate);
+            currentNorm.setHours(0, 0, 0, 0);
+            urlDate.setHours(0, 0, 0, 0);
+            
+            // Only update if the dates are different
+            if (currentNorm.getTime() !== urlDate.getTime()) {
+                setCurrentDate(urlDate);
+            }
+        }
+    }, [searchParams]);
     const [activities, setActivities] = useState<Record<string, number>>({});
     const [activityNotes, setActivityNotes] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);

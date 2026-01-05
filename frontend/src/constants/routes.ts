@@ -81,6 +81,24 @@ export const API_ROUTES = {
     UNLIKE_DAY: '/unlike-day',
     GET_LIKES: '/get-likes',
   },
+
+  // ============================================================================
+  // Notifications
+  // ============================================================================
+  NOTIFICATION: {
+    LIST: '/notifications',
+    UNREAD_COUNT: '/notifications/unread-count',
+    MARK_READ: (id: number) => `/notifications/${id}/read`,
+    MARK_ALL_READ: '/notifications/read-all',
+    DELETE: (id: number) => `/notifications/${id}`,
+  },
+
+  // ============================================================================
+  // WebSocket
+  // ============================================================================
+  WS: {
+    NOTIFICATIONS: '/ws/notifications',
+  },
 } as const;
 
 /**

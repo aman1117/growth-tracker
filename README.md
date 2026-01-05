@@ -91,6 +91,7 @@ Track time across **16 life categories**:
 - [ ] Streak freeze days
 - [ ] Notifications like Aman just completed their day, log your days, 
 - [ ] what criteria should be for verfied
+- [ ] Local development setup
 
 
 

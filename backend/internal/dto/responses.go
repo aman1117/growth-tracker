@@ -261,3 +261,68 @@ type BadgesResponse struct {
 type GetBadgesByUsernameRequest struct {
 	Username string `json:"username" example:"john_doe"`
 }
+
+// ==================== Notification DTOs ====================
+
+// NotificationDTO represents a notification for API responses
+// @Description Notification information
+type NotificationDTO struct {
+	ID        uint                   `json:"id" example:"1"`
+	Type      string                 `json:"type" example:"like_received"`
+	Title     string                 `json:"title" example:"New Like!"`
+	Body      string                 `json:"body" example:"john_doe liked your Jan 5 activities"`
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	ReadAt    *string                `json:"read_at,omitempty" example:"2026-01-05T12:00:00Z"`
+	CreatedAt string                 `json:"created_at" example:"2026-01-05T10:00:00Z"`
+}
+
+// NotificationsResponse represents paginated notifications list
+// @Description Paginated list of notifications
+type NotificationsResponse struct {
+	Success       bool              `json:"success" example:"true"`
+	Notifications []NotificationDTO `json:"notifications"`
+	Total         int64             `json:"total" example:"25"`
+	Page          int               `json:"page" example:"1"`
+	PageSize      int               `json:"page_size" example:"20"`
+	HasMore       bool              `json:"has_more" example:"true"`
+}
+
+// UnreadCountResponse represents the unread notification count
+// @Description Unread notification count
+type UnreadCountResponse struct {
+	Success     bool  `json:"success" example:"true"`
+	UnreadCount int64 `json:"unread_count" example:"5"`
+}
+
+// NotificationActionResponse represents the response for notification actions
+// @Description Response for mark as read/delete actions
+type NotificationActionResponse struct {
+	Success bool   `json:"success" example:"true"`
+	Message string `json:"message,omitempty" example:"Notification marked as read"`
+}
+
+// NotificationToDTO converts a Notification model to DTO
+func NotificationToDTO(n *models.Notification) NotificationDTO {
+	dto := NotificationDTO{
+		ID:        n.ID,
+		Type:      string(n.Type),
+		Title:     n.Title,
+		Body:      n.Body,
+		Metadata:  n.Metadata,
+		CreatedAt: n.CreatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+	if n.ReadAt != nil {
+		readAt := n.ReadAt.Format("2006-01-02T15:04:05Z")
+		dto.ReadAt = &readAt
+	}
+	return dto
+}
+
+// NotificationsToDTOs converts a slice of Notification models to DTOs
+func NotificationsToDTOs(notifications []models.Notification) []NotificationDTO {
+	dtos := make([]NotificationDTO, len(notifications))
+	for i, n := range notifications {
+		dtos[i] = NotificationToDTO(&n)
+	}
+	return dtos
+}

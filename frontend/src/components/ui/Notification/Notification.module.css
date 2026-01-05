@@ -23,14 +23,14 @@
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--tile-glass-border);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--tile-glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  color: var(--icon-btn-color);
+  color: var(--text-secondary);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--tile-glass-shadow);
   transition: all 0.2s ease;
 }
 
@@ -103,11 +103,13 @@
   display: flex;
   flex-direction: column;
   
-  /* Solid dark background */
-  background: #1a1a1a;
+  /* Glassmorphism - uses theme variables */
+  background: var(--bg-secondary);
+  backdrop-filter: blur(var(--tile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--tile-glass-shadow);
   
   overflow: hidden;
   z-index: 100;
@@ -548,13 +550,13 @@
   animation: panelSlideUp 0.3s ease-out;
   z-index: 99999 !important;
   
-  /* Solid dark background for mobile */
-  background: #1a1a1a !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  /* Uses theme variables for proper light/dark support */
+  background: var(--bg-secondary) !important;
+  backdrop-filter: blur(var(--tile-glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--tile-glass-blur)) !important;
   border: none !important;
-  border-top: 1px solid #333 !important;
-  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.5) !important;
+  border-top: 1px solid var(--glass-border) !important;
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.15) !important;
 }
 
 @keyframes panelSlideUp {
@@ -575,9 +577,19 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 99998;
   animation: fadeIn 0.2s ease-out;
+}
+
+/* Light theme - lighter overlay */
+[data-theme='light'] .mobileOverlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Dark theme - stronger shadow for mobile panel */
+[data-theme='dark'] .panelMobile {
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.5) !important;
 }
 
 .mobileOverlayClosing {

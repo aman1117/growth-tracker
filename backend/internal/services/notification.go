@@ -205,7 +205,7 @@ func (s *NotificationService) NotifyLikeReceived(
 		notif := &models.Notification{
 			UserID: recipientUserID,
 			Type:   models.NotifTypeLikeReceived,
-			Title:  "New Like! ❤️",
+			Title:  "New Like!",
 			Body:   fmt.Sprintf("%s liked your %s activities", likerUsername, formattedDate),
 			Metadata: models.LikeMetadata{
 				LikerID:       likerID,

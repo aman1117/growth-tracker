@@ -80,12 +80,10 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.BadgeService = services.NewBadgeService(c.BadgeRepo, c.UserRepo)
 	c.NotificationService = services.NewNotificationService(c.NotificationRepo)
 
-	// Initialize email service (optional)
-	if cfg.Email.ResendAPIKey != "" {
-		emailSvc, err := services.NewEmailService(&cfg.Email, cfg.Server.FrontendURL)
-		if err == nil {
-			c.EmailService = emailSvc
-		}
+	// Initialize email service (optional - uses SMTP fallback for local dev)
+	emailSvc, err := services.NewEmailService(&cfg.Email, cfg.Server.FrontendURL)
+	if err == nil {
+		c.EmailService = emailSvc
 	}
 
 	// Initialize cron service

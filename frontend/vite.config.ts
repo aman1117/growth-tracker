@@ -4,6 +4,14 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Enable polling for Docker volumes on Windows/WSL
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 1000,
+    },
+    host: true,
+  },
   plugins: [
     react(),
     VitePWA({

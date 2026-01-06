@@ -891,7 +891,7 @@ const UsernameDialog: React.FC<{
                             border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
                             backgroundColor: 'var(--bg-secondary)',
                             color: 'var(--text-primary)',
-                            fontSize: '0.9375rem',
+                            fontSize: '16px', // Prevents iOS auto-zoom
                             outline: 'none'
                         }}
                     />
@@ -1039,7 +1039,7 @@ const PasswordDialog: React.FC<{
                             border: '1px solid var(--border)',
                             backgroundColor: 'var(--bg-secondary)',
                             color: 'var(--text-primary)',
-                            fontSize: '0.9375rem',
+                            fontSize: '16px', // Prevents iOS auto-zoom
                             outline: 'none'
                         }}
                     />
@@ -1069,7 +1069,7 @@ const PasswordDialog: React.FC<{
                             border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
                             backgroundColor: 'var(--bg-secondary)',
                             color: 'var(--text-primary)',
-                            fontSize: '0.9375rem',
+                            fontSize: '16px', // Prevents iOS auto-zoom
                             outline: 'none'
                         }}
                     />

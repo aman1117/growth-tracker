@@ -126,6 +126,12 @@
   padding: 0;
 }
 
+/* Prevent zoom on double-tap and pinch gestures (like Instagram mobile web) */
+html {
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -133,6 +139,11 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 button {
@@ -140,16 +151,19 @@ button {
   border: none;
   outline: none;
   font-family: inherit;
+  touch-action: manipulation;
 }
 
 input {
   outline: none;
   font-family: inherit;
-  font-size: 16px; /* Prevents auto-zoom on mobile */
+  font-size: 16px !important; /* Prevents auto-zoom on mobile - iOS requires minimum 16px */
+  touch-action: manipulation;
 }
 
 input, select, textarea {
-  font-size: 16px; /* Prevents iOS/Android auto-zoom on focus */
+  font-size: 16px !important; /* Prevents iOS/Android auto-zoom on focus - must be at least 16px */
+  touch-action: manipulation;
 }
 
 /* Utilities */

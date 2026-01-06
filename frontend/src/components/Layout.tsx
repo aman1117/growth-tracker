@@ -244,7 +244,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                             border: 'none',
                                             background: 'transparent',
                                             outline: 'none',
-                                            fontSize: '0.9375rem',
+                                            fontSize: '16px', // Prevents iOS auto-zoom
                                             color: 'var(--text-primary)',
                                             flex: isSearchOpen ? 1 : 0,
                                             width: isSearchOpen ? 'auto' : '1px',

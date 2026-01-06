@@ -492,7 +492,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                                                 border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
                                                 backgroundColor: 'var(--bg-secondary)',
                                                 color: 'var(--text-primary)',
-                                                fontSize: '0.8rem',
+                                                fontSize: '16px', // Prevents iOS auto-zoom
                                                 outline: 'none'
                                             }}
                                         />
@@ -595,7 +595,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                                                     border: `1px solid ${passwordError ? '#ef4444' : 'var(--border)'}`,
                                                     backgroundColor: 'var(--bg-secondary)',
                                                     color: 'var(--text-primary)',
-                                                    fontSize: '0.8rem',
+                                                    fontSize: '16px', // Prevents iOS auto-zoom
                                                     outline: 'none'
                                                 }}
                                             />
@@ -610,7 +610,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
                                                     border: `1px solid ${passwordError ? '#ef4444' : 'var(--border)'}`,
                                                     backgroundColor: 'var(--bg-secondary)',
                                                     color: 'var(--text-primary)',
-                                                    fontSize: '0.8rem',
+                                                    fontSize: '16px', // Prevents iOS auto-zoom
                                                     outline: 'none'
                                                 }}
                                             />

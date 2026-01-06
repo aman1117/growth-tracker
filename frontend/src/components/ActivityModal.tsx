@@ -235,7 +235,7 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                                 autoFocus
                                 style={{ 
                                     padding: '0.6rem 0.75rem', 
-                                    fontSize: '0.9rem',
+                                    fontSize: '16px', // Prevents iOS auto-zoom
                                     flex: 1,
                                     textAlign: 'center',
                                 }}

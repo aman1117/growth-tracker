@@ -45,7 +45,7 @@
   border: none;
   outline: none;
   padding: 0.625rem 0.875rem;
-  font-size: 0.875rem;
+  font-size: 16px; /* Prevents iOS auto-zoom on focus */
   color: var(--text-primary);
   width: 100%;
 }

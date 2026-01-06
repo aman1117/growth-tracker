@@ -225,7 +225,7 @@ growth-tracker/
 
 | Feature | Local (Docker) | Production |
 |---------|----------------|------------|
-| **Database** | PostgreSQL 16 (container) | Neon PostgreSQL |
+| **Database** | PostgreSQL 16 (container) | Azure PostgreSQL |
 | **Blob Storage** | Azurite (emulator) | Azure Blob Storage |
 | **Email** | Mailpit (SMTP) | Resend API |
 | **Redis** | Redis 7 (container) | Azure Redis |

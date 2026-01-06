@@ -128,8 +128,8 @@ func (h *BlobHandler) UploadProfilePicture(c *fiber.Ctx) error {
 		return response.InternalError(c, "Failed to upload image", constants.ErrCodeServerError)
 	}
 
-	// Generate public URL
-	imageURL := fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", h.accountName, h.container, blobName)
+	// Generate public URL - uses Azurite in development, Azure in production
+	imageURL := h.generateBlobURL(blobName)
 
 	// Update user's profile picture URL
 	if err := h.blobSvc.UpdateProfilePic(userID, &imageURL); err != nil {
@@ -142,6 +142,20 @@ func (h *BlobHandler) UploadProfilePicture(c *fiber.Ctx) error {
 		"success":     true,
 		"profile_pic": imageURL,
 	})
+}
+
+// generateBlobURL creates the public URL for a blob
+// Uses Azurite endpoint in development, Azure in production
+func (h *BlobHandler) generateBlobURL(blobName string) string {
+	cfg := config.AppConfig
+
+	if cfg != nil && cfg.IsDevelopment() {
+		// Azurite local emulator URL (accessible from host machine)
+		return fmt.Sprintf("http://localhost:10000/devstoreaccount1/%s/%s", h.container, blobName)
+	}
+
+	// Production Azure Blob Storage URL
+	return fmt.Sprintf("https://%s.blob.core.windows.net/%s/%s", h.accountName, h.container, blobName)
 }
 
 // DeleteProfilePicture handles profile picture deletion
@@ -176,9 +190,12 @@ func (h *BlobHandler) DeleteProfilePicture(c *fiber.Ctx) error {
 }
 
 func (h *BlobHandler) extractBlobName(url string) string {
+	// Handle both Azure and Azurite URLs:
+	// Azure: https://{account}.blob.core.windows.net/{container}/{blob}
+	// Azurite: http://localhost:10000/devstoreaccount1/{container}/{blob}
 	parts := strings.Split(url, h.container+"/")
-	if len(parts) == 2 {
-		return parts[1]
+	if len(parts) >= 2 {
+		return parts[len(parts)-1]
 	}
 	return ""
 }

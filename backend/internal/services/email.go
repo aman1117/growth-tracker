@@ -3,6 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
+	"net/smtp"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/aman1117/backend/internal/config"
@@ -13,22 +16,100 @@ import (
 	"github.com/resend/resend-go/v3"
 )
 
+// EmailSender interface for sending emails (Resend or SMTP)
+type EmailSender interface {
+	Send(to []string, subject, htmlBody string) error
+}
+
+// ResendEmailSender sends emails via Resend API (production)
+type ResendEmailSender struct {
+	client      *resend.Client
+	fromAddress string
+	fromName    string
+}
+
+func (r *ResendEmailSender) Send(to []string, subject, htmlBody string) error {
+	params := &resend.SendEmailRequest{
+		From:    fmt.Sprintf("%s <%s>", r.fromName, r.fromAddress),
+		To:      to,
+		Subject: subject,
+		Html:    htmlBody,
+	}
+	_, err := r.client.Emails.Send(params)
+	return err
+}
+
+// SMTPEmailSender sends emails via SMTP (for local dev with Mailpit)
+type SMTPEmailSender struct {
+	host        string
+	port        string
+	fromAddress string
+	fromName    string
+}
+
+func (s *SMTPEmailSender) Send(to []string, subject, htmlBody string) error {
+	addr := fmt.Sprintf("%s:%s", s.host, s.port)
+
+	// Build email message with proper headers
+	from := fmt.Sprintf("%s <%s>", s.fromName, s.fromAddress)
+	toHeader := strings.Join(to, ", ")
+	msg := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n%s",
+		from, toHeader, subject, htmlBody)
+
+	// Mailpit doesn't require auth
+	err := smtp.SendMail(addr, nil, s.fromAddress, to, []byte(msg))
+	if err != nil {
+		logger.Sugar.Warnw("SMTP send failed", "error", err, "to", to)
+	} else {
+		logger.Sugar.Infow("Email sent via SMTP (Mailpit)", "to", to, "subject", subject)
+	}
+	return err
+}
+
 // EmailService handles email-related operations
 type EmailService struct {
-	client      *resend.Client
+	sender      EmailSender
 	fromAddress string
 	fromName    string
 	frontendURL string
 }
 
 // NewEmailService creates a new EmailService
+// Falls back to SMTP if RESEND_API_KEY is not set (for local development with Mailpit)
 func NewEmailService(cfg *config.EmailConfig, frontendURL string) (*EmailService, error) {
-	if cfg.ResendAPIKey == "" {
-		return nil, fmt.Errorf("RESEND_API_KEY is not set")
+	var sender EmailSender
+
+	if cfg.ResendAPIKey != "" {
+		// Use Resend for production
+		sender = &ResendEmailSender{
+			client:      resend.NewClient(cfg.ResendAPIKey),
+			fromAddress: cfg.FromAddress,
+			fromName:    cfg.FromName,
+		}
+		logger.Sugar.Info("Email service initialized with Resend API")
+	} else {
+		// Fall back to SMTP for local development (Mailpit)
+		smtpHost := os.Getenv("SMTP_HOST")
+		smtpPort := os.Getenv("SMTP_PORT")
+
+		if smtpHost == "" {
+			smtpHost = "localhost"
+		}
+		if smtpPort == "" {
+			smtpPort = "1025"
+		}
+
+		sender = &SMTPEmailSender{
+			host:        smtpHost,
+			port:        smtpPort,
+			fromAddress: cfg.FromAddress,
+			fromName:    cfg.FromName,
+		}
+		logger.Sugar.Infow("Email service initialized with SMTP (Mailpit)", "host", smtpHost, "port", smtpPort)
 	}
 
 	return &EmailService{
-		client:      resend.NewClient(cfg.ResendAPIKey),
+		sender:      sender,
 		fromAddress: cfg.FromAddress,
 		fromName:    cfg.FromName,
 		frontendURL: frontendURL,
@@ -41,15 +122,7 @@ func (s *EmailService) SendPasswordResetEmail(email, username, token string) err
 
 	htmlContent := s.buildPasswordResetHTML(username, resetLink)
 
-	params := &resend.SendEmailRequest{
-		From:    fmt.Sprintf("%s <%s>", s.fromName, s.fromAddress),
-		To:      []string{email},
-		Subject: "Reset Your Password - Growth Tracker",
-		Html:    htmlContent,
-	}
-
-	_, err := s.client.Emails.Send(params)
-	return err
+	return s.sender.Send([]string{email}, "Reset Your Password - Growth Tracker", htmlContent)
 }
 
 // SendStreakReminderEmail sends a streak reminder email
@@ -58,15 +131,7 @@ func (s *EmailService) SendStreakReminderEmail(email, username string) error {
 
 	htmlContent := s.buildStreakReminderHTML(username)
 
-	params := &resend.SendEmailRequest{
-		From:    fmt.Sprintf("Aman | %s <%s>", s.fromName, s.fromAddress),
-		To:      []string{email},
-		Subject: subject,
-		Html:    htmlContent,
-	}
-
-	_, err := s.client.Emails.Send(params)
-	return err
+	return s.sender.Send([]string{email}, subject, htmlContent)
 }
 
 func (s *EmailService) buildPasswordResetHTML(username, resetLink string) string {

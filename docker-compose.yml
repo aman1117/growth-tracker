@@ -1,0 +1,184 @@
+# Local Development Docker Compose
+# Usage: docker-compose up -d
+# WARNING: This is for LOCAL DEVELOPMENT ONLY. Do not use production credentials.
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: growth-tracker-db
+    environment:
+      POSTGRES_USER: localdev
+      POSTGRES_PASSWORD: localdevpassword
+      POSTGRES_DB: growth_tracker_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U localdev -d growth_tracker_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for session/cache
+  redis:
+    image: redis:7-alpine
+    container_name: growth-tracker-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Azurite - Azure Blob Storage Emulator
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: growth-tracker-azurite
+    ports:
+      - "10000:10000"  # Blob service
+      - "10001:10001"  # Queue service
+      - "10002:10002"  # Table service
+    volumes:
+      - azurite_data:/data
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 -l /data"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z 127.0.0.1 10000 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+
+  # Azurite Init - Creates the profile-pictures container
+  azurite-init:
+    image: mcr.microsoft.com/azure-cli
+    container_name: growth-tracker-azurite-init
+    depends_on:
+      azurite:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c", "az storage container create --name profile-pictures --connection-string 'DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;' --public-access blob || true"]
+
+  # Mailpit - Email Testing
+  mailpit:
+    image: axllent/mailpit
+    container_name: growth-tracker-mailpit
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025/api/v1/info"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend with Air hot-reload
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: growth-tracker-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - go_mod_cache:/go/pkg/mod
+      - go_build_cache:/root/.cache/go-build
+    environment:
+      # Database - LOCAL ONLY
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: growth_tracker_dev
+      DB_USERNAME: localdev
+      DB_PASSWORD: localdevpassword
+      DB_SSLMODE: disable
+      
+      # Redis
+      REDIS_URL: redis://redis:6379
+      
+      # JWT - LOCAL DEV ONLY (not a real secret)
+      JWT_SECRET_KEY: local-dev-secret-key-do-not-use-in-production
+      TTL_ACCESS_TOKEN: 1440
+      TTL_REFRESH_TOKEN: 10080
+      
+      # Environment
+      ENV: development
+      PORT: 8000
+      FRONTEND_BASE_URL: http://localhost:5173
+      
+      # Azure Storage - Azurite emulator
+      AZURE_STORAGE_ACCOUNT_NAME: devstoreaccount1
+      AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      AZURE_STORAGE_CONTAINER: profile-pictures
+      
+      # Email - Mailpit
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      EMAIL_FROM_ADDRESS: noreply@localhost.dev
+      EMAIL_FROM_NAME: Growth Tracker Local
+      # Leave RESEND_API_KEY empty to use SMTP fallback
+      RESEND_API_KEY: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      azurite-init:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_healthy
+
+  # Database Seeder - run with: docker-compose --profile seed up seed
+  seed:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: growth-tracker-seed
+    volumes:
+      - ./backend:/app
+      - go_mod_cache:/go/pkg/mod
+      - go_build_cache:/root/.cache/go-build
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: growth_tracker_dev
+      DB_USERNAME: localdev
+      DB_PASSWORD: localdevpassword
+      DB_SSLMODE: disable
+      ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    command: ["go", "run", "./cmd/seed/main.go"]
+    profiles:
+      - seed
+
+  # Frontend with Vite hot-reload
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: growth-tracker-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/index.html:/app/index.html
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  azurite_data:
+  go_mod_cache:
+  go_build_cache:

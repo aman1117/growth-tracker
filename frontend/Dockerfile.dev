@@ -1,0 +1,22 @@
+# Development Dockerfile with Vite hot-reload
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Set environment variable for Vite (must be set before npm run dev)
+ENV VITE_API_URL=http://localhost:8000
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source (will be partially overwritten by volume mounts)
+COPY . .
+
+# Expose Vite dev server port
+EXPOSE 5173
+
+# Run Vite dev server with host binding for Docker
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

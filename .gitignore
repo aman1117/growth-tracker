@@ -6,9 +6,16 @@ deploy-azure.ps1
 diagnose/
 node_modules
 
+# Local development
+.env.local
+docker-compose.override.yml
+
 # Go build artifacts
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+
+# Air hot-reload temp directory
+backend/tmp/

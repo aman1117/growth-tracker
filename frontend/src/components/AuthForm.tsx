@@ -19,12 +19,23 @@ export const AuthForm: React.FC = () => {
     // Username validation: lowercase letters, numbers, underscore, dot only
     const isValidUsername = (name: string) => /^[a-z0-9_.]+$/.test(name);
 
+    // Sanitize input by trimming whitespace
+    const sanitizeInput = (value: string) => value.trim();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
+        // Sanitize inputs before submission
+        const sanitizedUsername = sanitizeInput(username);
+        const sanitizedEmail = sanitizeInput(email);
+
+        // Update state with sanitized values
+        setUsername(sanitizedUsername);
+        setEmail(sanitizedEmail);
+
         // Validate username format on registration
-        if (!isLogin && !isValidUsername(username)) {
+        if (!isLogin && !isValidUsername(sanitizedUsername)) {
             setToast({ message: 'Username can only contain lowercase letters, numbers, _ and .', type: 'error' });
             setLoading(false);
             return;
@@ -33,7 +44,7 @@ export const AuthForm: React.FC = () => {
         try {
             if (isLogin) {
                 // Login
-                const res = await api.post('/login', { identifier: username, password });
+                const res = await api.post('/login', { identifier: sanitizedUsername, password });
                 if (res.success) {
                     const token = res.access_token;
                     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -44,10 +55,10 @@ export const AuthForm: React.FC = () => {
                 }
             } else {
                 // Register
-                const res = await api.post('/register', { email, username, password });
+                const res = await api.post('/register', { email: sanitizedEmail, username: sanitizedUsername, password });
                 if (res.success) {
                     // Auto login
-                    const loginRes = await api.post('/login', { identifier: username, password });
+                    const loginRes = await api.post('/login', { identifier: sanitizedUsername, password });
                     if (loginRes.success) {
                         const token = loginRes.access_token;
                         const payload = JSON.parse(atob(token.split('.')[1]));
@@ -82,7 +93,8 @@ export const AuthForm: React.FC = () => {
                                 type="email"
                                 className="input-field"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => setEmail(e.target.value.trimStart())}
+                                onBlur={(e) => setEmail(e.target.value.trim())}
                                 required
                             />
                         </div>
@@ -94,7 +106,8 @@ export const AuthForm: React.FC = () => {
                             type="text"
                             className="input-field"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                            onChange={(e) => setUsername(e.target.value.toLowerCase().trimStart())}
+                            onBlur={(e) => setUsername(e.target.value.trim())}
                             required
                             pattern="[a-z0-9_.]+"
                             title="Only lowercase letters, numbers, underscore and dot allowed"

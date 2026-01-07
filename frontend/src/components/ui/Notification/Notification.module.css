@@ -20,22 +20,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  border: 1px solid var(--tile-glass-border);
+  border: none;
   border-radius: 50%;
-  background: var(--tile-glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: var(--text-secondary);
+  background: transparent;
+  color: var(--text-primary);
   cursor: pointer;
-  box-shadow: var(--tile-glass-shadow);
   transition: all 0.2s ease;
 }
 
 .bellButton:hover {
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
   color: var(--text-primary);
 }
 
@@ -44,13 +41,12 @@
 }
 
 .bellActive {
-  background: var(--accent);
-  color: white;
+  color: var(--text-primary);
 }
 
 .bellActive:hover {
-  background: var(--accent-hover);
-  color: white;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 /* Unread Badge */

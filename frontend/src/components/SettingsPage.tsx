@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     ArrowLeft, User, Key, Lock, Camera, Trash2, X, 
-    LogOut, AlertTriangle, ChevronRight, Pencil 
+    LogOut, AlertTriangle, ChevronRight, Pencil,
+    Sun, Moon, Monitor, Palette
 } from 'lucide-react';
-import { useAuth } from '../store';
+import { useAuth, useTheme } from '../store';
 import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
 import { SnapToast, ProtectedImage } from './ui';
@@ -15,6 +16,7 @@ import type { Badge } from '../types/api';
 export const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
     const { user, logout, updateUsername, updateProfilePic, updateBio } = useAuth();
+    const { theme, setTheme } = useTheme();
     
     // Dialog states
     const [showUsernameDialog, setShowUsernameDialog] = useState(false);
@@ -453,6 +455,102 @@ export const SettingsPage: React.FC = () => {
                             boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
                         }} />
                     </button>
+                </div>
+
+                {/* Theme Selection */}
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0.75rem 1rem',
+                    gap: '0.75rem',
+                    borderBottom: '1px solid var(--border)'
+                }}>
+                    <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
+                        backgroundColor: 'var(--icon-bg-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--text-secondary)'
+                    }}>
+                        <Palette size={16} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ 
+                            fontSize: '0.875rem', 
+                            fontWeight: 500, 
+                            color: 'var(--text-primary)' 
+                        }}>
+                            Theme
+                        </div>
+                    </div>
+                    <div style={{ 
+                        display: 'flex', 
+                        gap: '0.5rem',
+                        backgroundColor: 'var(--bg-secondary)',
+                        padding: '0.25rem',
+                        borderRadius: '10px'
+                    }}>
+                        <button
+                            onClick={() => setTheme('light')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                backgroundColor: theme === 'light' ? 'var(--bg-primary)' : 'transparent',
+                                boxShadow: theme === 'light' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                color: theme === 'light' ? 'var(--accent)' : 'var(--text-secondary)'
+                            }}
+                            title="Light theme"
+                        >
+                            <Sun size={16} />
+                        </button>
+                        <button
+                            onClick={() => setTheme('dark')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                backgroundColor: theme === 'dark' ? 'var(--bg-primary)' : 'transparent',
+                                boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                color: theme === 'dark' ? 'var(--accent)' : 'var(--text-secondary)'
+                            }}
+                            title="Dark theme"
+                        >
+                            <Moon size={16} />
+                        </button>
+                        <button
+                            onClick={() => setTheme('system')}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                backgroundColor: theme === 'system' ? 'var(--bg-primary)' : 'transparent',
+                                boxShadow: theme === 'system' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                color: theme === 'system' ? 'var(--accent)' : 'var(--text-secondary)'
+                            }}
+                            title="System theme"
+                        >
+                            <Monitor size={16} />
+                        </button>
+                    </div>
                 </div>
 
                 <button

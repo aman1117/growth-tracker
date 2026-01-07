@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
-import { useNavigate } from 'react-router-dom';
-import { Search, User as UserIcon, X, Settings2, ChevronLeft, BarChart3 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Search, User as UserIcon, X, ChevronLeft } from 'lucide-react';
 import { api } from '../services/api';
-import { ProfileDropdown } from './ProfileDropdown';
 import { ThemeToggle } from './ThemeToggle';
 import { ProtectedImage, VerifiedBadge, NotificationCenter } from './ui';
+import { BottomNavigation } from './BottomNavigation';
 import type { Notification, LikeMetadata } from '../types';
 
 interface SearchResult {
@@ -121,30 +121,47 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         [navigate]
     );
 
+    const location = useLocation();
+    const isSettingsPage = location.pathname === APP_ROUTES.SETTINGS;
+
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <header style={{
                 borderBottom: '1px solid var(--border)',
                 padding: '0.75rem 0',
                 backgroundColor: 'var(--header-bg)',
-                backdropFilter: 'blur(12px)', // Glassmorphism
-                WebkitBackdropFilter: 'blur(12px)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
                 position: 'sticky',
                 top: 0,
                 zIndex: 50,
                 transition: 'background-color 0.3s ease, border-color 0.3s ease'
             }}>
-                <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 1rem' }}>
+                <div className="container" style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    padding: '0 1rem',
+                    maxWidth: '560px',
+                    margin: '0 auto'
+                }}>
+                    {/* Logo - Left side */}
                     {!isSearchOpen && (
                         <div
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', flexShrink: 0 }}
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '0.5rem', 
+                                cursor: 'pointer', 
+                                flexShrink: 0 
+                            }}
                             onClick={() => navigate(APP_ROUTES.HOME)}
                         >
                             <img 
                                 src="/logo.png" 
                                 alt="Growth Tracker" 
                                 style={{ 
-                                    height: '24px', 
+                                    height: '28px', 
                                     width: 'auto',
                                     filter: 'var(--logo-filter)'
                                 }} 
@@ -152,21 +169,22 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                         </div>
                     )}
 
+                    {/* Right side icons */}
                     {user && (
                         <div 
                             ref={searchContainerRef}
                             style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                gap: '0.5rem', 
-                                flex: 1, 
-                                marginLeft: isSearchOpen ? '0' : '0.5rem',
+                                gap: '0.75rem', 
+                                flex: isSearchOpen ? 1 : 'unset',
+                                marginLeft: isSearchOpen ? '0' : 'auto',
                                 position: 'relative',
                                 justifyContent: 'flex-end',
                                 transition: 'margin-left 0.3s ease'
                             }}
                         >
-                            {/* Back button - only visible when expanded, positioned far left */}
+                            {/* Back button - only visible when search expanded */}
                             <button
                                 onClick={closeSearch}
                                 style={{
@@ -180,14 +198,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     color: 'var(--text-primary)',
                                     cursor: 'pointer',
                                     flexShrink: 0,
-                                    width: isSearchOpen ? '20px' : '0px',
+                                    width: isSearchOpen ? '24px' : '0px',
                                     opacity: isSearchOpen ? 1 : 0,
                                     overflow: 'hidden',
                                     transition: 'width 0.3s ease, opacity 0.2s ease',
                                     marginRight: '0'
                                 }}
                             >
-                                <ChevronLeft size={20} />
+                                <ChevronLeft size={24} />
                             </button>
 
                             {/* Animated Search Bar */}
@@ -203,7 +221,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     onClick={() => {
                                         if (!isSearchOpen) {
                                             setIsSearchOpen(true);
-                                            // Focus immediately on click for mobile keyboard
                                             searchInputRef.current?.focus();
                                         }
                                     }}
@@ -212,25 +229,23 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: isSearchOpen ? '0.5rem' : '0',
-                                        padding: isSearchOpen ? '0.5rem 1rem' : '0',
-                                        background: isSearchOpen ? 'var(--bg-secondary)' : 'rgba(255, 255, 255, 0.15)',
-                                        backdropFilter: isSearchOpen ? 'none' : 'blur(12px)',
-                                        WebkitBackdropFilter: isSearchOpen ? 'none' : 'blur(12px)',
+                                        padding: isSearchOpen ? '0.625rem 1rem' : '0',
+                                        background: isSearchOpen ? 'var(--bg-secondary)' : 'transparent',
                                         borderRadius: '9999px',
-                                        border: isSearchFocused && isSearchOpen ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.2)',
+                                        border: isSearchFocused && isSearchOpen ? '1px solid var(--accent)' : isSearchOpen ? '1px solid var(--border)' : 'none',
                                         cursor: isSearchOpen ? 'text' : 'pointer',
                                         flex: isSearchOpen ? 1 : 'unset',
-                                        width: isSearchOpen ? 'auto' : '32px',
-                                        height: '32px',
+                                        width: isSearchOpen ? 'auto' : '40px',
+                                        height: '40px',
                                         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                         position: 'relative',
-                                        overflow: 'hidden',
-                                        boxShadow: isSearchOpen ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                        overflow: 'hidden'
                                     }}
                                 >
                                     <Search 
-                                        size={14} 
-                                        color="var(--icon-btn-color)" 
+                                        size={22} 
+                                        color="var(--text-primary)" 
+                                        strokeWidth={1.8}
                                         style={{ flexShrink: 0 }}
                                     />
                                     <input
@@ -244,7 +259,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                             border: 'none',
                                             background: 'transparent',
                                             outline: 'none',
-                                            fontSize: '16px', // Prevents iOS auto-zoom
+                                            fontSize: '16px',
                                             color: 'var(--text-primary)',
                                             flex: isSearchOpen ? 1 : 0,
                                             width: isSearchOpen ? 'auto' : '1px',
@@ -264,18 +279,19 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                 searchInputRef.current?.focus();
                                             }}
                                             style={{
-                                                background: 'none',
+                                                background: 'var(--bg-tertiary)',
                                                 border: 'none',
+                                                borderRadius: '50%',
                                                 color: 'var(--text-secondary)',
                                                 cursor: 'pointer',
-                                                padding: '0.125rem',
+                                                padding: '0.25rem',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 flexShrink: 0
                                             }}
                                         >
-                                            <X size={16} />
+                                            <X size={14} />
                                         </button>
                                     )}
                                 </div>
@@ -287,15 +303,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                         top: 'calc(100% + 8px)',
                                         left: 0,
                                         right: 0,
-                                        background: 'rgba(255, 255, 255, 0.92)',
+                                        background: 'var(--glass-bg)',
                                         backdropFilter: 'blur(20px)',
                                         WebkitBackdropFilter: 'blur(20px)',
-                                        borderRadius: '20px',
-                                        border: '1px solid rgba(0, 0, 0, 0.08)',
-                                        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08)',
+                                        borderRadius: '16px',
+                                        border: '1px solid var(--glass-border)',
+                                        boxShadow: 'var(--glass-shadow)',
                                         overflow: 'hidden',
                                         zIndex: 100,
-                                        maxHeight: '280px',
+                                        maxHeight: '320px',
                                         overflowY: 'auto',
                                         animation: 'dropdownFadeIn 0.2s ease-out'
                                     }}>
@@ -304,10 +320,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                 from { opacity: 0; transform: translateY(-8px); }
                                                 to { opacity: 1; transform: translateY(0); }
                                             }
-                                            [data-theme='dark'] .search-dropdown {
-                                                background: rgba(30, 30, 30, 0.95) !important;
-                                                border-color: rgba(255, 255, 255, 0.1) !important;
-                                            }
                                         `}</style>
                                         {searchResults.length > 0 ? (
                                             searchResults.map((result, index) => (
@@ -315,20 +327,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                     key={result.id}
                                                     onClick={() => handleUserClick(result.username)}
                                                     style={{
-                                                        padding: '0.5rem 0.75rem',
+                                                        padding: '0.75rem 1rem',
                                                         cursor: 'pointer',
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        gap: '0.5rem',
-                                                        borderBottom: index < searchResults.length - 1 ? '1px solid var(--tile-glass-border)' : 'none',
+                                                        gap: '0.75rem',
+                                                        borderBottom: index < searchResults.length - 1 ? '1px solid var(--border)' : 'none',
                                                         transition: 'background-color 0.15s'
                                                     }}
-                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
                                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                                 >
                                                     <div style={{
-                                                        width: '28px',
-                                                        height: '28px',
+                                                        width: '44px',
+                                                        height: '44px',
                                                         borderRadius: '50%',
                                                         backgroundColor: 'var(--avatar-bg)',
                                                         display: 'flex',
@@ -344,12 +356,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                             />
                                                         ) : (
-                                                            <UserIcon size={14} color="var(--text-secondary)" />
+                                                            <UserIcon size={20} color="var(--text-secondary)" />
                                                         )}
                                                     </div>
                                                     <span style={{ 
                                                         fontSize: '0.9375rem', 
-                                                        fontWeight: 500, 
+                                                        fontWeight: 600, 
                                                         color: 'var(--text-primary)',
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
@@ -357,16 +369,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                         flex: 1,
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        gap: '0.15rem'
+                                                        gap: '0.25rem'
                                                     }}>
                                                         {result.username}
-                                                        {result.is_verified && <VerifiedBadge size={13} />}
+                                                        {result.is_verified && <VerifiedBadge size={14} />}
                                                     </span>
                                                 </div>
                                             ))
                                         ) : searchQuery.length > 0 ? (
                                             <div style={{ 
-                                                padding: '1.25rem 0.75rem', 
+                                                padding: '2rem 1rem', 
                                                 textAlign: 'center', 
                                                 color: 'var(--text-secondary)', 
                                                 fontSize: '0.9375rem' 
@@ -378,66 +390,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                 )}
                             </div>
 
-                            {/* Edit tiles button - hide when search is open */}
-                            {!isSearchOpen && (
-                                <button
-                                    onClick={() => {
-                                        closeSearch();
-                                        window.dispatchEvent(new CustomEvent('toggleEditMode'));
-                                    }}
-                                    style={{
-                                        padding: 0,
-                                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: 'rgba(255, 255, 255, 0.15)',
-                                        backdropFilter: 'blur(12px)',
-                                        WebkitBackdropFilter: 'blur(12px)',
-                                        color: 'var(--icon-btn-color)',
-                                        cursor: 'pointer',
-                                        width: '32px',
-                                        height: '32px',
-                                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    title="Customize tiles"
-                                >
-                                    <Settings2 size={14} />
-                                </button>
-                            )}
-
-                            {/* Analytics button - hide when search is open */}
-                            {!isSearchOpen && (
-                                <button
-                                    onClick={() => {
-                                        closeSearch();
-                                        navigate(APP_ROUTES.ANALYTICS);
-                                    }}
-                                    style={{
-                                        padding: 0,
-                                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: 'rgba(255, 255, 255, 0.15)',
-                                        backdropFilter: 'blur(12px)',
-                                        WebkitBackdropFilter: 'blur(12px)',
-                                        color: 'var(--icon-btn-color)',
-                                        cursor: 'pointer',
-                                        width: '32px',
-                                        height: '32px',
-                                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                    title="Analytics"
-                                >
-                                    <BarChart3 size={14} />
-                                </button>
-                            )}
-
                             {/* Notifications - hide when search is open */}
                             {!isSearchOpen && (
                                 <NotificationCenter
@@ -445,12 +397,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                     onUsernameClick={handleUsernameClick}
                                 />
                             )}
-
-                            <ProfileDropdown onOpen={closeSearch} />
                         </div>
                     )}
                     
-                    {/* Show theme toggle even when not logged in */}
+                    {/* Show theme toggle when not logged in */}
                     {!user && (
                         <ThemeToggle />
                     )}
@@ -482,9 +432,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 }
             `}</style>
 
-            <main style={{ flex: 1, paddingTop: '0.5rem' }}>
+            <main style={{ 
+                flex: 1, 
+                paddingTop: '0.5rem', 
+                paddingBottom: user && !isSettingsPage ? '80px' : '0.5rem' 
+            }}>
                 {children}
             </main>
+
+            {/* Bottom Navigation - only show for logged in users and not on settings page */}
+            {user && !isSettingsPage && <BottomNavigation />}
         </div>
     );
 };

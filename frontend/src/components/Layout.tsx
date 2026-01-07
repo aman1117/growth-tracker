@@ -327,11 +327,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                     key={result.id}
                                                     onClick={() => handleUserClick(result.username)}
                                                     style={{
-                                                        padding: '0.75rem 1rem',
+                                                        padding: '0.5rem 0.75rem',
                                                         cursor: 'pointer',
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        gap: '0.75rem',
+                                                        gap: '0.5rem',
                                                         borderBottom: index < searchResults.length - 1 ? '1px solid var(--border)' : 'none',
                                                         transition: 'background-color 0.15s'
                                                     }}
@@ -339,8 +339,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                                 >
                                                     <div style={{
-                                                        width: '44px',
-                                                        height: '44px',
+                                                        width: '32px',
+                                                        height: '32px',
                                                         borderRadius: '50%',
                                                         backgroundColor: 'var(--avatar-bg)',
                                                         display: 'flex',
@@ -356,12 +356,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                             />
                                                         ) : (
-                                                            <UserIcon size={20} color="var(--text-secondary)" />
+                                                            <UserIcon size={16} color="var(--text-secondary)" />
                                                         )}
                                                     </div>
                                                     <span style={{ 
-                                                        fontSize: '0.9375rem', 
-                                                        fontWeight: 600, 
+                                                        fontSize: '0.875rem', 
+                                                        fontWeight: 500, 
                                                         color: 'var(--text-primary)',
                                                         overflow: 'hidden',
                                                         textOverflow: 'ellipsis',
@@ -372,16 +372,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                                                         gap: '0.25rem'
                                                     }}>
                                                         {result.username}
-                                                        {result.is_verified && <VerifiedBadge size={14} />}
+                                                        {result.is_verified && <VerifiedBadge size={12} />}
                                                     </span>
                                                 </div>
                                             ))
                                         ) : searchQuery.length > 0 ? (
                                             <div style={{ 
-                                                padding: '2rem 1rem', 
+                                                padding: '1.25rem 0.75rem', 
                                                 textAlign: 'center', 
                                                 color: 'var(--text-secondary)', 
-                                                fontSize: '0.9375rem' 
+                                                fontSize: '0.875rem' 
                                             }}>
                                                 No users found
                                             </div>

@@ -12,8 +12,7 @@ import (
 	"time"
 
 	"github.com/aman1117/backend/internal/constants"
-	appmodels "github.com/aman1117/backend/models"
-	pkgmodels "github.com/aman1117/backend/pkg/models"
+	"github.com/aman1117/backend/pkg/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -80,7 +79,7 @@ func main() {
 
 	// Check if already seeded
 	var userCount int64
-	db.Model(&appmodels.User{}).Count(&userCount)
+	db.Model(&models.User{}).Count(&userCount)
 	if userCount > 0 {
 		log.Printf("ℹ️  Database already has %d users. Skipping seed.", userCount)
 		log.Println("✅ Seeder complete (no changes)")
@@ -115,14 +114,14 @@ func main() {
 func runMigrations(db *gorm.DB) error {
 	log.Println("📦 Running migrations...")
 	return db.AutoMigrate(
-		&appmodels.User{},
-		&appmodels.Activity{},
-		&appmodels.Streak{},
-		&pkgmodels.UserBadge{},
+		&models.User{},
+		&models.Activity{},
+		&models.Streak{},
+		&models.UserBadge{},
 	)
 }
 
-func seedUsers(db *gorm.DB) ([]appmodels.User, error) {
+func seedUsers(db *gorm.DB) ([]models.User, error) {
 	log.Println("👤 Seeding test users...")
 
 	// Hash password
@@ -131,7 +130,7 @@ func seedUsers(db *gorm.DB) ([]appmodels.User, error) {
 		return nil, err
 	}
 
-	users := []appmodels.User{
+	users := []models.User{
 		{
 			Email:        "alice@local.dev",
 			Username:     "alice",
@@ -160,10 +159,10 @@ func seedUsers(db *gorm.DB) ([]appmodels.User, error) {
 	return users, nil
 }
 
-func seedActivities(db *gorm.DB, users []appmodels.User) error {
+func seedActivities(db *gorm.DB, users []models.User) error {
 	log.Println("📝 Seeding activities and streaks...")
 
-	activityTypes := appmodels.ActivityNames
+	activityTypes := models.ActivityNames
 	today := time.Now().Truncate(24 * time.Hour)
 
 	for _, user := range users {
@@ -209,7 +208,7 @@ func seedActivities(db *gorm.DB, users []appmodels.User) error {
 				activityType := activityTypes[rand.Intn(len(activityTypes))]
 				duration := float32(rand.Intn(4)+1) + float32(rand.Intn(4))*0.25 // 1.0 to 5.0 hours
 
-				activity := appmodels.Activity{
+				activity := models.Activity{
 					UserID:        user.ID,
 					Name:          activityType,
 					DurationHours: duration,
@@ -233,7 +232,7 @@ func seedActivities(db *gorm.DB, users []appmodels.User) error {
 			}
 
 			// Create streak record
-			streak := appmodels.Streak{
+			streak := models.Streak{
 				UserID:       user.ID,
 				Current:      currentStreak,
 				Longest:      longestStreak,
@@ -254,7 +253,7 @@ func seedActivities(db *gorm.DB, users []appmodels.User) error {
 	return nil
 }
 
-func seedBadges(db *gorm.DB, users []appmodels.User) error {
+func seedBadges(db *gorm.DB, users []models.User) error {
 	log.Println("🏅 Seeding badges based on streaks...")
 
 	for _, user := range users {
@@ -262,7 +261,7 @@ func seedBadges(db *gorm.DB, users []appmodels.User) error {
 		var maxStreak struct {
 			Longest int
 		}
-		db.Model(&appmodels.Streak{}).
+		db.Model(&models.Streak{}).
 			Where("user_id = ?", user.ID).
 			Select("MAX(longest) as longest").
 			Scan(&maxStreak)
@@ -271,7 +270,7 @@ func seedBadges(db *gorm.DB, users []appmodels.User) error {
 		eligibleKeys := constants.GetEligibleBadgeKeys(maxStreak.Longest)
 
 		for _, key := range eligibleKeys {
-			badge := pkgmodels.UserBadge{
+			badge := models.UserBadge{
 				UserID:   user.ID,
 				BadgeKey: key,
 				EarnedAt: time.Now(),

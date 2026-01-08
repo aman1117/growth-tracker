@@ -160,9 +160,9 @@ const (
 	RateLimitAuthWindow      = 1 * time.Minute
 	RateLimitAuthMaxRequests = 5 // 5 requests per minute for login/register
 
-	// Password reset - very strict to prevent abuse
-	RateLimitPasswordWindow      = 1 * time.Hour
-	RateLimitPasswordMaxRequests = 3 // 3 requests per hour
+	// Password reset - moderate limits (per 15 min window)
+	RateLimitPasswordWindow      = 15 * time.Minute
+	RateLimitPasswordMaxRequests = 5 // 5 requests per 15 minutes
 
 	// General API - moderate limits for authenticated users
 	RateLimitAPIWindow      = 1 * time.Minute

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft, ChevronLeft, ChevronRight, TrendingUp, TrendingDown,
@@ -7,9 +7,10 @@ import {
 import { useAuth } from '../store';
 import { APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
-import { ACTIVITY_CONFIG } from '../constants';
+import { getActivityConfig, STORAGE_KEYS } from '../constants';
 import { ProtectedImage, VerifiedBadge } from './ui';
-import type { WeekAnalyticsResponse, DayAnalytics, ActivitySummary } from '../types';
+import { DynamicIcon } from './DynamicIcon';
+import type { WeekAnalyticsResponse, DayAnalytics, ActivitySummary, CustomTile, ActivityName } from '../types';
 
 interface SearchResult {
     id: number;
@@ -82,6 +83,35 @@ export const AnalyticsPage: React.FC = () => {
     // Target username and verification status
     const targetUsername = searchParams.get('user') || routeUsername || user?.username || '';
     const [targetIsVerified, setTargetIsVerified] = useState<boolean>(false);
+    
+    // Custom tiles and color overrides for activity display
+    const [customTiles, setCustomTiles] = useState<CustomTile[]>([]);
+    const [tileColors, setTileColors] = useState<Record<string, string>>({});
+
+    // Load custom tiles and colors on mount
+    useEffect(() => {
+        const loadTileConfig = async () => {
+            try {
+                // Try to load from backend
+                const res = await api.get('/tile-config');
+                if (res.success && res.data) {
+                    if (res.data.customTiles) setCustomTiles(res.data.customTiles);
+                    if (res.data.colors) setTileColors(res.data.colors);
+                }
+            } catch {
+                // Fall back to localStorage
+                try {
+                    const localCustomTiles = localStorage.getItem(STORAGE_KEYS.CUSTOM_TILES);
+                    const localColors = localStorage.getItem(STORAGE_KEYS.TILE_COLORS);
+                    if (localCustomTiles) setCustomTiles(JSON.parse(localCustomTiles));
+                    if (localColors) setTileColors(JSON.parse(localColors));
+                } catch (e) {
+                    console.error('Failed to load tile config from localStorage', e);
+                }
+            }
+        };
+        loadTileConfig();
+    }, []);
 
     // Close user selector when clicking outside
     useEffect(() => {
@@ -864,7 +894,7 @@ export const AnalyticsPage: React.FC = () => {
                                             transition: 'all 0.2s'
                                         }}
                                     >
-                                        {activityFilter === 'all' ? 'All Activities' : ACTIVITY_CONFIG[activityFilter as keyof typeof ACTIVITY_CONFIG]?.label}
+                                        {activityFilter === 'all' ? 'All Activities' : getActivityConfig(activityFilter as ActivityName, customTiles, tileColors).label}
                                         <ChevronDown size={12} style={{ 
                                             transition: 'transform 0.2s',
                                             transform: showActivityFilter ? 'rotate(180deg)' : 'rotate(0deg)'
@@ -905,7 +935,9 @@ export const AnalyticsPage: React.FC = () => {
                                                 All Activities
                                                 {activityFilter === 'all' && <Check size={12} />}
                                             </div>
-                                            {analytics.activity_summary.map(activity => (
+                                            {analytics.activity_summary.map(activity => {
+                                                const config = getActivityConfig(activity.name as ActivityName, customTiles, tileColors);
+                                                return (
                                                 <div
                                                     key={activity.name}
                                                     onClick={() => { setActivityFilter(activity.name); setShowActivityFilter(false); }}
@@ -928,13 +960,13 @@ export const AnalyticsPage: React.FC = () => {
                                                             width: '8px', 
                                                             height: '8px', 
                                                             borderRadius: '2px', 
-                                                            backgroundColor: ACTIVITY_CONFIG[activity.name]?.color 
+                                                            backgroundColor: config.color 
                                                         }} />
-                                                        {ACTIVITY_CONFIG[activity.name]?.label || activity.name}
+                                                        {config.label || activity.name}
                                                     </span>
                                                     {activityFilter === activity.name && <Check size={12} />}
                                                 </div>
-                                            ))}
+                                            );})}
                                         </div>
                                     )}
                                 </div>
@@ -1038,6 +1070,8 @@ export const AnalyticsPage: React.FC = () => {
                                                     animate={animateBars}
                                                     delay={index * 0.05}
                                                     activityFilter={activityFilter}
+                                                    customTiles={customTiles}
+                                                    tileColors={tileColors}
                                                 />
                                             ))}
                                         </div>
@@ -1110,6 +1144,8 @@ export const AnalyticsPage: React.FC = () => {
                                             maxHours={Math.max(...sortedActivitySummary.map(a => a.total_hours))}
                                             delay={index * 0.03}
                                             animate={animateBars}
+                                            customTiles={customTiles}
+                                            tileColors={tileColors}
                                         />
                                     ))}
                                 </div>
@@ -1176,8 +1212,18 @@ export const AnalyticsPage: React.FC = () => {
 };
 
 // Day Bar Component
-const DayBar: React.FC<{ day: DayAnalytics; animate: boolean; delay: number; activityFilter?: string }> = ({ day, animate, delay, activityFilter = 'all' }) => {
+const DayBar: React.FC<{ 
+    day: DayAnalytics; 
+    animate: boolean; 
+    delay: number; 
+    activityFilter?: string;
+    customTiles?: CustomTile[];
+    tileColors?: Record<string, string>;
+}> = ({ day, animate, delay, activityFilter = 'all', customTiles = [], tileColors = {} }) => {
     const maxHeight = 140;
+    
+    // Helper to get config for an activity
+    const getConfig = (name: string) => getActivityConfig(name as ActivityName, customTiles, tileColors);
     
     // Calculate hours based on filter
     let displayHours = day.total_hours;
@@ -1187,7 +1233,7 @@ const DayBar: React.FC<{ day: DayAnalytics; animate: boolean; delay: number; act
         // Find the specific activity
         const filteredActivity = day.activities.find(a => a.name === activityFilter);
         displayHours = filteredActivity?.hours || 0;
-        barColor = ACTIVITY_CONFIG[activityFilter as keyof typeof ACTIVITY_CONFIG]?.color || '#64748b';
+        barColor = getConfig(activityFilter).color || '#64748b';
     }
     
     const barHeight = Math.min((displayHours / 24) * maxHeight, maxHeight);
@@ -1233,7 +1279,7 @@ const DayBar: React.FC<{ day: DayAnalytics; animate: boolean; delay: number; act
                                     backgroundColor: barColor,
                                     minHeight: '2px'
                                 }}
-                                title={`${ACTIVITY_CONFIG[activityFilter as keyof typeof ACTIVITY_CONFIG]?.label}: ${displayHours.toFixed(1)}h`}
+                                title={`${getConfig(activityFilter).label}: ${displayHours.toFixed(1)}h`}
                             />
                         ) : (
                             // All activities - stacked segments
@@ -1250,7 +1296,7 @@ const DayBar: React.FC<{ day: DayAnalytics; animate: boolean; delay: number; act
                                     segments.push({
                                         name: activity.name,
                                         hours: activity.hours,
-                                        color: ACTIVITY_CONFIG[activity.name]?.color || '#64748b'
+                                        color: getConfig(activity.name).color || '#64748b'
                                     });
                                 });
                                 
@@ -1262,7 +1308,7 @@ const DayBar: React.FC<{ day: DayAnalytics; animate: boolean; delay: number; act
                                             backgroundColor: seg.color,
                                             minHeight: '2px'
                                         }}
-                                        title={`${seg.name === 'Others' ? 'Others' : ACTIVITY_CONFIG[seg.name as keyof typeof ACTIVITY_CONFIG]?.label}: ${seg.hours.toFixed(1)}h`}
+                                        title={`${seg.name === 'Others' ? 'Others' : getConfig(seg.name).label}: ${seg.hours.toFixed(1)}h`}
                                     />
                                 ));
                             })()
@@ -1305,11 +1351,14 @@ const ActivityRow: React.FC<{
     maxHours: number;
     delay: number;
     animate: boolean;
-}> = ({ activity, maxHours, delay, animate }) => {
-    const config = ACTIVITY_CONFIG[activity.name];
-    const Icon = config?.icon || Coffee;
-    const color = config?.color || '#64748b';
-    const label = config?.label || activity.name;
+    customTiles?: CustomTile[];
+    tileColors?: Record<string, string>;
+}> = ({ activity, maxHours, delay, animate, customTiles = [], tileColors = {} }) => {
+    const actConfig = getActivityConfig(activity.name as ActivityName, customTiles, tileColors);
+    const Icon = actConfig.icon || Coffee;
+    const color = actConfig.color || '#64748b';
+    const label = actConfig.label || activity.name;
+    const iconName = actConfig.iconName; // For custom tiles
     const percentage = maxHours > 0 ? (activity.total_hours / maxHours) * 100 : 0;
     
     return (
@@ -1337,7 +1386,13 @@ const ActivityRow: React.FC<{
                 justifyContent: 'center',
                 flexShrink: 0
             }}>
-                <Icon size={14} color={color} />
+                {iconName ? (
+                    <Suspense fallback={<div style={{ width: 14, height: 14 }} />}>
+                        <DynamicIcon name={iconName} size={14} color={color} />
+                    </Suspense>
+                ) : (
+                    <Icon size={14} color={color} />
+                )}
             </div>
             
             {/* Info */}

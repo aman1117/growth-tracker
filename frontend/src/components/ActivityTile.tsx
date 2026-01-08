@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
+import { X } from 'lucide-react';
 import type { ActivityName } from '../types';
 import type { LucideIcon } from 'lucide-react';
+import { DynamicIcon } from './DynamicIcon';
 
 export type TileSize = 'small' | 'medium' | 'wide';
 
@@ -19,6 +21,11 @@ interface ActivityTileProps {
     isOtherSelected?: boolean;
     isDragging?: boolean;
     hasNote?: boolean;
+    isEditMode?: boolean;
+    onHide?: (name: ActivityName) => void;
+    displayLabel?: string; // Custom display label for custom tiles
+    tileIndex?: number; // For alternating wobble animation
+    iconName?: string; // Icon name for dynamic loading (custom tiles)
 }
 
 const sizeConfig = {
@@ -48,6 +55,11 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
     isOtherSelected = false,
     isDragging: isDraggingProp = false,
     hasNote = false,
+    isEditMode = false,
+    onHide,
+    displayLabel,
+    tileIndex = 0,
+    iconName,
 }) => {
     const {
         attributes,
@@ -66,8 +78,8 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
     const isActive = hours > 0;
     const config = sizeConfig[size];
 
-    // Format name (e.g., book_reading -> Book Reading)
-    const displayName = name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    // Use custom display label if provided, otherwise format from name
+    const displayName = displayLabel || name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     
     // Check if name is long (more than 10 chars) to reduce font size
     const isLongName = displayName.length > 10;
@@ -89,6 +101,16 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
             onClick();
         }
     };
+
+    const handleHideClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onHide?.(name);
+    };
+
+    // Determine wobble animation class
+    const wobbleClass = isEditMode && !isSelected && !isDraggingProp
+        ? (tileIndex % 2 === 0 ? 'tile-editing' : 'tile-editing-alt')
+        : '';
 
     // Glassmorphism styles
     const glassStyle = {
@@ -126,19 +148,48 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                 borderRadius: '24px',
                 // Only disable touch scrolling when tile is selected and ready to drag
                 touchAction: isSelected && isDraggable ? 'none' : 'manipulation',
-                overflow: 'hidden',
+                overflow: 'visible', // Allow delete badge to overflow
                 // Grey out when another tile is selected
                 filter: isOtherSelected && !isSelected ? 'brightness(0.5) saturate(0.5)' : 'none',
                 // Selection border
                 outline: isSelected ? '3px solid var(--text-primary)' : 'none',
                 outlineOffset: '-1px',
             }}
-            className="activity-tile glass-tile"
+            className={`activity-tile glass-tile ${wobbleClass} ${isSelected ? 'tile-selected' : ''} ${isDraggingProp ? 'tile-dragging' : ''}`}
             onClick={handleTileClick}
             {...(isSelected ? { ...attributes, ...listeners } : {})}
         >
+            {/* Delete Badge - iOS style X button in edit mode */}
+            {isEditMode && !isDraggingProp && onHide && (
+                <button
+                    onClick={handleHideClick}
+                    className="delete-badge"
+                    style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        left: '-8px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: 'rgba(0, 0, 0, 0.75)',
+                        border: '2px solid white',
+                        color: 'white',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10,
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                        padding: 0,
+                    }}
+                    title="Hide tile"
+                >
+                    <X size={14} strokeWidth={3} />
+                </button>
+            )}
+
             {/* Note Badge - simple dot indicator */}
-            {hasNote && !isSelected && (
+            {hasNote && !isSelected && !isEditMode && (
                 <div
                     style={{
                         position: 'absolute',
@@ -186,11 +237,21 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                             transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                         }}
                     >
-                        <Icon
-                            size={config.iconSize}
-                            color={isActive ? 'white' : 'var(--text-secondary)'}
-                            style={{ transition: 'color 0.2s' }}
-                        />
+                        {iconName ? (
+                            <Suspense fallback={<div style={{ width: config.iconSize, height: config.iconSize }} />}>
+                                <DynamicIcon 
+                                    name={iconName} 
+                                    size={config.iconSize} 
+                                    color={isActive ? 'white' : 'var(--text-secondary)'}
+                                />
+                            </Suspense>
+                        ) : (
+                            <Icon
+                                size={config.iconSize}
+                                color={isActive ? 'white' : 'var(--text-secondary)'}
+                                style={{ transition: 'color 0.2s' }}
+                            />
+                        )}
                     </div>
 
                     {/* Content */}
@@ -208,8 +269,13 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                             fontWeight: 400,
                             color: isActive ? 'white' : 'var(--text-secondary)',
                             lineHeight: 1.2,
-                            wordBreak: 'break-word',
                             maxWidth: '100%',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: size === 'small' ? 'nowrap' : 'normal',
+                            display: '-webkit-box',
+                            WebkitLineClamp: size === 'small' ? 1 : 2,
+                            WebkitBoxOrient: 'vertical',
                         }}>
                             {displayName}
                         </span>

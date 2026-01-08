@@ -138,6 +138,60 @@
 }
 
 /* ============================================================================
+   Edit Mode Animations (iOS-style wobble)
+   ============================================================================ */
+
+@keyframes wobble {
+  0%, 100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+
+@keyframes wobbleAlt {
+  0%, 100% {
+    transform: rotate(1.5deg);
+  }
+  50% {
+    transform: rotate(-1.5deg);
+  }
+}
+
+/* Apply wobble animation to tiles in edit mode */
+.tile-editing {
+  animation: wobble 0.15s ease-in-out infinite;
+}
+
+/* Alternate wobble for visual variety */
+.tile-editing-alt {
+  animation: wobbleAlt 0.15s ease-in-out infinite;
+}
+
+/* Delete badge animation */
+@keyframes deleteBadgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.delete-badge {
+  animation: deleteBadgePulse 1s ease-in-out infinite;
+}
+
+/* Disable wobble for selected/dragging tiles */
+.tile-editing.tile-selected,
+.tile-editing-alt.tile-selected,
+.tile-editing.tile-dragging,
+.tile-editing-alt.tile-dragging {
+  animation: none;
+}
+
+/* ============================================================================
    Loading Animations
    ============================================================================ */
 

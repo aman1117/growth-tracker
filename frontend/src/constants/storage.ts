@@ -16,6 +16,9 @@ export const STORAGE_KEYS = {
   // Dashboard Configuration
   TILE_ORDER: 'growth-tracker-tile-order',
   TILE_SIZES: 'growth-tracker-tile-sizes',
+  TILE_HIDDEN: 'growth-tracker-tile-hidden',
+  TILE_COLORS: 'growth-tracker-tile-colors',
+  CUSTOM_TILES: 'growth-tracker-custom-tiles',
 
   // Theme
   THEME: 'growth-tracker-theme',

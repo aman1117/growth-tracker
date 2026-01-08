@@ -28,6 +28,7 @@ export interface ActivityResponse {
     error?: string;
 }
 
+// Predefined activity names
 export const ACTIVITY_NAMES = [
     "sleep",
     "study",
@@ -47,7 +48,44 @@ export const ACTIVITY_NAMES = [
     "office",
 ] as const;
 
-export type ActivityName = typeof ACTIVITY_NAMES[number];
+export type PredefinedActivityName = typeof ACTIVITY_NAMES[number];
+
+// Custom tile prefix
+export const CUSTOM_TILE_PREFIX = "custom:";
+
+// ActivityName can be predefined or custom (custom:<uuid>)
+export type ActivityName = PredefinedActivityName | `custom:${string}`;
+
+// Check if an activity name is a custom tile
+export const isCustomTile = (name: string): name is `custom:${string}` => {
+    return name.startsWith(CUSTOM_TILE_PREFIX);
+};
+
+// Extract custom tile ID from activity name
+export const getCustomTileId = (name: string): string | null => {
+    if (!isCustomTile(name)) return null;
+    return name.slice(CUSTOM_TILE_PREFIX.length);
+};
+
+// Custom tile definition
+export interface CustomTile {
+    id: string;       // UUID v4
+    name: string;     // Display name (max 20 chars)
+    icon: string;     // Lucide icon name
+    color: string;    // Hex color code
+}
+
+// Extended tile configuration
+export interface TileConfig {
+    order: ActivityName[];
+    sizes: Record<ActivityName, string>;
+    hidden?: ActivityName[];
+    colors?: Record<ActivityName, string>;
+    customTiles?: CustomTile[];
+}
+
+// Maximum custom tiles allowed
+export const MAX_CUSTOM_TILES = 5;
 
 // Analytics Types
 export interface DayActivityBreakdown {

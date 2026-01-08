@@ -5,8 +5,8 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  # Build command - builds from ./main directory
-  cmd = "go build -o ./tmp/main ./main"
+  # Build command - builds from ./cmd/server directory
+  cmd = "go build -o ./tmp/main ./cmd/server"
   
   # Binary to run
   bin = "./tmp/main"

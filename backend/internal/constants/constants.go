@@ -34,6 +34,13 @@ const (
 	MaxDailyHours = 24.0
 )
 
+// Custom tile constants
+const (
+	MaxCustomTiles        = 5
+	CustomTilePrefix      = "custom:"
+	CustomTileLabelMaxLen = 20
+)
+
 // Token constants
 const (
 	ResetTokenPrefix  = "reset:"
@@ -103,6 +110,9 @@ const (
 	ErrCodePasswordMismatch   = "PASSWORD_MISMATCH"
 	ErrCodeBioTooLong         = "BIO_TOO_LONG"
 	ErrCodeHoursExceeded      = "HOURS_EXCEEDED"
+	ErrCodeTileLimitExceeded  = "TILE_LIMIT_EXCEEDED"
+	ErrCodeInvalidTileConfig  = "INVALID_TILE_CONFIG"
+	ErrCodeInvalidColor       = "INVALID_COLOR"
 
 	// Resource errors
 	ErrCodeUserNotFound         = "USER_NOT_FOUND"

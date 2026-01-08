@@ -122,14 +122,33 @@ func (h *TileConfigHandler) SaveConfig(c *fiber.Ctx) error {
 
 	var req dto.SaveTileConfigRequest
 	if err := c.BodyParser(&req); err != nil {
+		logger.LogWithContext(traceID, userID).Warnw("Tile config save failed - invalid request body", "error", err)
 		return response.InvalidRequest(c)
 	}
 
+	// Log config details for debugging
+	logger.LogWithContext(traceID, userID).Debugw("Attempting to save tile config",
+		"hasOrder", req.Config["order"] != nil,
+		"hasSizes", req.Config["sizes"] != nil,
+		"hasHidden", req.Config["hidden"] != nil,
+		"hasColors", req.Config["colors"] != nil,
+		"hasCustomTiles", req.Config["customTiles"] != nil,
+	)
+
 	if err := h.tileConfigSvc.SaveConfig(userID, req.Config); err != nil {
+		// Check if it's a validation error
+		if validationErr, ok := err.(*services.TileConfigValidationError); ok {
+			logger.LogWithContext(traceID, userID).Warnw("Tile config validation failed",
+				"error", validationErr.Message,
+				"code", validationErr.Code,
+			)
+			return response.BadRequest(c, validationErr.Message, validationErr.Code)
+		}
+
 		logger.LogWithContext(traceID, userID).Errorw("Tile config save failed", "error", err)
 		return response.InternalError(c, "Failed to save tile configuration", constants.ErrCodeSaveFailed)
 	}
 
-	logger.LogWithContext(traceID, userID).Debug("Tile config saved")
+	logger.LogWithContext(traceID, userID).Infow("Tile config saved successfully")
 	return response.Success(c, constants.MsgTileConfigSaved)
 }

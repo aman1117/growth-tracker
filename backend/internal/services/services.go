@@ -369,7 +369,75 @@ func (s *TileConfigService) GetConfigByUsername(username string) (*models.TileCo
 	return s.tileRepo.FindByUserID(user.ID)
 }
 
-// SaveConfig saves tile config for a user
+// TileConfigValidationError represents a validation error with a specific code
+type TileConfigValidationError struct {
+	Message string
+	Code    string
+}
+
+func (e *TileConfigValidationError) Error() string {
+	return e.Message
+}
+
+// ValidateConfig validates the tile configuration
+func (s *TileConfigService) ValidateConfig(config models.JSONB) *TileConfigValidationError {
+	// Parse config to structured data
+	tc := &models.TileConfig{Config: config}
+	configData, err := tc.GetConfigData()
+	if err != nil {
+		return &TileConfigValidationError{
+			Message: "Invalid configuration format",
+			Code:    "INVALID_TILE_CONFIG",
+		}
+	}
+
+	// Validate custom tiles limit (max 5)
+	if len(configData.CustomTiles) > 5 {
+		return &TileConfigValidationError{
+			Message: "Maximum of 5 custom tiles allowed",
+			Code:    "TILE_LIMIT_EXCEEDED",
+		}
+	}
+
+	// Validate each custom tile
+	customTileIDs := make(map[string]bool)
+	for _, ct := range configData.CustomTiles {
+		if err := ct.Validate(); err != nil {
+			return &TileConfigValidationError{
+				Message: err.Error(),
+				Code:    "INVALID_TILE_CONFIG",
+			}
+		}
+
+		// Check for duplicate IDs
+		if customTileIDs[ct.ID] {
+			return &TileConfigValidationError{
+				Message: "Duplicate custom tile ID found",
+				Code:    "INVALID_TILE_CONFIG",
+			}
+		}
+		customTileIDs[ct.ID] = true
+	}
+
+	// Validate color overrides
+	for _, color := range configData.Colors {
+		if !models.ValidateColor(color) {
+			return &TileConfigValidationError{
+				Message: "Invalid color format: " + color,
+				Code:    "INVALID_COLOR",
+			}
+		}
+	}
+
+	return nil
+}
+
+// SaveConfig saves tile config for a user with validation
 func (s *TileConfigService) SaveConfig(userID uint, config models.JSONB) error {
+	// Validate config
+	if validationErr := s.ValidateConfig(config); validationErr != nil {
+		return validationErr
+	}
+
 	return s.tileRepo.Save(userID, config)
 }

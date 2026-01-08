@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ActivityName } from '../types';
+import { getActivityConfig } from '../constants/activities';
 import { X, ChevronDown, Plus, Minus } from 'lucide-react';
+import type { CustomTile } from '../types';
 
 interface ActivityModalProps {
     isOpen: boolean;
@@ -9,6 +11,7 @@ interface ActivityModalProps {
     activityName: ActivityName | null;
     currentHours: number;
     currentNote?: string;
+    customTiles?: CustomTile[];  // Pass custom tiles for name lookup
 }
 
 export const ActivityModal: React.FC<ActivityModalProps> = ({
@@ -17,7 +20,8 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
     onSave,
     activityName,
     currentHours,
-    currentNote
+    currentNote,
+    customTiles = [],
 }) => {
     const [hours, setHours] = useState<string>('');
     const [note, setNote] = useState<string>('');
@@ -44,7 +48,9 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
 
     if (!isOpen || !activityName) return null;
 
-    const displayName = activityName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    // Get display name - use getActivityConfig for custom tiles
+    const config = getActivityConfig(activityName, customTiles);
+    const displayName = config.label;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

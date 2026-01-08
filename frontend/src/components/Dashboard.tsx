@@ -18,24 +18,29 @@ import {
 } from '@dnd-kit/sortable';
 import { useAuth } from '../store';
 import { api, ApiError } from '../services/api';
-import { ACTIVITY_NAMES } from '../types';
-import type { ActivityName, Activity } from '../types';
+import { ACTIVITY_NAMES, isCustomTile, MAX_CUSTOM_TILES } from '../types';
+import type { ActivityName, Activity, CustomTile, PredefinedActivityName } from '../types';
 import type { Badge } from '../types/api';
-import { ACTIVITY_CONFIG, STORAGE_KEYS } from '../constants';
+import { STORAGE_KEYS, getActivityConfig, createCustomActivityName } from '../constants';
 import { DaySummaryCard } from './DaySummaryCard';
 import { ActivityTile } from './ActivityTile';
 import type { TileSize } from './ActivityTile';
 import { ActivityModal } from './ActivityModal';
 import { BadgeUnlockModal } from './BadgeUnlockModal';
+import { CreateCustomTileModal } from './CreateCustomTileModal';
+import { HiddenTilesPanel } from './HiddenTilesPanel';
 import { SnapToast, ProtectedImage, VerifiedBadge } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
 import { renderBadgeIcon } from '../utils/badgeIcons';
-import { Lock, X, BarChart3, Sparkles } from 'lucide-react';
+import { Lock, X, BarChart3, Plus, EyeOff, GripVertical, Undo2 } from 'lucide-react';
 
 const STORAGE_KEY = STORAGE_KEYS.TILE_ORDER;
 const SIZE_STORAGE_KEY = STORAGE_KEYS.TILE_SIZES;
+const HIDDEN_STORAGE_KEY = STORAGE_KEYS.TILE_HIDDEN;
+const COLORS_STORAGE_KEY = STORAGE_KEYS.TILE_COLORS;
+const CUSTOM_TILES_STORAGE_KEY = STORAGE_KEYS.CUSTOM_TILES;
 
 // Default tile configuration
 const getDefaultTileSizes = (): Record<ActivityName, TileSize> => {
@@ -168,9 +173,33 @@ export const Dashboard: React.FC = () => {
     const [selectedTile, setSelectedTile] = useState<ActivityName | null>(null);
     const [activeDragId, setActiveDragId] = useState<ActivityName | null>(null);
     
+    // Custom tiles state
+    const [customTiles, setCustomTiles] = useState<CustomTile[]>([]);
+    const [hiddenTiles, setHiddenTiles] = useState<ActivityName[]>([]);
+    const [tileColors, setTileColors] = useState<Record<string, string>>({});
+    
+    // Custom tile modal state
+    const [showCustomTileModal, setShowCustomTileModal] = useState(false);
+    const [editingCustomTile, setEditingCustomTile] = useState<CustomTile | undefined>(undefined);
+    const [showHiddenTilesPanel, setShowHiddenTilesPanel] = useState(false);
+    
+    // Hide confirmation dialog state
+    const [hideConfirm, setHideConfirm] = useState<{ tileName: ActivityName; displayName: string } | null>(null);
+    
+    // Undo delete state - stores recently deleted tile for recovery
+    const [deletedTile, setDeletedTile] = useState<{
+        tile: CustomTile;
+        orderIndex: number;
+        wasHidden: boolean;
+        color?: string;
+    } | null>(null);
+    const [undoTimeoutId, setUndoTimeoutId] = useState<NodeJS.Timeout | null>(null);
+    
     // Store original values when entering edit mode (for cancel)
     const [originalTileOrder, setOriginalTileOrder] = useState<ActivityName[]>([]);
     const [originalTileSizes, setOriginalTileSizes] = useState<Record<ActivityName, TileSize>>({} as Record<ActivityName, TileSize>);
+    const [originalHiddenTiles, setOriginalHiddenTiles] = useState<ActivityName[]>([]);
+    const [originalCustomTiles, setOriginalCustomTiles] = useState<CustomTile[]>([]);
 
     // Determine if we are viewing another user's profile
     const targetUsername = routeUsername || user?.username;
@@ -247,11 +276,17 @@ export const Dashboard: React.FC = () => {
 
         if (over && active.id !== over.id) {
             setTileOrder((items) => {
+                // Find indices in the full tileOrder
                 const oldIndex = items.indexOf(active.id as ActivityName);
                 const newIndex = items.indexOf(over.id as ActivityName);
-                const newOrder = arrayMove(items, oldIndex, newIndex);
-                saveTileOrder(newOrder);
-                return newOrder;
+                
+                // If both items exist, reorder them
+                if (oldIndex !== -1 && newIndex !== -1) {
+                    const newOrder = arrayMove(items, oldIndex, newIndex);
+                    saveTileOrder(newOrder);
+                    return newOrder;
+                }
+                return items;
             });
         }
     };
@@ -424,14 +459,41 @@ export const Dashboard: React.FC = () => {
                     : await api.get('/tile-config');
                     
                 if (res.success && res.data) {
-                    const { order, sizes } = res.data;
+                    const { order, sizes, hidden, colors, customTiles: customTilesData } = res.data;
                     
-                    // Validate and apply order
-                    if (order && Array.isArray(order) && 
-                        order.length === ACTIVITY_NAMES.length &&
-                        ACTIVITY_NAMES.every((name: ActivityName) => order.includes(name))) {
-                        setTileOrder(order);
-                        if (!isReadOnly) saveTileOrder(order);
+                    // Load custom tiles first (needed for order validation)
+                    if (customTilesData && Array.isArray(customTilesData)) {
+                        setCustomTiles(customTilesData);
+                        if (!isReadOnly) {
+                            localStorage.setItem(CUSTOM_TILES_STORAGE_KEY, JSON.stringify(customTilesData));
+                        }
+                    }
+                    
+                    // Load hidden tiles
+                    if (hidden && Array.isArray(hidden)) {
+                        setHiddenTiles(hidden);
+                        if (!isReadOnly) {
+                            localStorage.setItem(HIDDEN_STORAGE_KEY, JSON.stringify(hidden));
+                        }
+                    }
+                    
+                    // Load color overrides
+                    if (colors && typeof colors === 'object') {
+                        setTileColors(colors);
+                        if (!isReadOnly) {
+                            localStorage.setItem(COLORS_STORAGE_KEY, JSON.stringify(colors));
+                        }
+                    }
+                    
+                    // Validate and apply order (including custom tiles)
+                    if (order && Array.isArray(order)) {
+                        // For validation, check predefined activities + custom tiles
+                        const validOrder = order.filter((name: string) => 
+                            ACTIVITY_NAMES.includes(name as PredefinedActivityName) || 
+                            isCustomTile(name)
+                        );
+                        setTileOrder(validOrder as ActivityName[]);
+                        if (!isReadOnly) saveTileOrder(validOrder as ActivityName[]);
                     } else {
                         setTileOrder([...ACTIVITY_NAMES]);
                     }
@@ -444,7 +506,21 @@ export const Dashboard: React.FC = () => {
                         setTileSizes(getDefaultTileSizes());
                     }
                 } else {
-                    // No config - use defaults
+                    // No config - use defaults, but try localStorage first
+                    if (!isReadOnly) {
+                        try {
+                            const localHidden = localStorage.getItem(HIDDEN_STORAGE_KEY);
+                            const localColors = localStorage.getItem(COLORS_STORAGE_KEY);
+                            const localCustomTiles = localStorage.getItem(CUSTOM_TILES_STORAGE_KEY);
+                            
+                            if (localHidden) setHiddenTiles(JSON.parse(localHidden));
+                            if (localColors) setTileColors(JSON.parse(localColors));
+                            if (localCustomTiles) setCustomTiles(JSON.parse(localCustomTiles));
+                        } catch (e) {
+                            console.error('Failed to load from localStorage', e);
+                        }
+                    }
+                    
                     setTileOrder([...ACTIVITY_NAMES]);
                     setTileSizes(getDefaultTileSizes());
                 }
@@ -460,12 +536,29 @@ export const Dashboard: React.FC = () => {
         fetchTileConfig();
     }, [isReadOnly, targetUsername]);
 
-    // Save tile config to backend
-    const saveTileConfigToBackend = async (order: ActivityName[], sizes: Record<ActivityName, TileSize>) => {
+    // Save tile config to backend (includes custom tiles, hidden, colors)
+    const saveTileConfigToBackend = async (
+        order: ActivityName[], 
+        sizes: Record<ActivityName, TileSize>,
+        hidden: ActivityName[] = hiddenTiles,
+        colors: Record<string, string> = tileColors,
+        customTilesList: CustomTile[] = customTiles
+    ) => {
         try {
             await api.post('/tile-config', {
-                config: { order, sizes }
+                config: { 
+                    order, 
+                    sizes,
+                    hidden: hidden.length > 0 ? hidden : undefined,
+                    colors: Object.keys(colors).length > 0 ? colors : undefined,
+                    customTiles: customTilesList.length > 0 ? customTilesList : undefined,
+                }
             });
+            
+            // Also save to localStorage for quick loading
+            localStorage.setItem(HIDDEN_STORAGE_KEY, JSON.stringify(hidden));
+            localStorage.setItem(COLORS_STORAGE_KEY, JSON.stringify(colors));
+            localStorage.setItem(CUSTOM_TILES_STORAGE_KEY, JSON.stringify(customTilesList));
         } catch (err) {
             console.error('Failed to save tile config to backend', err);
         }
@@ -478,6 +571,8 @@ export const Dashboard: React.FC = () => {
                 if (!isEditMode) {
                     setOriginalTileOrder([...tileOrder]);
                     setOriginalTileSizes({...tileSizes});
+                    setOriginalHiddenTiles([...hiddenTiles]);
+                    setOriginalCustomTiles([...customTiles]);
                 }
                 setIsEditMode(prev => !prev);
                 setSelectedTile(null);
@@ -486,7 +581,7 @@ export const Dashboard: React.FC = () => {
         
         window.addEventListener('toggleEditMode', handleToggleEditMode);
         return () => window.removeEventListener('toggleEditMode', handleToggleEditMode);
-    }, [isEditMode, isReadOnly, tileOrder, tileSizes]);
+    }, [isEditMode, isReadOnly, tileOrder, tileSizes, hiddenTiles, customTiles]);
 
     const handlePrevDay = () => {
         setAnimationDirection('right');
@@ -599,6 +694,169 @@ export const Dashboard: React.FC = () => {
         }
     };
 
+    // Hide a tile (soft delete) - shows confirmation first
+    const handleHideTileClick = (name: ActivityName) => {
+        const config = getActivityConfig(name, customTiles, tileColors);
+        setHideConfirm({ tileName: name, displayName: config.label });
+    };
+
+    const handleConfirmHide = () => {
+        if (hideConfirm) {
+            setHiddenTiles(prev => {
+                if (prev.includes(hideConfirm.tileName)) return prev;
+                return [...prev, hideConfirm.tileName];
+            });
+            setHideConfirm(null);
+        }
+    };
+
+    const handleCancelHide = () => {
+        setHideConfirm(null);
+    };
+
+    // Restore a hidden tile (adds to end of grid)
+    const handleRestoreTile = (name: ActivityName) => {
+        setHiddenTiles(prev => prev.filter(t => t !== name));
+        
+        // If it's not in the tile order (custom tile case), add to end
+        if (!tileOrder.includes(name)) {
+            setTileOrder(prev => [...prev, name]);
+        }
+    };
+
+    // Save a new or edited custom tile
+    const handleSaveCustomTile = (tile: CustomTile) => {
+        setCustomTiles(prev => {
+            const existingIndex = prev.findIndex(t => t.id === tile.id);
+            if (existingIndex >= 0) {
+                // Editing existing tile
+                const updated = [...prev];
+                updated[existingIndex] = tile;
+                return updated;
+            } else {
+                // New tile
+                return [...prev, tile];
+            }
+        });
+
+        // Create activity name for tile
+        const activityName = createCustomActivityName(tile.id);
+        
+        // If new tile, add to tile order
+        if (!tileOrder.includes(activityName)) {
+            setTileOrder(prev => [...prev, activityName]);
+        }
+        
+        // Initialize activity data for the custom tile (if not exists)
+        if (!(activityName in activities)) {
+            setActivities(prev => ({
+                ...prev,
+                [activityName]: 0
+            }));
+        }
+        
+        setShowCustomTileModal(false);
+        setEditingCustomTile(null);
+    };
+
+    // Delete a custom tile with undo support
+    const handleDeleteCustomTile = (tileId: string) => {
+        const activityName = createCustomActivityName(tileId);
+        const tileToDelete = customTiles.find(t => t.id === tileId);
+        
+        if (!tileToDelete) return;
+        
+        // Store tile info for potential undo
+        const orderIndex = tileOrder.indexOf(activityName);
+        const wasHidden = hiddenTiles.includes(activityName);
+        const color = tileColors[activityName];
+        
+        // Clear any existing undo timeout
+        if (undoTimeoutId) {
+            clearTimeout(undoTimeoutId);
+        }
+        
+        // Store deleted tile for undo
+        setDeletedTile({
+            tile: tileToDelete,
+            orderIndex,
+            wasHidden,
+            color,
+        });
+        
+        // Remove from custom tiles
+        setCustomTiles(prev => prev.filter(t => t.id !== tileId));
+        
+        // Remove from tile order
+        setTileOrder(prev => prev.filter(t => t !== activityName));
+        
+        // Remove from hidden tiles
+        setHiddenTiles(prev => prev.filter(t => t !== activityName));
+        
+        // Remove color override
+        setTileColors(prev => {
+            const updated = { ...prev };
+            delete updated[activityName];
+            return updated;
+        });
+        
+        // Set timeout to clear undo option after 8 seconds
+        const timeoutId = setTimeout(() => {
+            setDeletedTile(null);
+        }, 8000);
+        setUndoTimeoutId(timeoutId);
+    };
+    
+    // Undo delete - restore the deleted tile
+    const handleUndoDelete = useCallback(() => {
+        if (!deletedTile) return;
+        
+        const { tile, orderIndex, wasHidden, color } = deletedTile;
+        const activityName = createCustomActivityName(tile.id);
+        
+        // Check if we're at the limit (user may have created a new tile after delete)
+        if (customTiles.length >= MAX_CUSTOM_TILES) {
+            // Can't restore - show toast or silently fail
+            setDeletedTile(null);
+            if (undoTimeoutId) {
+                clearTimeout(undoTimeoutId);
+                setUndoTimeoutId(null);
+            }
+            return;
+        }
+        
+        // Restore custom tile
+        setCustomTiles(prev => [...prev, tile]);
+        
+        // Restore to original position in tile order
+        setTileOrder(prev => {
+            const newOrder = [...prev];
+            const insertIndex = Math.min(orderIndex, newOrder.length);
+            newOrder.splice(insertIndex, 0, activityName);
+            return newOrder;
+        });
+        
+        // Restore hidden state if it was hidden
+        if (wasHidden) {
+            setHiddenTiles(prev => [...prev, activityName]);
+        }
+        
+        // Restore color if it had one
+        if (color) {
+            setTileColors(prev => ({ ...prev, [activityName]: color }));
+        }
+        
+        // Clear undo state
+        if (undoTimeoutId) {
+            clearTimeout(undoTimeoutId);
+        }
+        setDeletedTile(null);
+        setUndoTimeoutId(null);
+    }, [deletedTile, undoTimeoutId, customTiles.length]);
+
+    // Get visible tiles (filtering out hidden ones)
+    const visibleTiles = tileOrder.filter(name => !hiddenTiles.includes(name));
+
     return (
         <div className="container" style={{ paddingBottom: '2rem' }}>
             {isReadOnly && (
@@ -709,94 +967,154 @@ export const Dashboard: React.FC = () => {
                 </div>
             )}
 
+            {/* Day Summary Card - hidden during edit mode with animation */}
             {!isPrivateAccount && (
-                <DaySummaryCard
-                    username={targetUsername || ''}
-                    currentDate={currentDate}
-                    onPrev={handlePrevDay}
-                    onNext={handleNextDay}
-                    onDateChange={handleDateChange}
-                    isNextDisabled={isNextDisabled()}
-                    activities={activities}
-                    loading={loading}
-                    onNewBadges={(badges) => {
-                        setNewBadges(badges);
-                        setShowBadgeUnlockModal(true);
-                    }}
-                />
+                <div style={{
+                    overflow: 'hidden',
+                    transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                    maxHeight: isEditMode ? '0px' : '200px',
+                    opacity: isEditMode ? 0 : 1,
+                    transform: isEditMode ? 'translateY(-10px) scale(0.98)' : 'translateY(0) scale(1)',
+                    marginBottom: isEditMode ? '0px' : undefined,
+                }}>
+                    <DaySummaryCard
+                        username={targetUsername || ''}
+                        currentDate={currentDate}
+                        onPrev={handlePrevDay}
+                        onNext={handleNextDay}
+                        onDateChange={handleDateChange}
+                        isNextDisabled={isNextDisabled()}
+                        activities={activities}
+                        loading={loading}
+                        onNewBadges={(badges) => {
+                            setNewBadges(badges);
+                            setShowBadgeUnlockModal(true);
+                        }}
+                    />
+                </div>
             )}
 
             {/* Edit Mode Bar - only show when in edit mode */}
             {!isReadOnly && isEditMode && (
                 <div style={{
                     display: 'flex',
+                    alignItems: 'stretch',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0.5rem 0.75rem',
-                    backgroundColor: 'var(--bg-secondary)',
-                    borderRadius: '8px',
-                    marginBottom: '0.5rem',
-                    border: '1px solid var(--border)',
-                    animation: 'editBarSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    transformOrigin: 'top center',
+                    padding: '14px 16px',
+                    background: 'linear-gradient(135deg, rgba(0, 149, 246, 0.12) 0%, rgba(0, 149, 246, 0.06) 100%)',
+                    borderRadius: '12px',
+                    marginBottom: '12px',
+                    border: '1px solid rgba(0, 149, 246, 0.25)',
+                    animation: 'editBarSlideIn 0.25s ease-out',
+                    gap: '16px',
                 }}>
                     <style>{`
                         @keyframes editBarSlideIn {
-                            0% {
-                                opacity: 0;
-                                transform: translateY(-10px) scale(0.95);
-                            }
-                            100% {
-                                opacity: 1;
-                                transform: translateY(0) scale(1);
-                            }
+                            from { opacity: 0; transform: translateY(-8px); }
+                            to { opacity: 1; transform: translateY(0); }
                         }
                     `}</style>
-                    <span style={{
-                        fontSize: '0.7rem',
-                        color: 'var(--text-secondary)',
+                    
+                    {/* Left: Instructions stacked vertically */}
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        justifyContent: 'center',
                     }}>
-                        Tap to resize • Drag to reorder
-                    </span>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            <GripVertical size={14} style={{ color: '#0095f6' }} />
+                            <span>Drag to reorder</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            <span style={{ width: '14px', textAlign: 'center', color: '#0095f6' }}>↔</span>
+                            <span>Tap to resize</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            <span style={{ width: '14px', textAlign: 'center', color: '#ef4444', fontWeight: 600 }}>✕</span>
+                            <span>Tap X to hide</span>
+                        </div>
+                    </div>
+
+                    {/* Right: Buttons stacked vertically */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+                        {hiddenTiles.length > 0 && (
+                            <button
+                                onClick={() => setShowHiddenTilesPanel(true)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '6px',
+                                    padding: '8px 16px',
+                                    background: 'rgba(251, 191, 36, 0.15)',
+                                    color: '#fbbf24',
+                                    border: '1px solid rgba(251, 191, 36, 0.3)',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 500,
+                                }}
+                            >
+                                <EyeOff size={14} />
+                                {hiddenTiles.length} Hidden
+                            </button>
+                        )}
                         <button
                             onClick={() => {
+                                // Clear undo state if pending
+                                if (undoTimeoutId) {
+                                    clearTimeout(undoTimeoutId);
+                                    setUndoTimeoutId(null);
+                                }
+                                setDeletedTile(null);
+                                
+                                // Restore original state
                                 setTileOrder(originalTileOrder);
                                 setTileSizes(originalTileSizes);
+                                setHiddenTiles(originalHiddenTiles);
+                                setCustomTiles(originalCustomTiles);
                                 saveTileOrder(originalTileOrder);
                                 saveTileSizes(originalTileSizes);
                                 setIsEditMode(false);
                                 setSelectedTile(null);
                             }}
                             style={{
-                                padding: '0.35rem 0.75rem',
-                                backgroundColor: 'transparent',
-                                color: 'var(--text-secondary)',
+                                padding: '8px 20px',
+                                backgroundColor: 'var(--bg-secondary)',
+                                color: 'var(--text-primary)',
                                 border: '1px solid var(--border)',
-                                borderRadius: '4px',
+                                borderRadius: '8px',
                                 cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: 400,
+                                fontSize: '0.85rem',
+                                fontWeight: 500,
                             }}
                         >
                             Cancel
                         </button>
                         <button
                             onClick={() => {
-                                // Save to backend when clicking Done
-                                saveTileConfigToBackend(tileOrder, tileSizes);
+                                // Clear undo state - deletion is now final
+                                if (undoTimeoutId) {
+                                    clearTimeout(undoTimeoutId);
+                                    setUndoTimeoutId(null);
+                                }
+                                setDeletedTile(null);
+                                
+                                saveTileConfigToBackend(tileOrder, tileSizes, hiddenTiles, tileColors, customTiles);
                                 setIsEditMode(false);
                                 setSelectedTile(null);
                             }}
                             style={{
-                                padding: '0.35rem 0.75rem',
-                                backgroundColor: '#0095f6',
+                                padding: '8px 20px',
+                                background: 'linear-gradient(135deg, #0095f6 0%, #0077cc 100%)',
                                 color: '#ffffff',
                                 border: 'none',
-                                borderRadius: '4px',
+                                borderRadius: '8px',
                                 cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: 500,
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                boxShadow: '0 2px 8px rgba(0, 149, 246, 0.3)',
                             }}
                         >
                             Done
@@ -953,7 +1271,7 @@ export const Dashboard: React.FC = () => {
                         onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
                     >
-                        <SortableContext items={tileOrder} strategy={rectSortingStrategy}>
+                        <SortableContext items={visibleTiles} strategy={rectSortingStrategy}>
                             <div 
                                 className={tilesAnimating 
                                     ? (animationDirection === 'left' ? 'tiles-slide-out-left' : 'tiles-slide-out-right')
@@ -972,8 +1290,8 @@ export const Dashboard: React.FC = () => {
                                 }
                             }}
                         >
-                            {tileOrder.map((name) => {
-                                const config = ACTIVITY_CONFIG[name] || { icon: Sparkles, color: '#000' };
+                            {visibleTiles.map((name, index) => {
+                                const config = getActivityConfig(name, customTiles, tileColors);
                                 return (
                                     <ActivityTile
                                         key={name}
@@ -990,39 +1308,87 @@ export const Dashboard: React.FC = () => {
                                         isOtherSelected={selectedTile !== null && selectedTile !== name}
                                         isDragging={activeDragId === name}
                                         hasNote={!isReadOnly && !!activityNotes[name]}
+                                        isEditMode={isEditMode}
+                                        onHide={handleHideTileClick}
+                                        displayLabel={config.label}
+                                        tileIndex={index}
+                                        iconName={config.iconName}
                                     />
                                 );
                             })}
+                            
+                            {/* Add Custom Tile Button - show in edit mode when under limit */}
+                            {isEditMode && !isReadOnly && customTiles.length < MAX_CUSTOM_TILES && (
+                                <div
+                                    onClick={() => setShowCustomTileModal(true)}
+                                    style={{
+                                        gridColumn: 'span 1',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        background: 'var(--tile-glass-bg)',
+                                        backdropFilter: 'blur(var(--tile-glass-blur))',
+                                        WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
+                                        borderRadius: '24px',
+                                        border: '2px dashed var(--border)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.borderColor = '#0095f6';
+                                        e.currentTarget.style.background = 'rgba(0, 149, 246, 0.1)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.borderColor = 'var(--border)';
+                                        e.currentTarget.style.background = 'var(--tile-glass-bg)';
+                                    }}
+                                >
+                                    <Plus size={24} style={{ color: '#0095f6' }} />
+                                    <span style={{ 
+                                        fontSize: '0.65rem', 
+                                        color: 'var(--text-secondary)',
+                                        textAlign: 'center',
+                                        padding: '0 4px'
+                                    }}>
+                                        Add Tile
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </SortableContext>
                     <DragOverlay>
-                        {activeDragId ? (
-                            <div
-                                style={{
-                                    backgroundColor: ACTIVITY_CONFIG[activeDragId]?.color || 'var(--bg-tertiary)',
-                                    padding: '1rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    minWidth: tileSizes[activeDragId] === 'small' ? '100px' : '208px',
-                                    minHeight: tileSizes[activeDragId] === 'medium' ? '208px' : '100px',
-                                    opacity: 0.9,
-                                    boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                                    border: '3px solid var(--text-primary)',
-                                    borderRadius: '8px',
-                                }}
-                            >
-                                <span style={{
-                                    fontSize: tileSizes[activeDragId] === 'medium' ? '1.2rem' : '0.75rem',
-                                    fontWeight: 700,
-                                    color: 'white',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '1px',
-                                }}>
-                                    {tileSizes[activeDragId]}
-                                </span>
-                            </div>
-                        ) : null}
+                        {activeDragId ? (() => {
+                            const dragConfig = getActivityConfig(activeDragId, customTiles, tileColors);
+                            return (
+                                <div
+                                    style={{
+                                        backgroundColor: dragConfig.color || 'var(--bg-tertiary)',
+                                        padding: '1rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minWidth: tileSizes[activeDragId] === 'small' ? '100px' : '208px',
+                                        minHeight: tileSizes[activeDragId] === 'medium' ? '208px' : '100px',
+                                        opacity: 0.9,
+                                        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                                        border: '3px solid var(--text-primary)',
+                                        borderRadius: '8px',
+                                    }}
+                                >
+                                    <span style={{
+                                        fontSize: tileSizes[activeDragId] === 'medium' ? '1.2rem' : '0.75rem',
+                                        fontWeight: 700,
+                                        color: 'white',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '1px',
+                                    }}>
+                                        {tileSizes[activeDragId]}
+                                    </span>
+                                </div>
+                            );
+                        })() : null}
                     </DragOverlay>
                     </DndContext>
                 </>
@@ -1035,6 +1401,7 @@ export const Dashboard: React.FC = () => {
                 activityName={selectedActivity}
                 currentHours={selectedActivity ? (activities[selectedActivity] || 0) : 0}
                 currentNote={selectedActivity ? activityNotes[selectedActivity] : undefined}
+                customTiles={customTiles}
             />
 
             {toast && (
@@ -1122,6 +1489,282 @@ export const Dashboard: React.FC = () => {
                     setNewBadges([]);
                 }}
             />
+
+            {/* Create/Edit Custom Tile Modal */}
+            <CreateCustomTileModal
+                isOpen={showCustomTileModal}
+                onClose={() => {
+                    setShowCustomTileModal(false);
+                    setEditingCustomTile(null);
+                }}
+                onSave={handleSaveCustomTile}
+                existingTile={editingCustomTile}
+                currentTileCount={customTiles.length}
+                existingTiles={customTiles}
+            />
+
+            {/* Hidden Tiles Panel */}
+            <HiddenTilesPanel
+                isOpen={showHiddenTilesPanel}
+                onClose={() => setShowHiddenTilesPanel(false)}
+                hiddenTiles={hiddenTiles}
+                customTiles={customTiles}
+                colorOverrides={tileColors}
+                onRestoreTile={handleRestoreTile}
+                onDeleteCustomTile={handleDeleteCustomTile}
+            />
+
+            {/* Hide Tile Confirmation Dialog */}
+            {hideConfirm && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(0, 0, 0, 0.6)',
+                        backdropFilter: 'blur(4px)',
+                        WebkitBackdropFilter: 'blur(4px)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        padding: '16px',
+                    }}
+                    onClick={handleCancelHide}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                            background: 'var(--bg-primary)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            width: '300px',
+                            maxWidth: '90vw',
+                            border: '1px solid var(--border)',
+                            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+                            animation: 'hideConfirmScaleIn 0.2s ease-out',
+                        }}
+                    >
+                        <style>{`
+                            @keyframes hideConfirmScaleIn {
+                                from {
+                                    opacity: 0;
+                                    transform: scale(0.9);
+                                }
+                                to {
+                                    opacity: 1;
+                                    transform: scale(1);
+                                }
+                            }
+                        `}</style>
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                        }}>
+                            <div style={{
+                                width: '48px',
+                                height: '48px',
+                                borderRadius: '50%',
+                                background: 'rgba(251, 191, 36, 0.15)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: '16px',
+                            }}>
+                                <EyeOff size={24} color="#f59e0b" />
+                            </div>
+                            <h3 style={{
+                                margin: '0 0 8px',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                color: 'var(--text-primary)',
+                            }}>
+                                Hide Tile?
+                            </h3>
+                            <p style={{
+                                margin: '0 0 20px',
+                                fontSize: '0.85rem',
+                                color: 'var(--text-secondary)',
+                                lineHeight: 1.4,
+                            }}>
+                                Hide <strong style={{ color: 'var(--text-primary)' }}>"{hideConfirm.displayName}"</strong> from your dashboard? You can restore it anytime from the hidden tiles panel.
+                            </p>
+                            <div style={{
+                                display: 'flex',
+                                gap: '12px',
+                                width: '100%',
+                            }}>
+                                <button
+                                    onClick={handleCancelHide}
+                                    style={{
+                                        flex: 1,
+                                        padding: '12px 16px',
+                                        background: 'var(--bg-secondary)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '12px',
+                                        color: 'var(--text-primary)',
+                                        fontSize: '0.9rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleConfirmHide}
+                                    style={{
+                                        flex: 1,
+                                        padding: '12px 16px',
+                                        background: 'linear-gradient(135deg, #0095f6 0%, #0077cc 100%)',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        color: 'white',
+                                        fontSize: '0.9rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 8px rgba(0, 149, 246, 0.3)',
+                                    }}
+                                >
+                                    Hide
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Undo Delete Toast */}
+            {deletedTile && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: '24px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 10001,
+                        animation: 'undoToastSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }}
+                >
+                    <style>{`
+                        @keyframes undoToastSlideUp {
+                            0% {
+                                opacity: 0;
+                                transform: translateX(-50%) translateY(16px) scale(0.95);
+                            }
+                            100% {
+                                opacity: 1;
+                                transform: translateX(-50%) translateY(0) scale(1);
+                            }
+                        }
+                        @keyframes undoProgress {
+                            0% { width: 100%; }
+                            100% { width: 0%; }
+                        }
+                    `}</style>
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '10px 12px 10px 20px',
+                            background: 'var(--bg-secondary)',
+                            backdropFilter: 'blur(16px)',
+                            WebkitBackdropFilter: 'blur(16px)',
+                            borderRadius: '100px',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            boxShadow: '0 8px 32px var(--shadow-md), 0 0 20px rgba(239, 68, 68, 0.1)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            minWidth: '300px',
+                        }}
+                    >
+                        {/* Progress bar */}
+                        <div
+                            style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                height: '2px',
+                                background: 'linear-gradient(90deg, #ef4444, #f97316)',
+                                borderRadius: '0 0 100px 100px',
+                                animation: 'undoProgress 8s linear forwards',
+                            }}
+                        />
+                        
+                        {/* Text */}
+                        <span style={{
+                            flex: 1,
+                            fontSize: '0.875rem',
+                            color: 'var(--text-primary)',
+                            whiteSpace: 'nowrap',
+                        }}>
+                            <span style={{ color: '#ef4444' }}>Deleted</span>{' '}
+                            <span style={{ fontWeight: 500 }}>{deletedTile.tile.name}</span>
+                        </span>
+                        
+                        {/* Undo button */}
+                        <button
+                            onClick={handleUndoDelete}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                padding: '6px 12px',
+                                background: 'rgba(239, 68, 68, 0.15)',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                borderRadius: '100px',
+                                color: '#ef4444',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                flexShrink: 0,
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)';
+                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+                                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                            }}
+                        >
+                            <Undo2 size={14} />
+                            Undo
+                        </button>
+                        
+                        {/* Dismiss button */}
+                        <button
+                            onClick={() => {
+                                if (undoTimeoutId) clearTimeout(undoTimeoutId);
+                                setDeletedTile(null);
+                            }}
+                            style={{
+                                padding: '6px',
+                                background: 'transparent',
+                                border: 'none',
+                                borderRadius: '50%',
+                                color: 'var(--text-secondary)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'color 0.15s ease',
+                                flexShrink: 0,
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.color = 'var(--text-primary)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.color = 'var(--text-secondary)';
+                            }}
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

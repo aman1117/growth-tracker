@@ -93,12 +93,66 @@ func (a *Activity) Validate() error {
 	return nil
 }
 
-// IsValid checks if the activity name is a valid predefined type
+// CustomTilePrefix is the prefix used for custom tile activity names
+const CustomTilePrefix = "custom:"
+
+// IsValid checks if the activity name is a valid predefined type or a valid custom tile
 func (a ActivityName) IsValid() bool {
+	// Check if it's a custom tile (format: custom:<uuid>)
+	if a.IsCustomTile() {
+		return a.ValidateCustomTileFormat()
+	}
+
+	// Check against predefined activities
 	for _, allowed := range ActivityNames {
 		if a == allowed {
 			return true
 		}
 	}
 	return false
+}
+
+// IsCustomTile checks if the activity name is a custom tile
+func (a ActivityName) IsCustomTile() bool {
+	return len(a) > len(CustomTilePrefix) && string(a)[:len(CustomTilePrefix)] == CustomTilePrefix
+}
+
+// ValidateCustomTileFormat validates the format of a custom tile ID
+// Expected format: custom:<uuid> where uuid is a valid UUID v4
+func (a ActivityName) ValidateCustomTileFormat() bool {
+	if !a.IsCustomTile() {
+		return false
+	}
+
+	// Extract the UUID part
+	uuid := string(a)[len(CustomTilePrefix):]
+
+	// Basic UUID validation: should be 36 characters with hyphens in specific positions
+	if len(uuid) != 36 {
+		return false
+	}
+
+	// Check hyphen positions (8-4-4-4-12 format)
+	for i, c := range uuid {
+		if i == 8 || i == 13 || i == 18 || i == 23 {
+			if c != '-' {
+				return false
+			}
+		} else {
+			// Must be hex digit
+			if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// GetCustomTileID extracts the UUID from a custom tile activity name
+func (a ActivityName) GetCustomTileID() string {
+	if !a.IsCustomTile() {
+		return ""
+	}
+	return string(a)[len(CustomTilePrefix):]
 }

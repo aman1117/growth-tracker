@@ -193,7 +193,7 @@ export const Dashboard: React.FC = () => {
         wasHidden: boolean;
         color?: string;
     } | null>(null);
-    const [undoTimeoutId, setUndoTimeoutId] = useState<NodeJS.Timeout | null>(null);
+    const [undoTimeoutId, setUndoTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
     
     // Store original values when entering edit mode (for cancel)
     const [originalTileOrder, setOriginalTileOrder] = useState<ActivityName[]>([]);
@@ -756,7 +756,7 @@ export const Dashboard: React.FC = () => {
         }
         
         setShowCustomTileModal(false);
-        setEditingCustomTile(null);
+        setEditingCustomTile(undefined);
     };
 
     // Delete a custom tile with undo support
@@ -1292,13 +1292,15 @@ export const Dashboard: React.FC = () => {
                         >
                             {visibleTiles.map((name, index) => {
                                 const config = getActivityConfig(name, customTiles, tileColors);
+                                // For custom tiles, icon is a string (handled by iconName prop)
+                                const iconComponent = typeof config.icon === 'string' ? undefined : config.icon;
                                 return (
                                     <ActivityTile
                                         key={name}
                                         name={name}
                                         hours={activities[name] || 0}
                                         onClick={() => handleActivityClick(name)}
-                                        icon={config.icon}
+                                        icon={iconComponent}
                                         color={config.color}
                                         isDraggable={isEditMode && !isReadOnly}
                                         size={tileSizes[name]}
@@ -1495,7 +1497,7 @@ export const Dashboard: React.FC = () => {
                 isOpen={showCustomTileModal}
                 onClose={() => {
                     setShowCustomTileModal(false);
-                    setEditingCustomTile(null);
+                    setEditingCustomTile(undefined);
                 }}
                 onSave={handleSaveCustomTile}
                 existingTile={editingCustomTile}

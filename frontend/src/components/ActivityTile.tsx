@@ -11,7 +11,7 @@ interface ActivityTileProps {
     name: ActivityName;
     hours: number;
     onClick: () => void;
-    icon: LucideIcon;
+    icon?: LucideIcon; // Optional when iconName is provided
     color: string;
     isDraggable?: boolean;
     size?: TileSize;
@@ -245,13 +245,13 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                                     color={isActive ? 'white' : 'var(--text-secondary)'}
                                 />
                             </Suspense>
-                        ) : (
+                        ) : Icon ? (
                             <Icon
                                 size={config.iconSize}
                                 color={isActive ? 'white' : 'var(--text-secondary)'}
                                 style={{ transition: 'color 0.2s' }}
                             />
-                        )}
+                        ) : null}
                     </div>
 
                     {/* Content */}

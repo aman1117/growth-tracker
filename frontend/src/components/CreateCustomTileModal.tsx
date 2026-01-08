@@ -405,7 +405,7 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                             borderRadius: '16px',
                             border: '1px solid var(--border)',
                         }}>
-                            {/* Mini tile preview */}
+                            {/* Mini tile preview - matches ActivityTile small size structure exactly */}
                             <div style={{
                                 width: '100px',
                                 height: '100px',
@@ -413,41 +413,59 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                gap: '8px',
+                                gap: '0.25rem',
+                                padding: '0.5rem',
                                 background: `linear-gradient(135deg, ${color}dd 0%, ${color}aa 100%)`,
                                 borderRadius: '24px',
                                 boxShadow: `0 4px 20px ${color}50`,
                             }}>
+                                {/* Icon wrapper - matches ActivityTile iconBg: 36px */}
                                 <div style={{
                                     width: '36px',
                                     height: '36px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    background: 'rgba(255, 255, 255, 0.2)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                    backdropFilter: 'blur(8px)',
+                                    WebkitBackdropFilter: 'blur(8px)',
+                                    border: '1px solid rgba(255, 255, 255, 0.25)',
                                     borderRadius: '50%',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                                    flexShrink: 0,
                                 }}>
                                     <DynamicIcon name={icon} size={20} color="white" />
                                 </div>
-                                <span style={{
-                                    fontSize: '0.65rem',
-                                    fontWeight: 400,
-                                    color: 'white',
-                                    textAlign: 'center',
-                                    maxWidth: '80px',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
+                                {/* Content wrapper - matches ActivityTile structure */}
+                                <div style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '0.125rem',
+                                    minWidth: 0,
+                                    maxWidth: '100%',
                                 }}>
-                                    {name || 'Tile Name'}
-                                </span>
-                                <span style={{
-                                    fontSize: '0.9rem',
-                                    fontWeight: 600,
-                                    color: 'rgba(255, 255, 255, 0.95)',
-                                }}>
-                                    0h
-                                </span>
+                                    <span style={{
+                                        fontSize: '0.65rem',
+                                        fontWeight: 400,
+                                        color: 'white',
+                                        textAlign: 'center',
+                                        lineHeight: 1.2,
+                                        maxWidth: '100%',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                    }}>
+                                        {name || 'Tile Name'}
+                                    </span>
+                                    <span style={{
+                                        fontSize: '0.9rem',
+                                        fontWeight: 600,
+                                        color: 'rgba(255, 255, 255, 0.95)',
+                                    }}>
+                                        0h
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>

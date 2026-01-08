@@ -1,5 +1,6 @@
 /**
  * BadgeUnlockModal Styles
+ * Professional styling for both light and dark modes
  */
 
 .backdrop {
@@ -8,7 +9,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--modal-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,14 +29,24 @@
 }
 
 .modal {
-  background: var(--card-bg);
-  border-radius: 16px;
-  padding: 24px;
-  max-width: 300px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 24px;
+  max-width: 320px;
   width: 90%;
   text-align: center;
   animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 24px 48px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .modal {
+  background: var(--bg-tertiary);
+  box-shadow: 
+    0 24px 48px -12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 @keyframes scaleIn {
@@ -48,9 +61,10 @@
 }
 
 .celebration {
-  font-size: 36px;
-  margin-bottom: 4px;
+  font-size: 40px;
+  margin-bottom: 8px;
   animation: bounce 0.6s ease infinite alternate;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 @keyframes bounce {
@@ -63,28 +77,39 @@
 }
 
 .title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.02em;
 }
 
 .badgeList {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .badgeItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: color-mix(in srgb, var(--badge-color) 10%, var(--bg-secondary));
-  border-radius: 10px;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
   border: 2px solid var(--badge-color);
   animation: slideIn 0.4s ease;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .badgeItem {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 @keyframes slideIn {
@@ -103,7 +128,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+  border-radius: 14px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   animation: pulse 2s ease infinite;
+}
+
+[data-theme='dark'] .badgeIcon {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 @keyframes pulse {
@@ -111,7 +150,7 @@
     transform: scale(1);
   }
   50% {
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
 }
 
@@ -119,38 +158,56 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
 }
 
 .badgeName {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   color: var(--badge-color);
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] .badgeName {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .badgeThreshold {
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
 .closeButton {
   width: 100%;
-  padding: 12px 20px;
-  font-size: 15px;
+  padding: 14px 24px;
+  font-size: 16px;
   font-weight: 600;
   color: white;
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 
+    0 4px 14px -2px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  letter-spacing: -0.01em;
 }
 
 .closeButton:hover {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 20px -4px rgba(59, 130, 246, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .closeButton:active {
   transform: translateY(0);
+  box-shadow: 
+    0 2px 8px -2px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }

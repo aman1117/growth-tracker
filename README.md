@@ -81,7 +81,6 @@ Track time across **16 life categories**:
 - [ ] Social features - follow users, leaderboards
 - [ ] Export data to CSV/PDF
 - [ ] Goal setting per activity category
-- [ ] Custom activity tiles
 - [ ] Friends
 - [ ] Unit test cases
 - [ ] Add attachments
@@ -91,7 +90,7 @@ Track time across **16 life categories**:
 - [ ] Streak freeze days
 - [ ] Notifications like Aman just completed their day, log your days, 
 - [ ] what criteria should be for verfied
-- [ ] Local development setup
+
 
 
 

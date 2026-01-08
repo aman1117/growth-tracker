@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Search, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { DynamicIcon } from './DynamicIcon';
 
 // Curated icon categories with ~100 useful icons for activities
@@ -56,28 +56,15 @@ export const IconPicker: React.FC<IconPickerProps> = ({
     onChange,
     color = 'var(--text-primary)',
 }) => {
-    const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<keyof typeof ICON_CATEGORIES | 'All'>('All');
 
-    // Filter icons based on search and category
+    // Filter icons based on category
     const filteredIcons = useMemo(() => {
-        let icons: string[];
-        
         if (selectedCategory === 'All') {
-            icons = ALL_ICONS;
-        } else {
-            icons = [...ICON_CATEGORIES[selectedCategory]];
+            return ALL_ICONS;
         }
-
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            icons = icons.filter(icon => 
-                icon.toLowerCase().includes(query)
-            );
-        }
-
-        return icons;
-    }, [selectedCategory, searchQuery]);
+        return [...ICON_CATEGORIES[selectedCategory]];
+    }, [selectedCategory]);
 
     const handleIconClick = useCallback((iconName: string) => {
         onChange(iconName);
@@ -89,52 +76,20 @@ export const IconPicker: React.FC<IconPickerProps> = ({
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: '10px',
         }}>
             <style>{`
                 .hide-scrollbar::-webkit-scrollbar {
                     display: none;
                 }
             `}</style>
-            {/* Search Input */}
-            <div style={{
-                position: 'relative',
-            }}>
-                <Search 
-                    size={18} 
-                    style={{
-                        position: 'absolute',
-                        left: '12px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        color: 'var(--text-tertiary)',
-                    }}
-                />
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search icons..."
-                    style={{
-                        width: '100%',
-                        padding: '10px 12px 10px 40px',
-                        background: 'var(--bg-secondary)',
-                        border: '1px solid var(--border)',
-                        borderRadius: '10px',
-                        color: 'var(--text-primary)',
-                        fontSize: '16px',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                    }}
-                />
-            </div>
 
             {/* Category Tabs */}
             <div style={{
                 display: 'flex',
-                gap: '6px',
+                gap: '4px',
                 overflowX: 'auto',
-                paddingBottom: '4px',
+                paddingBottom: '2px',
                 WebkitOverflowScrolling: 'touch',
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
@@ -146,16 +101,16 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                         type="button"
                         onClick={() => setSelectedCategory(category as typeof selectedCategory)}
                         style={{
-                            padding: '6px 12px',
+                            padding: '5px 10px',
                             background: selectedCategory === category 
                                 ? 'var(--accent)'
                                 : 'var(--bg-secondary)',
                             border: '1px solid var(--border)',
-                            borderRadius: '16px',
+                            borderRadius: '14px',
                             color: selectedCategory === category 
                                 ? 'white'
                                 : 'var(--text-secondary)',
-                            fontSize: '0.75rem',
+                            fontSize: '0.7rem',
                             fontWeight: selectedCategory === category ? 600 : 400,
                             cursor: 'pointer',
                             whiteSpace: 'nowrap',
@@ -172,13 +127,13 @@ export const IconPicker: React.FC<IconPickerProps> = ({
             className="hide-scrollbar"
             style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(6, 1fr)',
-                gap: '8px',
-                maxHeight: '180px',
+                gridTemplateColumns: 'repeat(7, 1fr)',
+                gap: '6px',
+                maxHeight: '150px',
                 overflowY: 'auto',
-                padding: '4px',
+                padding: '6px',
                 background: 'var(--bg-secondary)',
-                borderRadius: '12px',
+                borderRadius: '10px',
                 border: '1px solid var(--border)',
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none',
@@ -187,9 +142,9 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                     <div style={{
                         gridColumn: '1 / -1',
                         textAlign: 'center',
-                        padding: '24px',
+                        padding: '16px',
                         color: 'var(--text-tertiary)',
-                        fontSize: '0.85rem',
+                        fontSize: '0.8rem',
                     }}>
                         No icons found
                     </div>
@@ -201,8 +156,8 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                             onClick={() => handleIconClick(iconName)}
                             title={iconName}
                             style={{
-                                width: '44px',
-                                height: '44px',
+                                width: '38px',
+                                height: '38px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -212,7 +167,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                                 border: value === iconName 
                                     ? `2px solid ${color}`
                                     : '2px solid transparent',
-                                borderRadius: '10px',
+                                borderRadius: '8px',
                                 cursor: 'pointer',
                                 position: 'relative',
                                 transition: 'all 0.15s ease',
@@ -220,69 +175,29 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                         >
                             <DynamicIcon 
                                 name={iconName} 
-                                size={22}
-                                color={value === iconName ? color : 'var(--accent)'}
+                                size={20}
+                                color={value === iconName ? color : 'var(--text-secondary)'}
                             />
                             {value === iconName && (
                                 <div style={{
                                     position: 'absolute',
-                                    top: '-4px',
-                                    right: '-4px',
-                                    width: '16px',
-                                    height: '16px',
+                                    top: '-3px',
+                                    right: '-3px',
+                                    width: '14px',
+                                    height: '14px',
                                     borderRadius: '50%',
                                     background: color,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                 }}>
-                                    <Check size={10} color="white" strokeWidth={3} />
+                                    <Check size={8} color="white" strokeWidth={3} />
                                 </div>
                                 )}
                             </button>
                         ))
                     )}
             </div>
-
-            {/* Selected Icon Preview */}
-            {value && (
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px',
-                    background: `linear-gradient(135deg, ${color}15 0%, ${color}05 100%)`,
-                    border: `1px solid ${color}30`,
-                    borderRadius: '12px',
-                }}>
-                    <div style={{
-                        width: '48px',
-                        height: '48px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: `${color}20`,
-                        borderRadius: '12px',
-                    }}>
-                        <DynamicIcon name={value} size={28} color={color} />
-                    </div>
-                    <div>
-                        <div style={{
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            color: 'var(--text-primary)',
-                        }}>
-                            {value}
-                        </div>
-                        <div style={{
-                            fontSize: '0.75rem',
-                            color: 'var(--text-tertiary)',
-                        }}>
-                            Selected icon
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

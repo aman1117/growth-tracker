@@ -123,8 +123,6 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
 
     if (!isOpen) return null;
 
-    const remainingTiles = MAX_CUSTOM_TILES - currentTileCount;
-
     return (
         <div
             style={{
@@ -156,13 +154,13 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                 style={{
                     position: 'relative',
                     width: '100%',
-                    maxWidth: '420px',
-                    maxHeight: '90vh',
+                    maxWidth: '380px',
+                    maxHeight: '85vh',
                     overflowY: 'auto',
                     background: 'var(--glass-bg)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
-                    borderRadius: '24px',
+                    borderRadius: '20px',
                     border: '1px solid var(--border)',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                     animation: 'modalSlideUp 0.3s ease-out',
@@ -182,70 +180,42 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '20px 24px',
+                    padding: '16px 20px',
                     borderBottom: '1px solid var(--border)',
                 }}>
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
+                    <h2 style={{
+                        margin: 0,
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        color: 'var(--text-primary)',
                     }}>
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: `${color}20`,
-                            borderRadius: '12px',
-                        }}>
-                            <DynamicIcon name={icon} size={22} color={color} />
-                        </div>
-                        <div>
-                            <h2 style={{
-                                margin: 0,
-                                fontSize: '1.1rem',
-                                fontWeight: 600,
-                                color: 'var(--text-primary)',
-                            }}>
-                                {isEditing ? 'Edit Custom Tile' : 'Create Custom Tile'}
-                            </h2>
-                            {!isEditing && (
-                                <p style={{
-                                    margin: 0,
-                                    fontSize: '0.8rem',
-                                    color: 'var(--text-tertiary)',
-                                }}>
-                                    {remainingTiles} of {MAX_CUSTOM_TILES} remaining
-                                </p>
-                            )}
-                        </div>
-                    </div>
+                        {isEditing ? 'Edit Tile' : 'New Custom Tile'}
+                    </h2>
                     <button
                         onClick={onClose}
                         style={{
-                            width: '36px',
-                            height: '36px',
+                            width: '32px',
+                            height: '32px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '10px',
+                            background: 'transparent',
+                            border: 'none',
+                            borderRadius: '8px',
                             cursor: 'pointer',
-                            color: 'var(--text-secondary)',
+                            color: 'var(--text-tertiary)',
                         }}
                     >
-                        <X size={20} />
+                        <X size={18} />
                     </button>
                 </div>
 
                 {/* Content */}
                 <div style={{
-                    padding: '16px 24px',
+                    padding: '16px 20px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px',
+                    gap: '16px',
                 }}>
                     {/* Error Message */}
                     {error && (
@@ -253,112 +223,128 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            padding: '12px',
+                            padding: '10px 12px',
                             background: 'rgba(239, 68, 68, 0.1)',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            borderRadius: '10px',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
+                            borderRadius: '8px',
                             color: '#ef4444',
-                            fontSize: '0.85rem',
+                            fontSize: '0.8rem',
                         }}>
-                            <AlertCircle size={18} />
+                            <AlertCircle size={16} />
                             {error}
                         </div>
                     )}
 
-                    {/* Name Input */}
-                    <div>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '8px',
-                            fontSize: '0.85rem',
-                            fontWeight: 500,
-                            color: 'var(--text-secondary)',
-                        }}>
-                            Tile Name
-                        </label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={handleNameChange}
-                            placeholder="Enter tile name..."
-                            maxLength={20}
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                background: 'var(--bg-secondary)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '12px',
-                                color: 'var(--text-primary)',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                boxSizing: 'border-box',
-                            }}
-                        />
+                    {/* Preview + Name Row */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '16px',
+                        alignItems: 'flex-start',
+                    }}>
+                        {/* Mini tile preview */}
                         <div style={{
-                            marginTop: '4px',
-                            fontSize: '0.75rem',
-                            color: 'var(--text-tertiary)',
-                            textAlign: 'right',
+                            width: '80px',
+                            height: '80px',
+                            flexShrink: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.2rem',
+                            padding: '0.4rem',
+                            background: `linear-gradient(135deg, ${color}dd 0%, ${color}aa 100%)`,
+                            borderRadius: '18px',
+                            boxShadow: `0 4px 16px ${color}40`,
                         }}>
-                            {name.length}/20
+                            <div style={{
+                                width: '32px',
+                                height: '32px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(255, 255, 255, 0.25)',
+                                borderRadius: '50%',
+                                flexShrink: 0,
+                            }}>
+                                <DynamicIcon name={icon} size={18} color="white" />
+                            </div>
+                            <span style={{
+                                fontSize: '0.6rem',
+                                fontWeight: 400,
+                                color: 'white',
+                                textAlign: 'center',
+                                lineHeight: 1.1,
+                                maxWidth: '100%',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                padding: '0 2px',
+                            }}>
+                                {name || 'Name'}
+                            </span>
+                            <span style={{
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                color: 'rgba(255, 255, 255, 0.95)',
+                            }}>
+                                0h
+                            </span>
                         </div>
-                    </div>
 
-                    {/* Your Existing Tiles - only show if there are tiles and not editing */}
-                    {!isEditing && existingTiles.length > 0 && (
-                        <div>
+                        {/* Name Input */}
+                        <div style={{ flex: 1 }}>
                             <label style={{
                                 display: 'block',
-                                marginBottom: '8px',
-                                fontSize: '0.85rem',
+                                marginBottom: '6px',
+                                fontSize: '0.75rem',
                                 fontWeight: 500,
-                                color: 'var(--text-secondary)',
+                                color: 'var(--text-tertiary)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
                             }}>
-                                Your Tiles
+                                Name
                             </label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={handleNameChange}
+                                placeholder="Enter name..."
+                                maxLength={20}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    background: 'var(--bg-secondary)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: '10px',
+                                    color: 'var(--text-primary)',
+                                    fontSize: '0.9rem',
+                                    outline: 'none',
+                                    boxSizing: 'border-box',
+                                }}
+                            />
                             <div style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '8px',
+                                marginTop: '4px',
+                                fontSize: '0.7rem',
+                                color: 'var(--text-tertiary)',
+                                textAlign: 'right',
                             }}>
-                                {existingTiles.map((tile) => (
-                                    <div
-                                        key={tile.id}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            padding: '6px 10px',
-                                            background: `${tile.color}15`,
-                                            border: `1px solid ${tile.color}30`,
-                                            borderRadius: '8px',
-                                            fontSize: '0.8rem',
-                                            color: 'var(--text-primary)',
-                                        }}
-                                    >
-                                        <DynamicIcon name={tile.icon} size={14} color={tile.color} />
-                                        <span style={{ 
-                                            maxWidth: '100px', 
-                                            overflow: 'hidden', 
-                                            textOverflow: 'ellipsis', 
-                                            whiteSpace: 'nowrap' 
-                                        }}>
-                                            {tile.name}
-                                        </span>
-                                    </div>
-                                ))}
+                                {name.length}/20
                             </div>
                         </div>
-                    )}
+                    </div>
 
                     {/* Icon Picker */}
                     <div>
                         <label style={{
                             display: 'block',
-                            marginBottom: '8px',
-                            fontSize: '0.85rem',
+                            marginBottom: '6px',
+                            fontSize: '0.75rem',
                             fontWeight: 500,
-                            color: 'var(--text-secondary)',
+                            color: 'var(--text-tertiary)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
                         }}>
                             Icon
                         </label>
@@ -373,10 +359,12 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                     <div>
                         <label style={{
                             display: 'block',
-                            marginBottom: '8px',
-                            fontSize: '0.85rem',
+                            marginBottom: '6px',
+                            fontSize: '0.75rem',
                             fontWeight: 500,
-                            color: 'var(--text-secondary)',
+                            color: 'var(--text-tertiary)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
                         }}>
                             Color
                         </label>
@@ -385,109 +373,25 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                             onChange={setColor}
                         />
                     </div>
-
-                    {/* Preview */}
-                    <div>
-                        <label style={{
-                            display: 'block',
-                            marginBottom: '8px',
-                            fontSize: '0.85rem',
-                            fontWeight: 500,
-                            color: 'var(--text-secondary)',
-                        }}>
-                            Preview
-                        </label>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            padding: '20px',
-                            background: 'var(--bg-secondary)',
-                            borderRadius: '16px',
-                            border: '1px solid var(--border)',
-                        }}>
-                            {/* Mini tile preview - matches ActivityTile small size structure exactly */}
-                            <div style={{
-                                width: '100px',
-                                height: '100px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.25rem',
-                                padding: '0.5rem',
-                                background: `linear-gradient(135deg, ${color}dd 0%, ${color}aa 100%)`,
-                                borderRadius: '24px',
-                                boxShadow: `0 4px 20px ${color}50`,
-                            }}>
-                                {/* Icon wrapper - matches ActivityTile iconBg: 36px */}
-                                <div style={{
-                                    width: '36px',
-                                    height: '36px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                                    backdropFilter: 'blur(8px)',
-                                    WebkitBackdropFilter: 'blur(8px)',
-                                    border: '1px solid rgba(255, 255, 255, 0.25)',
-                                    borderRadius: '50%',
-                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-                                    flexShrink: 0,
-                                }}>
-                                    <DynamicIcon name={icon} size={20} color="white" />
-                                </div>
-                                {/* Content wrapper - matches ActivityTile structure */}
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: '0.125rem',
-                                    minWidth: 0,
-                                    maxWidth: '100%',
-                                }}>
-                                    <span style={{
-                                        fontSize: '0.65rem',
-                                        fontWeight: 400,
-                                        color: 'white',
-                                        textAlign: 'center',
-                                        lineHeight: 1.2,
-                                        maxWidth: '100%',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                    }}>
-                                        {name || 'Tile Name'}
-                                    </span>
-                                    <span style={{
-                                        fontSize: '0.9rem',
-                                        fontWeight: 600,
-                                        color: 'rgba(255, 255, 255, 0.95)',
-                                    }}>
-                                        0h
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Footer */}
                 <div style={{
                     display: 'flex',
-                    gap: '12px',
-                    padding: '16px 24px',
+                    gap: '10px',
+                    padding: '12px 20px 16px',
                     borderTop: '1px solid var(--border)',
                 }}>
                     <button
                         onClick={onClose}
                         style={{
                             flex: 1,
-                            padding: '14px',
+                            padding: '12px',
                             background: 'transparent',
                             border: '1px solid var(--border)',
                             borderRadius: '10px',
                             color: 'var(--text-primary)',
-                            fontSize: '0.95rem',
+                            fontSize: '0.9rem',
                             fontWeight: 500,
                             cursor: 'pointer',
                         }}
@@ -499,17 +403,17 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                         disabled={!name.trim() || !icon}
                         style={{
                             flex: 1,
-                            padding: '14px',
+                            padding: '12px',
                             background: name.trim() && icon ? '#0095f6' : 'var(--bg-tertiary)',
                             border: 'none',
                             borderRadius: '10px',
                             color: name.trim() && icon ? 'white' : 'var(--text-tertiary)',
-                            fontSize: '0.95rem',
+                            fontSize: '0.9rem',
                             fontWeight: 600,
                             cursor: name.trim() && icon ? 'pointer' : 'not-allowed',
                         }}
                     >
-                        {isEditing ? 'Save' : 'Save'}
+                        {isEditing ? 'Save' : 'Create'}
                     </button>
                 </div>
             </div>

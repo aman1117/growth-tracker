@@ -69,19 +69,17 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
         onReset?.();
     }, [defaultColor, onChange, onReset]);
 
-    const isCustomColor = !PRESET_COLORS.includes(value);
-
     return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: '10px',
         }}>
             {/* Preset Colors Grid */}
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(8, 1fr)',
-                gap: '8px',
+                gap: '6px',
             }}>
                 {PRESET_COLORS.map((color) => (
                     <button
@@ -89,57 +87,56 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                         type="button"
                         onClick={() => handlePresetClick(color)}
                         style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
+                            width: '100%',
+                            aspectRatio: '1',
+                            borderRadius: '6px',
                             backgroundColor: color,
-                            border: value === color ? '3px solid var(--text-primary)' : '2px solid transparent',
+                            border: value === color ? '2px solid var(--text-primary)' : '2px solid transparent',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            transition: 'all 0.2s ease',
+                            transition: 'all 0.15s ease',
                             boxShadow: value === color 
-                                ? `0 0 0 2px var(--bg-primary), 0 4px 12px ${color}50`
-                                : `0 2px 8px ${color}30`,
+                                ? `0 0 0 2px var(--bg-primary)`
+                                : 'none',
                         }}
                         title={color}
                     >
                         {value === color && (
-                            <Check size={16} color="white" strokeWidth={3} />
+                            <Check size={14} color="white" strokeWidth={3} />
                         )}
                     </button>
                 ))}
             </div>
 
-            {/* Custom Color Section */}
+            {/* Custom Color Row */}
             <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '8px',
             }}>
-                {/* Custom Color Preview & Toggle */}
                 <button
                     type="button"
                     onClick={() => setShowCustomInput(!showCustomInput)}
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px',
-                        padding: '8px 12px',
+                        gap: '6px',
+                        padding: '6px 10px',
                         background: 'var(--bg-secondary)',
                         border: '1px solid var(--border)',
-                        borderRadius: '8px',
+                        borderRadius: '6px',
                         cursor: 'pointer',
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.85rem',
+                        color: 'var(--text-tertiary)',
+                        fontSize: '0.75rem',
                     }}
                 >
                     <div
                         style={{
-                            width: '20px',
-                            height: '20px',
-                            borderRadius: '4px',
+                            width: '16px',
+                            height: '16px',
+                            borderRadius: '3px',
                             backgroundColor: value,
                             border: '1px solid var(--border)',
                         }}
@@ -147,7 +144,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                     {showCustomInput ? 'Hide' : 'Custom'}
                 </button>
 
-                {/* Custom Hex Input */}
                 {showCustomInput && (
                     <input
                         type="text"
@@ -157,19 +153,18 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                         maxLength={7}
                         style={{
                             flex: 1,
-                            padding: '8px 12px',
+                            padding: '6px 10px',
                             background: 'var(--bg-secondary)',
                             border: '1px solid var(--border)',
-                            borderRadius: '8px',
+                            borderRadius: '6px',
                             color: 'var(--text-primary)',
-                            fontSize: '0.85rem',
+                            fontSize: '0.8rem',
                             fontFamily: 'monospace',
                             outline: 'none',
                         }}
                     />
                 )}
 
-                {/* Reset Button */}
                 {showResetButton && defaultColor && value !== defaultColor && (
                     <button
                         type="button"
@@ -177,54 +172,22 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                         style={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 12px',
+                            gap: '4px',
+                            padding: '6px 10px',
                             background: 'var(--bg-secondary)',
                             border: '1px solid var(--border)',
-                            borderRadius: '8px',
+                            borderRadius: '6px',
                             cursor: 'pointer',
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.85rem',
-                            transition: 'all 0.2s ease',
+                            color: 'var(--text-tertiary)',
+                            fontSize: '0.75rem',
                         }}
                         title="Reset to default color"
                     >
-                        <RotateCcw size={14} />
+                        <RotateCcw size={12} />
                         Reset
                     </button>
                 )}
             </div>
-
-            {/* Current Color Display */}
-            {isCustomColor && (
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 12px',
-                    background: `linear-gradient(135deg, ${value}20 0%, ${value}10 100%)`,
-                    border: `1px solid ${value}40`,
-                    borderRadius: '8px',
-                }}>
-                    <div
-                        style={{
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '6px',
-                            backgroundColor: value,
-                            boxShadow: `0 2px 8px ${value}50`,
-                        }}
-                    />
-                    <span style={{
-                        color: 'var(--text-primary)',
-                        fontSize: '0.85rem',
-                        fontFamily: 'monospace',
-                    }}>
-                        {value}
-                    </span>
-                    <Check size={16} color={value} style={{ marginLeft: 'auto' }} />
-                </div>
-            )}
         </div>
     );
 };

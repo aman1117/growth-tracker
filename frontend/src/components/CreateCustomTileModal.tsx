@@ -242,10 +242,10 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
 
                 {/* Content */}
                 <div style={{
-                    padding: '24px',
+                    padding: '16px 24px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '24px',
+                    gap: '12px',
                 }}>
                     {/* Error Message */}
                     {error && (
@@ -475,19 +475,19 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                 <div style={{
                     display: 'flex',
                     gap: '12px',
-                    padding: '20px 24px',
+                    padding: '16px 24px',
                     borderTop: '1px solid var(--border)',
                 }}>
                     <button
                         onClick={onClose}
                         style={{
                             flex: 1,
-                            padding: '12px',
-                            background: 'var(--bg-secondary)',
+                            padding: '14px',
+                            background: 'transparent',
                             border: '1px solid var(--border)',
-                            borderRadius: '12px',
-                            color: 'var(--text-secondary)',
-                            fontSize: '0.9rem',
+                            borderRadius: '10px',
+                            color: 'var(--text-primary)',
+                            fontSize: '0.95rem',
                             fontWeight: 500,
                             cursor: 'pointer',
                         }}
@@ -499,18 +499,17 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                         disabled={!name.trim() || !icon}
                         style={{
                             flex: 1,
-                            padding: '12px',
-                            background: name.trim() && icon ? color : 'var(--bg-tertiary)',
+                            padding: '14px',
+                            background: name.trim() && icon ? '#0095f6' : 'var(--bg-tertiary)',
                             border: 'none',
-                            borderRadius: '12px',
+                            borderRadius: '10px',
                             color: name.trim() && icon ? 'white' : 'var(--text-tertiary)',
-                            fontSize: '0.9rem',
+                            fontSize: '0.95rem',
                             fontWeight: 600,
                             cursor: name.trim() && icon ? 'pointer' : 'not-allowed',
-                            boxShadow: name.trim() && icon ? `0 4px 12px ${color}40` : 'none',
                         }}
                     >
-                        {isEditing ? 'Save Changes' : 'Create Tile'}
+                        {isEditing ? 'Save' : 'Save'}
                     </button>
                 </div>
             </div>

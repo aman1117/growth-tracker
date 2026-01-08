@@ -174,7 +174,7 @@ export const IconPicker: React.FC<IconPickerProps> = ({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(6, 1fr)',
                 gap: '8px',
-                maxHeight: '240px',
+                maxHeight: '180px',
                 overflowY: 'auto',
                 padding: '4px',
                 background: 'var(--bg-secondary)',

@@ -88,30 +88,75 @@ export const AnalyticsPage: React.FC = () => {
     const [customTiles, setCustomTiles] = useState<CustomTile[]>([]);
     const [tileColors, setTileColors] = useState<Record<string, string>>({});
 
-    // Load custom tiles and colors on mount
+    // Load custom tiles and colors based on target user
     useEffect(() => {
         const loadTileConfig = async () => {
-            try {
-                // Try to load from backend
-                const res = await api.get('/tile-config');
-                if (res.success && res.data) {
-                    if (res.data.customTiles) setCustomTiles(res.data.customTiles);
-                    if (res.data.colors) setTileColors(res.data.colors);
-                }
-            } catch {
-                // Fall back to localStorage
+            // Determine if viewing own profile or someone else's
+            const isViewingOwn = targetUsername === user?.username;
+            
+            if (isViewingOwn) {
+                // Load own config from localStorage first (immediate)
                 try {
                     const localCustomTiles = localStorage.getItem(STORAGE_KEYS.CUSTOM_TILES);
                     const localColors = localStorage.getItem(STORAGE_KEYS.TILE_COLORS);
-                    if (localCustomTiles) setCustomTiles(JSON.parse(localCustomTiles));
-                    if (localColors) setTileColors(JSON.parse(localColors));
+                    if (localCustomTiles) {
+                        const parsed = JSON.parse(localCustomTiles);
+                        if (Array.isArray(parsed)) setCustomTiles(parsed);
+                    }
+                    if (localColors) {
+                        const parsed = JSON.parse(localColors);
+                        if (parsed && typeof parsed === 'object') setTileColors(parsed);
+                    }
                 } catch (e) {
                     console.error('Failed to load tile config from localStorage', e);
                 }
+                
+                // Then fetch from backend (may have more recent data)
+                try {
+                    const res = await api.get('/tile-config');
+                    if (res.success && res.data) {
+                        if (res.data.customTiles && Array.isArray(res.data.customTiles)) {
+                            setCustomTiles(res.data.customTiles);
+                        }
+                        if (res.data.colors && typeof res.data.colors === 'object') {
+                            setTileColors(res.data.colors);
+                        }
+                    }
+                } catch {
+                    // API failed, but we already loaded from localStorage
+                }
+            } else {
+                // Viewing another user's analytics - fetch their tile config
+                try {
+                    const res = await api.post('/tile-config/user', { username: targetUsername });
+                    if (res.success && res.data) {
+                        if (res.data.customTiles && Array.isArray(res.data.customTiles)) {
+                            setCustomTiles(res.data.customTiles);
+                        } else {
+                            setCustomTiles([]);
+                        }
+                        if (res.data.colors && typeof res.data.colors === 'object') {
+                            setTileColors(res.data.colors);
+                        } else {
+                            setTileColors({});
+                        }
+                    } else {
+                        // No config for this user
+                        setCustomTiles([]);
+                        setTileColors({});
+                    }
+                } catch {
+                    // Failed to load other user's config
+                    setCustomTiles([]);
+                    setTileColors({});
+                }
             }
         };
-        loadTileConfig();
-    }, []);
+        
+        if (targetUsername) {
+            loadTileConfig();
+        }
+    }, [targetUsername, user?.username]);
 
     // Close user selector when clicking outside
     useEffect(() => {

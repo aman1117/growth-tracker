@@ -1,7 +1,7 @@
 /**
  * IconPicker Component
  * 
- * A large, searchable icon picker with categorized icons.
+ * An icon picker with categorized icons.
  * Glassmorphism styled to match app theme.
  */
 

@@ -994,19 +994,25 @@ export const Dashboard: React.FC = () => {
                 </div>
             )}
 
-            {/* Edit Mode Bar - only show when in edit mode */}
+            {/* Edit Mode Bar - sticky at top when in edit mode */}
             {!isReadOnly && isEditMode && (
                 <div style={{
+                    position: 'sticky',
+                    top: '16px',
                     display: 'flex',
                     alignItems: 'stretch',
                     justifyContent: 'space-between',
                     padding: '14px 16px',
-                    background: 'linear-gradient(135deg, rgba(0, 149, 246, 0.12) 0%, rgba(0, 149, 246, 0.06) 100%)',
+                    background: 'var(--glass-bg)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
                     borderRadius: '12px',
                     marginBottom: '12px',
-                    border: '1px solid rgba(0, 149, 246, 0.25)',
+                    border: '1px solid var(--border)',
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
                     animation: 'editBarSlideIn 0.25s ease-out',
                     gap: '16px',
+                    zIndex: 50,
                 }}>
                     <style>{`
                         @keyframes editBarSlideIn {

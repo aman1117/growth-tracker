@@ -236,6 +236,20 @@ func (s *NotificationService) NotifyLikeReceived(
 		s.invalidateUnreadCache(ctx, recipientUserID)
 		s.publishNotification(ctx, notif)
 
+		// Publish to push notification queue (Web Push)
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			dedupeKey := fmt.Sprintf("like:%d:%s", recipientUserID, likedDate)
+			// Navigate to the recipient's own day (home with date param), not the liker's profile
+			deepLink := fmt.Sprintf("/?date=%s", likedDate)
+			if err := publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink); err != nil {
+				logger.Sugar.Warnw("Failed to publish push notification for like",
+					"notif_id", notif.ID,
+					"error", err,
+				)
+				// Non-fatal, in-app notification is still delivered
+			}
+		}
+
 		return nil
 	})
 }
@@ -258,7 +272,24 @@ func (s *NotificationService) NotifyBadgeUnlocked(
 		}.ToMap(),
 	}
 
-	return s.Create(ctx, notif)
+	if err := s.Create(ctx, notif); err != nil {
+		return err
+	}
+
+	// Publish to push notification queue (Web Push)
+	if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+		dedupeKey := fmt.Sprintf("badge:%d:%s", userID, badgeID)
+		deepLink := "/profile/badges"
+		if err := publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink); err != nil {
+			logger.Sugar.Warnw("Failed to publish push notification for badge",
+				"notif_id", notif.ID,
+				"error", err,
+			)
+			// Non-fatal, in-app notification is still delivered
+		}
+	}
+
+	return nil
 }
 
 // NotifyStreakMilestone creates a notification for streak milestones

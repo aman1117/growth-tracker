@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { 
     ArrowLeft, User, Key, Lock, Camera, Trash2, X, 
     LogOut, AlertTriangle, ChevronRight, Pencil,
-    Sun, Moon, Monitor, Palette
+    Sun, Moon, Monitor, Palette, Bell, BellOff
 } from 'lucide-react';
 import { useAuth, useTheme } from '../store';
 import { api } from '../services/api';
@@ -11,6 +12,8 @@ import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
 import { SnapToast, ProtectedImage } from './ui';
 import { APP_ROUTES } from '../constants/routes';
 import { BadgeShowcase } from './BadgeShowcase';
+import { PushNotificationSettings } from './PushNotificationSettings';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 import type { Badge } from '../types/api';
 
 export const SettingsPage: React.FC = () => {
@@ -553,6 +556,10 @@ export const SettingsPage: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Push Notifications - Inline */}
+                <PushNotificationsSection onToast={(message, type) => setToast({ message, type })} />
+
+                {/* Log Out */}
                 <button
                     onClick={() => setShowLogoutDialog(true)}
                     style={{
@@ -1491,3 +1498,354 @@ const DialogWrapper: React.FC<{
         </div>
     </div>
 );
+
+// Notifications Blocked Dialog
+const NotificationsBlockedDialog: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+    if (!isOpen) return null;
+    
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    
+    let title: string;
+    let steps: string[];
+    
+    if (isIOS) {
+        if (isPWA) {
+            title = 'Reset Notification Permission';
+            steps = [
+                'Remove app from Home Screen (long press > Remove)',
+                'Open Safari and visit this site again',
+                'Tap Share > "Add to Home Screen"',
+                'Open app and tap "Enable" when prompted',
+                'Select "Allow" in the permission dialog'
+            ];
+        } else {
+            title = 'Enable on iOS';
+            steps = [
+                'Tap the Share button below',
+                'Select "Add to Home Screen"',
+                'Open the app from Home Screen',
+                'Tap Enable and allow notifications'
+            ];
+        }
+    } else if (isAndroid) {
+        if (isPWA) {
+            title = 'Enable on Android';
+            steps = [
+                'Open Settings > Apps',
+                'Tap "Growth Tracker"',
+                'Tap "Notifications"',
+                'Turn on notifications'
+            ];
+        } else {
+            title = 'Enable in Browser';
+            steps = [
+                'Tap ⋮ menu in browser',
+                'Go to Settings > Site settings',
+                'Tap "Notifications"',
+                'Allow for this site'
+            ];
+        }
+    } else {
+        title = 'Enable Notifications';
+        steps = [
+            'Click lock icon in address bar',
+            'Find "Notifications"',
+            'Change to "Allow"',
+            'Refresh the page'
+        ];
+    }
+    
+    return createPortal(
+        <div 
+            onClick={onClose}
+            style={{
+                position: 'fixed',
+                inset: 0,
+                background: isDark 
+                    ? 'rgba(0, 0, 0, 0.7)' 
+                    : 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1.5rem',
+                zIndex: 9999,
+                animation: 'fadeIn 0.2s ease',
+            }}
+        >
+            <style>{`
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+            `}</style>
+            <div 
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    background: isDark 
+                        ? 'rgba(30, 30, 35, 0.85)' 
+                        : 'rgba(255, 255, 255, 0.75)',
+                    backdropFilter: 'blur(40px) saturate(180%)',
+                    WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+                    borderRadius: '20px',
+                    border: isDark 
+                        ? '1px solid rgba(255, 255, 255, 0.1)' 
+                        : '1px solid rgba(255, 255, 255, 0.6)',
+                    boxShadow: isDark
+                        ? '0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+                        : '0 25px 50px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                    maxWidth: '320px',
+                    width: '100%',
+                    animation: 'slideUp 0.3s ease',
+                }}
+            >
+                {/* Header with icon */}
+                <div style={{
+                    padding: '1.5rem 1.5rem 0',
+                    textAlign: 'center',
+                }}>
+                    <div style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '16px',
+                        background: isDark
+                            ? 'rgba(239, 68, 68, 0.2)'
+                            : 'rgba(239, 68, 68, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 1rem',
+                        color: '#ef4444',
+                    }}>
+                        <BellOff size={28} />
+                    </div>
+                    <h3 style={{
+                        fontSize: '1.125rem',
+                        fontWeight: 700,
+                        color: isDark ? '#fff' : '#1a1a1a',
+                        margin: 0,
+                    }}>
+                        {title}
+                    </h3>
+                    <p style={{
+                        fontSize: '0.8125rem',
+                        color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                        margin: '0.375rem 0 0',
+                    }}>
+                        Follow these steps
+                    </p>
+                </div>
+                
+                {/* Steps */}
+                <div style={{ padding: '1.25rem 1.5rem' }}>
+                    {steps.map((step, index) => (
+                        <div 
+                            key={index} 
+                            style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '0.75rem',
+                                padding: '0.625rem 0',
+                                borderBottom: index < steps.length - 1 
+                                    ? `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` 
+                                    : 'none',
+                            }}
+                        >
+                            <span style={{
+                                minWidth: '22px',
+                                height: '22px',
+                                borderRadius: '50%',
+                                background: isDark 
+                                    ? 'rgba(255,255,255,0.1)' 
+                                    : 'rgba(0,0,0,0.06)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.6875rem',
+                                fontWeight: 600,
+                                color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)',
+                            }}>
+                                {index + 1}
+                            </span>
+                            <span style={{
+                                fontSize: '0.875rem',
+                                color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                                lineHeight: 1.4,
+                                paddingTop: '0.0625rem',
+                            }}>
+                                {step}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+                
+                {/* Button */}
+                <div style={{ padding: '0 1.5rem 1.5rem' }}>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            width: '100%',
+                            padding: '0.875rem',
+                            borderRadius: '12px',
+                            border: 'none',
+                            background: '#0095f6',
+                            color: 'white',
+                            fontSize: '0.9375rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'transform 0.1s, opacity 0.1s',
+                        }}
+                        onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+                        onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    >
+                        Got it
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+// Push Notifications Section with toggle in header
+const PushNotificationsSection: React.FC<{ onToast: (message: string, type: 'success' | 'error') => void }> = ({ onToast }) => {
+    const { isSubscribed, isLoading, toggleSubscription, isSupported, permission } = usePushNotifications();
+    const [showBlockedDialog, setShowBlockedDialog] = useState(false);
+    
+    // Don't show if not supported
+    if (!isSupported) {
+        return null;
+    }
+    
+    // Show blocked message if permission denied
+    if (permission === 'denied') {
+        return (
+            <>
+                <NotificationsBlockedDialog 
+                    isOpen={showBlockedDialog} 
+                    onClose={() => setShowBlockedDialog(false)} 
+                />
+                <div 
+                    onClick={() => setShowBlockedDialog(true)}
+                    style={{
+                        padding: '0.75rem 1rem',
+                        borderBottom: '1px solid var(--border)',
+                        cursor: 'pointer',
+                    }}
+                >
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                    }}>
+                        <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '8px',
+                            backgroundColor: 'var(--icon-bg-muted)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--text-tertiary)'
+                        }}>
+                            <BellOff size={16} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ 
+                                fontSize: '0.875rem', 
+                                fontWeight: 500, 
+                                color: 'var(--text-primary)' 
+                            }}>
+                                Push Notifications
+                            </div>
+                            <div style={{ 
+                                fontSize: '0.75rem', 
+                                color: 'var(--text-tertiary)',
+                                marginTop: '0.125rem'
+                            }}>
+                                Blocked · Tap to learn how to enable
+                            </div>
+                        </div>
+                        <ChevronRight size={16} style={{ color: 'var(--text-tertiary)' }} />
+                    </div>
+                </div>
+            </>
+        );
+    }
+    
+    const handleToggle = async () => {
+        const success = await toggleSubscription();
+        if (success) {
+            onToast(isSubscribed ? 'Notifications disabled' : 'Notifications enabled', 'success');
+        }
+    };
+    
+    return (
+        <div style={{
+            padding: '0.75rem 1rem',
+            borderBottom: '1px solid var(--border)'
+        }}>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+            }}>
+                <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--icon-bg-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--text-secondary)'
+                }}>
+                    <Bell size={16} />
+                </div>
+                <div style={{ 
+                    flex: 1,
+                    fontSize: '0.875rem', 
+                    fontWeight: 500, 
+                    color: 'var(--text-primary)' 
+                }}>
+                    Push Notifications
+                </div>
+                <button
+                    onClick={handleToggle}
+                    disabled={isLoading}
+                    style={{
+                        width: '44px',
+                        height: '24px',
+                        borderRadius: '12px',
+                        border: 'none',
+                        backgroundColor: isSubscribed ? '#0095f6' : 'var(--border)',
+                        cursor: isLoading ? 'not-allowed' : 'pointer',
+                        position: 'relative',
+                        transition: 'background-color 0.2s',
+                        opacity: isLoading ? 0.6 : 1
+                    }}
+                >
+                    <div style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        backgroundColor: 'white',
+                        position: 'absolute',
+                        top: '3px',
+                        left: isSubscribed ? '23px' : '3px',
+                        transition: 'left 0.2s',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                    }} />
+                </button>
+            </div>
+            {isSubscribed && (
+                <div style={{ marginTop: '0.75rem' }}>
+                    <PushNotificationSettings onToast={onToast} />
+                </div>
+            )}
+        </div>
+    );
+};

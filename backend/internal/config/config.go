@@ -28,6 +28,15 @@ type Config struct {
 	// Azure Blob Storage configuration
 	AzureStorage AzureStorageConfig
 
+	// Azure Service Bus configuration
+	AzureServiceBus AzureServiceBusConfig
+
+	// Web Push (VAPID) configuration
+	WebPush WebPushConfig
+
+	// Push Worker configuration
+	PushWorker PushWorkerConfig
+
 	// Email configuration
 	Email EmailConfig
 
@@ -81,6 +90,27 @@ type AzureStorageConfig struct {
 	AccountName      string
 	ConnectionString string
 	ContainerName    string
+}
+
+// AzureServiceBusConfig holds Azure Service Bus configuration
+type AzureServiceBusConfig struct {
+	ConnectionString string
+	QueueName        string
+}
+
+// WebPushConfig holds Web Push (VAPID) configuration
+type WebPushConfig struct {
+	VapidPublicKey  string
+	VapidPrivateKey string
+	VapidSubject    string // Usually "mailto:you@example.com"
+	VapidKeyID      string // Identifier for key rotation support
+}
+
+// PushWorkerConfig holds push worker configuration
+type PushWorkerConfig struct {
+	SendRateLimit       int // Pushes per second (default 100)
+	MaxConcurrent       int // Concurrent senders (default 10)
+	DedupeWindowSeconds int // Dedupe window in seconds (default 60)
 }
 
 // EmailConfig holds email service configuration
@@ -142,6 +172,24 @@ func Load() (*Config, error) {
 			AccountName:      os.Getenv("AZURE_STORAGE_ACCOUNT_NAME"),
 			ConnectionString: os.Getenv("AZURE_STORAGE_CONNECTION_STRING"),
 			ContainerName:    getEnvWithDefault("AZURE_STORAGE_CONTAINER", "profile-pictures"),
+		},
+
+		AzureServiceBus: AzureServiceBusConfig{
+			ConnectionString: os.Getenv("AZURE_SERVICEBUS_CONNECTION_STRING"),
+			QueueName:        getEnvWithDefault("AZURE_SERVICEBUS_QUEUE_NAME", "push-notifications"),
+		},
+
+		WebPush: WebPushConfig{
+			VapidPublicKey:  os.Getenv("VAPID_PUBLIC_KEY"),
+			VapidPrivateKey: os.Getenv("VAPID_PRIVATE_KEY"),
+			VapidSubject:    getEnvWithDefault("VAPID_SUBJECT", "mailto:aman@amancodes.dev"),
+			VapidKeyID:      getEnvWithDefault("VAPID_KEY_ID", "default"),
+		},
+
+		PushWorker: PushWorkerConfig{
+			SendRateLimit:       getIntFromEnv("PUSH_SEND_RATE_LIMIT", 100),
+			MaxConcurrent:       getIntFromEnv("PUSH_MAX_CONCURRENT", 10),
+			DedupeWindowSeconds: getIntFromEnv("PUSH_DEDUPE_WINDOW_SECONDS", 60),
 		},
 
 		Email: EmailConfig{

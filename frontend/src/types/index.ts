@@ -7,6 +7,9 @@ export interface User {
 // Re-export notification types
 export * from './notification';
 
+// Re-export push notification types
+export * from './push';
+
 export interface AuthResponse {
     success: boolean;
     access_token?: string;

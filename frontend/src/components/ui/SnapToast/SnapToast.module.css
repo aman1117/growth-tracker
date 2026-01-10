@@ -40,9 +40,9 @@
   /* Spring animation */
   animation: snapSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   
-  /* Constraints */
-  max-width: calc(100vw - 3rem);
-  white-space: nowrap;
+  /* Constraints - allow wrapping for long text */
+  max-width: calc(100vw - 2rem);
+  width: auto;
   
   /* Touch feedback */
   touch-action: pan-y;
@@ -282,7 +282,9 @@
   font-weight: 600;
   color: #ffffff;
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ============================================================================

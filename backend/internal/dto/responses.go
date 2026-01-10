@@ -326,3 +326,56 @@ func NotificationsToDTOs(notifications []models.Notification) []NotificationDTO 
 	}
 	return dtos
 }
+
+// ==================== Push Notification Response DTOs ====================
+
+// VapidPublicKeyResponse represents the VAPID public key response
+// @Description VAPID public key for push subscription
+type VapidPublicKeyResponse struct {
+	Success   bool   `json:"success" example:"true"`
+	KeyID     string `json:"keyId" example:"prod-2026-01"`
+	PublicKey string `json:"publicKey" example:"BEl62i..."`
+}
+
+// PushSubscriptionResponse represents a push subscription response
+// @Description Push subscription registration result
+type PushSubscriptionResponse struct {
+	Success bool   `json:"success" example:"true"`
+	Message string `json:"message" example:"Subscription registered successfully"`
+}
+
+// PushPreferenceDTO represents push preferences for API responses
+// @Description Push notification preferences
+type PushPreferenceDTO struct {
+	PushEnabled       bool            `json:"push_enabled" example:"true"`
+	Preferences       map[string]bool `json:"preferences"`
+	QuietHoursEnabled bool            `json:"quiet_hours_enabled" example:"false"`
+	QuietStart        string          `json:"quiet_start,omitempty" example:"22:00"`
+	QuietEnd          string          `json:"quiet_end,omitempty" example:"08:00"`
+	Timezone          string          `json:"timezone" example:"America/New_York"`
+}
+
+// PushPreferencesResponse represents push preferences response
+// @Description Push preferences retrieval result
+type PushPreferencesResponse struct {
+	Success     bool              `json:"success" example:"true"`
+	Preferences PushPreferenceDTO `json:"preferences"`
+}
+
+// PushPreferenceToDTO converts a PushPreference model to DTO
+func PushPreferenceToDTO(p *models.PushPreference) PushPreferenceDTO {
+	prefs := make(map[string]bool)
+	if p.Preferences != nil {
+		for k, v := range p.Preferences {
+			prefs[k] = v
+		}
+	}
+	return PushPreferenceDTO{
+		PushEnabled:       p.PushEnabled,
+		Preferences:       prefs,
+		QuietHoursEnabled: p.QuietHoursEnabled,
+		QuietStart:        p.QuietStart,
+		QuietEnd:          p.QuietEnd,
+		Timezone:          p.Timezone,
+	}
+}

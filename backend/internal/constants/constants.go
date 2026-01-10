@@ -122,6 +122,13 @@ const (
 	ErrCodeAccountPrivate       = "ACCOUNT_PRIVATE"
 	ErrCodeStreakNotFound       = "STREAK_NOT_FOUND"
 	ErrCodeNotificationNotFound = "NOTIFICATION_NOT_FOUND"
+	ErrCodeConflict             = "CONFLICT"
+
+	// Configuration errors
+	ErrCodeConfigError = "CONFIG_ERROR"
+
+	// Input validation errors
+	ErrCodeInvalidInput = "INVALID_INPUT"
 
 	// Operation errors
 	ErrCodeFetchFailed   = "FETCH_FAILED"

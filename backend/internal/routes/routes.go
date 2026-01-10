@@ -24,6 +24,7 @@ type Router struct {
 	badgeHandler          *handlers.BadgeHandler
 	notificationHandler   *handlers.NotificationHandler
 	notificationWSHandler *handlers.NotificationWSHandler
+	pushHandler           *handlers.PushHandler
 	tokenSvc              *handlers.TokenService
 }
 
@@ -41,6 +42,7 @@ func NewRouter(
 	badgeHandler *handlers.BadgeHandler,
 	notificationHandler *handlers.NotificationHandler,
 	notificationWSHandler *handlers.NotificationWSHandler,
+	pushHandler *handlers.PushHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
@@ -56,6 +58,7 @@ func NewRouter(
 		badgeHandler:          badgeHandler,
 		notificationHandler:   notificationHandler,
 		notificationWSHandler: notificationWSHandler,
+		pushHandler:           pushHandler,
 		tokenSvc:              tokenSvc,
 	}
 }
@@ -145,6 +148,18 @@ func (r *Router) Setup(app *fiber.App) {
 	notifications.Patch("/:id/read", r.notificationHandler.MarkAsRead)
 	notifications.Patch("/read-all", r.notificationHandler.MarkAllAsRead)
 	notifications.Delete("/:id", r.notificationHandler.DeleteNotification)
+
+	// ==================== Push Notifications ====================
+	push := api.Group("/push")
+	// Public endpoint - VAPID public key (no auth required)
+	push.Get("/vapid-public-key", r.pushHandler.GetVapidPublicKey)
+	// Protected endpoints
+	push.Post("/subscriptions", authMiddleware, apiRateLimiter, r.pushHandler.RegisterSubscription)
+	push.Delete("/subscriptions", authMiddleware, apiRateLimiter, r.pushHandler.UnregisterSubscription)
+	push.Get("/preferences", authMiddleware, apiRateLimiter, r.pushHandler.GetPreferences)
+	push.Put("/preferences", authMiddleware, apiRateLimiter, r.pushHandler.UpdatePreferences)
+	// Admin/maintenance endpoint - cleanup stale data
+	push.Post("/cleanup", authMiddleware, r.pushHandler.RunCleanup)
 
 	// ==================== WebSocket ====================
 	// WebSocket route for real-time notifications

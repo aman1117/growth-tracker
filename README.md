@@ -90,6 +90,7 @@ Track time across **16 life categories**:
 - [ ] Streak freeze days
 - [ ] Notifications like Aman just completed their day, log your days, 
 - [ ] what criteria should be for verfied
+- [ ] call cleanup for stale data in stale subscriptions
 
 
 

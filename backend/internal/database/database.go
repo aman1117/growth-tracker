@@ -72,6 +72,9 @@ func AutoMigrate() error {
 		&models.UserBadge{},
 		&models.Notification{},
 		&models.NotificationDedupe{},
+		&models.PushSubscription{},
+		&models.PushPreference{},
+		&models.PushDeliveryLog{},
 	)
 }
 

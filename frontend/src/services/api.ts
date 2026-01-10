@@ -149,6 +149,13 @@ class ApiClient {
   }
 
   /**
+   * HTTP DELETE request with body
+   */
+  async deleteWithBody<T>(endpoint: string, body: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>('DELETE', endpoint, body, options);
+  }
+
+  /**
    * Upload a file (multipart/form-data)
    */
   async uploadFile<T>(

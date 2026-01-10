@@ -42,6 +42,7 @@ import (
 	"github.com/aman1117/backend/internal/database"
 	"github.com/aman1117/backend/internal/logger"
 	"github.com/aman1117/backend/internal/middleware"
+	"github.com/aman1117/backend/internal/services"
 	"github.com/aman1117/backend/pkg/redis"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -102,6 +103,18 @@ func main() {
 		log.Info("Email service initialized")
 	} else {
 		log.Warn("Email notifications are disabled")
+	}
+
+	// Initialize push publisher (optional - for Web Push notifications)
+	if cfg.AzureServiceBus.ConnectionString != "" {
+		if err := services.InitPushPublisher(cfg); err != nil {
+			log.Warnf("Push publisher initialization failed: %v", err)
+			log.Warn("Web Push notifications are disabled")
+		} else {
+			log.Info("Push publisher initialized")
+		}
+	} else {
+		log.Warn("Push notifications disabled (Service Bus not configured)")
 	}
 
 	// Setup cron jobs

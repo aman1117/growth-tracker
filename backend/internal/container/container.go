@@ -23,6 +23,7 @@ type Container struct {
 	LikeRepo         *repository.LikeRepository
 	BadgeRepo        *repository.BadgeRepository
 	NotificationRepo *repository.NotificationRepository
+	PushRepo         *repository.PushRepository
 
 	// Services
 	AuthService         *services.AuthService
@@ -51,6 +52,7 @@ type Container struct {
 	BadgeHandler          *handlers.BadgeHandler
 	NotificationHandler   *handlers.NotificationHandler
 	NotificationWSHandler *handlers.NotificationWSHandler
+	PushHandler           *handlers.PushHandler
 
 	// Router
 	Router *routes.Router
@@ -68,6 +70,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.LikeRepo = repository.NewLikeRepository(db)
 	c.BadgeRepo = repository.NewBadgeRepository(db)
 	c.NotificationRepo = repository.NewNotificationRepository(db)
+	c.PushRepo = repository.NewPushRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -104,6 +107,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.BadgeHandler = handlers.NewBadgeHandler(c.BadgeService, c.AuthService)
 	c.NotificationHandler = handlers.NewNotificationHandler(c.NotificationService)
 	c.NotificationWSHandler = handlers.NewNotificationWSHandler(c.NotificationService, c.TokenService)
+	c.PushHandler = handlers.NewPushHandler(c.PushRepo, cfg)
 
 	// Initialize blob handler (optional)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -127,6 +131,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.BadgeHandler,
 		c.NotificationHandler,
 		c.NotificationWSHandler,
+		c.PushHandler,
 		c.TokenService,
 	)
 

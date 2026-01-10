@@ -1,0 +1,77 @@
+name: Deploy Push Worker to Azure Container Apps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+env:
+  AZURE_CONTAINER_REGISTRY: growthtrackeracr
+  CONTAINER_IMAGE_NAME: growth-tracker-pushworker
+  RESOURCE_GROUP: growth-tracker-rg
+  CONTAINER_APP_NAME: growth-tracker-pushworker
+  CONTAINER_APP_ENV: growth-tracker-env
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push Docker image
+        working-directory: ./backend
+        run: |
+          docker build -f Dockerfile.pushworker -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_IMAGE_NAME }}:${{ github.sha }} .
+          docker build -f Dockerfile.pushworker -t ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_IMAGE_NAME }}:latest .
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_IMAGE_NAME }}:latest
+
+      - name: Check if Container App exists
+        id: check-app
+        run: |
+          if az containerapp show --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Container App (if not exists)
+        if: steps.check-app.outputs.exists == 'false'
+        run: |
+          az containerapp create \
+            --name ${{ env.CONTAINER_APP_NAME }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --environment ${{ env.CONTAINER_APP_ENV }} \
+            --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_IMAGE_NAME }}:${{ github.sha }} \
+            --registry-server ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io \
+            --registry-username ${{ secrets.ACR_USERNAME }} \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --min-replicas 0 \
+            --max-replicas 3 \
+            --cpu 0.5 \
+            --memory 1Gi \
+            --ingress external \
+            --target-port 8000
+
+      - name: Deploy to Azure Container Apps
+        if: steps.check-app.outputs.exists == 'true'
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: ${{ env.CONTAINER_APP_NAME }}
+          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_IMAGE_NAME }}:${{ github.sha }}

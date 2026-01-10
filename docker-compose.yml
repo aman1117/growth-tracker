@@ -123,6 +123,16 @@ services:
       EMAIL_FROM_NAME: Growth Tracker Local
       # Leave RESEND_API_KEY empty to use SMTP fallback
       RESEND_API_KEY: ""
+
+      # Service Bus - Use dev namespace (set these env vars locally)
+      AZURE_SERVICEBUS_CONNECTION_STRING: ${AZURE_SERVICEBUS_CONNECTION_STRING:-}
+      AZURE_SERVICEBUS_QUEUE_NAME: ${AZURE_SERVICEBUS_QUEUE_NAME:-push-notifications-dev}
+
+      # VAPID Keys for Web Push (set these env vars locally)
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:dev@localhost}
+      VAPID_KEY_ID: ${VAPID_KEY_ID:-dev-local}
     depends_on:
       postgres:
         condition: service_healthy
@@ -159,6 +169,54 @@ services:
     command: ["go", "run", "./cmd/seed/main.go"]
     profiles:
       - seed
+
+  # Push Worker - Web Push notification delivery service
+  pushworker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: growth-tracker-pushworker
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./backend:/app
+      - go_mod_cache:/go/pkg/mod
+      - go_build_cache:/root/.cache/go-build
+    environment:
+      # Database - LOCAL ONLY
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: growth_tracker_dev
+      DB_USERNAME: localdev
+      DB_PASSWORD: localdevpassword
+      DB_SSLMODE: disable
+      
+      # Environment
+      ENV: development
+      PORT: 8001
+
+      # Service Bus - Use dev namespace (set these env vars locally)
+      AZURE_SERVICEBUS_CONNECTION_STRING: ${AZURE_SERVICEBUS_CONNECTION_STRING:-}
+      AZURE_SERVICEBUS_QUEUE_NAME: ${AZURE_SERVICEBUS_QUEUE_NAME:-push-notifications-dev}
+
+      # VAPID Keys for Web Push (set these env vars locally)
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:dev@localhost}
+      VAPID_KEY_ID: ${VAPID_KEY_ID:-dev-local}
+
+      # Push Worker Config
+      PUSH_SEND_RATE_LIMIT: 100
+      PUSH_MAX_CONCURRENT: 5
+      PUSH_DEDUPE_WINDOW_SECONDS: 60
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    command: ["go", "run", "./cmd/pushworker/main.go"]
+    profiles:
+      - pushworker
 
   # Frontend with Vite hot-reload
   frontend:

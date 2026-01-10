@@ -135,3 +135,49 @@ type GetLikesRequest struct {
 	Username string `json:"username" example:"john_doe"`
 	Date     string `json:"date" example:"2026-01-04"` // Format: YYYY-MM-DD
 }
+
+// ==================== Push Notification DTOs ====================
+
+// PushSubscriptionKeys represents the encryption keys for a push subscription
+type PushSubscriptionKeys struct {
+	P256dh string `json:"p256dh" example:"BNcRd..."`
+	Auth   string `json:"auth" example:"tBHIt..."`
+}
+
+// PushSubscriptionData represents the Web Push subscription object from the browser
+type PushSubscriptionData struct {
+	Endpoint string               `json:"endpoint" example:"https://fcm.googleapis.com/fcm/send/..."`
+	Keys     PushSubscriptionKeys `json:"keys"`
+}
+
+// PushDeviceInfo represents device metadata for a push subscription
+type PushDeviceInfo struct {
+	UserAgent string `json:"userAgent,omitempty" example:"Mozilla/5.0..."`
+	Platform  string `json:"platform,omitempty" example:"windows"`
+	Browser   string `json:"browser,omitempty" example:"chrome"`
+}
+
+// RegisterPushSubscriptionRequest represents the request to register a push subscription
+// @Description Register a new push subscription for the authenticated user
+type RegisterPushSubscriptionRequest struct {
+	KeyID        string               `json:"keyId" example:"prod-2026-01"`
+	Subscription PushSubscriptionData `json:"subscription"`
+	Device       PushDeviceInfo       `json:"device,omitempty"`
+}
+
+// UnregisterPushSubscriptionRequest represents the request to unregister a push subscription
+// @Description Unregister a push subscription
+type UnregisterPushSubscriptionRequest struct {
+	Endpoint string `json:"endpoint" example:"https://fcm.googleapis.com/fcm/send/..."`
+}
+
+// UpdatePushPreferencesRequest represents the request to update push preferences
+// @Description Update push notification preferences
+type UpdatePushPreferencesRequest struct {
+	PushEnabled       *bool           `json:"push_enabled,omitempty"`
+	Preferences       map[string]bool `json:"preferences,omitempty"` // Per-type toggles
+	QuietHoursEnabled *bool           `json:"quiet_hours_enabled,omitempty"`
+	QuietStart        *string         `json:"quiet_start,omitempty"` // "HH:MM" format
+	QuietEnd          *string         `json:"quiet_end,omitempty"`   // "HH:MM" format
+	Timezone          *string         `json:"timezone,omitempty"`    // IANA timezone
+}

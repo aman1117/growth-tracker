@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Flame, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
-import { LikeButton } from './ui';
+import { LikeButton, CalendarPicker } from './ui';
 import { renderBadgeIcon } from '../utils/badgeIcons';
 import type { Badge } from '../types/api';
 
@@ -40,6 +40,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     const [streakLoading, setStreakLoading] = useState(true);
     const [badges, setBadges] = useState<Badge[]>([]);
     const [badgesLoading, setBadgesLoading] = useState(true);
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
     const formatDateForApi = (date: Date) => {
         const year = date.getFullYear();
@@ -97,7 +98,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
             }
         };
         fetchBadges();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks-deps
     }, [username]);
 
     const formatDate = (d: Date) => {
@@ -122,29 +123,8 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
         return currentDate.toDateString() === today.toDateString();
     };
 
-    const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedDate = new Date(e.target.value + 'T00:00:00');
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (selectedDate <= today) {
-            onDateChange(selectedDate);
-        }
-    };
-
     const handleGoToToday = () => {
         onDateChange(new Date());
-    };
-
-    const formatDateForInput = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    const getTodayForInput = () => {
-        return formatDateForInput(new Date());
     };
 
     // Hours calculation
@@ -225,58 +205,26 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     >
                         <ChevronLeft size={18} />
                     </button>
-                    <div style={{ 
-                        position: 'relative', 
-                        overflow: 'visible', 
-                        borderRadius: '8px',
-                        // Ensure this container captures all pointer events
-                        isolation: 'isolate',
-                    }}>
-                        <button
-                            style={{
-                                fontSize: '0.85rem',
-                                fontWeight: 500,
-                                color: 'var(--text-primary)',
-                                background: 'var(--tile-glass-bg)',
-                                backdropFilter: 'blur(8px)',
-                                WebkitBackdropFilter: 'blur(8px)',
-                                border: '1px solid var(--tile-glass-border)',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                                cursor: 'pointer',
-                                padding: '0.35rem 0.75rem',
-                                borderRadius: '8px',
-                                transition: 'all 0.2s ease',
-                                whiteSpace: 'nowrap',
-                                pointerEvents: 'none',
-                            }}
-                        >
-                            {formatDate(currentDate)}
-                        </button>
-                        <input
-                            type="date"
-                            value={formatDateForInput(currentDate)}
-                            max={getTodayForInput()}
-                            onChange={handleDateInputChange}
-                            onClick={(e) => e.stopPropagation()}
-                            onTouchStart={(e) => e.stopPropagation()}
-                            onTouchEnd={(e) => e.stopPropagation()}
-                            style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%',
-                                opacity: 0,
-                                cursor: 'pointer',
-                                fontSize: '16px',
-                                margin: 0,
-                                padding: 0,
-                                // Prevent touch events from passing through
-                                touchAction: 'manipulation',
-                                WebkitTapHighlightColor: 'transparent',
-                            }}
-                        />
-                    </div>
+                    <button
+                        onClick={() => setIsCalendarOpen(true)}
+                        style={{
+                            fontSize: '0.85rem',
+                            fontWeight: 500,
+                            color: 'var(--text-primary)',
+                            background: 'var(--tile-glass-bg)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)',
+                            border: '1px solid var(--tile-glass-border)',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                            cursor: 'pointer',
+                            padding: '0.35rem 0.75rem',
+                            borderRadius: '8px',
+                            transition: 'all 0.2s ease',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        {formatDate(currentDate)}
+                    </button>
                     <button
                         onClick={onNext}
                         disabled={isNextDisabled}
@@ -422,6 +370,15 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     showCount={true}
                 />
             </div>
+
+            {/* Custom Calendar Picker */}
+            <CalendarPicker
+                isOpen={isCalendarOpen}
+                onClose={() => setIsCalendarOpen(false)}
+                selectedDate={currentDate}
+                onDateSelect={onDateChange}
+                maxDate={new Date()}
+            />
         </div>
     );
 };

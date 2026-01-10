@@ -5,6 +5,7 @@
 export { Avatar, type AvatarProps, type AvatarSize } from './Avatar';
 export { StreakBadge, type StreakBadgeProps } from './Badge';
 export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from './Button';
+export { CalendarPicker } from './CalendarPicker';
 export { Card, type CardProps } from './Card';
 export { Input, type InputProps } from './Input';
 export { LikeButton, type LikeButtonProps } from './LikeButton';

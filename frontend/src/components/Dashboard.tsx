@@ -247,9 +247,6 @@ export const Dashboard: React.FC = () => {
     // Tile animation state for day transitions
     const [tilesAnimating, setTilesAnimating] = useState(false);
     const [animationDirection, setAnimationDirection] = useState<'left' | 'right'>('left');
-    
-    // Cooldown to prevent accidental tile clicks after date picker closes
-    const [datePickerCooldown, setDatePickerCooldown] = useState(false);
 
     // DnD Sensors
     const sensors = useSensors(
@@ -623,10 +620,6 @@ export const Dashboard: React.FC = () => {
             setAnimationDirection('left');
         }
 
-        // Set cooldown to prevent accidental tile clicks from date picker touch events
-        setDatePickerCooldown(true);
-        setTimeout(() => setDatePickerCooldown(false), 300);
-
         setTilesAnimating(true);
         setTimeout(() => {
             setCurrentDate(newDate);
@@ -642,7 +635,6 @@ export const Dashboard: React.FC = () => {
     const handleActivityClick = (name: ActivityName) => {
         if (isReadOnly) return;
         if (currentDate > new Date()) return;
-        if (datePickerCooldown) return; // Ignore clicks during cooldown after date picker
 
         setSelectedActivity(name);
         setIsModalOpen(true);

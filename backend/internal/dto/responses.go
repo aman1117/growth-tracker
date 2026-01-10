@@ -379,3 +379,12 @@ func PushPreferenceToDTO(p *models.PushPreference) PushPreferenceDTO {
 		Timezone:          p.Timezone,
 	}
 }
+
+// CleanupResponse represents the push cleanup results
+// @Description Push notification cleanup results
+type CleanupResponse struct {
+	Success                   bool  `json:"success" example:"true"`
+	StaleSubscriptionsCleaned int64 `json:"stale_subscriptions_cleaned" example:"5"`
+	GoneSubscriptionsDeleted  int64 `json:"gone_subscriptions_deleted" example:"3"`
+	OldLogsDeleted            int64 `json:"old_logs_deleted" example:"100"`
+}

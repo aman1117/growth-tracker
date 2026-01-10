@@ -89,6 +89,22 @@ definitions:
         example: NewPass123
         type: string
     type: object
+  dto.CleanupResponse:
+    description: Push notification cleanup results
+    properties:
+      gone_subscriptions_deleted:
+        example: 3
+        type: integer
+      old_logs_deleted:
+        example: 100
+        type: integer
+      stale_subscriptions_cleaned:
+        example: 5
+        type: integer
+      success:
+        example: true
+        type: boolean
+    type: object
   dto.CreateActivityRequest:
     description: Create or update an activity
     properties:
@@ -340,6 +356,64 @@ definitions:
         example: 15
         type: integer
     type: object
+  dto.NotificationActionResponse:
+    description: Response for mark as read/delete actions
+    properties:
+      message:
+        example: Notification marked as read
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.NotificationDTO:
+    description: Notification information
+    properties:
+      body:
+        example: john_doe liked your Jan 5 activities
+        type: string
+      created_at:
+        example: "2026-01-05T10:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      metadata:
+        additionalProperties: true
+        type: object
+      read_at:
+        example: "2026-01-05T12:00:00Z"
+        type: string
+      title:
+        example: New Like!
+        type: string
+      type:
+        example: like_received
+        type: string
+    type: object
+  dto.NotificationsResponse:
+    description: Paginated list of notifications
+    properties:
+      has_more:
+        example: true
+        type: boolean
+      notifications:
+        items:
+          $ref: '#/definitions/dto.NotificationDTO'
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 20
+        type: integer
+      success:
+        example: true
+        type: boolean
+      total:
+        example: 25
+        type: integer
+    type: object
   dto.PrivacyResponse:
     description: Privacy setting result
     properties:
@@ -371,6 +445,88 @@ definitions:
       username:
         example: john_doe
         type: string
+    type: object
+  dto.PushDeviceInfo:
+    properties:
+      browser:
+        example: chrome
+        type: string
+      platform:
+        example: windows
+        type: string
+      userAgent:
+        example: Mozilla/5.0...
+        type: string
+    type: object
+  dto.PushPreferenceDTO:
+    description: Push notification preferences
+    properties:
+      preferences:
+        additionalProperties:
+          type: boolean
+        type: object
+      push_enabled:
+        example: true
+        type: boolean
+      quiet_end:
+        example: "08:00"
+        type: string
+      quiet_hours_enabled:
+        example: false
+        type: boolean
+      quiet_start:
+        example: "22:00"
+        type: string
+      timezone:
+        example: America/New_York
+        type: string
+    type: object
+  dto.PushPreferencesResponse:
+    description: Push preferences retrieval result
+    properties:
+      preferences:
+        $ref: '#/definitions/dto.PushPreferenceDTO'
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.PushSubscriptionData:
+    properties:
+      endpoint:
+        example: https://fcm.googleapis.com/fcm/send/...
+        type: string
+      keys:
+        $ref: '#/definitions/dto.PushSubscriptionKeys'
+    type: object
+  dto.PushSubscriptionKeys:
+    properties:
+      auth:
+        example: tBHIt...
+        type: string
+      p256dh:
+        example: BNcRd...
+        type: string
+    type: object
+  dto.PushSubscriptionResponse:
+    description: Push subscription registration result
+    properties:
+      message:
+        example: Subscription registered successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.RegisterPushSubscriptionRequest:
+    description: Register a new push subscription for the authenticated user
+    properties:
+      device:
+        $ref: '#/definitions/dto.PushDeviceInfo'
+      keyId:
+        example: prod-2026-01
+        type: string
+      subscription:
+        $ref: '#/definitions/dto.PushSubscriptionData'
     type: object
   dto.RegisterRequest:
     description: User registration request
@@ -472,6 +628,23 @@ definitions:
       success:
         type: boolean
     type: object
+  dto.UnreadCountResponse:
+    description: Unread notification count
+    properties:
+      success:
+        example: true
+        type: boolean
+      unread_count:
+        example: 5
+        type: integer
+    type: object
+  dto.UnregisterPushSubscriptionRequest:
+    description: Unregister a push subscription
+    properties:
+      endpoint:
+        example: https://fcm.googleapis.com/fcm/send/...
+        type: string
+    type: object
   dto.UpdateBioRequest:
     description: Bio update request
     properties:
@@ -485,6 +658,28 @@ definitions:
       is_private:
         example: true
         type: boolean
+    type: object
+  dto.UpdatePushPreferencesRequest:
+    description: Update push notification preferences
+    properties:
+      preferences:
+        additionalProperties:
+          type: boolean
+        description: Per-type toggles
+        type: object
+      push_enabled:
+        type: boolean
+      quiet_end:
+        description: '"HH:MM" format'
+        type: string
+      quiet_hours_enabled:
+        type: boolean
+      quiet_start:
+        description: '"HH:MM" format'
+        type: string
+      timezone:
+        description: IANA timezone
+        type: string
     type: object
   dto.UpdateUsernameRequest:
     description: Username update request
@@ -527,6 +722,19 @@ definitions:
         type: string
       new_username:
         example: new_username
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.VapidPublicKeyResponse:
+    description: VAPID public key for push subscription
+    properties:
+      keyId:
+        example: prod-2026-01
+        type: string
+      publicKey:
+        example: BEl62i...
         type: string
       success:
         example: true
@@ -1051,6 +1259,136 @@ paths:
       summary: User login
       tags:
       - Authentication
+  /notifications:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of notifications for the current user
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Page size (default: 20, max: 50)'
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Notifications list
+          schema:
+            $ref: '#/definitions/dto.NotificationsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get notifications
+      tags:
+      - Notifications
+  /notifications/{id}:
+    delete:
+      description: Delete a specific notification
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/dto.NotificationActionResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete notification
+      tags:
+      - Notifications
+  /notifications/{id}/read:
+    patch:
+      description: Mark a specific notification as read
+      parameters:
+      - description: Notification ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/dto.NotificationActionResponse'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark notification as read
+      tags:
+      - Notifications
+  /notifications/read-all:
+    patch:
+      description: Mark all notifications as read for the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/dto.NotificationActionResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark all as read
+      tags:
+      - Notifications
+  /notifications/unread-count:
+    get:
+      description: Get the count of unread notifications
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Unread count
+          schema:
+            $ref: '#/definitions/dto.UnreadCountResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get unread count
+      tags:
+      - Notifications
   /profile:
     get:
       description: Get full profile of authenticated user
@@ -1074,6 +1412,163 @@ paths:
       summary: Get user profile
       tags:
       - Profile
+  /push/cleanup:
+    post:
+      consumes:
+      - application/json
+      description: Cleanup stale subscriptions, gone subscriptions, and old delivery
+        logs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cleanup results
+          schema:
+            $ref: '#/definitions/dto.CleanupResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cleanup stale push data
+      tags:
+      - Push Notifications
+  /push/preferences:
+    get:
+      consumes:
+      - application/json
+      description: Get push notification preferences for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Push preferences
+          schema:
+            $ref: '#/definitions/dto.PushPreferencesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get push preferences
+      tags:
+      - Push Notifications
+    put:
+      consumes:
+      - application/json
+      description: Update push notification preferences for the authenticated user
+      parameters:
+      - description: Preference updates
+        in: body
+        name: preferences
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePushPreferencesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated preferences
+          schema:
+            $ref: '#/definitions/dto.PushPreferencesResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update push preferences
+      tags:
+      - Push Notifications
+  /push/subscriptions:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a Web Push subscription for the authenticated user
+      parameters:
+      - description: Subscription endpoint to remove
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UnregisterPushSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscription removed
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unregister push subscription
+      tags:
+      - Push Notifications
+    post:
+      consumes:
+      - application/json
+      description: Register a new Web Push subscription for the authenticated user's
+        device
+      parameters:
+      - description: Push subscription data
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RegisterPushSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Subscription registered
+          schema:
+            $ref: '#/definitions/dto.PushSubscriptionResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Endpoint conflict
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register push subscription
+      tags:
+      - Push Notifications
+  /push/vapid-public-key:
+    get:
+      consumes:
+      - application/json
+      description: Get the VAPID public key needed for push subscription registration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: VAPID public key
+          schema:
+            $ref: '#/definitions/dto.VapidPublicKeyResponse'
+      summary: Get VAPID public key
+      tags:
+      - Push Notifications
   /register:
     post:
       consumes:

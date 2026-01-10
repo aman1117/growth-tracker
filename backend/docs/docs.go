@@ -685,6 +685,214 @@ const docTemplate = `{
                 }
             }
         },
+        "/notifications": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get paginated list of notifications for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get notifications",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number (default: 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default: 20, max: 50)",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notifications list",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NotificationsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/read-all": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mark all notifications as read for the current user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark all as read",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NotificationActionResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/unread-count": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the count of unread notifications",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get unread count",
+                "responses": {
+                    "200": {
+                        "description": "Unread count",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UnreadCountResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete a specific notification",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Delete notification",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Notification ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NotificationActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/{id}/read": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mark a specific notification as read",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark notification as read",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Notification ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NotificationActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/profile": {
             "get": {
                 "security": [
@@ -717,6 +925,252 @@ const docTemplate = `{
                         "description": "User not found",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/push/cleanup": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cleanup stale subscriptions, gone subscriptions, and old delivery logs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Cleanup stale push data",
+                "responses": {
+                    "200": {
+                        "description": "Cleanup results",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CleanupResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/push/preferences": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get push notification preferences for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Get push preferences",
+                "responses": {
+                    "200": {
+                        "description": "Push preferences",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PushPreferencesResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update push notification preferences for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Update push preferences",
+                "parameters": [
+                    {
+                        "description": "Preference updates",
+                        "name": "preferences",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePushPreferencesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated preferences",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PushPreferencesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/push/subscriptions": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Register a new Web Push subscription for the authenticated user's device",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Register push subscription",
+                "parameters": [
+                    {
+                        "description": "Push subscription data",
+                        "name": "subscription",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RegisterPushSubscriptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription registered",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PushSubscriptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Endpoint conflict",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a Web Push subscription for the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Unregister push subscription",
+                "parameters": [
+                    {
+                        "description": "Subscription endpoint to remove",
+                        "name": "subscription",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UnregisterPushSubscriptionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription removed",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/push/vapid-public-key": {
+            "get": {
+                "description": "Get the VAPID public key needed for push subscription registration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Get VAPID public key",
+                "responses": {
+                    "200": {
+                        "description": "VAPID public key",
+                        "schema": {
+                            "$ref": "#/definitions/dto.VapidPublicKeyResponse"
                         }
                     }
                 }
@@ -1300,6 +1754,28 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CleanupResponse": {
+            "description": "Push notification cleanup results",
+            "type": "object",
+            "properties": {
+                "gone_subscriptions_deleted": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "old_logs_deleted": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "stale_subscriptions_cleaned": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "dto.CreateActivityRequest": {
             "description": "Create or update an activity",
             "type": "object",
@@ -1651,6 +2127,86 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.NotificationActionResponse": {
+            "description": "Response for mark as read/delete actions",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Notification marked as read"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.NotificationDTO": {
+            "description": "Notification information",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "example": "john_doe liked your Jan 5 activities"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-01-05T10:00:00Z"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "read_at": {
+                    "type": "string",
+                    "example": "2026-01-05T12:00:00Z"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "New Like!"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "like_received"
+                }
+            }
+        },
+        "dto.NotificationsResponse": {
+            "description": "Paginated list of notifications",
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "notifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.NotificationDTO"
+                    }
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 25
+                }
+            }
+        },
         "dto.PrivacyResponse": {
             "description": "Privacy setting result",
             "type": "object",
@@ -1692,6 +2248,123 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "john_doe"
+                }
+            }
+        },
+        "dto.PushDeviceInfo": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string",
+                    "example": "chrome"
+                },
+                "platform": {
+                    "type": "string",
+                    "example": "windows"
+                },
+                "userAgent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0..."
+                }
+            }
+        },
+        "dto.PushPreferenceDTO": {
+            "description": "Push notification preferences",
+            "type": "object",
+            "properties": {
+                "preferences": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "push_enabled": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "quiet_end": {
+                    "type": "string",
+                    "example": "08:00"
+                },
+                "quiet_hours_enabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "quiet_start": {
+                    "type": "string",
+                    "example": "22:00"
+                },
+                "timezone": {
+                    "type": "string",
+                    "example": "America/New_York"
+                }
+            }
+        },
+        "dto.PushPreferencesResponse": {
+            "description": "Push preferences retrieval result",
+            "type": "object",
+            "properties": {
+                "preferences": {
+                    "$ref": "#/definitions/dto.PushPreferenceDTO"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.PushSubscriptionData": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string",
+                    "example": "https://fcm.googleapis.com/fcm/send/..."
+                },
+                "keys": {
+                    "$ref": "#/definitions/dto.PushSubscriptionKeys"
+                }
+            }
+        },
+        "dto.PushSubscriptionKeys": {
+            "type": "object",
+            "properties": {
+                "auth": {
+                    "type": "string",
+                    "example": "tBHIt..."
+                },
+                "p256dh": {
+                    "type": "string",
+                    "example": "BNcRd..."
+                }
+            }
+        },
+        "dto.PushSubscriptionResponse": {
+            "description": "Push subscription registration result",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Subscription registered successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.RegisterPushSubscriptionRequest": {
+            "description": "Register a new push subscription for the authenticated user",
+            "type": "object",
+            "properties": {
+                "device": {
+                    "$ref": "#/definitions/dto.PushDeviceInfo"
+                },
+                "keyId": {
+                    "type": "string",
+                    "example": "prod-2026-01"
+                },
+                "subscription": {
+                    "$ref": "#/definitions/dto.PushSubscriptionData"
                 }
             }
         },
@@ -1837,6 +2510,30 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UnreadCountResponse": {
+            "description": "Unread notification count",
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "unread_count": {
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
+        "dto.UnregisterPushSubscriptionRequest": {
+            "description": "Unregister a push subscription",
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string",
+                    "example": "https://fcm.googleapis.com/fcm/send/..."
+                }
+            }
+        },
         "dto.UpdateBioRequest": {
             "description": "Bio update request",
             "type": "object",
@@ -1854,6 +2551,37 @@ const docTemplate = `{
                 "is_private": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "dto.UpdatePushPreferencesRequest": {
+            "description": "Update push notification preferences",
+            "type": "object",
+            "properties": {
+                "preferences": {
+                    "description": "Per-type toggles",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "push_enabled": {
+                    "type": "boolean"
+                },
+                "quiet_end": {
+                    "description": "\"HH:MM\" format",
+                    "type": "string"
+                },
+                "quiet_hours_enabled": {
+                    "type": "boolean"
+                },
+                "quiet_start": {
+                    "description": "\"HH:MM\" format",
+                    "type": "string"
+                },
+                "timezone": {
+                    "description": "IANA timezone",
+                    "type": "string"
                 }
             }
         },
@@ -1913,6 +2641,24 @@ const docTemplate = `{
                 "new_username": {
                     "type": "string",
                     "example": "new_username"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.VapidPublicKeyResponse": {
+            "description": "VAPID public key for push subscription",
+            "type": "object",
+            "properties": {
+                "keyId": {
+                    "type": "string",
+                    "example": "prod-2026-01"
+                },
+                "publicKey": {
+                    "type": "string",
+                    "example": "BEl62i..."
                 },
                 "success": {
                     "type": "boolean",

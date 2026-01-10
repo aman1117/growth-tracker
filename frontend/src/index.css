@@ -57,6 +57,9 @@
   --tile-glass-blur: 12px;
   --tile-glass-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
   --tile-glass-inner-glow-active: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  
+  /* Toggle switch */
+  --toggle-off-bg: rgba(120, 120, 128, 0.2);
 }
 
 /* Dark Theme - Clean Neutral Black */
@@ -118,6 +121,9 @@
   --tile-glass-blur: 12px;
   --tile-glass-inner-glow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
   --tile-glass-inner-glow-active: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  
+  /* Toggle switch */
+  --toggle-off-bg: rgba(120, 120, 128, 0.4);
 }
 
 * {

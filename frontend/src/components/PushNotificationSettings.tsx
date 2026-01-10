@@ -112,7 +112,7 @@ const styles: Record<string, React.CSSProperties> = {
     position: 'relative',
     width: '40px',
     height: '22px',
-    backgroundColor: 'var(--bg-tertiary)',
+    backgroundColor: 'var(--toggle-off-bg)',
     borderRadius: '11px',
     cursor: 'pointer',
     transition: 'background-color 0.2s ease',

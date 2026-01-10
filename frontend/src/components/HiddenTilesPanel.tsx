@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { X, Plus, EyeOff, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Plus, EyeOff, Trash2, AlertTriangle, Pencil } from 'lucide-react';
 import { DynamicIcon } from './DynamicIcon';
 import { getActivityConfig } from '../constants/activities';
 import type { ActivityName, CustomTile, PredefinedActivityName } from '../types';
@@ -22,6 +22,7 @@ interface HiddenTilesPanelProps {
     colorOverrides?: Record<string, string>;
     onRestoreTile: (tileName: ActivityName) => void;
     onDeleteCustomTile?: (tileId: string) => void;
+    onEditCustomTile?: (tile: CustomTile) => void;
 }
 
 export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
@@ -32,6 +33,7 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
     colorOverrides,
     onRestoreTile,
     onDeleteCustomTile,
+    onEditCustomTile,
 }) => {
     const handleRestore = useCallback((tileName: ActivityName) => {
         onRestoreTile(tileName);
@@ -269,6 +271,8 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
                                     {hiddenCustom.map((tileName) => {
                                         const config = getActivityConfig(tileName, customTiles, colorOverrides);
                                         const tileId = tileName.replace('custom:', '');
+                                        // Find the custom tile object for editing
+                                        const customTileObj = customTiles.find(t => t.id === tileId);
                                         
                                         return (
                                             <div
@@ -336,6 +340,26 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
                                                         <Plus size={14} />
                                                         Restore
                                                     </button>
+                                                    {onEditCustomTile && customTileObj && (
+                                                        <button
+                                                            onClick={() => onEditCustomTile(customTileObj)}
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                width: '36px',
+                                                                height: '36px',
+                                                                background: 'rgba(0, 149, 246, 0.1)',
+                                                                border: '1px solid rgba(0, 149, 246, 0.3)',
+                                                                borderRadius: '8px',
+                                                                color: '#0095f6',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                            title="Edit tile"
+                                                        >
+                                                            <Pencil size={16} />
+                                                        </button>
+                                                    )}
                                                     {onDeleteCustomTile && (
                                                         <button
                                                             onClick={() => handleDeleteClick(tileId, config.label)}

@@ -1300,6 +1300,10 @@ export const Dashboard: React.FC = () => {
                                 const config = getActivityConfig(name, customTiles, tileColors);
                                 // For custom tiles, icon is a string (handled by iconName prop)
                                 const iconComponent = typeof config.icon === 'string' ? undefined : config.icon;
+                                // Find the custom tile object if this is a custom tile (for editing)
+                                const customTile = isCustomTile(name) 
+                                    ? customTiles.find(t => createCustomActivityName(t.id) === name)
+                                    : undefined;
                                 return (
                                     <ActivityTile
                                         key={name}
@@ -1318,6 +1322,10 @@ export const Dashboard: React.FC = () => {
                                         hasNote={!isReadOnly && !!activityNotes[name]}
                                         isEditMode={isEditMode}
                                         onHide={handleHideTileClick}
+                                        onEditCustomTile={customTile ? () => {
+                                            setEditingCustomTile(customTile);
+                                            setShowCustomTileModal(true);
+                                        } : undefined}
                                         displayLabel={config.label}
                                         tileIndex={index}
                                         iconName={config.iconName}
@@ -1520,6 +1528,11 @@ export const Dashboard: React.FC = () => {
                 colorOverrides={tileColors}
                 onRestoreTile={handleRestoreTile}
                 onDeleteCustomTile={handleDeleteCustomTile}
+                onEditCustomTile={(tile) => {
+                    setEditingCustomTile(tile);
+                    setShowCustomTileModal(true);
+                    setShowHiddenTilesPanel(false);
+                }}
             />
 
             {/* Hide Tile Confirmation Dialog */}

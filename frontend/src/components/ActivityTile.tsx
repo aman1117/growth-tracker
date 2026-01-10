@@ -1,7 +1,8 @@
 import React, { Suspense } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { X } from 'lucide-react';
+import { X, Pencil } from 'lucide-react';
 import type { ActivityName } from '../types';
+import { isCustomTile } from '../types';
 import type { LucideIcon } from 'lucide-react';
 import { DynamicIcon } from './DynamicIcon';
 
@@ -23,6 +24,7 @@ interface ActivityTileProps {
     hasNote?: boolean;
     isEditMode?: boolean;
     onHide?: (name: ActivityName) => void;
+    onEditCustomTile?: () => void; // Edit handler for custom tiles
     displayLabel?: string; // Custom display label for custom tiles
     tileIndex?: number; // For alternating wobble animation
     iconName?: string; // Icon name for dynamic loading (custom tiles)
@@ -57,6 +59,7 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
     hasNote = false,
     isEditMode = false,
     onHide,
+    onEditCustomTile,
     displayLabel,
     tileIndex = 0,
     iconName,
@@ -106,6 +109,14 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
         e.stopPropagation();
         onHide?.(name);
     };
+
+    const handleEditClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onEditCustomTile?.();
+    };
+
+    // Check if this is a custom tile that can be edited
+    const isCustom = isCustomTile(name);
 
     // Determine wobble animation class
     const wobbleClass = isEditMode && !isSelected && !isDraggingProp
@@ -185,6 +196,35 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
                     title="Hide tile"
                 >
                     <X size={14} strokeWidth={3} />
+                </button>
+            )}
+
+            {/* Edit Badge - Pencil icon for custom tiles in edit mode */}
+            {isEditMode && !isDraggingProp && isCustom && onEditCustomTile && (
+                <button
+                    onClick={handleEditClick}
+                    className="edit-badge"
+                    style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '-8px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: '#0095f6',
+                        border: '2px solid white',
+                        color: 'white',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10,
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                        padding: 0,
+                    }}
+                    title="Edit tile"
+                >
+                    <Pencil size={12} strokeWidth={2.5} />
                 </button>
             )}
 

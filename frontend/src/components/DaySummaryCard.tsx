@@ -225,7 +225,13 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                     >
                         <ChevronLeft size={18} />
                     </button>
-                    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '8px' }}>
+                    <div style={{ 
+                        position: 'relative', 
+                        overflow: 'visible', 
+                        borderRadius: '8px',
+                        // Ensure this container captures all pointer events
+                        isolation: 'isolate',
+                    }}>
                         <button
                             style={{
                                 fontSize: '0.85rem',
@@ -251,6 +257,9 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                             value={formatDateForInput(currentDate)}
                             max={getTodayForInput()}
                             onChange={handleDateInputChange}
+                            onClick={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                            onTouchEnd={(e) => e.stopPropagation()}
                             style={{
                                 position: 'absolute',
                                 top: 0,
@@ -262,6 +271,9 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                                 fontSize: '16px',
                                 margin: 0,
                                 padding: 0,
+                                // Prevent touch events from passing through
+                                touchAction: 'manipulation',
+                                WebkitTapHighlightColor: 'transparent',
                             }}
                         />
                     </div>

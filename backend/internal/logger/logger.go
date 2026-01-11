@@ -4,6 +4,7 @@ package logger
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"sync"
@@ -87,6 +88,11 @@ func Init(cfg *config.Config) {
 				zapcore.AddSync(axiom),
 				zap.DebugLevel,
 			))
+			// Log to stdout that Axiom is configured (before Sugar is ready)
+			fmt.Printf("{\"level\":\"info\",\"message\":\"Axiom logging enabled\",\"dataset\":\"%s\"}\n", cfg.Axiom.Dataset)
+		} else {
+			fmt.Printf("{\"level\":\"warn\",\"message\":\"Axiom not configured\",\"dataset_set\":%t,\"token_set\":%t}\n",
+				cfg.Axiom.Dataset != "", cfg.Axiom.APIToken != "")
 		}
 	} else {
 		// Development: Pretty colored console output

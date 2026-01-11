@@ -38,6 +38,7 @@ type Worker struct {
 	isReady     bool
 	mu          sync.RWMutex
 	msgCh       chan *azservicebus.ReceivedMessage // Channel for distributing messages to workers
+	log         *zap.SugaredLogger                 // Logger with service context
 }
 
 // NewWorker creates a new push notification worker
@@ -64,12 +65,13 @@ func NewWorker(cfg *config.Config, pushRepo *repository.PushRepository) (*Worker
 		stopCh:      make(chan struct{}),
 		readyCh:     make(chan struct{}),
 		msgCh:       make(chan *azservicebus.ReceivedMessage, cfg.PushWorker.MaxConcurrent*2), // Buffered channel
+		log:         logger.Sugar.With("service", "pushworker"),
 	}, nil
 }
 
 // Start begins processing messages
 func (w *Worker) Start(ctx context.Context) {
-	logger.Sugar.Info("Starting push worker...")
+	w.log.Info("Starting push worker...")
 
 	// Mark as ready
 	w.mu.Lock()
@@ -87,7 +89,7 @@ func (w *Worker) Start(ctx context.Context) {
 		go w.processLoop(ctx, i)
 	}
 
-	logger.Sugar.Infow("Push worker started",
+	w.log.Infow("Push worker started",
 		"concurrent_workers", w.cfg.PushWorker.MaxConcurrent,
 		"rate_limit", w.cfg.PushWorker.SendRateLimit,
 	)
@@ -95,7 +97,7 @@ func (w *Worker) Start(ctx context.Context) {
 
 // Stop gracefully stops the worker
 func (w *Worker) Stop(ctx context.Context) {
-	logger.Sugar.Info("Stopping push worker...")
+	w.log.Info("Stopping push worker...")
 
 	// Signal workers to stop
 	close(w.stopCh)
@@ -109,9 +111,9 @@ func (w *Worker) Stop(ctx context.Context) {
 
 	select {
 	case <-done:
-		logger.Sugar.Info("All workers stopped gracefully")
+		w.log.Info("All workers stopped gracefully")
 	case <-ctx.Done():
-		logger.Sugar.Warn("Shutdown timeout, some workers may not have finished")
+		w.log.Warn("Shutdown timeout, some workers may not have finished")
 	}
 
 	// Close Service Bus connections
@@ -139,7 +141,7 @@ func (w *Worker) receiveLoop(ctx context.Context) {
 	defer w.wg.Done()
 	defer close(w.msgCh) // Close channel when receiver stops
 
-	log := logger.Sugar.With("component", "receiver")
+	log := w.log.With("component", "receiver")
 	log.Info("Message receiver started")
 
 	for {
@@ -182,7 +184,7 @@ func (w *Worker) receiveLoop(ctx context.Context) {
 func (w *Worker) processLoop(ctx context.Context, workerID int) {
 	defer w.wg.Done()
 
-	log := logger.Sugar.With("worker_id", workerID)
+	log := w.log.With("worker_id", workerID)
 	log.Info("Worker started")
 
 	for {
@@ -434,7 +436,8 @@ func main() {
 	logger.Init(cfg)
 	defer logger.Sync()
 
-	log := logger.Sugar
+	// Add service identifier to all logs from this worker
+	log := logger.Sugar.With("service", "pushworker")
 
 	// Validate required config
 	if cfg.AzureServiceBus.ConnectionString == "" {

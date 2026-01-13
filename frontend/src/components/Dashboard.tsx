@@ -36,6 +36,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
 import { renderBadgeIcon } from '../utils/badgeIcons';
 import { Lock, X, BarChart3, Plus, EyeOff, GripVertical, Undo2 } from 'lucide-react';
+import { useRefresh } from './RefreshContext';
 
 const STORAGE_KEY = STORAGE_KEYS.TILE_ORDER;
 const SIZE_STORAGE_KEY = STORAGE_KEYS.TILE_SIZES;
@@ -419,6 +420,15 @@ export const Dashboard: React.FC = () => {
     useEffect(() => {
         fetchActivities();
     }, [fetchActivities]);
+
+    // Register refresh handler for pull-to-refresh
+    const { registerRefreshHandler, unregisterRefreshHandler } = useRefresh();
+    
+    useEffect(() => {
+        // Register fetchActivities as the refresh handler for this page
+        registerRefreshHandler(fetchActivities);
+        return () => unregisterRefreshHandler();
+    }, [fetchActivities, registerRefreshHandler, unregisterRefreshHandler]);
 
     // Listen for follow-accepted events to refresh profile data
     useEffect(() => {

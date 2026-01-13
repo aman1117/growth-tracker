@@ -441,3 +441,64 @@ func (r *FollowRepository) CountPendingRequestsFor(userID uint) (int64, error) {
 		Count(&count).Error
 	return count, err
 }
+
+// ==================== Counter Reconciliation ====================
+
+// ReconcileCounters recalculates counters from actual edge data for a user
+// Use this to fix counter drift
+func (r *FollowRepository) ReconcileCounters(userID uint) error {
+	// Count actual ACTIVE followers
+	var followersCount int64
+	if err := r.db.Model(&models.FollowEdgeByFollowee{}).
+		Where("followee_id = ? AND state = ?", userID, models.FollowStateActive).
+		Count(&followersCount).Error; err != nil {
+		return err
+	}
+
+	// Count actual ACTIVE following
+	var followingCount int64
+	if err := r.db.Model(&models.FollowEdgeByFollower{}).
+		Where("follower_id = ? AND state = ?", userID, models.FollowStateActive).
+		Count(&followingCount).Error; err != nil {
+		return err
+	}
+
+	// Count actual PENDING requests
+	var pendingCount int64
+	if err := r.db.Model(&models.FollowEdgeByFollowee{}).
+		Where("followee_id = ? AND state = ?", userID, models.FollowStatePending).
+		Count(&pendingCount).Error; err != nil {
+		return err
+	}
+
+	// Upsert the correct counts
+	return r.db.Exec(
+		`INSERT INTO follow_counters (user_id, followers_count, following_count, pending_requests_count, updated_at)
+		 VALUES (?, ?, ?, ?, NOW())
+		 ON CONFLICT (user_id) DO UPDATE SET
+		 followers_count = ?,
+		 following_count = ?,
+		 pending_requests_count = ?,
+		 updated_at = NOW()`,
+		userID, followersCount, followingCount, pendingCount,
+		followersCount, followingCount, pendingCount,
+	).Error
+}
+
+// ReconcileAllCounters recalculates counters for all users with counters
+func (r *FollowRepository) ReconcileAllCounters() (int64, error) {
+	var counters []models.FollowCounter
+	if err := r.db.Find(&counters).Error; err != nil {
+		return 0, err
+	}
+
+	var reconciled int64
+	for _, counter := range counters {
+		if err := r.ReconcileCounters(counter.UserID); err != nil {
+			continue
+		}
+		reconciled++
+	}
+
+	return reconciled, nil
+}

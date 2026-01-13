@@ -700,6 +700,35 @@ func (h *FollowHandler) GetFollowCounts(c *fiber.Ctx) error {
 	})
 }
 
+// ReconcileMyCounters handles POST /api/me/follow-counts/reconcile
+// @Summary Reconcile follow counts
+// @Description Recalculate follow counts from actual edge data (fixes counter drift)
+// @Tags Follow
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.SuccessResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Router /api/me/follow-counts/reconcile [post]
+func (h *FollowHandler) ReconcileMyCounters(c *fiber.Ctx) error {
+	viewerID := getUserIDFromContext(c)
+	if viewerID == 0 {
+		return response.Unauthorized(c, "Authentication required", constants.ErrCodeUnauthorized)
+	}
+
+	if err := h.followSvc.ReconcileCounters(context.Background(), viewerID); err != nil {
+		logger.Sugar.Errorw("Failed to reconcile counters",
+			"viewer_id", viewerID,
+			"error", err,
+		)
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to reconcile counts", constants.ErrCodeServerError)
+	}
+
+	return c.JSON(dto.SuccessResponse{
+		Success: true,
+		Message: "Follow counts reconciled",
+	})
+}
+
 // ==================== Notification Helpers ====================
 
 // sendFollowNotification sends notifications when someone follows/requests to follow

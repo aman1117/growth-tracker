@@ -185,6 +185,7 @@ func (r *Router) Setup(app *fiber.App) {
 	api.Get("/users/:userId/following", authMiddleware, apiRateLimiter, r.followHandler.GetFollowing)
 	api.Get("/users/:userId/mutuals", authMiddleware, apiRateLimiter, r.followHandler.GetMutuals)
 	api.Get("/users/:userId/follow-counts", authMiddleware, apiRateLimiter, r.followHandler.GetFollowCounts)
+	api.Post("/me/follow-counts/reconcile", authMiddleware, apiRateLimiter, r.followHandler.ReconcileMyCounters)
 	api.Get("/users/:userId/profile", authMiddleware, apiRateLimiter, r.profileHandler.GetUserProfile)
 
 	// Relationship lookup (batch) - no rate limit, read-only and needed frequently for UI

@@ -515,6 +515,23 @@ func (s *FollowService) GetPendingRequestsCount(ctx context.Context, userID uint
 	return count
 }
 
+// ReconcileCounters recalculates counters from actual edge data for a user
+// Use this to fix counter drift
+func (s *FollowService) ReconcileCounters(ctx context.Context, userID uint) error {
+	if err := s.repo.ReconcileCounters(userID); err != nil {
+		return fmt.Errorf("failed to reconcile counters: %w", err)
+	}
+
+	// Invalidate cache after reconciliation
+	if redis.IsAvailable() {
+		cacheKey := fmt.Sprintf("%s%d", constants.FollowCountCachePrefix, userID)
+		redis.Get().Del(ctx, cacheKey)
+	}
+
+	logger.Sugar.Infow("Counters reconciled", "user_id", userID)
+	return nil
+}
+
 // ==================== Helper Methods ====================
 
 // checkFollowLimits validates that the user hasn't exceeded follow limits

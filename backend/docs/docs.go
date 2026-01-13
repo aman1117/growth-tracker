@@ -22,6 +22,602 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/follow-requests/{targetId}/cancel": {
+            "post": {
+                "description": "Cancel an outgoing pending follow request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Cancel a follow request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target User ID",
+                        "name": "targetId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me/follow-counts/reconcile": {
+            "post": {
+                "description": "Recalculate follow counts from actual edge data (fixes counter drift)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Reconcile follow counts",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me/follow-requests/incoming": {
+            "get": {
+                "description": "Get paginated list of pending follow requests",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Get incoming follow requests",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FollowRequestListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me/follow-requests/{requesterId}/accept": {
+            "post": {
+                "description": "Accept an incoming follow request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Accept a follow request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Requester User ID",
+                        "name": "requesterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me/follow-requests/{requesterId}/decline": {
+            "post": {
+                "description": "Decline an incoming follow request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Decline a follow request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Requester User ID",
+                        "name": "requesterId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/me/followers/{followerId}": {
+            "delete": {
+                "description": "Remove a user from your followers list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Remove a follower",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Follower User ID",
+                        "name": "followerId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/relationships/lookup": {
+            "post": {
+                "description": "Batch lookup relationship states for multiple users",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Lookup relationship states",
+                "parameters": [
+                    {
+                        "description": "Target user IDs",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RelationshipLookupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RelationshipLookupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{targetId}/follow": {
+            "post": {
+                "description": "Follow a user or send a follow request (for private accounts)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Follow a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target User ID",
+                        "name": "targetId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FollowActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Unfollow a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Unfollow a user",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target User ID",
+                        "name": "targetId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{userId}/follow-counts": {
+            "get": {
+                "description": "Get followers and following counts for a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Get follow counts",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FollowCountsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{userId}/followers": {
+            "get": {
+                "description": "Get paginated list of user's followers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Get user's followers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FollowListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{userId}/following": {
+            "get": {
+                "description": "Get paginated list of users that user follows",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Get user's following",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.FollowListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/users/{userId}/mutuals": {
+            "get": {
+                "description": "Get users that both viewer follows and who follow the target user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Follow"
+                ],
+                "summary": "Get mutual followers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of results",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.MutualsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/forgot-password": {
             "post": {
                 "description": "Send password reset email (always returns success for security)",
@@ -1622,6 +2218,52 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/{userId}/profile": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get public profile of another user by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Get another user's profile",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User profile",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PublicProfileResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1878,6 +2520,168 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.FollowActionResponse": {
+            "description": "Follow/unfollow action result",
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Now following"
+                },
+                "state": {
+                    "description": "ACTIVE, PENDING",
+                    "type": "string",
+                    "example": "ACTIVE"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.FollowCountsDTO": {
+            "description": "Follow counts information",
+            "type": "object",
+            "properties": {
+                "followers_count": {
+                    "type": "integer",
+                    "example": 150
+                },
+                "following_count": {
+                    "type": "integer",
+                    "example": 75
+                },
+                "pending_requests_count": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "dto.FollowCountsResponse": {
+            "description": "Follow counts retrieval result",
+            "type": "object",
+            "properties": {
+                "counts": {
+                    "$ref": "#/definitions/dto.FollowCountsDTO"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.FollowListResponse": {
+            "description": "Paginated list of followers/following",
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "next_cursor": {
+                    "type": "string",
+                    "example": "eyJjcmVhdGVkX2F0IjoiMjAyNi0wMS0xMFQxMjowMDowMFoiLCJ1c2VyX2lkIjoxMH0="
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FollowUserDTO"
+                    }
+                }
+            }
+        },
+        "dto.FollowRequestDTO": {
+            "description": "Pending follow request information",
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string",
+                    "example": "Software developer"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "profile_pic": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc.jpg"
+                },
+                "requested_at": {
+                    "type": "string",
+                    "example": "2026-01-04T12:00:00Z"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
+        "dto.FollowRequestListResponse": {
+            "description": "Paginated list of pending follow requests",
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "next_cursor": {
+                    "type": "string",
+                    "example": "eyJjcmVhdGVkX2F0IjoiMjAyNi0wMS0xMFQxMjowMDowMFoiLCJ1c2VyX2lkIjoxMH0="
+                },
+                "requests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FollowRequestDTO"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.FollowUserDTO": {
+            "description": "User information for follow lists",
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "type": "string",
+                    "example": "Software developer"
+                },
+                "followed_at": {
+                    "type": "string",
+                    "example": "2026-01-04T12:00:00Z"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_private": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "profile_pic": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc.jpg"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
         "dto.ForgotPasswordRequest": {
             "description": "Password reset request initiation",
             "type": "object",
@@ -2097,6 +2901,29 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.MutualsResponse": {
+            "description": "Mutual followers list",
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "next_cursor": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FollowUserDTO"
+                    }
+                }
+            }
+        },
         "dto.NextBadgeDTO": {
             "description": "Next badge to earn with progress",
             "type": "object",
@@ -2233,6 +3060,18 @@ const docTemplate = `{
                     "type": "string",
                     "example": "john@example.com"
                 },
+                "followers_count": {
+                    "type": "integer",
+                    "example": 150
+                },
+                "following_count": {
+                    "type": "integer",
+                    "example": 75
+                },
+                "is_private": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "is_verified": {
                     "type": "boolean",
                     "example": false
@@ -2240,6 +3079,59 @@ const docTemplate = `{
                 "profile_pic": {
                     "type": "string",
                     "example": "https://storage.blob.core.windows.net/pics/1/abc.jpg"
+                },
+                "relationship_state": {
+                    "description": "FOLLOWING, REQUESTED, NONE (only for other users)",
+                    "type": "string",
+                    "example": "FOLLOWING"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
+        "dto.PublicProfileResponse": {
+            "description": "Public profile information for viewing another user",
+            "type": "object",
+            "properties": {
+                "bio": {
+                    "description": "Hidden for private accounts",
+                    "type": "string",
+                    "example": "Software developer"
+                },
+                "followers_count": {
+                    "type": "integer",
+                    "example": 150
+                },
+                "following_count": {
+                    "type": "integer",
+                    "example": 75
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_private": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "profile_pic": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc.jpg"
+                },
+                "relationship_state": {
+                    "description": "FOLLOWING, REQUESTED, NONE",
+                    "type": "string",
+                    "example": "FOLLOWING"
                 },
                 "success": {
                     "type": "boolean",
@@ -2383,6 +3275,26 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "example": "john_doe"
+                }
+            }
+        },
+        "dto.RelationshipLookupRequest": {
+            "type": "object"
+        },
+        "dto.RelationshipLookupResponse": {
+            "description": "Batch relationship lookup result",
+            "type": "object",
+            "properties": {
+                "relationships": {
+                    "description": "userID -\u003e \"FOLLOWING\", \"REQUESTED\", \"NONE\"",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

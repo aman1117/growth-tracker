@@ -175,6 +175,123 @@ definitions:
         example: false
         type: boolean
     type: object
+  dto.FollowActionResponse:
+    description: Follow/unfollow action result
+    properties:
+      message:
+        example: Now following
+        type: string
+      state:
+        description: ACTIVE, PENDING
+        example: ACTIVE
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.FollowCountsDTO:
+    description: Follow counts information
+    properties:
+      followers_count:
+        example: 150
+        type: integer
+      following_count:
+        example: 75
+        type: integer
+      pending_requests_count:
+        example: 3
+        type: integer
+    type: object
+  dto.FollowCountsResponse:
+    description: Follow counts retrieval result
+    properties:
+      counts:
+        $ref: '#/definitions/dto.FollowCountsDTO'
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.FollowListResponse:
+    description: Paginated list of followers/following
+    properties:
+      has_more:
+        example: true
+        type: boolean
+      next_cursor:
+        example: eyJjcmVhdGVkX2F0IjoiMjAyNi0wMS0xMFQxMjowMDowMFoiLCJ1c2VyX2lkIjoxMH0=
+        type: string
+      success:
+        example: true
+        type: boolean
+      users:
+        items:
+          $ref: '#/definitions/dto.FollowUserDTO'
+        type: array
+    type: object
+  dto.FollowRequestDTO:
+    description: Pending follow request information
+    properties:
+      bio:
+        example: Software developer
+        type: string
+      id:
+        example: 1
+        type: integer
+      is_verified:
+        example: false
+        type: boolean
+      profile_pic:
+        example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+      requested_at:
+        example: "2026-01-04T12:00:00Z"
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
+  dto.FollowRequestListResponse:
+    description: Paginated list of pending follow requests
+    properties:
+      has_more:
+        example: true
+        type: boolean
+      next_cursor:
+        example: eyJjcmVhdGVkX2F0IjoiMjAyNi0wMS0xMFQxMjowMDowMFoiLCJ1c2VyX2lkIjoxMH0=
+        type: string
+      requests:
+        items:
+          $ref: '#/definitions/dto.FollowRequestDTO'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.FollowUserDTO:
+    description: User information for follow lists
+    properties:
+      bio:
+        example: Software developer
+        type: string
+      followed_at:
+        example: "2026-01-04T12:00:00Z"
+        type: string
+      id:
+        example: 1
+        type: integer
+      is_private:
+        example: false
+        type: boolean
+      is_verified:
+        example: false
+        type: boolean
+      profile_pic:
+        example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
   dto.ForgotPasswordRequest:
     description: Password reset request initiation
     properties:
@@ -334,6 +451,22 @@ definitions:
         example: Bearer
         type: string
     type: object
+  dto.MutualsResponse:
+    description: Mutual followers list
+    properties:
+      has_more:
+        example: true
+        type: boolean
+      next_cursor:
+        type: string
+      success:
+        example: true
+        type: boolean
+      users:
+        items:
+          $ref: '#/definitions/dto.FollowUserDTO'
+        type: array
+    type: object
   dto.NextBadgeDTO:
     description: Next badge to earn with progress
     properties:
@@ -433,11 +566,60 @@ definitions:
       email:
         example: john@example.com
         type: string
+      followers_count:
+        example: 150
+        type: integer
+      following_count:
+        example: 75
+        type: integer
+      is_private:
+        example: false
+        type: boolean
       is_verified:
         example: false
         type: boolean
       profile_pic:
         example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+      relationship_state:
+        description: FOLLOWING, REQUESTED, NONE (only for other users)
+        example: FOLLOWING
+        type: string
+      success:
+        example: true
+        type: boolean
+      username:
+        example: john_doe
+        type: string
+    type: object
+  dto.PublicProfileResponse:
+    description: Public profile information for viewing another user
+    properties:
+      bio:
+        description: Hidden for private accounts
+        example: Software developer
+        type: string
+      followers_count:
+        example: 150
+        type: integer
+      following_count:
+        example: 75
+        type: integer
+      id:
+        example: 1
+        type: integer
+      is_private:
+        example: false
+        type: boolean
+      is_verified:
+        example: false
+        type: boolean
+      profile_pic:
+        example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+      relationship_state:
+        description: FOLLOWING, REQUESTED, NONE
+        example: FOLLOWING
         type: string
       success:
         example: true
@@ -540,6 +722,20 @@ definitions:
       username:
         example: john_doe
         type: string
+    type: object
+  dto.RelationshipLookupRequest:
+    type: object
+  dto.RelationshipLookupResponse:
+    description: Batch relationship lookup result
+    properties:
+      relationships:
+        additionalProperties:
+          type: string
+        description: userID -> "FOLLOWING", "REQUESTED", "NONE"
+        type: object
+      success:
+        example: true
+        type: boolean
     type: object
   dto.ResetPasswordRequest:
     description: Password reset with token
@@ -840,6 +1036,401 @@ info:
   title: Growth Tracker API
   version: "1.0"
 paths:
+  /api/follow-requests/{targetId}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Cancel an outgoing pending follow request
+      parameters:
+      - description: Target User ID
+        in: path
+        name: targetId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Cancel a follow request
+      tags:
+      - Follow
+  /api/me/follow-counts/reconcile:
+    post:
+      consumes:
+      - application/json
+      description: Recalculate follow counts from actual edge data (fixes counter
+        drift)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Reconcile follow counts
+      tags:
+      - Follow
+  /api/me/follow-requests/{requesterId}/accept:
+    post:
+      consumes:
+      - application/json
+      description: Accept an incoming follow request
+      parameters:
+      - description: Requester User ID
+        in: path
+        name: requesterId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Accept a follow request
+      tags:
+      - Follow
+  /api/me/follow-requests/{requesterId}/decline:
+    post:
+      consumes:
+      - application/json
+      description: Decline an incoming follow request
+      parameters:
+      - description: Requester User ID
+        in: path
+        name: requesterId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Decline a follow request
+      tags:
+      - Follow
+  /api/me/follow-requests/incoming:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of pending follow requests
+      parameters:
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - default: 20
+        description: Number of results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FollowRequestListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get incoming follow requests
+      tags:
+      - Follow
+  /api/me/followers/{followerId}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a user from your followers list
+      parameters:
+      - description: Follower User ID
+        in: path
+        name: followerId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Remove a follower
+      tags:
+      - Follow
+  /api/relationships/lookup:
+    post:
+      consumes:
+      - application/json
+      description: Batch lookup relationship states for multiple users
+      parameters:
+      - description: Target user IDs
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RelationshipLookupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RelationshipLookupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Lookup relationship states
+      tags:
+      - Follow
+  /api/users/{targetId}/follow:
+    delete:
+      consumes:
+      - application/json
+      description: Unfollow a user
+      parameters:
+      - description: Target User ID
+        in: path
+        name: targetId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Unfollow a user
+      tags:
+      - Follow
+    post:
+      consumes:
+      - application/json
+      description: Follow a user or send a follow request (for private accounts)
+      parameters:
+      - description: Target User ID
+        in: path
+        name: targetId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FollowActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Follow a user
+      tags:
+      - Follow
+  /api/users/{userId}/follow-counts:
+    get:
+      consumes:
+      - application/json
+      description: Get followers and following counts for a user
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FollowCountsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get follow counts
+      tags:
+      - Follow
+  /api/users/{userId}/followers:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of user's followers
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - default: 20
+        description: Number of results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FollowListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get user's followers
+      tags:
+      - Follow
+  /api/users/{userId}/following:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of users that user follows
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - default: 20
+        description: Number of results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.FollowListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get user's following
+      tags:
+      - Follow
+  /api/users/{userId}/mutuals:
+    get:
+      consumes:
+      - application/json
+      description: Get users that both viewer follows and who follow the target user
+      parameters:
+      - description: Target User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      - description: Pagination cursor
+        in: query
+        name: cursor
+        type: string
+      - default: 20
+        description: Number of results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MutualsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Get mutual followers
+      tags:
+      - Follow
   /auth/forgot-password:
     post:
       consumes:
@@ -1848,6 +2439,35 @@ paths:
       summary: Search users
       tags:
       - Users
+  /users/{userId}/profile:
+    get:
+      description: Get public profile of another user by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile
+          schema:
+            $ref: '#/definitions/dto.PublicProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get another user's profile
+      tags:
+      - Profile
 securityDefinitions:
   BearerAuth:
     description: 'JWT Authorization header using the Bearer scheme. Example: "Bearer

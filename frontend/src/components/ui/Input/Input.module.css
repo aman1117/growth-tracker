@@ -10,7 +10,7 @@
 
 .label {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: var(--font-medium);
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.025em;
@@ -31,12 +31,12 @@
 }
 
 .hasError {
-  border-color: #ef4444;
+  border-color: var(--error);
 }
 
 .hasError:focus-within {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+  border-color: var(--error);
+  box-shadow: 0 0 0 2px var(--color-like-bg);
 }
 
 .input {
@@ -72,8 +72,8 @@
 }
 
 .error {
-  font-size: 0.75rem;
-  color: #ef4444;
+  font-size: var(--text-xs);
+  color: var(--error);
 }
 
 .helper {

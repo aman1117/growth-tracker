@@ -1,0 +1,296 @@
+/**
+ * Design Tokens
+ * 
+ * Centralized design system tokens for consistent UI across the application.
+ * All components should reference these tokens instead of hardcoded values.
+ */
+
+:root {
+  /* ============================================================================
+     Spacing Scale
+     ============================================================================ */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 0.125rem;  /* 2px */
+  --space-1: 0.25rem;     /* 4px */
+  --space-1-5: 0.375rem;  /* 6px */
+  --space-2: 0.5rem;      /* 8px */
+  --space-2-5: 0.625rem;  /* 10px */
+  --space-3: 0.75rem;     /* 12px */
+  --space-3-5: 0.875rem;  /* 14px */
+  --space-4: 1rem;        /* 16px */
+  --space-5: 1.25rem;     /* 20px */
+  --space-6: 1.5rem;      /* 24px */
+  --space-7: 1.75rem;     /* 28px */
+  --space-8: 2rem;        /* 32px */
+  --space-9: 2.25rem;     /* 36px */
+  --space-10: 2.5rem;     /* 40px */
+  --space-11: 2.75rem;    /* 44px */
+  --space-12: 3rem;       /* 48px */
+  --space-14: 3.5rem;     /* 56px */
+  --space-16: 4rem;       /* 64px */
+
+  /* ============================================================================
+     Border Radius Scale
+     ============================================================================ */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* ============================================================================
+     Typography Scale
+     ============================================================================ */
+  /* Font Sizes */
+  --text-2xs: 0.625rem;   /* 10px */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 0.875rem;  /* 14px */
+  --text-md: 1rem;        /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+
+  /* Line Heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Letter Spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+
+  /* ============================================================================
+     Shadow Tokens
+     ============================================================================ */
+  --shadow-none: none;
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-floating: 0 12px 28px rgba(0, 0, 0, 0.12), 0 8px 12px rgba(0, 0, 0, 0.08);
+
+  /* Focus Ring */
+  --ring-width: 3px;
+  --ring-offset: 2px;
+  --ring-color: rgba(59, 130, 246, 0.4);
+
+  /* ============================================================================
+     Glass Effect Tokens (Light Theme)
+     ============================================================================ */
+  /* Blur amounts */
+  --glass-blur-sm: 8px;
+  --glass-blur-md: 12px;
+  --glass-blur-lg: 16px;
+  --glass-blur-xl: 24px;
+
+  /* Surface (cards, containers) */
+  --glass-surface-bg: rgba(255, 255, 255, 0.7);
+  --glass-surface-border: rgba(0, 0, 0, 0.06);
+  --glass-surface-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --glass-surface-glow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  /* Panel (sidebars, modals) */
+  --glass-panel-bg: rgba(255, 255, 255, 0.85);
+  --glass-panel-border: rgba(0, 0, 0, 0.08);
+  --glass-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --glass-panel-glow: inset 0 1px 0 rgba(255, 255, 255, 1);
+
+  /* Floating (popovers, dropdowns, toasts) */
+  --glass-floating-bg: rgba(255, 255, 255, 0.92);
+  --glass-floating-border: rgba(0, 0, 0, 0.1);
+  --glass-floating-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+  --glass-floating-glow: inset 0 1px 0 rgba(255, 255, 255, 1);
+
+  /* Interactive states */
+  --glass-hover-bg: rgba(255, 255, 255, 0.8);
+  --glass-active-bg: rgba(255, 255, 255, 0.6);
+
+  /* ============================================================================
+     Semantic Colors (Light Theme)
+     ============================================================================ */
+  /* Like/Heart */
+  --color-like: #ef4444;
+  --color-like-light: #fca5a5;
+  --color-like-bg: rgba(239, 68, 68, 0.1);
+
+  /* Badge/Achievement */
+  --color-badge: #f59e0b;
+  --color-badge-light: #fcd34d;
+  --color-badge-bg: rgba(245, 158, 11, 0.1);
+
+  /* Streak/Fire */
+  --color-streak: #f97316;
+  --color-streak-light: #fdba74;
+  --color-streak-bg: rgba(249, 115, 22, 0.1);
+
+  /* Warning */
+  --color-warning: #eab308;
+  --color-warning-light: #fde047;
+  --color-warning-bg: rgba(234, 179, 8, 0.1);
+
+  /* Follow/Social */
+  --color-follow: #0095f6;
+  --color-follow-light: #60a5fa;
+  --color-follow-bg: rgba(0, 149, 246, 0.1);
+
+  /* Info */
+  --color-info: #3b82f6;
+  --color-info-light: #93c5fd;
+  --color-info-bg: rgba(59, 130, 246, 0.1);
+
+  /* Success */
+  --color-success-bg: rgba(34, 197, 94, 0.1);
+
+  /* ============================================================================
+     Button Tokens
+     ============================================================================ */
+  /* Size: XS */
+  --btn-xs-height: 1.75rem;      /* 28px */
+  --btn-xs-padding-x: 0.5rem;    /* 8px */
+  --btn-xs-font-size: var(--text-xs);
+  --btn-xs-icon-size: 0.875rem;  /* 14px */
+  --btn-xs-radius: var(--radius-md);
+
+  /* Size: SM */
+  --btn-sm-height: 2rem;         /* 32px */
+  --btn-sm-padding-x: 0.75rem;   /* 12px */
+  --btn-sm-font-size: var(--text-xs);
+  --btn-sm-icon-size: 1rem;      /* 16px */
+  --btn-sm-radius: var(--radius-md);
+
+  /* Size: MD (default) */
+  --btn-md-height: 2.25rem;      /* 36px */
+  --btn-md-padding-x: 1rem;      /* 16px */
+  --btn-md-font-size: var(--text-base);
+  --btn-md-icon-size: 1.125rem;  /* 18px */
+  --btn-md-radius: var(--radius-md);
+
+  /* Size: LG */
+  --btn-lg-height: 2.75rem;      /* 44px */
+  --btn-lg-padding-x: 1.5rem;    /* 24px */
+  --btn-lg-font-size: var(--text-md);
+  --btn-lg-icon-size: 1.25rem;   /* 20px */
+  --btn-lg-radius: var(--radius-md);
+
+  /* ============================================================================
+     Transition Tokens
+     ============================================================================ */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+  --transition-slow: 300ms;
+  --transition-slower: 400ms;
+
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ============================================================================
+     Z-Index Scale
+     ============================================================================ */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+  --z-max: 9999;
+
+  /* ============================================================================
+     Input Tokens
+     ============================================================================ */
+  --input-height-sm: 2rem;       /* 32px */
+  --input-height-md: 2.5rem;     /* 40px */
+  --input-height-lg: 3rem;       /* 48px */
+  --input-padding-x: var(--space-3);
+  --input-radius: var(--radius-md);
+}
+
+/* ============================================================================
+   Dark Theme Overrides
+   ============================================================================ */
+[data-theme='dark'] {
+  /* Shadows */
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4), 0 10px 10px rgba(0, 0, 0, 0.2);
+  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-floating: 0 12px 28px rgba(0, 0, 0, 0.4), 0 8px 12px rgba(0, 0, 0, 0.3);
+
+  /* Focus Ring */
+  --ring-color: rgba(96, 165, 250, 0.5);
+
+  /* Glass Surface */
+  --glass-surface-bg: rgba(30, 30, 30, 0.6);
+  --glass-surface-border: rgba(255, 255, 255, 0.08);
+  --glass-surface-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --glass-surface-glow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* Glass Panel */
+  --glass-panel-bg: rgba(20, 20, 20, 0.85);
+  --glass-panel-border: rgba(255, 255, 255, 0.1);
+  --glass-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --glass-panel-glow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* Glass Floating */
+  --glass-floating-bg: rgba(25, 25, 25, 0.95);
+  --glass-floating-border: rgba(255, 255, 255, 0.12);
+  --glass-floating-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
+  --glass-floating-glow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  /* Interactive states */
+  --glass-hover-bg: rgba(50, 50, 50, 0.7);
+  --glass-active-bg: rgba(40, 40, 40, 0.8);
+
+  /* Semantic Colors (adjusted for dark mode) */
+  --color-like: #f87171;
+  --color-like-light: #fca5a5;
+  --color-like-bg: rgba(248, 113, 113, 0.15);
+
+  --color-badge: #fbbf24;
+  --color-badge-light: #fde047;
+  --color-badge-bg: rgba(251, 191, 36, 0.15);
+
+  --color-streak: #fb923c;
+  --color-streak-light: #fdba74;
+  --color-streak-bg: rgba(251, 146, 60, 0.15);
+
+  --color-warning: #facc15;
+  --color-warning-light: #fef08a;
+  --color-warning-bg: rgba(250, 204, 21, 0.15);
+
+  --color-follow: #60a5fa;
+  --color-follow-light: #93c5fd;
+  --color-follow-bg: rgba(96, 165, 250, 0.15);
+
+  --color-info: #60a5fa;
+  --color-info-light: #93c5fd;
+  --color-info-bg: rgba(96, 165, 250, 0.15);
+}

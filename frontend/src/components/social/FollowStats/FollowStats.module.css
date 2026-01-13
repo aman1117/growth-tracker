@@ -40,13 +40,13 @@
 
 .count {
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: var(--font-bold);
   color: var(--text-primary);
 }
 
 .label {
   font-size: 0.875rem;
-  font-weight: 400;
+  font-weight: var(--font-normal);
   color: var(--text-secondary);
 }
 

@@ -1,14 +1,23 @@
 /**
  * FollowButton Component
  *
- * Clean Instagram-style follow button with state management.
+ * Clean Instagram-style follow button built on the base Button component.
+ * Uses design tokens for consistent styling.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Loader2 } from 'lucide-react';
 import { useFollowStore, useRelationship, useAuth } from '../../../store';
+import { Button } from '../../ui/Button';
+import type { ButtonSize } from '../../ui/Button';
 import type { RelationshipState, FollowButtonProps } from '../../../types/follow';
 import styles from './FollowButton.module.css';
+
+// Map FollowButton sizes to Button sizes
+const sizeMap: Record<'sm' | 'md' | 'lg', ButtonSize> = {
+  sm: 'xs',
+  md: 'sm',
+  lg: 'md',
+};
 
 export const FollowButton: React.FC<FollowButtonProps> = ({
   userId,
@@ -114,46 +123,44 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     }
   }, [actionLoading, userId, declineRequest, onStateChange]);
 
+  const buttonSize = sizeMap[size];
+  const isDisabled = isLoading || actionLoading !== null;
+
   // Show Follow/Following + Accept/Decline buttons when there's an incoming pending request
   if (currentState?.incoming_pending) {
     const alreadyFollowing = currentState?.following;
     return (
       <div className={styles.incomingActions}>
-        <button
-          className={`${alreadyFollowing ? styles.followingButton : styles.followBackButton} ${styles[size]}`}
+        <Button
+          variant={alreadyFollowing ? 'glass' : 'primary'}
+          size={buttonSize}
           onClick={handleClick}
-          disabled={isLoading || actionLoading !== null}
+          disabled={isDisabled}
+          loading={isLoading}
+          className={styles.actionButton}
         >
-          {isLoading ? (
-            <Loader2 className={styles.spinner} size={14} />
-          ) : alreadyFollowing ? (
-            'Following'
-          ) : (
-            'Follow'
-          )}
-        </button>
-        <button
-          className={`${styles.acceptButton} ${styles[size]}`}
+          {alreadyFollowing ? 'Following' : 'Follow'}
+        </Button>
+        <Button
+          variant="primary"
+          size={buttonSize}
           onClick={handleAccept}
-          disabled={actionLoading !== null || isLoading}
+          disabled={isDisabled}
+          loading={actionLoading === 'accept'}
+          className={styles.actionButton}
         >
-          {actionLoading === 'accept' ? (
-            <Loader2 className={styles.spinner} size={14} />
-          ) : (
-            'Accept'
-          )}
-        </button>
-        <button
-          className={`${styles.declineButton} ${styles[size]}`}
+          Accept
+        </Button>
+        <Button
+          variant="glass"
+          size={buttonSize}
           onClick={handleDecline}
-          disabled={actionLoading !== null || isLoading}
+          disabled={isDisabled}
+          loading={actionLoading === 'decline'}
+          className={styles.actionButton}
         >
-          {actionLoading === 'decline' ? (
-            <Loader2 className={styles.spinner} size={14} />
-          ) : (
-            'Decline'
-          )}
-        </button>
+          Decline
+        </Button>
       </div>
     );
   }
@@ -163,51 +170,45 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
     if (currentState?.pending) {
       return {
         label: 'Requested',
-        variant: 'pending' as const,
+        variant: 'glass' as const,
         hoverLabel: 'Cancel',
+        hoverVariant: 'danger' as const,
       };
     }
     
     if (currentState?.following) {
       return {
         label: 'Following',
-        variant: 'following' as const,
+        variant: 'glass' as const,
         hoverLabel: 'Unfollow',
-      };
-    }
-
-    if (currentState?.followed_by) {
-      return {
-        label: 'Follow',
-        variant: 'default' as const,
-        hoverLabel: 'Follow',
+        hoverVariant: 'danger' as const,
       };
     }
 
     return {
       label: 'Follow',
-      variant: 'default' as const,
-      hoverLabel: 'Follow',
+      variant: 'primary' as const,
+      hoverLabel: undefined,
+      hoverVariant: undefined,
     };
   };
 
   const config = getButtonConfig();
 
   return (
-    <button
-      className={`${styles.button} ${styles[config.variant]} ${styles[size]} ${fullWidth ? styles.fullWidth : ''}`}
+    <Button
+      variant={config.variant}
+      size={buttonSize}
       onClick={handleClick}
       disabled={isLoading}
+      loading={isLoading}
+      fullWidth={fullWidth}
+      hoverLabel={config.hoverLabel}
+      hoverVariant={config.hoverVariant}
+      className={styles.followButton}
     >
-      {isLoading ? (
-        <Loader2 className={styles.spinner} size={14} />
-      ) : (
-        <>
-          <span className={styles.label}>{config.label}</span>
-          <span className={styles.hoverLabel}>{config.hoverLabel}</span>
-        </>
-      )}
-    </button>
+      {config.label}
+    </Button>
   );
 };
 

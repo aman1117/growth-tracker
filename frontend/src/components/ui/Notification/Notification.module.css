@@ -58,12 +58,12 @@
   height: 18px;
   padding: 0 5px;
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: var(--font-bold);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  background: #ef4444;
+  background: var(--error);
   border-radius: 100px;
   border: 2px solid var(--bg-primary);
   animation: badgePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -155,7 +155,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
   margin: 0;
 }
@@ -168,7 +168,7 @@
   height: 20px;
   padding: 0 6px;
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: var(--font-bold);
   color: white;
   background: var(--accent);
   border-radius: 100px;
@@ -310,19 +310,19 @@
 }
 
 .iconLike {
-  color: #ef4444;
+  color: var(--color-like);
 }
 
 .iconBadge {
-  color: #f59e0b;
+  color: var(--color-badge);
 }
 
 .iconStreak {
-  color: #f97316;
+  color: var(--color-streak);
 }
 
 .iconWarning {
-  color: #eab308;
+  color: var(--color-warning);
 }
 
 .iconSystem {
@@ -330,7 +330,7 @@
 }
 
 .iconFollow {
-  color: #3b82f6;
+  color: var(--color-follow);
 }
 
 /* Content */
@@ -340,7 +340,7 @@
 }
 
 .itemTitle {
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
 }
 
@@ -366,7 +366,7 @@
   margin: 0;
   font: inherit;
   color: var(--accent);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   cursor: pointer;
   text-decoration: none;
   transition: color 0.15s ease;
@@ -490,7 +490,7 @@
 
 .emptyTitle {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
   margin: 0 0 0.25rem 0;
 }

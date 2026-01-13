@@ -5,7 +5,7 @@
   border-radius: 50%;
   background-color: var(--avatar-bg);
   color: var(--text-primary);
-  font-weight: 700;
+  font-weight: var(--font-bold);
   text-transform: uppercase;
   overflow: hidden;
   flex-shrink: 0;

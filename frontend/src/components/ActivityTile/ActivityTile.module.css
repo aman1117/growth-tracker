@@ -1,0 +1,324 @@
+/**
+ * ActivityTile Styles
+ *
+ * Activity tracking tile with glassmorphism design.
+ * Uses design tokens for consistent theming.
+ */
+
+/* Base Tile */
+.tile {
+  position: relative;
+  border-radius: var(--radius-2xl);
+  overflow: visible;
+  transition: all var(--transition-normal) var(--ease-out);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  
+  /* Glass base */
+  background: var(--glass-surface-bg);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid var(--glass-surface-border);
+  box-shadow: var(--glass-surface-shadow);
+}
+
+.tile.active {
+  border-color: var(--glass-panel-border);
+  box-shadow: var(--glass-panel-shadow), var(--glass-panel-glow);
+}
+
+.tile.selected {
+  outline: 3px solid var(--text-primary);
+  outline-offset: -1px;
+  z-index: 100;
+}
+
+.tile.otherSelected {
+  filter: brightness(0.5) saturate(0.5);
+}
+
+.tile.dragging {
+  opacity: 0.3;
+  cursor: grabbing;
+}
+
+/* Size Variants */
+.small {
+  grid-column: span 1;
+  grid-row: span 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  min-height: 100px;
+}
+
+.medium {
+  grid-column: span 2;
+  grid-row: span 2;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  min-height: 208px;
+}
+
+.wide {
+  grid-column: span 2;
+  grid-row: span 1;
+  flex-direction: row;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  min-height: 100px;
+}
+
+/* Icon Container */
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  flex-shrink: 0;
+  transition: all var(--transition-normal) var(--ease-out);
+}
+
+.iconContainer.inactive {
+  background-color: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: var(--shadow-sm);
+}
+
+.iconContainer.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Icon sizes by tile size */
+.small .iconContainer {
+  width: 36px;
+  height: 36px;
+}
+
+.medium .iconContainer {
+  width: 70px;
+  height: 70px;
+}
+
+.wide .iconContainer {
+  width: 42px;
+  height: 42px;
+}
+
+/* Content Container */
+.content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.small .content,
+.medium .content {
+  align-items: center;
+  gap: 2px;
+}
+
+.wide .content {
+  align-items: flex-start;
+  gap: 2px;
+}
+
+/* Label */
+.label {
+  font-weight: var(--font-normal);
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+
+.label.inactive {
+  color: var(--text-secondary);
+}
+
+.label.active {
+  color: white;
+}
+
+.small .label {
+  font-size: var(--text-xs);
+  text-align: center;
+  white-space: nowrap;
+  line-clamp: 1;
+  -webkit-line-clamp: 1;
+}
+
+.small .label.long {
+  font-size: 0.55rem;
+}
+
+.medium .label {
+  font-size: var(--text-base);
+  text-align: center;
+  white-space: normal;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
+.wide .label {
+  font-size: var(--text-xs);
+  text-align: left;
+  white-space: normal;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
+/* Hours Display */
+.hours {
+  font-weight: var(--font-semibold);
+}
+
+.hours.inactive {
+  color: var(--text-primary);
+}
+
+.hours.active {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.small .hours {
+  font-size: var(--text-sm);
+}
+
+.medium .hours {
+  font-size: 1.75rem;
+}
+
+.wide .hours {
+  font-size: 1.1rem;
+}
+
+/* Size Label (shown when selected) */
+.sizeLabel {
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sizeLabel.inactive {
+  color: var(--text-primary);
+}
+
+.sizeLabel.active {
+  color: white;
+}
+
+.small .sizeLabel,
+.wide .sizeLabel {
+  font-size: var(--text-xs);
+}
+
+.medium .sizeLabel {
+  font-size: 1.2rem;
+}
+
+/* Action Badges */
+.badge {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid white;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+  padding: 0;
+  transition: transform var(--transition-fast) var(--ease-default);
+}
+
+.badge:hover {
+  transform: scale(1.1);
+}
+
+.badge:active {
+  transform: scale(0.95);
+}
+
+.deleteBadge {
+  top: -8px;
+  left: -8px;
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.editBadge {
+  top: -8px;
+  right: -8px;
+  background: var(--color-info);
+}
+
+/* Note Indicator */
+.noteIndicator {
+  position: absolute;
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+.noteIndicator.inactive {
+  background-color: var(--color-primary);
+}
+
+.noteIndicator.active {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.small .noteIndicator {
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+}
+
+.medium .noteIndicator,
+.wide .noteIndicator {
+  top: 10px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+}
+
+/* Edit Mode Wobble Animation */
+@keyframes wobble {
+  0%, 100% {
+    transform: rotate(-1deg);
+  }
+  50% {
+    transform: rotate(1deg);
+  }
+}
+
+@keyframes wobbleAlt {
+  0%, 100% {
+    transform: rotate(1deg);
+  }
+  50% {
+    transform: rotate(-1deg);
+  }
+}
+
+.editing {
+  animation: wobble 0.3s ease-in-out infinite;
+}
+
+.editingAlt {
+  animation: wobbleAlt 0.3s ease-in-out infinite;
+}

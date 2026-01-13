@@ -1,19 +1,35 @@
+/**
+ * Modal Styles
+ *
+ * Modal component using design tokens and glass utilities.
+ */
+
 .backdrop {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: var(--modal-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  z-index: 9999;
-  padding: 1rem;
+  z-index: var(--z-modal);
+  padding: var(--space-4);
   padding-top: 15vh;
   overflow-y: auto;
+  animation: fadeIn var(--transition-normal) var(--ease-default);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
@@ -33,26 +49,34 @@
   display: flex;
   flex-direction: column;
   overflow: visible;
-  padding: 0.5rem 0;
+  padding: var(--space-2) 0;
   position: relative;
-  animation: slideIn 0.2s ease-out;
+  animation: slideIn var(--transition-normal) var(--ease-out);
+  
+  /* Glass panel styling */
+  background: var(--glass-panel-bg);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid var(--glass-panel-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-panel-shadow), var(--glass-panel-glow);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 1rem 0.75rem;
-  border-bottom: 1px solid var(--tile-glass-border);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--glass-surface-border);
   flex-shrink: 0;
 }
 
 .title {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
+  gap: var(--space-2);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
   margin: 0;
 }
@@ -65,12 +89,21 @@
   background: none;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 0.25rem;
-  transition: color 0.15s ease;
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  transition: 
+    color var(--transition-fast) var(--ease-default),
+    background-color var(--transition-fast) var(--ease-default);
 }
 
 .closeButton:hover {
   color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.closeButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .content {
@@ -80,11 +113,30 @@
 }
 
 .footer {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--tile-glass-border);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--glass-surface-border);
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: var(--space-3);
+}
+
+/* Size Variants */
+.small {
+  max-width: 320px;
+}
+
+.medium {
+  max-width: 440px;
+}
+
+.large {
+  max-width: 600px;
+}
+
+.fullscreen {
+  max-width: 100%;
+  max-height: calc(100vh - var(--space-8));
+  height: 100%;
 }
 
 /* ============================================================================
@@ -93,7 +145,7 @@
 
 @media (max-width: 480px) {
   .backdrop {
-    padding: 0.75rem;
+    padding: var(--space-3);
     padding-top: 10vh;
   }
 
@@ -102,15 +154,15 @@
   }
 
   .header {
-    padding: 0.5rem 0.75rem 0.5rem;
+    padding: var(--space-2) var(--space-3);
   }
 
   .title {
-    font-size: 0.875rem;
+    font-size: var(--text-sm);
   }
 
   .footer {
-    padding: 0.5rem 0.75rem;
-    gap: 0.5rem;
+    padding: var(--space-2) var(--space-3);
+    gap: var(--space-2);
   }
 }

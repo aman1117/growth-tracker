@@ -1,0 +1,163 @@
+/**
+ * Toggle Styles
+ *
+ * Switch component using design tokens.
+ */
+
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.disabled .track,
+.disabled .labelContainer {
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Track
+   ============================================================================ */
+
+.track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  background: var(--toggle-off-bg);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background-color var(--transition-fast) var(--ease-default);
+}
+
+.track:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.track.checked {
+  background: var(--accent);
+}
+
+/* ============================================================================
+   Thumb
+   ============================================================================ */
+
+.thumb {
+  position: absolute;
+  background: white;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast) var(--ease-default);
+}
+
+/* ============================================================================
+   Sizes
+   ============================================================================ */
+
+/* Small */
+.sm .track {
+  width: 36px;
+  height: 20px;
+  padding: 2px;
+}
+
+.sm .thumb {
+  width: 16px;
+  height: 16px;
+  left: 2px;
+}
+
+.sm .track.checked .thumb {
+  transform: translateX(16px);
+}
+
+/* Medium */
+.md .track {
+  width: 44px;
+  height: 24px;
+  padding: 2px;
+}
+
+.md .thumb {
+  width: 20px;
+  height: 20px;
+  left: 2px;
+}
+
+.md .track.checked .thumb {
+  transform: translateX(20px);
+}
+
+/* Large */
+.lg .track {
+  width: 52px;
+  height: 28px;
+  padding: 2px;
+}
+
+.lg .thumb {
+  width: 24px;
+  height: 24px;
+  left: 2px;
+}
+
+.lg .track.checked .thumb {
+  transform: translateX(24px);
+}
+
+/* ============================================================================
+   Label
+   ============================================================================ */
+
+.labelContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  cursor: pointer;
+}
+
+.label {
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  line-height: var(--leading-tight);
+}
+
+.sm .label {
+  font-size: var(--text-sm);
+}
+
+.md .label {
+  font-size: var(--text-base);
+}
+
+.lg .label {
+  font-size: var(--text-md);
+}
+
+.description {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+}
+
+.lg .description {
+  font-size: var(--text-sm);
+}
+
+/* ============================================================================
+   Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .thumb {
+    transition: none;
+  }
+}

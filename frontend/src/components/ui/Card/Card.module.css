@@ -1,45 +1,87 @@
+/**
+ * Card Styles
+ *
+ * Card component using design tokens and glass utilities.
+ */
+
 .card {
-  background: var(--card-bg);
-  border-radius: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
   border: 1px solid var(--border);
+  transition: 
+    background-color var(--transition-normal) var(--ease-default),
+    border-color var(--transition-normal) var(--ease-default),
+    box-shadow var(--transition-normal) var(--ease-default),
+    transform var(--transition-normal) var(--ease-default);
 }
 
+/* Glass variant - uses glass utility tokens */
 .glass {
-  background: var(--tile-glass-bg);
-  backdrop-filter: blur(var(--tile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
-  box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
-  border-color: var(--tile-glass-border);
+  background: var(--glass-surface-bg);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
+  border-color: var(--glass-surface-border);
 }
 
-/* Padding variants */
+/* Elevated variant */
+.elevated {
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-elevated);
+  border-color: transparent;
+}
+
+/* Padding variants using tokens */
 .padding-none {
   padding: 0;
 }
 
 .padding-sm {
-  padding: 0.75rem;
+  padding: var(--space-3);
 }
 
 .padding-md {
-  padding: 1rem;
+  padding: var(--space-4);
 }
 
 .padding-lg {
-  padding: 1.5rem;
+  padding: var(--space-6);
 }
 
 /* Interactive */
 .interactive {
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .interactive:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-floating);
 }
 
 .interactive:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.99);
+}
+
+.interactive:focus-visible {
+  outline: none;
+  box-shadow: 
+    var(--shadow-elevated),
+    0 0 0 var(--ring-width) var(--ring-color);
+}
+
+/* Glass interactive */
+.glass.interactive:hover {
+  background: var(--glass-hover-bg);
+  box-shadow: var(--shadow-elevated), var(--glass-surface-glow);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+  
+  .interactive:hover {
+    transform: none;
+  }
 }

@@ -1,58 +1,92 @@
+/**
+ * Button Component Styles
+ * 
+ * Uses design tokens for consistent sizing across the app.
+ * Supports: primary, secondary, danger, ghost, outline, glass variants
+ * Sizes: xs, sm, md, lg
+ */
+
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  border-radius: 8px;
+  gap: var(--space-2);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
+  transition: 
+    background-color var(--transition-fast) var(--ease-default),
+    border-color var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default),
+    box-shadow var(--transition-fast) var(--ease-default),
+    transform var(--transition-fast) var(--ease-default);
+  border: 1px solid transparent;
   outline: none;
   position: relative;
+  white-space: nowrap;
+  user-select: none;
 }
 
 .button:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none !important;
 }
 
 .button:focus-visible {
-  box-shadow: 0 0 0 2px var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
-/* Variants */
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* ============================================================================
+   Variants
+   ============================================================================ */
+
+/* Primary - Accent color button */
 .primary {
   background-color: var(--accent);
   color: white;
+  border-color: var(--accent);
 }
 
 .primary:hover:not(:disabled) {
   background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
+/* Secondary - Subtle background button */
 .secondary {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
-  border: 1px solid var(--border);
+  border-color: var(--border);
 }
 
 .secondary:hover:not(:disabled) {
   background-color: var(--bg-tertiary);
+  border-color: var(--border-strong);
 }
 
+/* Danger - Destructive action button */
 .danger {
-  background-color: #ef4444;
+  background-color: var(--error);
   color: white;
+  border-color: var(--error);
 }
 
 .danger:hover:not(:disabled) {
-  background-color: #dc2626;
+  background-color: color-mix(in srgb, var(--error) 85%, black);
+  border-color: color-mix(in srgb, var(--error) 85%, black);
 }
 
+/* Ghost - Minimal button */
 .ghost {
   background-color: transparent;
   color: var(--text-secondary);
+  border-color: transparent;
 }
 
 .ghost:hover:not(:disabled) {
@@ -60,28 +94,121 @@
   color: var(--text-primary);
 }
 
-/* Sizes */
+/* Outline - Border button */
+.outline {
+  background-color: transparent;
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+.outline:hover:not(:disabled) {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-strong);
+}
+
+/* Glass - Glassmorphism button */
+.glass {
+  background: var(--glass-surface-bg);
+  color: var(--text-primary);
+  border-color: var(--glass-surface-border);
+  box-shadow: var(--shadow-sm), var(--glass-surface-glow);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+}
+
+.glass:hover:not(:disabled) {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-panel-border);
+  box-shadow: var(--shadow-md), var(--glass-surface-glow);
+}
+
+/* ============================================================================
+   Sizes (using design tokens)
+   ============================================================================ */
+
+/* XS - Extra small */
+.xs {
+  height: var(--btn-xs-height);
+  padding: 0 var(--btn-xs-padding-x);
+  font-size: var(--btn-xs-font-size);
+  gap: var(--space-1);
+}
+
+.xs .icon,
+.xs .iconRight {
+  font-size: var(--btn-xs-icon-size);
+}
+
+/* SM - Small */
 .sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
+  height: var(--btn-sm-height);
+  padding: 0 var(--btn-sm-padding-x);
+  font-size: var(--btn-sm-font-size);
+  gap: var(--space-1-5);
 }
 
+.sm .icon,
+.sm .iconRight {
+  font-size: var(--btn-sm-icon-size);
+}
+
+/* MD - Medium (default) */
 .md {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  height: var(--btn-md-height);
+  padding: 0 var(--btn-md-padding-x);
+  font-size: var(--btn-md-font-size);
 }
 
-.lg {
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+.md .icon,
+.md .iconRight {
+  font-size: var(--btn-md-icon-size);
 }
+
+/* LG - Large */
+.lg {
+  height: var(--btn-lg-height);
+  padding: 0 var(--btn-lg-padding-x);
+  font-size: var(--btn-lg-font-size);
+  gap: var(--space-2-5);
+}
+
+.lg .icon,
+.lg .iconRight {
+  font-size: var(--btn-lg-icon-size);
+}
+
+/* ============================================================================
+   Modifiers
+   ============================================================================ */
 
 /* Full width */
 .fullWidth {
   width: 100%;
 }
 
-/* Loading */
+/* Icon only (square button) */
+.iconOnly {
+  padding: 0;
+  aspect-ratio: 1;
+}
+
+.iconOnly.xs {
+  width: var(--btn-xs-height);
+}
+
+.iconOnly.sm {
+  width: var(--btn-sm-height);
+}
+
+.iconOnly.md {
+  width: var(--btn-md-height);
+}
+
+.iconOnly.lg {
+  width: var(--btn-lg-height);
+}
+
+/* Loading state */
 .loading {
   pointer-events: none;
 }
@@ -101,13 +228,63 @@
   }
 }
 
+/* ============================================================================
+   Hover Label (for Following -> Unfollow style buttons)
+   ============================================================================ */
+
+.hasHoverLabel .text {
+  display: inline-block;
+}
+
+.hasHoverLabel .hoverText {
+  display: none;
+}
+
+.hasHoverLabel:hover .text {
+  display: none;
+}
+
+.hasHoverLabel:hover .hoverText {
+  display: inline-block;
+}
+
+/* Hover variant - danger on hover */
+.hoverDanger:hover:not(:disabled) {
+  background-color: var(--error);
+  color: white;
+  border-color: var(--error);
+}
+
+/* ============================================================================
+   Icons
+   ============================================================================ */
+
 .icon,
 .iconRight {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.text {
+.text,
+.hoverText {
   display: inline-block;
+  line-height: 1;
+}
+
+/* ============================================================================
+   Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+  
+  .spinner {
+    animation: none;
+    border-top-color: transparent;
+    border-left-color: currentColor;
+  }
 }

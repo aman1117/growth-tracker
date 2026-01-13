@@ -1,0 +1,147 @@
+/**
+ * Skeleton Styles
+ *
+ * Loading placeholder with shimmer animation using design tokens.
+ */
+
+.skeleton {
+  background-color: var(--skeleton-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   Animation
+   ============================================================================ */
+
+.animate::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+[data-theme='dark'] .animate::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================================================================
+   Glass Variant
+   ============================================================================ */
+
+.glass {
+  background: var(--glass-surface-bg);
+  border: 1px solid var(--glass-surface-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+}
+
+.glass.animate::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+[data-theme='dark'] .glass.animate::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* ============================================================================
+   Border Radius
+   ============================================================================ */
+
+.radius-none {
+  border-radius: var(--radius-none);
+}
+
+.radius-sm {
+  border-radius: var(--radius-sm);
+}
+
+.radius-md {
+  border-radius: var(--radius-md);
+}
+
+.radius-lg {
+  border-radius: var(--radius-lg);
+}
+
+.radius-xl {
+  border-radius: var(--radius-xl);
+}
+
+.radius-full {
+  border-radius: var(--radius-full);
+}
+
+/* ============================================================================
+   Presets
+   ============================================================================ */
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--glass-surface-bg);
+  border: 1px solid var(--glass-surface-border);
+  border-radius: var(--radius-lg);
+}
+
+.cardContent {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ============================================================================
+   Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate::after {
+    animation: none;
+    background: rgba(255, 255, 255, 0.1);
+  }
+}

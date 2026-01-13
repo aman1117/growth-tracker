@@ -85,7 +85,7 @@
 /* Threshold label */
 .threshold {
   font-size: 9px;
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-secondary);
   text-transform: uppercase;
 }
@@ -97,7 +97,7 @@
 /* Name label */
 .name {
   font-size: 8px;
-  font-weight: 500;
+  font-weight: var(--font-medium);
   color: var(--text-secondary);
   text-align: center;
   line-height: 1.2;
@@ -106,5 +106,5 @@
 
 .earned .name {
   color: var(--badge-color);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
 }

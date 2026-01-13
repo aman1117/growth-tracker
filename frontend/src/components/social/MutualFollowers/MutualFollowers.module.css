@@ -54,7 +54,7 @@
   background: var(--avatar-bg);
   color: var(--text-primary);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   border-radius: 50%;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .username {
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
   cursor: pointer;
 }
@@ -76,7 +76,7 @@
 }
 
 .others {
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
 }
 

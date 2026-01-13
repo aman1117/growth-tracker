@@ -3,6 +3,7 @@
  *
  * Reusable modal dialog with backdrop and animations.
  * Uses React Portal to render at document body level for proper stacking.
+ * Features glass-panel styling with design tokens.
  */
 
 import React, { useEffect, useCallback } from 'react';
@@ -10,6 +11,8 @@ import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import styles from './Modal.module.css';
+
+export type ModalSize = 'small' | 'medium' | 'large' | 'fullscreen';
 
 export interface ModalProps {
   /** Whether the modal is open */
@@ -26,10 +29,14 @@ export interface ModalProps {
   closeOnBackdrop?: boolean;
   /** Close on escape key */
   closeOnEscape?: boolean;
-  /** Max width of modal */
+  /** Size preset for modal width */
+  size?: ModalSize;
+  /** Custom max width (overrides size) */
   maxWidth?: string;
   /** Footer content */
   footer?: ReactNode;
+  /** Additional CSS class */
+  className?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -40,8 +47,10 @@ export const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   closeOnBackdrop = true,
   closeOnEscape = true,
-  maxWidth = '400px',
+  size = 'medium',
+  maxWidth,
   footer,
+  className,
 }) => {
   const handleEscape = useCallback(
     (e: KeyboardEvent) => {
@@ -74,7 +83,10 @@ export const Modal: React.FC<ModalProps> = ({
 
   const modalContent = (
     <div className={styles.backdrop} onClick={handleBackdropClick}>
-      <div className={`card ${styles.modal}`} style={{ maxWidth }}>
+      <div 
+        className={`${styles.modal} ${styles[size]} ${className || ''}`} 
+        style={maxWidth ? { maxWidth } : undefined}
+      >
         {(title || showCloseButton) && (
           <div className={styles.header}>
             {title && <h2 className={styles.title}>{title}</h2>}

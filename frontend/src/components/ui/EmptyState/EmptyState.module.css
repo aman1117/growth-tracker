@@ -1,0 +1,109 @@
+/**
+ * EmptyState Styles
+ *
+ * Consistent empty state display using design tokens.
+ */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8);
+}
+
+/* ============================================================================
+   Sizes
+   ============================================================================ */
+
+.sm {
+  padding: var(--space-4);
+  gap: var(--space-2);
+}
+
+.md {
+  padding: var(--space-8);
+  gap: var(--space-3);
+}
+
+.lg {
+  padding: var(--space-12);
+  gap: var(--space-4);
+}
+
+/* ============================================================================
+   Icon
+   ============================================================================ */
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.sm .icon {
+  font-size: 2rem;
+}
+
+.md .icon {
+  font-size: 2.5rem;
+}
+
+.lg .icon {
+  font-size: 3rem;
+}
+
+/* ============================================================================
+   Text
+   ============================================================================ */
+
+.title {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: var(--tracking-tight);
+}
+
+.sm .title {
+  font-size: var(--text-base);
+}
+
+.md .title {
+  font-size: var(--text-lg);
+}
+
+.lg .title {
+  font-size: var(--text-xl);
+}
+
+.description {
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 320px;
+  line-height: var(--leading-relaxed);
+}
+
+.sm .description {
+  font-size: var(--text-xs);
+  max-width: 240px;
+}
+
+.md .description {
+  font-size: var(--text-sm);
+}
+
+.lg .description {
+  font-size: var(--text-base);
+  max-width: 400px;
+}
+
+/* ============================================================================
+   Action
+   ============================================================================ */
+
+.action {
+  margin-top: var(--space-2);
+}

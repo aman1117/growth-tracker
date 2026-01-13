@@ -1,3 +1,5 @@
+@import './styles/tokens.css';
+@import './styles/glass.css';
 @import './styles/animations.css';
 
 :root {
@@ -401,28 +403,7 @@ h3 {
   animation: slideDownFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Skeleton Animation */
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
+/* Skeleton styles - animations from animations.css */
 .skeleton {
   background-color: var(--skeleton-bg);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -561,33 +542,4 @@ h3 {
   transform: scale(1.1);
 }
 
-/* Spinner animation */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Fullscreen image viewer animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
+/* Note: spin, fadeIn, scaleIn animations are defined in animations.css */

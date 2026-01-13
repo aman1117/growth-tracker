@@ -1,0 +1,148 @@
+/**
+ * IconButton Styles
+ *
+ * Circular button for icon-only actions with design tokens.
+ */
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: 
+    background-color var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default),
+    transform var(--transition-fast) var(--ease-default),
+    box-shadow var(--transition-fast) var(--ease-default);
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.iconButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.iconButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* ============================================================================
+   Variants
+   ============================================================================ */
+
+.default {
+  background: var(--icon-btn-bg);
+  color: var(--icon-btn-color);
+}
+
+.default:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.glass {
+  background: var(--glass-surface-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-surface-border);
+  box-shadow: var(--shadow-sm), var(--glass-surface-glow);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+}
+
+.glass:hover:not(:disabled) {
+  background: var(--glass-hover-bg);
+  box-shadow: var(--shadow-md), var(--glass-surface-glow);
+}
+
+.danger {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--color-like-bg);
+  color: var(--color-like);
+}
+
+/* ============================================================================
+   Sizes
+   ============================================================================ */
+
+.xs {
+  width: var(--btn-xs-height);
+  height: var(--btn-xs-height);
+  font-size: var(--btn-xs-icon-size);
+}
+
+.sm {
+  width: var(--btn-sm-height);
+  height: var(--btn-sm-height);
+  font-size: var(--btn-sm-icon-size);
+}
+
+.md {
+  width: var(--btn-md-height);
+  height: var(--btn-md-height);
+  font-size: var(--btn-md-icon-size);
+}
+
+.lg {
+  width: var(--btn-lg-height);
+  height: var(--btn-lg-height);
+  font-size: var(--btn-lg-icon-size);
+}
+
+/* ============================================================================
+   Loading
+   ============================================================================ */
+
+.loading {
+  pointer-events: none;
+}
+
+.spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .iconButton {
+    transition: none;
+  }
+  
+  .spinner {
+    animation: none;
+  }
+}

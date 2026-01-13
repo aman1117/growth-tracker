@@ -1,0 +1,377 @@
+/**
+ * CalendarPicker Styles
+ *
+ * Calendar date picker using design tokens and glassmorphism.
+ */
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dayPop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes todayPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--color-primary-alpha-40);
+  }
+  50% {
+    box-shadow: 0 0 0 4px var(--color-primary-alpha-0);
+  }
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  background: var(--modal-overlay);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn var(--transition-normal) var(--ease-default);
+}
+
+.overlay.closing {
+  opacity: 0;
+  transition: opacity var(--transition-fast) var(--ease-default);
+}
+
+/* Modal Container */
+.modal {
+  background: var(--glass-panel-bg);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-panel-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-panel-shadow), var(--glass-panel-glow);
+  padding: var(--space-5);
+  min-width: 320px;
+  animation: slideIn var(--transition-normal) var(--ease-bounce);
+}
+
+.modal.closing {
+  transform: scale(0.95) translateY(-8px);
+  opacity: 0;
+  transition: all var(--transition-fast) var(--ease-default);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  gap: var(--space-2);
+}
+
+.navButton {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--ease-default);
+  flex-shrink: 0;
+}
+
+.navButton:hover:not(:disabled) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  transform: scale(1.05);
+}
+
+.navButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.navButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.titleButton {
+  background: none;
+  border: none;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast) var(--ease-default);
+}
+
+.titleButton:hover {
+  background: var(--bg-secondary);
+  color: var(--color-primary);
+}
+
+.titleText {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+/* Calendar Body */
+.body {
+  margin-bottom: var(--space-4);
+  animation: fadeIn var(--transition-normal) var(--ease-default);
+}
+
+/* Weekday Headers */
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.weekday {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--space-1) 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Days Grid */
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+}
+
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--ease-default);
+  padding: 0;
+  min-width: 38px;
+  min-height: 38px;
+  animation: dayPop 0.25s var(--ease-out) backwards;
+}
+
+/* Staggered animation for days */
+.day:nth-child(7n + 1) {
+  animation-delay: 0.02s;
+}
+.day:nth-child(7n + 2) {
+  animation-delay: 0.03s;
+}
+.day:nth-child(7n + 3) {
+  animation-delay: 0.04s;
+}
+.day:nth-child(7n + 4) {
+  animation-delay: 0.05s;
+}
+.day:nth-child(7n + 5) {
+  animation-delay: 0.06s;
+}
+.day:nth-child(7n + 6) {
+  animation-delay: 0.07s;
+}
+.day:nth-child(7n + 7) {
+  animation-delay: 0.08s;
+}
+
+.day:hover:not(.disabled):not(.selected) {
+  background: var(--bg-secondary);
+  transform: scale(1.1);
+}
+
+.day:active:not(.disabled):not(.selected) {
+  transform: scale(0.95);
+}
+
+.day.outside {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.day.today:not(.selected) {
+  background: var(--color-primary-alpha-10);
+  color: var(--color-primary);
+  font-weight: var(--font-bold);
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+  animation: todayPulse 2s infinite;
+}
+
+.day.selected {
+  background: var(--color-primary);
+  color: white;
+  font-weight: var(--font-bold);
+  box-shadow: var(--shadow-md);
+  transform: scale(1.05);
+}
+
+.day.selected:hover {
+  background: var(--color-primary-hover);
+  transform: scale(1.1);
+}
+
+.day.disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* Grid Views - Months & Years */
+.grid {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  animation: fadeIn var(--transition-normal) var(--ease-default);
+}
+
+.monthsGrid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.yearsGrid {
+  grid-template-columns: repeat(3, 1fr);
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: var(--space-1);
+}
+
+.yearsGrid::-webkit-scrollbar {
+  width: 4px;
+}
+
+.yearsGrid::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xs);
+}
+
+.yearsGrid::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-xs);
+}
+
+.gridButton {
+  padding: var(--space-3) var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--ease-default);
+}
+
+.gridButton:hover:not(.disabled) {
+  background: var(--color-primary-alpha-10);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: scale(1.02);
+}
+
+.gridButton:active:not(.disabled) {
+  transform: scale(0.97);
+}
+
+.gridButton.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: var(--font-bold);
+  box-shadow: var(--shadow-md);
+}
+
+.gridButton.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Footer */
+.footer {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  justify-content: center;
+}
+
+.todayButton {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--ease-default);
+}
+
+.todayButton:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-md);
+  transform: scale(1.02);
+}
+
+.todayButton:active {
+  transform: scale(0.97);
+}

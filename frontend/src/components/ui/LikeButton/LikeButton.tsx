@@ -3,12 +3,14 @@
  *
  * A heart-shaped like button with count, featuring glassmorphism design.
  * Allows users to like/unlike another user's day.
+ * Uses design tokens for consistent styling.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Heart } from 'lucide-react';
 import { likeApi } from '../../../services/api';
 import LikersModal from './LikersModal';
+import styles from './LikeButton.module.css';
 
 export interface LikeButtonProps {
   /** Username of the profile being viewed */
@@ -112,8 +114,6 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
   }, [liked, count, loading, username, date, onLikeChange]);
 
   const iconSize = size === 'sm' ? 16 : 20;
-  const fontSize = size === 'sm' ? '0.75rem' : '0.875rem';
-  const gap = size === 'sm' ? '0.35rem' : '0.5rem';
 
   const handleCountClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -123,67 +123,42 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
     }
   }, [count]);
 
+  const containerClasses = [
+    styles.container,
+    styles[size],
+  ].join(' ');
+
+  const buttonClasses = [
+    styles.button,
+    liked ? styles.liked : '',
+    loading ? styles.loading : '',
+  ].filter(Boolean).join(' ');
+
+  const countClasses = [
+    styles.count,
+    liked ? styles.liked : '',
+    count > 0 ? styles.clickable : '',
+  ].filter(Boolean).join(' ');
+
   return (
     <>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap,
-        }}
-      >
+      <div className={containerClasses}>
         <button
           onClick={handleClick}
           disabled={loading}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: 0,
-            background: 'transparent',
-            border: 'none',
-            cursor: loading ? 'wait' : 'pointer',
-            transition: 'all 0.2s ease',
-            color: liked ? '#ef4444' : 'var(--text-secondary)',
-            opacity: loading ? 0.7 : 1,
-          }}
-          onMouseEnter={(e) => {
-            if (!loading) {
-              e.currentTarget.style.transform = 'scale(1.1)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
+          className={buttonClasses}
           title={liked ? 'Unlike this day' : 'Like this day'}
         >
           <Heart
             size={iconSize}
-            fill={liked ? '#ef4444' : 'none'}
-            color={liked ? '#ef4444' : 'currentColor'}
-            style={{
-              transition: 'all 0.2s ease',
-              transform: liked ? 'scale(1.1)' : 'scale(1)',
-            }}
+            fill={liked ? 'currentColor' : 'none'}
+            className={styles.icon}
           />
         </button>
         {showCount && (
           <span 
             onClick={handleCountClick}
-            style={{ 
-              fontSize, 
-              fontWeight: 500,
-              color: liked ? '#ef4444' : 'var(--text-secondary)',
-              cursor: count > 0 ? 'pointer' : 'default',
-              lineHeight: 1,
-            }}
-            onMouseEnter={(e) => {
-              if (count > 0) {
-                e.currentTarget.style.textDecoration = 'underline';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.textDecoration = 'none';
-            }}
+            className={countClasses}
           >
             {count}
           </span>

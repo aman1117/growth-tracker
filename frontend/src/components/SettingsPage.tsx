@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
     ArrowLeft, User, Key, Lock, Camera, Trash2, X, 
     LogOut, AlertTriangle, ChevronRight, Pencil,
-    Sun, Moon, Monitor, Palette, Bell, BellOff, UserPlus, Users
+    Sun, Moon, Monitor, Palette, Bell, BellOff, UserPlus
 } from 'lucide-react';
 import { useAuth, useTheme, useFollowStore, usePendingRequestsCount } from '../store';
 import { api } from '../services/api';

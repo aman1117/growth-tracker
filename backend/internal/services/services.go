@@ -2,9 +2,12 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"time"
 
+	"github.com/aman1117/backend/internal/constants"
+	"github.com/aman1117/backend/internal/logger"
 	"github.com/aman1117/backend/internal/repository"
 	"github.com/aman1117/backend/pkg/models"
 	"golang.org/x/crypto/bcrypt"
@@ -180,13 +183,25 @@ func (s *ProfileService) CanViewProfile(targetUser *models.User, currentUserID u
 type ActivityService struct {
 	activityRepo *repository.ActivityRepository
 	streakSvc    *StreakService
+	userRepo     *repository.UserRepository
+	followRepo   *repository.FollowRepository
+	notifSvc     *NotificationService
 }
 
 // NewActivityService creates a new ActivityService
-func NewActivityService(activityRepo *repository.ActivityRepository, streakSvc *StreakService) *ActivityService {
+func NewActivityService(
+	activityRepo *repository.ActivityRepository,
+	streakSvc *StreakService,
+	userRepo *repository.UserRepository,
+	followRepo *repository.FollowRepository,
+	notifSvc *NotificationService,
+) *ActivityService {
 	return &ActivityService{
 		activityRepo: activityRepo,
 		streakSvc:    streakSvc,
+		userRepo:     userRepo,
+		followRepo:   followRepo,
+		notifSvc:     notifSvc,
 	}
 }
 
@@ -209,6 +224,9 @@ func (s *ActivityService) CreateOrUpdateActivity(userID uint, name models.Activi
 			existing = a
 		}
 	}
+
+	// Store previous total for completion detection
+	previousTotal := totalHours
 
 	// Calculate new total
 	var newTotal float32
@@ -242,8 +260,114 @@ func (s *ActivityService) CreateOrUpdateActivity(userID uint, name models.Activi
 		}
 	}
 
+	logger.Sugar.Debugw("Activity hours calculation",
+		"user_id", userID,
+		"previous_total", previousTotal,
+		"new_total", newTotal,
+		"threshold_check", previousTotal < 24 && newTotal >= 24,
+	)
+
+	// Check if user just completed 24 hours (crossed the threshold)
+	// Only triggers if: previousTotal < 24 AND newTotal >= 24
+	if previousTotal < 24 && newTotal >= 24 {
+		s.notifyFollowersOfDayCompletion(userID, date)
+	}
+
 	// Update streak
 	return s.streakSvc.AddStreak(userID, date, false)
+}
+
+// notifyFollowersOfDayCompletion sends notifications to all followers when a user completes 24 hours.
+// This runs asynchronously to not block the activity update.
+func (s *ActivityService) notifyFollowersOfDayCompletion(userID uint, date time.Time) {
+	// Skip if notification service not configured
+	if s.notifSvc == nil || s.followRepo == nil || s.userRepo == nil {
+		logger.Sugar.Warnw("Skipping day completion notification - missing dependencies",
+			"user_id", userID,
+			"notifSvc_nil", s.notifSvc == nil,
+			"followRepo_nil", s.followRepo == nil,
+			"userRepo_nil", s.userRepo == nil,
+		)
+		return
+	}
+
+	logger.Sugar.Infow("Triggering day completion notification",
+		"user_id", userID,
+		"date", date.Format(constants.DateFormat),
+	)
+
+	// Run in goroutine to not block the main request
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Sugar.Errorw("Panic in day completion notification goroutine",
+					"user_id", userID,
+					"panic", r,
+				)
+			}
+		}()
+
+		ctx := context.Background()
+
+		// Get user details for notification content
+		user, err := s.userRepo.FindByID(userID)
+		if err != nil {
+			logger.Sugar.Warnw("Failed to get user for day completion notification",
+				"user_id", userID,
+				"error", err,
+			)
+			return
+		}
+
+		// Get all followers
+		followerIDs, err := s.followRepo.GetAllFollowerIDs(userID)
+		if err != nil {
+			logger.Sugar.Warnw("Failed to get followers for day completion notification",
+				"user_id", userID,
+				"error", err,
+			)
+			return
+		}
+
+		if len(followerIDs) == 0 {
+			logger.Sugar.Debugw("No followers to notify for day completion",
+				"user_id", userID,
+			)
+			return
+		}
+
+		logger.Sugar.Infow("Sending day completion notifications to followers",
+			"user_id", userID,
+			"username", user.Username,
+			"follower_count", len(followerIDs),
+		)
+
+		// Format date for notification
+		loc, _ := time.LoadLocation(constants.TimezoneIST)
+		dateStr := date.In(loc).Format(constants.DateFormat)
+
+		// Get avatar URL (may be nil)
+		avatar := ""
+		if user.ProfilePic != nil {
+			avatar = *user.ProfilePic
+		}
+
+		// Send notifications to all followers
+		if err := s.notifSvc.NotifyDayCompleted(
+			ctx,
+			userID,
+			user.Username,
+			avatar,
+			dateStr,
+			followerIDs,
+		); err != nil {
+			logger.Sugar.Warnw("Failed to send day completion notifications",
+				"user_id", userID,
+				"date", dateStr,
+				"error", err,
+			)
+		}
+	}()
 }
 
 // GetActivities retrieves activities for a user within a date range

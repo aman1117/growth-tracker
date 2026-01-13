@@ -45,7 +45,7 @@ const NOTIFICATION_TYPES: NotificationTypeConfig[] = [
   {
     type: 'streak_milestone',
     label: 'Streak Milestones',
-    description: 'When you reach streak milestones',
+    description: 'When you or someone you follow reaches a milestone',
   },
   {
     type: 'streak_at_risk',

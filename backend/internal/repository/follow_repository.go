@@ -311,6 +311,17 @@ func (r *FollowRepository) GetFollowersPaginated(followeeID uint, limit int, cur
 	return edges, err
 }
 
+// GetAllFollowerIDs returns all active follower IDs for a user (for notifications).
+// This is used when broadcasting notifications to all followers (e.g., day completion).
+// Note: For users with very large follower counts, consider batching in the caller.
+func (r *FollowRepository) GetAllFollowerIDs(followeeID uint) ([]uint, error) {
+	var followerIDs []uint
+	err := r.db.Model(&models.FollowEdgeByFollowee{}).
+		Where("followee_id = ? AND state = ?", followeeID, models.FollowStateActive).
+		Pluck("follower_id", &followerIDs).Error
+	return followerIDs, err
+}
+
 // GetFollowingPaginated returns paginated following for a user
 func (r *FollowRepository) GetFollowingPaginated(followerID uint, limit int, cursor *FollowListCursor) ([]models.FollowEdgeByFollower, error) {
 	query := r.db.Where("follower_id = ? AND state = ?", followerID, models.FollowStateActive)

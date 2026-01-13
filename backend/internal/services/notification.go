@@ -4,6 +4,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -392,6 +393,158 @@ func (s *NotificationService) NotifyStreakReminder(
 	logger.Sugar.Infow("Streak reminder notification sent",
 		"user_id", userID,
 		"missed_date", missedDate,
+	)
+
+	return nil
+}
+
+// ==================== Day Completion Notification Triggers ====================
+
+// NotifyDayCompleted notifies all followers when a user completes 24 hours of logging for any day.
+// Uses streak_milestone notification type so followers see it alongside their own milestones.
+// Uses deduplication to ensure only ONE notification per (completed_user, date) combination,
+// even if hours fluctuate (e.g., 24 -> 23 -> 24 won't re-trigger).
+//
+// Parameters:
+//   - completedUserID: The user who completed their day
+//   - completedUsername: Username for display in notification
+//   - completedUserAvatar: Avatar URL (optional)
+//   - completedDate: The date completed (YYYY-MM-DD format)
+//   - followerIDs: List of follower user IDs to notify
+func (s *NotificationService) NotifyDayCompleted(
+	ctx context.Context,
+	completedUserID uint,
+	completedUsername string,
+	completedUserAvatar string,
+	completedDate string,
+	followerIDs []uint,
+) error {
+	if len(followerIDs) == 0 {
+		return nil
+	}
+
+	// Use the completed user's ID + date as the dedupe key
+	// This ensures only one batch of notifications per user per day
+	dedupeEntityKey := fmt.Sprintf("day_completed:%d:%s", completedUserID, completedDate)
+
+	db := s.repo.GetDB()
+
+	// Check global dedupe first (before looping through followers)
+	// We use ActorID = completedUserID and streak_milestone type
+	var existingDedupe models.NotificationDedupe
+	err := db.WithContext(ctx).
+		Where("actor_id = ? AND type = ? AND entity_key = ?",
+			completedUserID, models.NotifTypeStreakMilestone, dedupeEntityKey).
+		First(&existingDedupe).Error
+
+	if err == nil {
+		// Already sent notifications for this user+date
+		logger.Sugar.Debugw("Skipping duplicate day completed notifications",
+			"completed_user_id", completedUserID,
+			"date", completedDate,
+		)
+		return nil
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("failed to check dedupe: %w", err)
+	}
+
+	// Insert global dedupe record first (use first follower as user_id placeholder)
+	globalDedupe := &models.NotificationDedupe{
+		UserID:     followerIDs[0], // Required by schema, but we check by actor_id + entity_key
+		ActorID:    completedUserID,
+		Type:       models.NotifTypeStreakMilestone,
+		EntityType: "day_completed",
+		EntityKey:  dedupeEntityKey,
+	}
+
+	result := db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(globalDedupe)
+	if result.Error != nil {
+		return fmt.Errorf("failed to create dedupe record: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		// Race condition: another request already inserted the dedupe
+		logger.Sugar.Debugw("Dedupe record already exists (race condition)",
+			"completed_user_id", completedUserID,
+			"date", completedDate,
+		)
+		return nil
+	}
+
+	logger.Sugar.Infow("Sending day completed notifications",
+		"completed_user_id", completedUserID,
+		"completed_username", completedUsername,
+		"date", completedDate,
+		"follower_count", len(followerIDs),
+	)
+
+	// Build metadata once (same for all notifications)
+	metadata := models.DayCompletedMetadata{
+		CompletedUserID:     completedUserID,
+		CompletedUsername:   completedUsername,
+		CompletedUserAvatar: completedUserAvatar,
+		CompletedDate:       completedDate,
+	}.ToMap()
+
+	// Deep link to the completed user's profile with date context
+	deepLink := fmt.Sprintf("/profile/%s?date=%s", completedUsername, completedDate)
+
+	// Send notifications to each follower
+	var successCount, failCount int
+	for _, followerID := range followerIDs {
+		notif := &models.Notification{
+			UserID:   followerID,
+			Type:     models.NotifTypeStreakMilestone,
+			Title:    "Day Completed! 🎯",
+			Body:     fmt.Sprintf("%s logged all 24 hours", completedUsername),
+			Metadata: metadata,
+		}
+
+		if err := s.Create(ctx, notif); err != nil {
+			logger.Sugar.Warnw("Failed to create day completed notification",
+				"follower_id", followerID,
+				"completed_user_id", completedUserID,
+				"error", err,
+			)
+			failCount++
+			continue
+		}
+
+		// Publish push notification with 4-hour TTL (relevant for the day)
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			pushDedupeKey := fmt.Sprintf("day_completed:%d:%d:%s", followerID, completedUserID, completedDate)
+			ttlSeconds := 14400 // 4 hours
+
+			data := metadata
+			data["notification_id"] = notif.ID
+
+			if err := publisher.PublishPushNotification(
+				ctx,
+				followerID,
+				notif.Type,
+				notif.Title,
+				notif.Body,
+				pushDedupeKey,
+				deepLink,
+				data,
+				ttlSeconds,
+			); err != nil {
+				logger.Sugar.Warnw("Failed to publish push notification for day completed",
+					"notif_id", notif.ID,
+					"follower_id", followerID,
+					"error", err,
+				)
+				// Non-fatal, in-app notification is still delivered
+			}
+		}
+
+		successCount++
+	}
+
+	logger.Sugar.Infow("Day completed notifications sent",
+		"completed_user_id", completedUserID,
+		"date", completedDate,
+		"success", successCount,
+		"failed", failCount,
 	)
 
 	return nil

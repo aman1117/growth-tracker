@@ -118,6 +118,25 @@ func (m StreakMetadata) ToMap() NotificationMetadata {
 	}
 }
 
+// DayCompletedMetadata holds data for day_completed notifications
+// Sent to followers when someone they follow completes 24 hours of logging
+type DayCompletedMetadata struct {
+	CompletedUserID     uint   `json:"completed_user_id"`
+	CompletedUsername   string `json:"completed_username"`
+	CompletedUserAvatar string `json:"completed_user_avatar,omitempty"`
+	CompletedDate       string `json:"completed_date"`
+}
+
+// ToMap converts DayCompletedMetadata to NotificationMetadata
+func (m DayCompletedMetadata) ToMap() NotificationMetadata {
+	return NotificationMetadata{
+		"completed_user_id":     m.CompletedUserID,
+		"completed_username":    m.CompletedUsername,
+		"completed_user_avatar": m.CompletedUserAvatar,
+		"completed_date":        m.CompletedDate,
+	}
+}
+
 // ==================== Notification Deduplication ====================
 
 // NotificationDedupe ensures "only once ever" notification delivery.

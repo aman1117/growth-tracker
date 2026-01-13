@@ -206,11 +206,17 @@ func (r *FollowRepository) AcceptFollowWithCounters(followerID, followeeID uint)
 	})
 }
 
-// incrementCounterInTx increments a specific counter field within a transaction
+// incrementCounterInTx increments a specific counter field within a transaction using upsert
 func (r *FollowRepository) incrementCounterInTx(tx *gorm.DB, userID uint, field string, delta int) {
-	tx.Model(&models.FollowCounter{}).
-		Where("user_id = ?", userID).
-		Update(field, gorm.Expr(field+" + ?", delta))
+	// Use upsert to handle case where follow_counters row doesn't exist yet
+	tx.Exec(
+		`INSERT INTO follow_counters (user_id, followers_count, following_count, pending_requests_count, updated_at)
+		 VALUES (?, 0, 0, 0, NOW())
+		 ON CONFLICT (user_id) DO UPDATE SET
+		 `+field+` = follow_counters.`+field+` + ?,
+		 updated_at = NOW()`,
+		userID, delta,
+	)
 }
 
 // UpdateEdgeState updates the state of an existing edge

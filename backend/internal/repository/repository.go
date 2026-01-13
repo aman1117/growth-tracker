@@ -20,12 +20,35 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 // Create creates a new user with the given email, username, and password hash
+// Also initializes the follow_counters row for the user
 func (r *UserRepository) Create(email, username, passwordHash string) error {
-	result := r.db.Exec(
-		"INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3)",
-		email, username, passwordHash,
-	)
-	return result.Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Insert user
+		if err := tx.Exec(
+			"INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3)",
+			email, username, passwordHash,
+		).Error; err != nil {
+			return err
+		}
+
+		// Get the newly created user's ID
+		var userID uint
+		if err := tx.Raw("SELECT id FROM users WHERE email = $1", email).Scan(&userID).Error; err != nil {
+			return err
+		}
+
+		// Initialize follow_counters row
+		if err := tx.Exec(
+			`INSERT INTO follow_counters (user_id, followers_count, following_count, pending_requests_count, updated_at)
+			 VALUES ($1, 0, 0, 0, NOW())
+			 ON CONFLICT (user_id) DO NOTHING`,
+			userID,
+		).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 // FindByID finds a user by their ID

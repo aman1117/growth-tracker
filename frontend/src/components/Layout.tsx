@@ -7,8 +7,6 @@ import { api } from '../services/api';
 import { ThemeToggle } from './ThemeToggle';
 import { ProtectedImage, VerifiedBadge, NotificationCenter } from './ui';
 import { BottomNavigation } from './BottomNavigation';
-import { RefreshProvider } from './RefreshContext';
-import { PullToRefresh } from './PullToRefresh';
 import type { Notification, LikeMetadata } from '../types';
 
 interface SearchResult {
@@ -137,14 +135,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     const isSettingsPage = location.pathname === APP_ROUTES.SETTINGS;
 
     return (
-        <RefreshProvider>
-            <PullToRefresh enabled={!!user && !isSettingsPage}>
-                <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-                    <header style={{
-                        borderBottom: '1px solid var(--border)',
-                        padding: '0.75rem 0',
-                        backgroundColor: 'var(--header-bg)',
-                        backdropFilter: 'blur(20px)',
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <header style={{
+                borderBottom: '1px solid var(--border)',
+                padding: '0.75rem 0',
+                backgroundColor: 'var(--header-bg)',
+                backdropFilter: 'blur(20px)',
                 WebkitBackdropFilter: 'blur(20px)',
                 position: 'sticky',
                 top: 0,
@@ -456,8 +452,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
             {/* Bottom Navigation - only show for logged in users and not on settings page */}
             {user && !isSettingsPage && <BottomNavigation />}
-                </div>
-            </PullToRefresh>
-        </RefreshProvider>
+        </div>
     );
 };

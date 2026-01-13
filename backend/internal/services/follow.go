@@ -387,11 +387,10 @@ func (s *FollowService) GetRelationshipState(ctx context.Context, viewerID, targ
 // ==================== Mutuals ====================
 
 // GetMutuals returns users that both viewer follows and who follow the target user
+// Note: Mutuals are allowed even for private accounts because we're showing users YOU follow
+// who also follow the target - this doesn't expose the private account's follower list
 func (s *FollowService) GetMutuals(ctx context.Context, viewerID, targetUserID uint, limit int, cursor *repository.FollowListCursor) ([]uint, bool, error) {
-	// Check privacy
-	if err := s.checkListAccess(ctx, viewerID, targetUserID); err != nil {
-		return nil, false, err
-	}
+	// No privacy check needed - mutuals show YOUR friends, not the target's data
 
 	// Clamp limit
 	if limit <= 0 || limit > constants.FollowListMaxLimit {
@@ -413,11 +412,10 @@ func (s *FollowService) GetMutuals(ctx context.Context, viewerID, targetUserID u
 }
 
 // GetMutualsWithTimestamps returns mutual followers with timestamps for cursor pagination
+// Note: Mutuals are allowed even for private accounts because we're showing users YOU follow
+// who also follow the target - this doesn't expose the private account's follower list
 func (s *FollowService) GetMutualsWithTimestamps(ctx context.Context, viewerID, targetUserID uint, limit int, cursor *repository.FollowListCursor) ([]MutualEdge, bool, error) {
-	// Check privacy
-	if err := s.checkListAccess(ctx, viewerID, targetUserID); err != nil {
-		return nil, false, err
-	}
+	// No privacy check needed - mutuals show YOUR friends, not the target's data
 
 	// Clamp limit
 	if limit <= 0 || limit > constants.FollowListMaxLimit {

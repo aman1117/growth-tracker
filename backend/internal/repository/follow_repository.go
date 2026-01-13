@@ -41,6 +41,7 @@ func (r *FollowRepository) IsFollowing(followerID, followeeID uint) (bool, error
 // ==================== Edge Operations ====================
 
 // UpsertEdgeDualWrite creates or updates a follow edge in both tables atomically
+// This does NOT update counters - use UpsertEdgeWithCounters for new follows
 func (r *FollowRepository) UpsertEdgeDualWrite(followerID, followeeID uint, state models.FollowState) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		now := time.Now()
@@ -79,6 +80,137 @@ func (r *FollowRepository) UpsertEdgeDualWrite(followerID, followeeID uint, stat
 
 		return nil
 	})
+}
+
+// CreateFollowWithCounters creates a new follow and updates counters atomically
+// previousState should be nil for new follows, or the old state for re-follows
+func (r *FollowRepository) CreateFollowWithCounters(followerID, followeeID uint, newState models.FollowState, previousState *models.FollowState) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
+		var acceptedAt *time.Time
+		if newState == models.FollowStateActive {
+			acceptedAt = &now
+		}
+
+		// Upsert into follow_edges_by_follower
+		edgeByFollower := models.FollowEdgeByFollower{
+			FollowerID: followerID,
+			FolloweeID: followeeID,
+			State:      newState,
+			AcceptedAt: acceptedAt,
+		}
+		if err := tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "follower_id"}, {Name: "followee_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"state", "accepted_at", "updated_at"}),
+		}).Create(&edgeByFollower).Error; err != nil {
+			return err
+		}
+
+		// Upsert into follow_edges_by_followee
+		edgeByFollowee := models.FollowEdgeByFollowee{
+			FolloweeID: followeeID,
+			FollowerID: followerID,
+			State:      newState,
+			AcceptedAt: acceptedAt,
+		}
+		if err := tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "followee_id"}, {Name: "follower_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"state", "accepted_at", "updated_at"}),
+		}).Create(&edgeByFollowee).Error; err != nil {
+			return err
+		}
+
+		// Update counters based on state transition
+		// Only increment if this is a NEW follow (not re-activating from REMOVED)
+		if previousState == nil || *previousState == models.FollowStateRemoved {
+			if newState == models.FollowStateActive {
+				// Direct follow to public account
+				r.incrementCounterInTx(tx, followerID, "following_count", 1)
+				r.incrementCounterInTx(tx, followeeID, "followers_count", 1)
+			} else if newState == models.FollowStatePending {
+				// Follow request to private account
+				r.incrementCounterInTx(tx, followeeID, "pending_requests_count", 1)
+			}
+		}
+
+		return nil
+	})
+}
+
+// RemoveFollowWithCounters removes a follow and updates counters atomically
+func (r *FollowRepository) RemoveFollowWithCounters(followerID, followeeID uint, previousState models.FollowState) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
+
+		// Update state to REMOVED in both tables
+		if err := tx.Model(&models.FollowEdgeByFollower{}).
+			Where("follower_id = ? AND followee_id = ?", followerID, followeeID).
+			Updates(map[string]interface{}{
+				"state":      models.FollowStateRemoved,
+				"updated_at": now,
+			}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&models.FollowEdgeByFollowee{}).
+			Where("followee_id = ? AND follower_id = ?", followeeID, followerID).
+			Updates(map[string]interface{}{
+				"state":      models.FollowStateRemoved,
+				"updated_at": now,
+			}).Error; err != nil {
+			return err
+		}
+
+		// Decrement counters based on previous state
+		if previousState == models.FollowStateActive {
+			r.incrementCounterInTx(tx, followerID, "following_count", -1)
+			r.incrementCounterInTx(tx, followeeID, "followers_count", -1)
+		} else if previousState == models.FollowStatePending {
+			r.incrementCounterInTx(tx, followeeID, "pending_requests_count", -1)
+		}
+
+		return nil
+	})
+}
+
+// AcceptFollowWithCounters accepts a pending request and updates counters atomically
+func (r *FollowRepository) AcceptFollowWithCounters(followerID, followeeID uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		now := time.Now()
+		updates := map[string]interface{}{
+			"state":       models.FollowStateActive,
+			"accepted_at": now,
+			"updated_at":  now,
+		}
+
+		// Update follow_edges_by_follower
+		if err := tx.Model(&models.FollowEdgeByFollower{}).
+			Where("follower_id = ? AND followee_id = ?", followerID, followeeID).
+			Updates(updates).Error; err != nil {
+			return err
+		}
+
+		// Update follow_edges_by_followee
+		if err := tx.Model(&models.FollowEdgeByFollowee{}).
+			Where("followee_id = ? AND follower_id = ?", followeeID, followerID).
+			Updates(updates).Error; err != nil {
+			return err
+		}
+
+		// Update counters: pending -> active
+		r.incrementCounterInTx(tx, followerID, "following_count", 1)
+		r.incrementCounterInTx(tx, followeeID, "followers_count", 1)
+		r.incrementCounterInTx(tx, followeeID, "pending_requests_count", -1)
+
+		return nil
+	})
+}
+
+// incrementCounterInTx increments a specific counter field within a transaction
+func (r *FollowRepository) incrementCounterInTx(tx *gorm.DB, userID uint, field string, delta int) {
+	tx.Model(&models.FollowCounter{}).
+		Where("user_id = ?", userID).
+		Update(field, gorm.Expr(field+" + ?", delta))
 }
 
 // UpdateEdgeState updates the state of an existing edge

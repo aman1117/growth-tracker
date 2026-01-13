@@ -72,6 +72,7 @@ func (s *FollowService) Follow(ctx context.Context, followerID, followeeID uint)
 	}
 
 	// Handle existing edge states
+	var previousState *models.FollowState
 	if existingEdge != nil {
 		switch existingEdge.State {
 		case models.FollowStateActive:
@@ -80,6 +81,7 @@ func (s *FollowService) Follow(ctx context.Context, followerID, followeeID uint)
 			return &FollowResult{State: models.FollowStatePending, Message: "Follow request already pending"}, nil
 		case models.FollowStateRemoved:
 			// Can re-follow, continue with the flow
+			previousState = &existingEdge.State
 		}
 	}
 
@@ -94,13 +96,10 @@ func (s *FollowService) Follow(ctx context.Context, followerID, followeeID uint)
 		state = models.FollowStatePending
 	}
 
-	// Create the follow edge
-	if err := s.repo.UpsertEdgeDualWrite(followerID, followeeID, state); err != nil {
+	// Create the follow edge AND update counters atomically
+	if err := s.repo.CreateFollowWithCounters(followerID, followeeID, state, previousState); err != nil {
 		return nil, fmt.Errorf("failed to create follow: %w", err)
 	}
-
-	// Publish event for async counter updates
-	s.publishFollowEvent(ctx, models.FollowEventCreated, followerID, followeeID, state)
 
 	// Invalidate relationship cache
 	s.invalidateRelationshipCache(ctx, followerID, followeeID)
@@ -128,19 +127,11 @@ func (s *FollowService) Unfollow(ctx context.Context, followerID, followeeID uin
 		return fmt.Errorf("%s: not following this user", constants.ErrCodeNotFollowing)
 	}
 
-	wasActive := existingEdge.State == models.FollowStateActive
+	previousState := existingEdge.State
 
-	// Update state to REMOVED
-	if err := s.repo.UpdateEdgeState(followerID, followeeID, models.FollowStateRemoved); err != nil {
+	// Remove follow AND update counters atomically
+	if err := s.repo.RemoveFollowWithCounters(followerID, followeeID, previousState); err != nil {
 		return fmt.Errorf("failed to unfollow: %w", err)
-	}
-
-	// Publish event for async counter updates (only if was active)
-	if wasActive {
-		s.publishFollowEvent(ctx, models.FollowEventRemoved, followerID, followeeID, models.FollowStateRemoved)
-	} else {
-		// Was pending, just mark as removed without counter update
-		s.publishFollowEvent(ctx, models.FollowEventDeclined, followerID, followeeID, models.FollowStateRemoved)
 	}
 
 	// Invalidate caches
@@ -165,13 +156,10 @@ func (s *FollowService) CancelRequest(ctx context.Context, followerID, targetID 
 		return fmt.Errorf("%s: no pending request found", constants.ErrCodeNoFollowRequest)
 	}
 
-	// Update state to REMOVED
-	if err := s.repo.UpdateEdgeState(followerID, targetID, models.FollowStateRemoved); err != nil {
+	// Cancel request AND update counters atomically
+	if err := s.repo.RemoveFollowWithCounters(followerID, targetID, models.FollowStatePending); err != nil {
 		return fmt.Errorf("failed to cancel request: %w", err)
 	}
-
-	// Publish event (decrements pending count on target)
-	s.publishFollowEvent(ctx, models.FollowEventDeclined, followerID, targetID, models.FollowStateRemoved)
 
 	// Invalidate caches
 	s.invalidateRelationshipCache(ctx, followerID, targetID)
@@ -197,13 +185,10 @@ func (s *FollowService) AcceptRequest(ctx context.Context, viewerID, requesterID
 		return fmt.Errorf("%s: no pending request found", constants.ErrCodeNoFollowRequest)
 	}
 
-	// Update state to ACTIVE
-	if err := s.repo.UpdateEdgeState(requesterID, viewerID, models.FollowStateActive); err != nil {
+	// Accept request AND update counters atomically
+	if err := s.repo.AcceptFollowWithCounters(requesterID, viewerID); err != nil {
 		return fmt.Errorf("failed to accept request: %w", err)
 	}
-
-	// Publish event for counter updates
-	s.publishFollowEvent(ctx, models.FollowEventAccepted, requesterID, viewerID, models.FollowStateActive)
 
 	// Invalidate caches
 	s.invalidateRelationshipCache(ctx, requesterID, viewerID)
@@ -227,13 +212,10 @@ func (s *FollowService) DeclineRequest(ctx context.Context, viewerID, requesterI
 		return fmt.Errorf("%s: no pending request found", constants.ErrCodeNoFollowRequest)
 	}
 
-	// Update state to REMOVED
-	if err := s.repo.UpdateEdgeState(requesterID, viewerID, models.FollowStateRemoved); err != nil {
+	// Decline request AND update counters atomically
+	if err := s.repo.RemoveFollowWithCounters(requesterID, viewerID, models.FollowStatePending); err != nil {
 		return fmt.Errorf("failed to decline request: %w", err)
 	}
-
-	// Publish event (decrements pending count)
-	s.publishFollowEvent(ctx, models.FollowEventDeclined, requesterID, viewerID, models.FollowStateRemoved)
 
 	// Invalidate caches
 	s.invalidateRelationshipCache(ctx, requesterID, viewerID)
@@ -257,13 +239,10 @@ func (s *FollowService) RemoveFollower(ctx context.Context, viewerID, followerID
 		return fmt.Errorf("%s: user is not following you", constants.ErrCodeNotFollowing)
 	}
 
-	// Update state to REMOVED
-	if err := s.repo.UpdateEdgeState(followerID, viewerID, models.FollowStateRemoved); err != nil {
+	// Remove follower AND update counters atomically
+	if err := s.repo.RemoveFollowWithCounters(followerID, viewerID, models.FollowStateActive); err != nil {
 		return fmt.Errorf("failed to remove follower: %w", err)
 	}
-
-	// Publish event for counter updates (decrement follower's following count and viewer's followers count)
-	s.publishFollowEvent(ctx, models.FollowEventRemoved, followerID, viewerID, models.FollowStateRemoved)
 
 	// Invalidate caches
 	s.invalidateRelationshipCache(ctx, followerID, viewerID)

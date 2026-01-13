@@ -53,7 +53,14 @@ export interface FollowMetadata {
   actor_avatar?: string;
 }
 
-export type NotificationMetadata = LikeMetadata | BadgeMetadata | StreakMetadata | FollowMetadata | Record<string, unknown>;
+export interface DayCompletedMetadata {
+  completed_user_id: number;
+  completed_username: string;
+  completed_user_avatar?: string;
+  completed_date: string;
+}
+
+export type NotificationMetadata = LikeMetadata | BadgeMetadata | StreakMetadata | FollowMetadata | DayCompletedMetadata | Record<string, unknown>;
 
 // ==================== API Response Types ====================
 

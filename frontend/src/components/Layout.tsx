@@ -102,6 +102,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         );
     };
 
+    // Type guard for day completed metadata
+    const isDayCompletedMetadata = (metadata: unknown): metadata is { completed_username: string; completed_date: string } => {
+        return (
+            typeof metadata === 'object' &&
+            metadata !== null &&
+            'completed_username' in metadata &&
+            'completed_date' in metadata
+        );
+    };
+
     // Handle notification card click - navigate based on notification type
     const handleNotificationClick = useCallback(
         (notification: Notification) => {
@@ -110,6 +120,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             if (notification.type === 'like_received' && isLikeMetadata(notification.metadata)) {
                 // Navigate to home with the liked date as a query parameter
                 navigate(`${APP_ROUTES.HOME}?date=${notification.metadata.liked_date}`);
+            } else if (notification.type === 'streak_milestone' && isDayCompletedMetadata(notification.metadata)) {
+                // Navigate to the completed user's profile with the date
+                navigate(`${APP_ROUTES.USER_PROFILE(notification.metadata.completed_username)}?date=${notification.metadata.completed_date}`);
             } else if (
                 (notification.type === 'new_follower' || 
                  notification.type === 'follow_request' || 

@@ -176,12 +176,13 @@ func setupCronJobs(c *container.Container, log *zap.SugaredLogger) {
 		log.Fatalf("Failed to add daily cron job: %v", err)
 	}
 
-	// 9 AM IST cron job for email reminders
-	_, err = cronScheduler.AddFunc("0 0 9 * * *", func() {
-		if err := c.CronService.SendStreakReminderEmails(); err != nil {
-			log.Errorf("Email reminder job failed: %v", err)
+	// 10 PM IST cron job for streak reminders (push + in-app notifications)
+	// Reminds users who haven't logged today while they still have time
+	_, err = cronScheduler.AddFunc("0 0 22 * * *", func() {
+		if err := c.CronService.SendStreakReminders(context.Background()); err != nil {
+			log.Errorf("Streak reminder job failed: %v", err)
 		} else {
-			log.Info("Email reminder job completed successfully")
+			log.Info("Streak reminder job completed successfully")
 		}
 	})
 	if err != nil {

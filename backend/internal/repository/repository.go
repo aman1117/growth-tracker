@@ -277,7 +277,7 @@ func (r *StreakRepository) FindAllByUser(userID uint) ([]models.Streak, error) {
 func (r *StreakRepository) FindUsersMissedStreak(date string) ([]uint, error) {
 	var userIDs []uint
 	result := r.db.Table("streaks").
-		Select("user_id").
+		Select("DISTINCT user_id").
 		Where("current = 0 AND DATE(activity_date) = ?", date).
 		Pluck("user_id", &userIDs)
 	return userIDs, result.Error

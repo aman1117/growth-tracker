@@ -334,6 +334,69 @@ func (s *NotificationService) NotifyStreakAtRisk(
 	return s.Create(ctx, notif)
 }
 
+// NotifyStreakReminder creates a notification + push when user hasn't logged today.
+// Used by the daily cron job at 10 PM IST to remind users while they still have time.
+func (s *NotificationService) NotifyStreakReminder(
+	ctx context.Context,
+	userID uint,
+	missedDate string,
+) error {
+	notif := &models.Notification{
+		UserID: userID,
+		Type:   models.NotifTypeStreakAtRisk,
+		Title:  "Don't Lose Your Streak! 🔥",
+		Body:   "You haven't logged today. Update now to keep your streak!",
+		Metadata: models.StreakMetadata{
+			ActivityType: "daily",
+			StreakCount:  0, // Unknown at reminder time
+		}.ToMap(),
+	}
+
+	if err := s.Create(ctx, notif); err != nil {
+		return err
+	}
+
+	// Publish to push notification queue (Web Push)
+	if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+		dedupeKey := fmt.Sprintf("streak_reminder:%d:%s", userID, missedDate)
+		// Navigate to home (today's date view) so user can log
+		deepLink := "/"
+		// Use 2 hour TTL (7200 seconds) since reminder is sent at 10 PM and deadline is midnight
+		ttlSeconds := 7200
+		data := notif.Metadata
+		if data == nil {
+			data = make(map[string]interface{})
+		}
+		data["notification_id"] = notif.ID
+
+		if err := publisher.PublishPushNotification(
+			ctx,
+			userID,
+			notif.Type,
+			notif.Title,
+			notif.Body,
+			dedupeKey,
+			deepLink,
+			data,
+			ttlSeconds,
+		); err != nil {
+			logger.Sugar.Warnw("Failed to publish push notification for streak reminder",
+				"notif_id", notif.ID,
+				"user_id", userID,
+				"error", err,
+			)
+			// Non-fatal, in-app notification is still delivered
+		}
+	}
+
+	logger.Sugar.Infow("Streak reminder notification sent",
+		"user_id", userID,
+		"missed_date", missedDate,
+	)
+
+	return nil
+}
+
 // ==================== Follow Notification Triggers ====================
 
 // NotifyFollowRequest creates a notification when someone requests to follow

@@ -125,15 +125,6 @@ func (s *EmailService) SendPasswordResetEmail(email, username, token string) err
 	return s.sender.Send([]string{email}, "Reset Your Password - Growth Tracker", htmlContent)
 }
 
-// SendStreakReminderEmail sends a streak reminder email
-func (s *EmailService) SendStreakReminderEmail(email, username string) error {
-	subject := fmt.Sprintf("Don't lose your streak, %s! 🔥", username)
-
-	htmlContent := s.buildStreakReminderHTML(username)
-
-	return s.sender.Send([]string{email}, subject, htmlContent)
-}
-
 func (s *EmailService) buildPasswordResetHTML(username, resetLink string) string {
 	return fmt.Sprintf(`
 <!DOCTYPE html>
@@ -201,30 +192,6 @@ func (s *EmailService) buildPasswordResetHTML(username, resetLink string) string
 `, username, resetLink, resetLink, resetLink)
 }
 
-func (s *EmailService) buildStreakReminderHTML(username string) string {
-	return fmt.Sprintf(`
-<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border-radius: 12px; border: 1px solid #e5e7eb; background-color: #ffffff;">
-    <h2 style="margin: 0 0 16px; color: #111827;">Hi %s 👋</h2>
-    <p style="margin: 0 0 12px; color: #374151;">
-        You missed your streak yesterday, but you can still update your logs.
-    </p>
-    <p style="margin: 0 0 20px; color: #374151;">
-        Just head over to Growth Tracker and update your logs for yesterday.
-    </p>
-    <div style="margin: 0 0 24px;">
-        <a href="https://track-growth.vercel.app/"
-           style="display: inline-block; padding: 10px 20px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 600;">
-            Update yesterday's logs
-        </a>
-    </div>
-    <p style="margin: 0 0 4px; color: #111827;">
-        Keep growing 🌱
-    </p>
-    <p style="margin: 0; font-weight: 600; color:#111827;">Aman</p>
-</div>
-`, username)
-}
-
 // ==================== Cron Service ====================
 
 // CronService handles scheduled job logic
@@ -280,10 +247,11 @@ func (s *CronService) RunDailyJob(ctx context.Context) error {
 	return nil
 }
 
-// SendStreakReminderEmails sends reminder emails to users who missed their streak
-func (s *CronService) SendStreakReminderEmails() error {
-	if s.emailSvc == nil {
-		return fmt.Errorf("email service not configured")
+// SendStreakReminders sends push and in-app notifications to users who haven't logged today.
+// Runs at 10 PM IST to remind users while they still have time to log.
+func (s *CronService) SendStreakReminders(ctx context.Context) error {
+	if s.notifSvc == nil {
+		return fmt.Errorf("notification service not configured")
 	}
 
 	loc, err := time.LoadLocation(constants.TimezoneIST)
@@ -291,31 +259,42 @@ func (s *CronService) SendStreakReminderEmails() error {
 		return fmt.Errorf("failed to load timezone: %v", err)
 	}
 
-	yesterday := time.Now().In(loc).AddDate(0, 0, -1).Format(constants.DateFormat)
+	today := time.Now().In(loc).Format(constants.DateFormat)
 
-	// Find users who missed their streak yesterday
-	userIDs, err := s.streakRepo.FindUsersMissedStreak(yesterday)
+	// Find users who haven't logged today (streak = 0 for today)
+	userIDs, err := s.streakRepo.FindUsersMissedStreak(today)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to find users who missed streak: %w", err)
 	}
 
 	if len(userIDs) == 0 {
+		logger.Sugar.Info("All users have logged today")
 		return nil
 	}
 
-	// Get user details and send emails
-	var notSuccessful int
+	logger.Sugar.Infow("Sending streak reminders",
+		"user_count", len(userIDs),
+		"date", today,
+	)
+
+	// Send notifications to each user
+	var successCount, failCount int
 	for _, userID := range userIDs {
-		user, err := s.userRepo.FindByID(userID)
-		if err != nil || user == nil {
-			notSuccessful++
+		if err := s.notifSvc.NotifyStreakReminder(ctx, userID, today); err != nil {
+			logger.Sugar.Warnw("Failed to send streak reminder",
+				"user_id", userID,
+				"error", err,
+			)
+			failCount++
 			continue
 		}
-
-		if err := s.emailSvc.SendStreakReminderEmail(user.Email, user.Username); err != nil {
-			notSuccessful++
-		}
+		successCount++
 	}
+
+	logger.Sugar.Infow("Streak reminders completed",
+		"success", successCount,
+		"failed", failCount,
+	)
 
 	return nil
 }

@@ -170,6 +170,58 @@ services:
     profiles:
       - seed
 
+  # Test Reminder - run with: docker-compose --profile test-reminder up test-reminder
+  test-reminder:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: growth-tracker-test-reminder
+    volumes:
+      - ./backend:/app
+      - go_mod_cache:/go/pkg/mod
+      - go_build_cache:/root/.cache/go-build
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: growth_tracker_dev
+      DB_USERNAME: localdev
+      DB_PASSWORD: localdevpassword
+      DB_SSLMODE: disable
+      ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["go", "run", "./cmd/test_reminder/main.go"]
+    stdin_open: true
+    tty: true
+    profiles:
+      - test-reminder
+
+  # Send Reminders to ALL users - run with: docker-compose --profile send-reminders run --rm send-reminders
+  send-reminders:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: growth-tracker-send-reminders
+    volumes:
+      - ./backend:/app
+      - go_mod_cache:/go/pkg/mod
+      - go_build_cache:/root/.cache/go-build
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: growth_tracker_dev
+      DB_USERNAME: localdev
+      DB_PASSWORD: localdevpassword
+      DB_SSLMODE: disable
+      ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["go", "run", "./cmd/send_reminders/main.go"]
+    profiles:
+      - send-reminders
+
   # Push Worker - Web Push notification delivery service
   pushworker:
     build:

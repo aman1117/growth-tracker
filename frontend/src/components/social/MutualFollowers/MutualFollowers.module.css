@@ -28,10 +28,10 @@
   height: 28px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid var(--card-bg, #000);
+  border: 2px solid var(--bg-primary);
   margin-left: -10px;
   cursor: pointer;
-  background: var(--card-bg, #000);
+  background: var(--bg-secondary);
 }
 
 .avatarWrapper:first-child {

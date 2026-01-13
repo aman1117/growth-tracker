@@ -137,6 +137,7 @@
   --color-badge: #f59e0b;
   --color-badge-light: #fcd34d;
   --color-badge-bg: rgba(245, 158, 11, 0.1);
+  --verified-check-color: #ffffff;
 
   /* Streak/Fire */
   --color-streak: #f97316;
@@ -277,6 +278,7 @@
   --color-badge: #fbbf24;
   --color-badge-light: #fde047;
   --color-badge-bg: rgba(251, 191, 36, 0.15);
+  --verified-check-color: #1a1a1a;
 
   --color-streak: #fb923c;
   --color-streak-light: #fdba74;

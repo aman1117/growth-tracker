@@ -329,6 +329,10 @@
   color: var(--accent);
 }
 
+.iconFollow {
+  color: #3b82f6;
+}
+
 /* Content */
 .itemContent {
   flex: 1;

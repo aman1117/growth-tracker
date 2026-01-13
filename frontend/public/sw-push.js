@@ -94,6 +94,30 @@ async function markNotificationAsRead(notificationId) {
   }
 }
 
+/**
+ * Handle follow request accept/decline actions via app window
+ */
+async function handleFollowRequestAction(action, data) {
+  try {
+    const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    
+    // Send to app window to handle (has auth context)
+    for (const client of windowClients) {
+      if (client.url.includes(self.location.origin)) {
+        client.postMessage({
+          type: 'FOLLOW_REQUEST_ACTION',
+          action: action, // 'accept' or 'decline'
+          actor_id: data.actor_id,
+          notification_id: data.notification_id,
+        });
+        return;
+      }
+    }
+  } catch {
+    // Silent fail - user can handle in app
+  }
+}
+
 self.addEventListener('notificationclick', (event) => {
   const notification = event.notification;
   const action = event.action;
@@ -106,7 +130,17 @@ self.addEventListener('notificationclick', (event) => {
   let url = data.deepLink || data.url || '/';
   
   // Handle action buttons
-  if (action === 'view' && (data.deepLink || data.url)) {
+  if (action === 'accept' && data.type === 'follow_request') {
+    // Accept follow request - navigate to notifications to handle it
+    url = '/notifications';
+    // Also try to call the accept API
+    handleFollowRequestAction('accept', data);
+  } else if (action === 'decline' && data.type === 'follow_request') {
+    // Decline follow request
+    handleFollowRequestAction('decline', data);
+    // Don't navigate, just close
+    return;
+  } else if (action === 'view' && (data.deepLink || data.url)) {
     url = data.deepLink || data.url;
   } else if (action === 'dismiss') {
     // Just close, don't open anything

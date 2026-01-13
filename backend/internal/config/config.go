@@ -37,6 +37,9 @@ type Config struct {
 	// Push Worker configuration
 	PushWorker PushWorkerConfig
 
+	// Follow system configuration
+	Follow FollowConfig
+
 	// Email configuration
 	Email EmailConfig
 
@@ -111,6 +114,14 @@ type PushWorkerConfig struct {
 	SendRateLimit       int // Pushes per second (default 100)
 	MaxConcurrent       int // Concurrent senders (default 10)
 	DedupeWindowSeconds int // Dedupe window in seconds (default 60)
+}
+
+// FollowConfig holds follow system configuration
+type FollowConfig struct {
+	MaxFollowsPerMinute    int // Max follow actions per minute (default 60)
+	MaxFollowsPerDay       int // Max follow actions per day (default 5000)
+	MaxTotalFollowing      int // Max total following count (default 7500)
+	TombstoneRetentionDays int // Days to keep REMOVED edges (default 7)
 }
 
 // EmailConfig holds email service configuration
@@ -190,6 +201,13 @@ func Load() (*Config, error) {
 			SendRateLimit:       getIntFromEnv("PUSH_SEND_RATE_LIMIT", 100),
 			MaxConcurrent:       getIntFromEnv("PUSH_MAX_CONCURRENT", 10),
 			DedupeWindowSeconds: getIntFromEnv("PUSH_DEDUPE_WINDOW_SECONDS", 60),
+		},
+
+		Follow: FollowConfig{
+			MaxFollowsPerMinute:    getIntFromEnv("FOLLOW_MAX_PER_MINUTE", 60),
+			MaxFollowsPerDay:       getIntFromEnv("FOLLOW_MAX_PER_DAY", 5000),
+			MaxTotalFollowing:      getIntFromEnv("FOLLOW_MAX_TOTAL", 7500),
+			TombstoneRetentionDays: getIntFromEnv("FOLLOW_TOMBSTONE_RETENTION_DAYS", 7),
 		},
 
 		Email: EmailConfig{

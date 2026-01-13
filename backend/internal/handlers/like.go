@@ -92,9 +92,9 @@ func (h *LikeHandler) LikeDay(c *fiber.Ctx) error {
 		"target_is_private", targetUser.IsPrivate,
 	)
 
-	// Check if target user's profile is public (skip for own profile)
-	if targetUser.IsPrivate && targetUser.ID != userID {
-		log.Warnw("Cannot like private account", "target_user_id", targetUser.ID)
+	// Check if user can view/interact with the target profile (handles private account + follower check)
+	if !h.profileSvc.CanViewProfile(targetUser, userID) {
+		log.Warnw("Cannot like private account - not following", "target_user_id", targetUser.ID)
 		return response.Forbidden(c, "Cannot like a private account's day", constants.ErrCodeAccountPrivate)
 	}
 
@@ -363,9 +363,9 @@ func (h *LikeHandler) GetLikes(c *fiber.Ctx) error {
 		"target_is_private", targetUser.IsPrivate,
 	)
 
-	// Check if user can view likes (either public profile or own profile)
-	if targetUser.IsPrivate && targetUser.ID != userID {
-		log.Warnw("Cannot view likes for private account", "target_user_id", targetUser.ID)
+	// Check if user can view the target profile (handles private account + follower check)
+	if !h.profileSvc.CanViewProfile(targetUser, userID) {
+		log.Warnw("Cannot view likes for private account - not following", "target_user_id", targetUser.ID)
 		return response.Forbidden(c, "Cannot view likes for a private account", constants.ErrCodeAccountPrivate)
 	}
 

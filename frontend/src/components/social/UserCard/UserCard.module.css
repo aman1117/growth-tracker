@@ -1,0 +1,165 @@
+/**
+ * UserCard Styles
+ *
+ * Instagram-style user row.
+ */
+
+.card {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  overflow: visible;
+  min-height: 56px;
+}
+
+.card:hover {
+  background-color: var(--hover-bg);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  flex: 1;
+  min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.displayName {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.actions {
+  flex-shrink: 0;
+  margin-left: 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.removeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+[data-theme="light"] .removeButton {
+  background: #ffffff;
+  color: #262626;
+  border: 1px solid #d4d4d4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.removeButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .removeButton:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #a3a3a3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.removeButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.removeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.youLabel {
+  padding: 7px 16px;
+  border-radius: 8px;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   Mobile Responsive
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .card {
+    padding: 8px 12px;
+    gap: 10px;
+    min-height: 48px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .username {
+    font-size: 13px;
+  }
+
+  .displayName {
+    font-size: 12px;
+  }
+
+  .actions {
+    gap: 4px;
+  }
+
+  .removeButton {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .youLabel {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}

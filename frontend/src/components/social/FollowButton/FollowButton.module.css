@@ -1,0 +1,405 @@
+/**
+ * FollowButton Styles
+ *
+ * Consistent Instagram-style follow button with theme support.
+ * Uses CSS custom properties for theming.
+ */
+
+/* ============================================================================
+   Base Button
+   ============================================================================ */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+  border: none;
+  outline: none;
+  white-space: nowrap;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.button:active:not(:disabled) {
+  opacity: 0.7;
+}
+
+/* ============================================================================
+   Size Variants
+   ============================================================================ */
+
+.sm {
+  padding: 4px 10px;
+  font-size: 12px;
+  height: 26px;
+  border-radius: 6px;
+}
+
+.md {
+  padding: 0 14px;
+  font-size: 13px;
+  height: 32px;
+}
+
+.lg {
+  padding: 7px 18px;
+  font-size: 14px;
+  height: 34px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* ============================================================================
+   Button Variants
+   ============================================================================ */
+
+/* Default Follow Button - Primary Blue */
+.default {
+  background: var(--button-primary, #0095f6);
+  color: white;
+}
+
+.default:hover:not(:disabled) {
+  background: var(--button-primary-hover, #1877f2);
+}
+
+/* Following State - Professional glass-style button (light theme default) */
+.following {
+  background: #ffffff;
+  color: #262626;
+  border: 1px solid #d4d4d4;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.following:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #a3a3a3;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.following:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Following State - Dark theme override */
+[data-theme="dark"] .following {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .following:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Show different label on hover */
+.following:hover:not(:disabled) .label {
+  display: none;
+}
+
+.following:hover:not(:disabled) .hoverLabel {
+  display: inline;
+}
+
+/* Pending Request State - Professional glass-style button (light theme default) */
+.pending {
+  background: #ffffff;
+  color: #262626;
+  border: 1px solid #d4d4d4;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.pending:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #a3a3a3;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.pending:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Pending State - Dark theme override */
+[data-theme="dark"] .pending {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .pending:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Show different label on hover */
+.pending:hover:not(:disabled) .label {
+  display: none;
+}
+
+.pending:hover:not(:disabled) .hoverLabel {
+  display: inline;
+}
+
+/* ============================================================================
+   Labels
+   ============================================================================ */
+
+.label {
+  display: inline;
+}
+
+.hoverLabel {
+  display: none;
+}
+
+/* ============================================================================
+   Spinner
+   ============================================================================ */
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: inherit;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   Incoming Request Actions (horizontal row layout)
+   ============================================================================ */
+
+.incomingActions {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Follow/Following button in incoming actions */
+.followBackButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+  border: none;
+  outline: none;
+  white-space: nowrap;
+  background: var(--button-primary, #0095f6);
+  color: white;
+  padding: 4px 10px;
+  font-size: 12px;
+  height: 26px;
+}
+
+.followBackButton:hover:not(:disabled) {
+  background: var(--button-primary-hover, #1877f2);
+}
+
+.followBackButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Following variant for incoming actions */
+.followingButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 4px 10px;
+  font-size: 12px;
+  height: 26px;
+}
+
+[data-theme="light"] .followingButton {
+  background: #ffffff;
+  color: #262626;
+  border: 1px solid #d4d4d4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.followingButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .followingButton:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #a3a3a3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.followingButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.followingButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Accept button */
+.acceptButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+  border: none;
+  outline: none;
+  white-space: nowrap;
+  background: var(--button-primary, #0095f6);
+  color: white;
+  padding: 4px 10px;
+  font-size: 12px;
+  height: 26px;
+}
+
+.acceptButton:hover:not(:disabled) {
+  background: var(--button-primary-hover, #1877f2);
+}
+
+.acceptButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Decline button - Professional glass-style */
+.declineButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 4px 10px;
+  font-size: 12px;
+  height: 26px;
+}
+
+[data-theme="light"] .declineButton {
+  background: #ffffff;
+  color: #262626;
+  border: 1px solid #d4d4d4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.declineButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .declineButton:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #a3a3a3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.declineButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.declineButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Mobile Responsive
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .sm {
+    padding: 4px 8px;
+    font-size: 11px;
+    height: 24px;
+  }
+
+  .md {
+    padding: 0 12px;
+    font-size: 12px;
+    height: 30px;
+  }
+
+  .lg {
+    padding: 6px 14px;
+    font-size: 13px;
+    height: 32px;
+  }
+
+  .acceptButton,
+  .declineButton,
+  .followBackButton,
+  .followingButton {
+    padding: 4px 8px;
+    font-size: 11px;
+    height: 24px;
+  }
+
+  .incomingActions {
+    gap: 4px;
+  }
+}

@@ -1,0 +1,369 @@
+/**
+ * Shared Modal List Styles
+ *
+ * Consistent styling for all follow-related modal lists.
+ * Used by: FollowListModal, FollowRequestsModal
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  max-height: 50vh;
+  overflow: visible;
+}
+
+/* ============================================================================
+   List
+   ============================================================================ */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
+  min-height: 100px;
+  max-height: calc(50vh - 50px);
+}
+
+/* Custom scrollbar */
+.list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, rgba(255, 255, 255, 0.2));
+  border-radius: 3px;
+}
+
+.list::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, rgba(255, 255, 255, 0.3));
+}
+
+[data-theme="light"] .list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* ============================================================================
+   Loading State
+   ============================================================================ */
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: var(--accent);
+}
+
+/* ============================================================================
+   Error State
+   ============================================================================ */
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--error, #ef4444);
+  text-align: center;
+}
+
+.errorIcon {
+  color: var(--error, #ef4444);
+}
+
+.retryButton {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.retryButton:hover {
+  opacity: 0.8;
+}
+
+[data-theme="light"] .retryButton {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--text-tertiary, var(--text-secondary));
+  opacity: 0.6;
+}
+
+/* ============================================================================
+   Load More
+   ============================================================================ */
+
+.loadMoreTrigger {
+  min-height: 1px;
+  width: 100%;
+}
+
+.loadingMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+/* ============================================================================
+   User Card - Shared across all modals
+   ============================================================================ */
+
+.card {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.card:hover {
+  background-color: var(--hover-bg, rgba(255, 255, 255, 0.05));
+}
+
+[data-theme="light"] .card:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  flex: 1;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.username {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.3;
+}
+
+.displayName {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.actions {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.youLabel {
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Action Buttons
+   ============================================================================ */
+
+.primaryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--button-primary, #0095f6);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--button-primary-hover, #1877f2);
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  background: #ffffff;
+  color: #262626;
+  border: 1px solid #d4d4d4;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #a3a3a3;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.secondaryButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+[data-theme="dark"] .secondaryButton {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .secondaryButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Mobile Responsive
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .container {
+    max-height: 60vh;
+  }
+
+  .list {
+    max-height: calc(60vh - 50px);
+    padding: 4px 0;
+  }
+
+  .card {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .username {
+    font-size: 13px;
+  }
+
+  .displayName {
+    font-size: 12px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .youLabel {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .loadingState,
+  .emptyState,
+  .errorState {
+    padding: 1.5rem;
+    font-size: 0.8rem;
+  }
+}

@@ -4,12 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { 
     ArrowLeft, User, Key, Lock, Camera, Trash2, X, 
     LogOut, AlertTriangle, ChevronRight, Pencil,
-    Sun, Moon, Monitor, Palette, Bell, BellOff
+    Sun, Moon, Monitor, Palette, Bell, BellOff, UserPlus, Users
 } from 'lucide-react';
-import { useAuth, useTheme } from '../store';
+import { useAuth, useTheme, useFollowStore, usePendingRequestsCount } from '../store';
 import { api } from '../services/api';
 import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
 import { SnapToast, ProtectedImage } from './ui';
+import { FollowRequestsModal, FollowListModal } from './social';
 import { APP_ROUTES } from '../constants/routes';
 import { BadgeShowcase } from './BadgeShowcase';
 import { PushNotificationSettings } from './PushNotificationSettings';
@@ -20,6 +21,8 @@ export const SettingsPage: React.FC = () => {
     const navigate = useNavigate();
     const { user, logout, updateUsername, updateProfilePic, updateBio } = useAuth();
     const { theme, setTheme } = useTheme();
+    const { getIncomingRequests, getCounts } = useFollowStore();
+    const pendingRequestsCount = usePendingRequestsCount();
     
     // Dialog states
     const [showUsernameDialog, setShowUsernameDialog] = useState(false);
@@ -28,6 +31,12 @@ export const SettingsPage: React.FC = () => {
     const [showFullscreenPic, setShowFullscreenPic] = useState(false);
     const [showPicDialog, setShowPicDialog] = useState(false);
     const [showBioDialog, setShowBioDialog] = useState(false);
+    const [showFollowRequestsModal, setShowFollowRequestsModal] = useState(false);
+    const [showFollowListModal, setShowFollowListModal] = useState<'followers' | 'following' | null>(null);
+    
+    // Follow counts
+    const [followersCount, setFollowersCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
     
     // Profile picture state
     const [isUploadingPic, setIsUploadingPic] = useState(false);
@@ -77,6 +86,15 @@ export const SettingsPage: React.FC = () => {
             api.post('/get-streak', { username: user.username, date: today }).then(res => {
                 if (res.success && res.data) {
                     setLongestStreak(res.data.longest);
+                }
+            });
+            // Fetch pending follow requests count
+            getIncomingRequests(undefined, 1); // Just to get the count
+            // Fetch follow counts
+            getCounts(user.id).then(counts => {
+                if (counts) {
+                    setFollowersCount(counts.followers);
+                    setFollowingCount(counts.following);
                 }
             });
         }
@@ -355,6 +373,66 @@ export const SettingsPage: React.FC = () => {
                             </p>
                             <Pencil size={12} color="var(--accent)" style={{ flexShrink: 0 }} />
                         </div>
+                        
+                        {/* Followers / Following Stats */}
+                        <div style={{
+                            display: 'flex',
+                            gap: '1rem',
+                            marginTop: '0.5rem'
+                        }}>
+                            <button
+                                onClick={() => setShowFollowListModal('followers')}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    padding: 0,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.25rem'
+                                }}
+                            >
+                                <span style={{ 
+                                    fontSize: '0.875rem', 
+                                    fontWeight: 600, 
+                                    color: 'var(--text-primary)' 
+                                }}>
+                                    {followersCount}
+                                </span>
+                                <span style={{ 
+                                    fontSize: '0.8rem', 
+                                    color: 'var(--text-secondary)' 
+                                }}>
+                                    Followers
+                                </span>
+                            </button>
+                            <button
+                                onClick={() => setShowFollowListModal('following')}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    padding: 0,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.25rem'
+                                }}
+                            >
+                                <span style={{ 
+                                    fontSize: '0.875rem', 
+                                    fontWeight: 600, 
+                                    color: 'var(--text-primary)' 
+                                }}>
+                                    {followingCount}
+                                </span>
+                                <span style={{ 
+                                    fontSize: '0.8rem', 
+                                    color: 'var(--text-secondary)' 
+                                }}>
+                                    Following
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -458,6 +536,61 @@ export const SettingsPage: React.FC = () => {
                             boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
                         }} />
                     </button>
+                </div>
+
+                {/* Follow Requests - always visible */}
+                <div 
+                    onClick={() => setShowFollowRequestsModal(true)}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '0.75rem 1rem',
+                        gap: '0.75rem',
+                        borderBottom: '1px solid var(--border)',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                    <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
+                        backgroundColor: pendingRequestsCount > 0 ? 'rgba(245, 158, 11, 0.15)' : 'var(--icon-bg-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: pendingRequestsCount > 0 ? '#f59e0b' : 'var(--text-secondary)'
+                    }}>
+                        <UserPlus size={16} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ 
+                            fontSize: '0.875rem', 
+                            fontWeight: 500, 
+                            color: 'var(--text-primary)' 
+                        }}>
+                            Follow requests
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {pendingRequestsCount > 0 && (
+                            <span style={{
+                                backgroundColor: '#f59e0b',
+                                color: 'white',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                padding: '0.125rem 0.5rem',
+                                borderRadius: '10px',
+                                minWidth: '20px',
+                                textAlign: 'center'
+                            }}>
+                                {pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}
+                            </span>
+                        )}
+                        <ChevronRight size={18} color="var(--text-tertiary)" />
+                    </div>
                 </div>
 
                 {/* Theme Selection */}
@@ -717,6 +850,23 @@ export const SettingsPage: React.FC = () => {
                     message={toast.message}
                     type={toast.type}
                     onClose={() => setToast(null)}
+                />
+            )}
+
+            {/* Follow Requests Modal */}
+            <FollowRequestsModal
+                isOpen={showFollowRequestsModal}
+                onClose={() => setShowFollowRequestsModal(false)}
+            />
+
+            {/* Follow List Modal (Followers/Following) */}
+            {showFollowListModal && (
+                <FollowListModal
+                    isOpen={!!showFollowListModal}
+                    onClose={() => setShowFollowListModal(null)}
+                    userId={user.id}
+                    username={user.username}
+                    type={showFollowListModal}
                 />
             )}
         </div>

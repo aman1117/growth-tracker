@@ -334,6 +334,207 @@ func (s *NotificationService) NotifyStreakAtRisk(
 	return s.Create(ctx, notif)
 }
 
+// ==================== Follow Notification Triggers ====================
+
+// NotifyFollowRequest creates a notification when someone requests to follow
+func (s *NotificationService) NotifyFollowRequest(
+	ctx context.Context,
+	recipientUserID uint,
+	requesterID uint,
+	requesterUsername string,
+	requesterAvatar string,
+) error {
+	// Build entity key for dedupe
+	entityKey := fmt.Sprintf("follow_request:%d", requesterID)
+
+	// Use transaction to ensure atomicity of dedupe check + notification create
+	db := s.repo.GetDB()
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Try to insert dedupe record with ON CONFLICT DO NOTHING
+		dedupe := &models.NotificationDedupe{
+			UserID:     recipientUserID,
+			ActorID:    requesterID,
+			Type:       models.NotifTypeFollowRequest,
+			EntityType: "follow",
+			EntityKey:  entityKey,
+		}
+
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(dedupe)
+		if result.Error != nil {
+			return result.Error
+		}
+
+		// If dedupe record already existed, skip notification
+		if result.RowsAffected == 0 {
+			logger.Sugar.Debugw("Skipping duplicate follow request notification",
+				"user_id", recipientUserID,
+				"actor_id", requesterID,
+			)
+			return nil
+		}
+
+		// Create the notification
+		notif := &models.Notification{
+			UserID: recipientUserID,
+			Type:   models.NotifTypeFollowRequest,
+			Title:  "New Follow Request",
+			Body:   fmt.Sprintf("%s wants to follow you", requesterUsername),
+			Metadata: models.FollowMetadata{
+				ActorID:       requesterID,
+				ActorUsername: requesterUsername,
+				ActorAvatar:   requesterAvatar,
+			}.ToMap(),
+		}
+
+		if err := tx.Create(notif).Error; err != nil {
+			return err
+		}
+
+		logger.Sugar.Infow("Follow request notification created",
+			"id", notif.ID,
+			"user_id", recipientUserID,
+			"requester_id", requesterID,
+		)
+
+		// Side effects
+		s.invalidateUnreadCache(ctx, recipientUserID)
+		s.publishNotification(ctx, notif)
+
+		// Publish to push notification queue
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			dedupeKey := fmt.Sprintf("follow_request:%d:%d", recipientUserID, requesterID)
+			deepLink := fmt.Sprintf("/user/%s", requesterUsername)
+			if err := publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink); err != nil {
+				logger.Sugar.Warnw("Failed to publish push notification for follow request",
+					"notif_id", notif.ID,
+					"error", err,
+				)
+			}
+		}
+
+		return nil
+	})
+}
+
+// NotifyFollowAccepted creates a notification when a follow request is accepted
+func (s *NotificationService) NotifyFollowAccepted(
+	ctx context.Context,
+	recipientUserID uint,
+	accepterID uint,
+	accepterUsername string,
+	accepterAvatar string,
+) error {
+	notif := &models.Notification{
+		UserID: recipientUserID,
+		Type:   models.NotifTypeFollowAccepted,
+		Title:  "Follow Request Accepted! 🎉",
+		Body:   fmt.Sprintf("%s accepted your follow request", accepterUsername),
+		Metadata: models.FollowMetadata{
+			ActorID:       accepterID,
+			ActorUsername: accepterUsername,
+			ActorAvatar:   accepterAvatar,
+		}.ToMap(),
+	}
+
+	if err := s.Create(ctx, notif); err != nil {
+		return err
+	}
+
+	// Publish to push notification queue
+	if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+		dedupeKey := fmt.Sprintf("follow_accepted:%d:%d", recipientUserID, accepterID)
+		deepLink := fmt.Sprintf("/user/%s", accepterUsername)
+		if err := publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink); err != nil {
+			logger.Sugar.Warnw("Failed to publish push notification for follow accepted",
+				"notif_id", notif.ID,
+				"error", err,
+			)
+		}
+	}
+
+	return nil
+}
+
+// NotifyNewFollower creates a notification when someone starts following (public account)
+func (s *NotificationService) NotifyNewFollower(
+	ctx context.Context,
+	recipientUserID uint,
+	followerID uint,
+	followerUsername string,
+	followerAvatar string,
+) error {
+	// Build entity key for dedupe
+	entityKey := fmt.Sprintf("new_follower:%d", followerID)
+
+	// Use transaction to ensure atomicity of dedupe check + notification create
+	db := s.repo.GetDB()
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Try to insert dedupe record
+		dedupe := &models.NotificationDedupe{
+			UserID:     recipientUserID,
+			ActorID:    followerID,
+			Type:       models.NotifTypeNewFollower,
+			EntityType: "follow",
+			EntityKey:  entityKey,
+		}
+
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(dedupe)
+		if result.Error != nil {
+			return result.Error
+		}
+
+		// If dedupe record already existed, skip notification
+		if result.RowsAffected == 0 {
+			logger.Sugar.Debugw("Skipping duplicate new follower notification",
+				"user_id", recipientUserID,
+				"actor_id", followerID,
+			)
+			return nil
+		}
+
+		// Create the notification
+		notif := &models.Notification{
+			UserID: recipientUserID,
+			Type:   models.NotifTypeNewFollower,
+			Title:  "New Follower! 👋",
+			Body:   fmt.Sprintf("%s started following you", followerUsername),
+			Metadata: models.FollowMetadata{
+				ActorID:       followerID,
+				ActorUsername: followerUsername,
+				ActorAvatar:   followerAvatar,
+			}.ToMap(),
+		}
+
+		if err := tx.Create(notif).Error; err != nil {
+			return err
+		}
+
+		logger.Sugar.Infow("New follower notification created",
+			"id", notif.ID,
+			"user_id", recipientUserID,
+			"follower_id", followerID,
+		)
+
+		// Side effects
+		s.invalidateUnreadCache(ctx, recipientUserID)
+		s.publishNotification(ctx, notif)
+
+		// Publish to push notification queue
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			dedupeKey := fmt.Sprintf("new_follower:%d:%d", recipientUserID, followerID)
+			deepLink := fmt.Sprintf("/user/%s", followerUsername)
+			if err := publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink); err != nil {
+				logger.Sugar.Warnw("Failed to publish push notification for new follower",
+					"notif_id", notif.ID,
+					"error", err,
+				)
+			}
+		}
+
+		return nil
+	})
+}
+
 // ==================== Redis Pub/Sub Operations ====================
 
 // publishNotification publishes a notification to Redis pub/sub

@@ -117,6 +117,12 @@ func main() {
 		log.Warn("Push notifications disabled (Service Bus not configured)")
 	}
 
+	// Start follow counter subscriber (for async counter updates)
+	if redis.IsAvailable() {
+		c.FollowService.StartFollowCounterSubscriber(context.Background())
+		log.Info("Follow counter subscriber started")
+	}
+
 	// Setup cron jobs
 	setupCronJobs(c, log)
 
@@ -192,6 +198,24 @@ func setupCronJobs(c *container.Container, log *zap.SugaredLogger) {
 	})
 	if err != nil {
 		log.Fatalf("Failed to add notification cleanup cron job: %v", err)
+	}
+
+	// 4 AM IST cron job for follow tombstone cleanup (7 days old)
+	_, err = cronScheduler.AddFunc("0 0 4 * * *", func() {
+		retentionDays := c.Config.Follow.TombstoneRetentionDays
+		if retentionDays <= 0 {
+			retentionDays = 7
+		}
+		cutoff := time.Now().AddDate(0, 0, -retentionDays)
+		deleted, err := c.FollowRepo.CleanupOldTombstones(cutoff)
+		if err != nil {
+			log.Errorf("Follow tombstone cleanup failed: %v", err)
+		} else {
+			log.Infof("Follow tombstone cleanup completed, deleted %d edges", deleted)
+		}
+	})
+	if err != nil {
+		log.Fatalf("Failed to add follow tombstone cleanup cron job: %v", err)
 	}
 
 	cronScheduler.Start()

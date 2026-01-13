@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useMemo } from 'react';
-import { Heart, Trophy, Flame, AlertTriangle, Megaphone, X } from 'lucide-react';
+import { Heart, Trophy, Flame, AlertTriangle, Megaphone, X, UserPlus, UserCheck } from 'lucide-react';
 import type { Notification, NotificationType, LikeMetadata } from '../../../types';
 import { formatNotificationTime } from '../../../types';
 import styles from './Notification.module.css';
@@ -32,6 +32,9 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   streak_milestone: <Flame size={16} className={styles.iconStreak} />,
   streak_at_risk: <AlertTriangle size={16} className={styles.iconWarning} />,
   system_announcement: <Megaphone size={16} className={styles.iconSystem} />,
+  new_follower: <UserPlus size={16} className={styles.iconFollow} />,
+  follow_request: <UserPlus size={16} className={styles.iconFollow} />,
+  follow_accepted: <UserCheck size={16} className={styles.iconFollow} />,
 };
 
 /**

@@ -421,6 +421,16 @@ func buildPushPayload(msg *services.PushMessage) []byte {
 		"deepLink": msg.DeepLink,
 		"data":     msg.Data,
 	}
+
+	// Add action buttons for follow requests
+	if msg.NotificationType == "follow_request" {
+		payload["actions"] = []map[string]string{
+			{"action": "accept", "title": "Accept"},
+			{"action": "decline", "title": "Decline"},
+		}
+		payload["requireInteraction"] = true
+	}
+
 	data, _ := json.Marshal(payload)
 	return data
 }

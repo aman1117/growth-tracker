@@ -11,10 +11,11 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { env } from '../config/env';
-import { useNotificationStore, useToastStore } from '../store';
+import { useNotificationStore, useToastStore, useFollowStore } from '../store';
 import { useOfflineStatus } from './useOfflineStatus';
 import { STORAGE_KEYS } from '../constants';
 import type { WSMessage, Notification, WSConnectedPayload } from '../types';
+import { isFollowMetadata } from '../types/notification';
 
 // Reconnection backoff delays (ms)
 const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000, 30000];
@@ -66,6 +67,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   } = useNotificationStore();
 
   const { addToast } = useToastStore();
+  
+  const { setRelationship } = useFollowStore();
 
   /**
    * Get WebSocket URL with auth token
@@ -128,6 +131,31 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
           addNotification(notification);
           // Show toast for new notification
           addToast(notification.body || notification.title, 'info', 4000);
+          
+          // Update follow relationship state for follow_accepted notifications
+          if (notification.type === 'follow_accepted' && isFollowMetadata(notification.metadata)) {
+            const actorId = typeof notification.metadata.actor_id === 'string' 
+              ? parseInt(notification.metadata.actor_id, 10)
+              : notification.metadata.actor_id;
+            if (actorId) {
+              setRelationship(actorId, {
+                following: true,
+                followed_by: true,
+                pending: false,
+                incoming_pending: false,
+                is_mutual: true,
+              });
+              console.log('[WS] Updated relationship state for user:', actorId);
+              
+              // Dispatch event so Dashboard can refresh if viewing this profile
+              window.dispatchEvent(new CustomEvent('follow-accepted', { 
+                detail: { 
+                  actorId, 
+                  actorUsername: notification.metadata.actor_username 
+                } 
+              }));
+            }
+          }
           break;
         }
 

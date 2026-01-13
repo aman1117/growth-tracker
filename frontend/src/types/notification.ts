@@ -12,7 +12,10 @@ export type NotificationType =
   | 'badge_unlocked'
   | 'streak_milestone'
   | 'streak_at_risk'
-  | 'system_announcement';
+  | 'system_announcement'
+  | 'new_follower'
+  | 'follow_request'
+  | 'follow_accepted';
 
 export interface Notification {
   id: number;
@@ -44,7 +47,13 @@ export interface StreakMetadata {
   streak_count: number;
 }
 
-export type NotificationMetadata = LikeMetadata | BadgeMetadata | StreakMetadata | Record<string, unknown>;
+export interface FollowMetadata {
+  actor_id: number;
+  actor_username: string;
+  actor_avatar?: string;
+}
+
+export type NotificationMetadata = LikeMetadata | BadgeMetadata | StreakMetadata | FollowMetadata | Record<string, unknown>;
 
 // ==================== API Response Types ====================
 
@@ -144,6 +153,13 @@ export function isBadgeMetadata(metadata: NotificationMetadata | null): metadata
  */
 export function isStreakMetadata(metadata: NotificationMetadata | null): metadata is StreakMetadata {
   return metadata !== null && 'activity_type' in metadata && 'streak_count' in metadata;
+}
+
+/**
+ * Type guard to check if metadata is FollowMetadata
+ */
+export function isFollowMetadata(metadata: NotificationMetadata | null): metadata is FollowMetadata {
+  return metadata !== null && 'actor_id' in metadata && 'actor_username' in metadata;
 }
 
 /**

@@ -62,12 +62,31 @@ type UserDTO struct {
 // ProfileResponse represents the full profile response
 // @Description User profile information
 type ProfileResponse struct {
-	Success    bool    `json:"success" example:"true"`
-	Username   string  `json:"username" example:"john_doe"`
-	Email      string  `json:"email" example:"john@example.com"`
-	ProfilePic *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
-	Bio        *string `json:"bio" example:"Software developer"`
-	IsVerified bool    `json:"is_verified" example:"false"`
+	Success           bool    `json:"success" example:"true"`
+	Username          string  `json:"username" example:"john_doe"`
+	Email             string  `json:"email" example:"john@example.com"`
+	ProfilePic        *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	Bio               *string `json:"bio" example:"Software developer"`
+	IsPrivate         bool    `json:"is_private" example:"false"`
+	IsVerified        bool    `json:"is_verified" example:"false"`
+	FollowersCount    int64   `json:"followers_count" example:"150"`
+	FollowingCount    int64   `json:"following_count" example:"75"`
+	RelationshipState string  `json:"relationship_state,omitempty" example:"FOLLOWING"` // FOLLOWING, REQUESTED, NONE (only for other users)
+}
+
+// PublicProfileResponse represents another user's profile
+// @Description Public profile information for viewing another user
+type PublicProfileResponse struct {
+	Success           bool    `json:"success" example:"true"`
+	ID                uint    `json:"id" example:"1"`
+	Username          string  `json:"username" example:"john_doe"`
+	ProfilePic        *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	Bio               *string `json:"bio,omitempty" example:"Software developer"` // Hidden for private accounts
+	IsPrivate         bool    `json:"is_private" example:"false"`
+	IsVerified        bool    `json:"is_verified" example:"false"`
+	FollowersCount    int64   `json:"followers_count" example:"150"`
+	FollowingCount    int64   `json:"following_count" example:"75"`
+	RelationshipState string  `json:"relationship_state" example:"FOLLOWING"` // FOLLOWING, REQUESTED, NONE
 }
 
 // UsernameUpdateResponse represents the username update response
@@ -387,4 +406,86 @@ type CleanupResponse struct {
 	StaleSubscriptionsCleaned int64 `json:"stale_subscriptions_cleaned" example:"5"`
 	GoneSubscriptionsDeleted  int64 `json:"gone_subscriptions_deleted" example:"3"`
 	OldLogsDeleted            int64 `json:"old_logs_deleted" example:"100"`
+}
+
+// ==================== Follow DTOs ====================
+
+// FollowActionResponse represents the result of a follow action
+// @Description Follow/unfollow action result
+type FollowActionResponse struct {
+	Success bool   `json:"success" example:"true"`
+	State   string `json:"state" example:"ACTIVE"` // ACTIVE, PENDING
+	Message string `json:"message" example:"Now following"`
+}
+
+// FollowUserDTO represents a user in follow lists
+// @Description User information for follow lists
+type FollowUserDTO struct {
+	ID         uint    `json:"id" example:"1"`
+	Username   string  `json:"username" example:"john_doe"`
+	ProfilePic *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	Bio        *string `json:"bio,omitempty" example:"Software developer"`
+	IsPrivate  bool    `json:"is_private" example:"false"`
+	IsVerified bool    `json:"is_verified" example:"false"`
+	FollowedAt string  `json:"followed_at,omitempty" example:"2026-01-04T12:00:00Z"`
+}
+
+// FollowRequestDTO represents a pending follow request
+// @Description Pending follow request information
+type FollowRequestDTO struct {
+	ID          uint    `json:"id" example:"1"`
+	Username    string  `json:"username" example:"john_doe"`
+	ProfilePic  *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	Bio         *string `json:"bio,omitempty" example:"Software developer"`
+	IsVerified  bool    `json:"is_verified" example:"false"`
+	RequestedAt string  `json:"requested_at" example:"2026-01-04T12:00:00Z"`
+}
+
+// FollowListResponse represents paginated follow list
+// @Description Paginated list of followers/following
+type FollowListResponse struct {
+	Success    bool            `json:"success" example:"true"`
+	Users      []FollowUserDTO `json:"users"`
+	NextCursor string          `json:"next_cursor,omitempty" example:"eyJjcmVhdGVkX2F0IjoiMjAyNi0wMS0xMFQxMjowMDowMFoiLCJ1c2VyX2lkIjoxMH0="`
+	HasMore    bool            `json:"has_more" example:"true"`
+}
+
+// FollowRequestListResponse represents paginated follow requests
+// @Description Paginated list of pending follow requests
+type FollowRequestListResponse struct {
+	Success    bool               `json:"success" example:"true"`
+	Requests   []FollowRequestDTO `json:"requests"`
+	NextCursor string             `json:"next_cursor,omitempty" example:"eyJjcmVhdGVkX2F0IjoiMjAyNi0wMS0xMFQxMjowMDowMFoiLCJ1c2VyX2lkIjoxMH0="`
+	HasMore    bool               `json:"has_more" example:"true"`
+}
+
+// RelationshipLookupResponse represents relationship states for multiple users
+// @Description Batch relationship lookup result
+type RelationshipLookupResponse struct {
+	Success       bool            `json:"success" example:"true"`
+	Relationships map[uint]string `json:"relationships"` // userID -> "FOLLOWING", "REQUESTED", "NONE"
+}
+
+// FollowCountsDTO represents follow counts for a user
+// @Description Follow counts information
+type FollowCountsDTO struct {
+	FollowersCount       int64 `json:"followers_count" example:"150"`
+	FollowingCount       int64 `json:"following_count" example:"75"`
+	PendingRequestsCount int64 `json:"pending_requests_count,omitempty" example:"3"`
+}
+
+// FollowCountsResponse represents the follow counts response
+// @Description Follow counts retrieval result
+type FollowCountsResponse struct {
+	Success bool            `json:"success" example:"true"`
+	Counts  FollowCountsDTO `json:"counts"`
+}
+
+// MutualsResponse represents mutual followers
+// @Description Mutual followers list
+type MutualsResponse struct {
+	Success    bool            `json:"success" example:"true"`
+	Users      []FollowUserDTO `json:"users"`
+	NextCursor string          `json:"next_cursor,omitempty"`
+	HasMore    bool            `json:"has_more" example:"true"`
 }

@@ -102,12 +102,22 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         );
     };
 
-    // Handle notification card click - navigate to liked date for like notifications
+    // Handle notification card click - navigate based on notification type
     const handleNotificationClick = useCallback(
         (notification: Notification) => {
+            const metadata = notification.metadata as Record<string, unknown> | undefined;
+            
             if (notification.type === 'like_received' && isLikeMetadata(notification.metadata)) {
                 // Navigate to home with the liked date as a query parameter
                 navigate(`${APP_ROUTES.HOME}?date=${notification.metadata.liked_date}`);
+            } else if (
+                (notification.type === 'new_follower' || 
+                 notification.type === 'follow_request' || 
+                 notification.type === 'follow_accepted') &&
+                metadata?.actor_username
+            ) {
+                // Navigate to the actor's profile for follow notifications
+                navigate(APP_ROUTES.USER_PROFILE(metadata.actor_username as string));
             }
         },
         [navigate]

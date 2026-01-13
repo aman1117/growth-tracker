@@ -16,7 +16,7 @@ import {
     sortableKeyboardCoordinates,
     rectSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useAuth } from '../store';
+import { useAuth, useFollowStore } from '../store';
 import { api, ApiError } from '../services/api';
 import { ACTIVITY_NAMES, isCustomTile, MAX_CUSTOM_TILES } from '../types';
 import type { ActivityName, Activity, CustomTile, PredefinedActivityName } from '../types';
@@ -30,6 +30,7 @@ import { BadgeUnlockModal } from './BadgeUnlockModal';
 import { CreateCustomTileModal } from './CreateCustomTileModal';
 import { HiddenTilesPanel } from './HiddenTilesPanel';
 import { SnapToast, ProtectedImage, VerifiedBadge } from './ui';
+import { FollowButton, FollowStats, MutualFollowers } from './social';
 import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
@@ -242,6 +243,8 @@ export const Dashboard: React.FC = () => {
     const [targetProfilePic, setTargetProfilePic] = useState<string | null>(null);
     const [targetBio, setTargetBio] = useState<string | null>(null);
     const [targetIsVerified, setTargetIsVerified] = useState<boolean>(false);
+    const [targetUserId, setTargetUserId] = useState<number | null>(null);
+    const [targetIsPrivate, setTargetIsPrivate] = useState<boolean>(false);
     const [showTargetFullscreenPic, setShowTargetFullscreenPic] = useState(false);
 
     // Tile animation state for day transitions
@@ -417,6 +420,24 @@ export const Dashboard: React.FC = () => {
         fetchActivities();
     }, [fetchActivities]);
 
+    // Listen for follow-accepted events to refresh profile data
+    useEffect(() => {
+        const handleFollowAccepted = (event: CustomEvent<{ actorId: number; actorUsername: string }>) => {
+            // If we're viewing the profile of the user who accepted our request, refresh
+            if (isReadOnly && targetUsername?.toLowerCase() === event.detail.actorUsername?.toLowerCase()) {
+                console.log('[Dashboard] Follow accepted, refreshing profile data');
+                setIsPrivateAccount(false);
+                fetchActivities();
+            }
+        };
+        
+        window.addEventListener('follow-accepted', handleFollowAccepted as EventListener);
+        return () => window.removeEventListener('follow-accepted', handleFollowAccepted as EventListener);
+    }, [isReadOnly, targetUsername, fetchActivities]);
+
+    // Get lookupRelationships from follow store
+    const { lookupRelationships } = useFollowStore();
+
     // Fetch target user's profile pic and bio when viewing another user's dashboard
     useEffect(() => {
         const fetchTargetUserProfile = async () => {
@@ -425,6 +446,8 @@ export const Dashboard: React.FC = () => {
                 setTargetProfilePic(null);
                 setTargetBio(null);
                 setTargetIsVerified(false);
+                setTargetUserId(null);
+                setTargetIsPrivate(false);
                 
                 try {
                     const res = await api.post('/users', { username: targetUsername });
@@ -437,6 +460,13 @@ export const Dashboard: React.FC = () => {
                             // Bio is only returned for public profiles (backend handles privacy)
                             setTargetBio(exactMatch.bio || null);
                             setTargetIsVerified(exactMatch.is_verified || false);
+                            setTargetUserId(exactMatch.id || null);
+                            setTargetIsPrivate(exactMatch.is_private || false);
+                            
+                            // Lookup relationship state to get pending status
+                            if (exactMatch.id) {
+                                await lookupRelationships([exactMatch.id]);
+                            }
                         }
                     }
                 } catch (err) {
@@ -445,7 +475,7 @@ export const Dashboard: React.FC = () => {
             }
         };
         fetchTargetUserProfile();
-    }, [isReadOnly, targetUsername]);
+    }, [isReadOnly, targetUsername, lookupRelationships]);
 
     // Fetch tile config from backend - always fetch
     useEffect(() => {
@@ -864,106 +894,137 @@ export const Dashboard: React.FC = () => {
                     background: 'var(--tile-glass-bg)',
                     backdropFilter: 'blur(var(--tile-glass-blur))',
                     WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
-                    padding: '0.875rem 1rem',
+                    padding: '1rem',
                     marginBottom: '1rem',
                     borderRadius: '20px',
                     border: '1px solid var(--tile-glass-border)',
                     boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
                     display: 'flex',
-                    alignItems: 'center',
+                    flexDirection: 'column',
                     gap: '0.75rem'
                 }}>
-                    <div 
-                        onClick={() => targetProfilePic && setShowTargetFullscreenPic(true)}
-                        style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            backgroundColor: 'var(--avatar-bg)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 700,
-                            fontSize: '1rem',
-                            color: 'var(--text-primary)',
-                            textTransform: 'uppercase',
-                            overflow: 'hidden',
-                            flexShrink: 0,
-                            cursor: targetProfilePic ? 'zoom-in' : 'default',
-                            border: '2px solid var(--border)'
-                        }}>
-                        {targetProfilePic ? (
-                            <ProtectedImage
-                                src={targetProfilePic}
-                                alt={targetUsername || ''}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover'
-                                }}
-                            />
-                        ) : (
-                            targetUsername?.charAt(0)
-                        )}
+                    {/* Row 1: Avatar + Stats */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem'
+                    }}>
+                        <div 
+                            onClick={() => targetProfilePic && setShowTargetFullscreenPic(true)}
+                            style={{
+                                width: '72px',
+                                height: '72px',
+                                borderRadius: '50%',
+                                backgroundColor: 'var(--avatar-bg)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 700,
+                                fontSize: '1.5rem',
+                                color: 'var(--text-primary)',
+                                textTransform: 'uppercase',
+                                overflow: 'hidden',
+                                flexShrink: 0,
+                                cursor: targetProfilePic ? 'zoom-in' : 'default',
+                                border: '2px solid var(--border)'
+                            }}>
+                            {targetProfilePic ? (
+                                <ProtectedImage
+                                    src={targetProfilePic}
+                                    alt={targetUsername || ''}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover'
+                                    }}
+                                />
+                            ) : (
+                                targetUsername?.charAt(0)
+                            )}
+                        </div>
+                        {/* Stats next to avatar */}
+                        <div style={{ flex: 1 }}>
+                            {targetUserId && (
+                                <FollowStats
+                                    userId={targetUserId}
+                                    username={targetUsername || ''}
+                                    isPrivate={targetIsPrivate}
+                                    canView={!isPrivateAccount}
+                                />
+                            )}
+                        </div>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+
+                    {/* Row 2: Username + Bio */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                         <span style={{ 
                             display: 'flex', 
                             alignItems: 'center',
-                            gap: '0.2rem',
-                            fontWeight: 700,
-                            fontSize: '0.9rem',
+                            gap: '0.25rem',
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
                             color: 'var(--text-primary)'
                         }}>
                             {targetUsername}
                             {targetIsVerified && <VerifiedBadge size={14} />}
                         </span>
-                        {/* Only show bio for non-private accounts */}
                         {!isPrivateAccount && targetBio && (
                             <span style={{
-                                display: 'block',
-                                fontSize: '0.8rem',
-                                color: 'var(--text-secondary)',
-                                marginTop: '0.125rem',
+                                fontSize: '0.875rem',
+                                color: 'var(--text-primary)',
                                 lineHeight: 1.4,
                                 wordBreak: 'break-word'
                             }}>
                                 {targetBio}
                             </span>
                         )}
+                        {/* Mutual Followers - "Followed by X, Y and N others" */}
+                        {targetUserId && (
+                            <MutualFollowers
+                                userId={targetUserId}
+                                username={targetUsername || ''}
+                            />
+                        )}
                     </div>
-                    {/* Analytics button - only show for non-private accounts */}
-                    {!isPrivateAccount && (
-                        <button
-                            onClick={() => targetUsername && navigate(APP_ROUTES.USER_ANALYTICS(targetUsername))}
-                            style={{
-                                padding: '0.5rem',
-                                backgroundColor: 'transparent',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s ease',
-                                flexShrink: 0
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = 'var(--accent)';
-                                e.currentTarget.style.borderColor = 'var(--accent)';
-                                e.currentTarget.style.color = 'white';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = 'transparent';
-                                e.currentTarget.style.borderColor = 'var(--border)';
-                                e.currentTarget.style.color = 'var(--text-secondary)';
-                            }}
-                            title="View Analytics"
-                        >
-                            <BarChart3 size={16} />
-                        </button>
-                    )}
+
+                    {/* Row 3: Follow Button + Analytics */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                    }}>
+                        {targetUserId && (
+                            <div style={{ flex: 1 }}>
+                                <FollowButton
+                                    userId={targetUserId}
+                                    username={targetUsername || ''}
+                                    isPrivate={targetIsPrivate}
+                                    size="md"
+                                    fullWidth
+                                />
+                            </div>
+                        )}
+                        {!isPrivateAccount && (
+                            <button
+                                onClick={() => targetUsername && navigate(APP_ROUTES.USER_ANALYTICS(targetUsername))}
+                                className="secondary-button"
+                                style={{
+                                    padding: '0 0.875rem',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                    height: '32px',
+                                    minWidth: '40px'
+                                }}
+                                title="View Analytics"
+                            >
+                                <BarChart3 size={16} />
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
 

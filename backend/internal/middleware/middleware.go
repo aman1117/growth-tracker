@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -80,7 +81,7 @@ func APIRateLimiter() fiber.Handler {
 		KeyFunc: func(c *fiber.Ctx) string {
 			// Rate limit by user ID if authenticated, otherwise by IP
 			if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
-				return string(rune(userID))
+				return fmt.Sprintf("user:%d", userID)
 			}
 			return c.IP()
 		},
@@ -96,7 +97,23 @@ func UploadRateLimiter() fiber.Handler {
 		Message:    constants.MsgRateLimitUpload,
 		KeyFunc: func(c *fiber.Ctx) string {
 			if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
-				return string(rune(userID))
+				return fmt.Sprintf("upload:%d", userID)
+			}
+			return c.IP()
+		},
+	})
+}
+
+// FollowRateLimiter returns a rate limiter for follow/unfollow endpoints
+// Moderate: 60 follow actions per minute per user
+func FollowRateLimiter() fiber.Handler {
+	return NewRateLimiter(RateLimitConfig{
+		Max:        constants.RateLimitFollowMaxRequests,
+		Expiration: constants.RateLimitFollowWindow,
+		Message:    "Too many follow actions. Please slow down.",
+		KeyFunc: func(c *fiber.Ctx) string {
+			if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
+				return fmt.Sprintf("follow:%d", userID)
 			}
 			return c.IP()
 		},

@@ -25,6 +25,7 @@ type Router struct {
 	notificationHandler   *handlers.NotificationHandler
 	notificationWSHandler *handlers.NotificationWSHandler
 	pushHandler           *handlers.PushHandler
+	followHandler         *handlers.FollowHandler
 	tokenSvc              *handlers.TokenService
 }
 
@@ -43,6 +44,7 @@ func NewRouter(
 	notificationHandler *handlers.NotificationHandler,
 	notificationWSHandler *handlers.NotificationWSHandler,
 	pushHandler *handlers.PushHandler,
+	followHandler *handlers.FollowHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
@@ -59,6 +61,7 @@ func NewRouter(
 		notificationHandler:   notificationHandler,
 		notificationWSHandler: notificationWSHandler,
 		pushHandler:           pushHandler,
+		followHandler:         followHandler,
 		tokenSvc:              tokenSvc,
 	}
 }
@@ -160,6 +163,32 @@ func (r *Router) Setup(app *fiber.App) {
 	push.Put("/preferences", authMiddleware, apiRateLimiter, r.pushHandler.UpdatePreferences)
 	// Admin/maintenance endpoint - cleanup stale data
 	push.Post("/cleanup", authMiddleware, r.pushHandler.RunCleanup)
+
+	// ==================== Follow System ====================
+	followRateLimiter := middleware.FollowRateLimiter()
+
+	// Follow/Unfollow actions
+	api.Post("/users/:targetId/follow", authMiddleware, followRateLimiter, r.followHandler.FollowUser)
+	api.Delete("/users/:targetId/follow", authMiddleware, followRateLimiter, r.followHandler.UnfollowUser)
+
+	// Follow request management
+	api.Post("/follow-requests/:targetId/cancel", authMiddleware, apiRateLimiter, r.followHandler.CancelFollowRequest)
+	api.Get("/me/follow-requests/incoming", authMiddleware, apiRateLimiter, r.followHandler.GetIncomingRequests)
+	api.Post("/me/follow-requests/:requesterId/accept", authMiddleware, apiRateLimiter, r.followHandler.AcceptFollowRequest)
+	api.Post("/me/follow-requests/:requesterId/decline", authMiddleware, apiRateLimiter, r.followHandler.DeclineFollowRequest)
+
+	// Follower management
+	api.Delete("/me/followers/:followerId", authMiddleware, apiRateLimiter, r.followHandler.RemoveFollower)
+
+	// Follow lists
+	api.Get("/users/:userId/followers", authMiddleware, apiRateLimiter, r.followHandler.GetFollowers)
+	api.Get("/users/:userId/following", authMiddleware, apiRateLimiter, r.followHandler.GetFollowing)
+	api.Get("/users/:userId/mutuals", authMiddleware, apiRateLimiter, r.followHandler.GetMutuals)
+	api.Get("/users/:userId/follow-counts", authMiddleware, apiRateLimiter, r.followHandler.GetFollowCounts)
+	api.Get("/users/:userId/profile", authMiddleware, apiRateLimiter, r.profileHandler.GetUserProfile)
+
+	// Relationship lookup (batch) - no rate limit, read-only and needed frequently for UI
+	api.Post("/relationships/lookup", authMiddleware, r.followHandler.LookupRelationships)
 
 	// ==================== WebSocket ====================
 	// WebSocket route for real-time notifications

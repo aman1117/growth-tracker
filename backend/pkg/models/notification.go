@@ -17,6 +17,9 @@ const (
 	NotifTypeStreakMilestone NotificationType = "streak_milestone"
 	NotifTypeStreakAtRisk    NotificationType = "streak_at_risk"
 	NotifTypeSystemAnnounce  NotificationType = "system_announcement"
+	NotifTypeFollowRequest   NotificationType = "follow_request"
+	NotifTypeFollowAccepted  NotificationType = "follow_accepted"
+	NotifTypeNewFollower     NotificationType = "new_follower"
 )
 
 // NotificationMetadata is a flexible JSON field for notification-specific data

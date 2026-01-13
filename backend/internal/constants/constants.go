@@ -124,6 +124,15 @@ const (
 	ErrCodeNotificationNotFound = "NOTIFICATION_NOT_FOUND"
 	ErrCodeConflict             = "CONFLICT"
 
+	// Follow errors
+	ErrCodeCannotFollowSelf    = "CANNOT_FOLLOW_SELF"
+	ErrCodeAlreadyFollowing    = "ALREADY_FOLLOWING"
+	ErrCodeNotFollowing        = "NOT_FOLLOWING"
+	ErrCodeFollowRequestExists = "FOLLOW_REQUEST_EXISTS"
+	ErrCodeNoFollowRequest     = "NO_FOLLOW_REQUEST"
+	ErrCodeFollowLimitExceeded = "FOLLOW_LIMIT_EXCEEDED"
+	ErrCodeDailyLimitExceeded  = "DAILY_LIMIT_EXCEEDED"
+
 	// Configuration errors
 	ErrCodeConfigError = "CONFIG_ERROR"
 
@@ -173,11 +182,35 @@ const (
 
 	// General API - moderate limits for authenticated users
 	RateLimitAPIWindow      = 1 * time.Minute
-	RateLimitAPIMaxRequests = 100 // 100 requests per minute
+	RateLimitAPIMaxRequests = 200 // 200 requests per minute
 
 	// File upload - prevent abuse
 	RateLimitUploadWindow      = 1 * time.Minute
-	RateLimitUploadMaxRequests = 10 // 10 uploads per minute
+	RateLimitUploadMaxRequests = 20 // 20 uploads per minute
+
+	// Follow endpoints - prevent spam
+	RateLimitFollowWindow      = 1 * time.Minute
+	RateLimitFollowMaxRequests = 120 // 120 follow actions per minute (configurable)
+)
+
+// Follow system constants
+const (
+	// Redis keys for follow system
+	FollowEventChannel     = "follow_events" // Pub/Sub channel for follow events
+	FollowCountCachePrefix = "follow_cnt:"   // Cache prefix for follow counts
+	FollowRelCachePrefix   = "follow_rel:"   // Cache prefix for relationship states
+	FollowCountCacheTTL    = 5 * time.Minute // Cache TTL for follow counts
+	FollowRelCacheTTL      = 5 * time.Minute // Cache TTL for relationship states
+
+	// Follow limits (defaults, can be overridden by config)
+	DefaultMaxFollowsPerMinute    = 60
+	DefaultMaxFollowsPerDay       = 5000
+	DefaultMaxTotalFollowing      = 7500
+	DefaultTombstoneRetentionDays = 7
+
+	// Pagination
+	FollowListDefaultLimit = 20
+	FollowListMaxLimit     = 100
 )
 
 // Rate limiting error codes

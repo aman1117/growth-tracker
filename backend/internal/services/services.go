@@ -104,12 +104,16 @@ func (s *AuthService) ResetPassword(userID uint, newPassword string) error {
 
 // ProfileService handles profile-related business logic
 type ProfileService struct {
-	userRepo *repository.UserRepository
+	userRepo   *repository.UserRepository
+	followRepo *repository.FollowRepository
 }
 
 // NewProfileService creates a new ProfileService
-func NewProfileService(userRepo *repository.UserRepository) *ProfileService {
-	return &ProfileService{userRepo: userRepo}
+func NewProfileService(userRepo *repository.UserRepository, followRepo *repository.FollowRepository) *ProfileService {
+	return &ProfileService{
+		userRepo:   userRepo,
+		followRepo: followRepo,
+	}
 }
 
 // GetProfile retrieves a user's full profile
@@ -156,8 +160,18 @@ func (s *ProfileService) CanViewProfile(targetUser *models.User, currentUserID u
 	if targetUser.ID == currentUserID {
 		return true
 	}
-	// Otherwise, only if the target user is not private
-	return !targetUser.IsPrivate
+	// Public profiles are viewable by everyone
+	if !targetUser.IsPrivate {
+		return true
+	}
+	// For private profiles, check if current user is following them
+	if currentUserID > 0 && s.followRepo != nil {
+		isFollowing, err := s.followRepo.IsFollowing(currentUserID, targetUser.ID)
+		if err == nil && isFollowing {
+			return true
+		}
+	}
+	return false
 }
 
 // ==================== Activity Service ====================

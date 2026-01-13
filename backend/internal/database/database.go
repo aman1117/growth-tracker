@@ -75,6 +75,9 @@ func AutoMigrate() error {
 		&models.PushSubscription{},
 		&models.PushPreference{},
 		&models.PushDeliveryLog{},
+		&models.FollowEdgeByFollower{},
+		&models.FollowEdgeByFollowee{},
+		&models.FollowCounter{},
 	)
 }
 

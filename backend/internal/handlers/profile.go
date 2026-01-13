@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strconv"
+
 	"github.com/aman1117/backend/internal/constants"
 	"github.com/aman1117/backend/internal/dto"
 	"github.com/aman1117/backend/internal/logger"
@@ -15,13 +17,15 @@ import (
 type ProfileHandler struct {
 	profileSvc *services.ProfileService
 	authSvc    *services.AuthService
+	followSvc  *services.FollowService
 }
 
 // NewProfileHandler creates a new ProfileHandler
-func NewProfileHandler(profileSvc *services.ProfileService, authSvc *services.AuthService) *ProfileHandler {
+func NewProfileHandler(profileSvc *services.ProfileService, authSvc *services.AuthService, followSvc *services.FollowService) *ProfileHandler {
 	return &ProfileHandler{
 		profileSvc: profileSvc,
 		authSvc:    authSvc,
+		followSvc:  followSvc,
 	}
 }
 
@@ -165,14 +169,82 @@ func (h *ProfileHandler) GetProfile(c *fiber.Ctx) error {
 		return response.NotFound(c, "User not found", constants.ErrCodeUserNotFound)
 	}
 
+	// Get follow counts
+	var followersCount, followingCount int64
+	if h.followSvc != nil {
+		followersCount, followingCount, _ = h.followSvc.GetFollowCounts(c.Context(), userID)
+	}
+
 	return response.JSON(c, dto.ProfileResponse{
-		Success:    true,
-		Username:   user.Username,
-		Email:      user.Email,
-		ProfilePic: user.ProfilePic,
-		Bio:        user.Bio,
-		IsVerified: user.IsVerified,
+		Success:        true,
+		Username:       user.Username,
+		Email:          user.Email,
+		ProfilePic:     user.ProfilePic,
+		Bio:            user.Bio,
+		IsPrivate:      user.IsPrivate,
+		IsVerified:     user.IsVerified,
+		FollowersCount: followersCount,
+		FollowingCount: followingCount,
 	})
+}
+
+// GetUserProfile handles public profile retrieval for another user
+// @Summary Get another user's profile
+// @Description Get public profile of another user by ID
+// @Tags Profile
+// @Produce json
+// @Security BearerAuth
+// @Param userId path int true "User ID"
+// @Success 200 {object} dto.PublicProfileResponse "User profile"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 404 {object} dto.ErrorResponse "User not found"
+// @Router /users/{userId}/profile [get]
+func (h *ProfileHandler) GetUserProfile(c *fiber.Ctx) error {
+	viewerID := getUserID(c)
+
+	targetID, err := strconv.ParseUint(c.Params("userId"), 10, 32)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid user ID", constants.ErrCodeInvalidRequest)
+	}
+
+	user, err := h.profileSvc.GetProfile(uint(targetID))
+	if err != nil || user == nil {
+		return response.NotFound(c, "User not found", constants.ErrCodeUserNotFound)
+	}
+
+	// Get follow counts
+	var followersCount, followingCount int64
+	if h.followSvc != nil {
+		followersCount, followingCount, _ = h.followSvc.GetFollowCounts(c.Context(), uint(targetID))
+	}
+
+	// Get relationship state
+	var relationshipState string = "NONE"
+	if h.followSvc != nil && viewerID != uint(targetID) {
+		state, _ := h.followSvc.GetRelationshipState(c.Context(), viewerID, uint(targetID))
+		relationshipState = string(state)
+	}
+
+	resp := dto.PublicProfileResponse{
+		Success:           true,
+		ID:                user.ID,
+		Username:          user.Username,
+		ProfilePic:        user.ProfilePic,
+		IsPrivate:         user.IsPrivate,
+		IsVerified:        user.IsVerified,
+		FollowersCount:    followersCount,
+		FollowingCount:    followingCount,
+		RelationshipState: relationshipState,
+	}
+
+	// Only show bio if public or viewer follows the user
+	if !user.IsPrivate {
+		resp.Bio = user.Bio
+	} else if h.followSvc != nil && relationshipState == "FOLLOWING" {
+		resp.Bio = user.Bio
+	}
+
+	return response.JSON(c, resp)
 }
 
 // SearchUsers handles user search requests
@@ -202,12 +274,34 @@ func (h *ProfileHandler) SearchUsers(c *fiber.Ctx) error {
 		return response.BadRequest(c, "Failed to find users", constants.ErrCodeFetchFailed)
 	}
 
+	// Get IDs of private users to check if current user follows them
+	var privateUserIDs []uint
+	for _, u := range users {
+		if u.IsPrivate {
+			privateUserIDs = append(privateUserIDs, u.ID)
+		}
+	}
+
+	// Lookup which private users the current user follows
+	followingSet := make(map[uint]bool)
+	if len(privateUserIDs) > 0 && currentUserID != 0 {
+		relationships, err := h.followSvc.LookupRelationships(c.Context(), currentUserID, privateUserIDs)
+		if err == nil {
+			for userID, state := range relationships {
+				if state == models.RelationshipFollowing {
+					followingSet[userID] = true
+				}
+			}
+		}
+	}
+
 	logger.LogWithContext(traceID, currentUserID).Debugw("User search completed", "query", req.Username, "found", len(users))
-	return response.Data(c, sanitizeUsers(users))
+	return response.Data(c, sanitizeUsersWithFollowing(users, followingSet))
 }
 
-// sanitizeUsers converts users to DTOs, hiding private information
-func sanitizeUsers(users []models.User) []dto.UserDTO {
+// sanitizeUsersWithFollowing converts users to DTOs, including bio for public profiles
+// or private profiles that the current user follows
+func sanitizeUsersWithFollowing(users []models.User, followingSet map[uint]bool) []dto.UserDTO {
 	result := make([]dto.UserDTO, 0, len(users))
 	for _, u := range users {
 		d := dto.UserDTO{
@@ -218,8 +312,8 @@ func sanitizeUsers(users []models.User) []dto.UserDTO {
 			IsPrivate:  u.IsPrivate,
 			IsVerified: u.IsVerified,
 		}
-		// Only include bio for public profiles
-		if !u.IsPrivate {
+		// Include bio for public profiles OR private profiles the viewer follows
+		if !u.IsPrivate || followingSet[u.ID] {
 			d.Bio = u.Bio
 		}
 		result = append(result, d)

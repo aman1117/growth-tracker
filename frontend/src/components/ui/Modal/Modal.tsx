@@ -2,9 +2,11 @@
  * Modal Component
  *
  * Reusable modal dialog with backdrop and animations.
+ * Uses React Portal to render at document body level for proper stacking.
  */
 
 import React, { useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import styles from './Modal.module.css';
@@ -70,9 +72,9 @@ export const Modal: React.FC<ModalProps> = ({
     }
   };
 
-  return (
+  const modalContent = (
     <div className={styles.backdrop} onClick={handleBackdropClick}>
-      <div className={styles.modal} style={{ maxWidth }}>
+      <div className={`card ${styles.modal}`} style={{ maxWidth }}>
         {(title || showCloseButton) && (
           <div className={styles.header}>
             {title && <h2 className={styles.title}>{title}</h2>}
@@ -82,7 +84,7 @@ export const Modal: React.FC<ModalProps> = ({
                 onClick={onClose}
                 aria-label="Close"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             )}
           </div>
@@ -92,6 +94,9 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  // Use portal to render modal at body level, avoiding stacking context issues
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;

@@ -181,3 +181,18 @@ type UpdatePushPreferencesRequest struct {
 	QuietEnd          *string         `json:"quiet_end,omitempty"`   // "HH:MM" format
 	Timezone          *string         `json:"timezone,omitempty"`    // IANA timezone
 }
+
+// ==================== Follow DTOs ====================
+
+// RelationshipLookupRequest represents a request to lookup relationship states
+// @Description Batch lookup relationship states for UI
+type RelationshipLookupRequest struct {
+	TargetIDs []uint `json:"target_ids" example:"[1, 2, 3]"`
+}
+
+// FollowListRequest represents a request to get follow lists
+// @Description Get paginated followers/following list
+type FollowListRequest struct {
+	Cursor string `json:"cursor,omitempty" example:"eyJjcmVhdGVkX2F0IjoiMjAyNi0wMS0xMFQxMjowMDowMFoiLCJ1c2VyX2lkIjoxMH0="`
+	Limit  int    `json:"limit,omitempty" example:"20"`
+}

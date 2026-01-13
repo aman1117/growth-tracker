@@ -24,6 +24,7 @@ type Container struct {
 	BadgeRepo        *repository.BadgeRepository
 	NotificationRepo *repository.NotificationRepository
 	PushRepo         *repository.PushRepository
+	FollowRepo       *repository.FollowRepository
 
 	// Services
 	AuthService         *services.AuthService
@@ -37,6 +38,7 @@ type Container struct {
 	BlobService         *services.BlobService
 	BadgeService        *services.BadgeService
 	NotificationService *services.NotificationService
+	FollowService       *services.FollowService
 
 	// Handlers
 	TokenService          *handlers.TokenService
@@ -53,6 +55,7 @@ type Container struct {
 	NotificationHandler   *handlers.NotificationHandler
 	NotificationWSHandler *handlers.NotificationWSHandler
 	PushHandler           *handlers.PushHandler
+	FollowHandler         *handlers.FollowHandler
 
 	// Router
 	Router *routes.Router
@@ -71,10 +74,11 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.BadgeRepo = repository.NewBadgeRepository(db)
 	c.NotificationRepo = repository.NewNotificationRepository(db)
 	c.PushRepo = repository.NewPushRepository(db)
+	c.FollowRepo = repository.NewFollowRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
-	c.ProfileService = services.NewProfileService(c.UserRepo)
+	c.ProfileService = services.NewProfileService(c.UserRepo, c.FollowRepo)
 	c.StreakService = services.NewStreakService(c.StreakRepo)
 	c.ActivityService = services.NewActivityService(c.ActivityRepo, c.StreakService)
 	c.AnalyticsService = services.NewAnalyticsService(c.ActivityRepo, c.StreakRepo, c.UserRepo)
@@ -82,6 +86,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.BlobService = services.NewBlobService(c.UserRepo, &cfg.AzureStorage)
 	c.BadgeService = services.NewBadgeService(c.BadgeRepo, c.UserRepo)
 	c.NotificationService = services.NewNotificationService(c.NotificationRepo)
+	c.FollowService = services.NewFollowService(c.FollowRepo, c.UserRepo, &cfg.Follow)
 
 	// Initialize email service (optional - uses SMTP fallback for local dev)
 	emailSvc, err := services.NewEmailService(&cfg.Email, cfg.Server.FrontendURL)
@@ -97,7 +102,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 
 	// Initialize handlers
 	c.AuthHandler = handlers.NewAuthHandler(c.AuthService, c.TokenService, c.ProfileService)
-	c.ProfileHandler = handlers.NewProfileHandler(c.ProfileService, c.AuthService)
+	c.ProfileHandler = handlers.NewProfileHandler(c.ProfileService, c.AuthService, c.FollowService)
 	c.ActivityHandler = handlers.NewActivityHandler(c.ActivityService, c.AuthService, c.ProfileService)
 	c.StreakHandler = handlers.NewStreakHandler(c.StreakService, c.AuthService, c.ProfileService, c.BadgeService)
 	c.AnalyticsHandler = handlers.NewAnalyticsHandler(c.AnalyticsService, c.AuthService, c.ProfileService)
@@ -108,6 +113,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.NotificationHandler = handlers.NewNotificationHandler(c.NotificationService)
 	c.NotificationWSHandler = handlers.NewNotificationWSHandler(c.NotificationService, c.TokenService)
 	c.PushHandler = handlers.NewPushHandler(c.PushRepo, cfg)
+	c.FollowHandler = handlers.NewFollowHandler(c.FollowService, c.UserRepo, c.NotificationService)
 
 	// Initialize blob handler (optional)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -132,6 +138,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.NotificationHandler,
 		c.NotificationWSHandler,
 		c.PushHandler,
+		c.FollowHandler,
 		c.TokenService,
 	)
 

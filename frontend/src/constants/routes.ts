@@ -108,6 +108,36 @@ export const API_ROUTES = {
   WS: {
     NOTIFICATIONS: '/ws/notifications',
   },
+
+  // ============================================================================
+  // Follow System
+  // ============================================================================
+  FOLLOW: {
+    /** POST - Follow a user */
+    FOLLOW_USER: (userId: number) => `/users/${userId}/follow`,
+    /** DELETE - Unfollow a user */
+    UNFOLLOW_USER: (userId: number) => `/users/${userId}/follow`,
+    /** POST - Cancel pending follow request */
+    CANCEL_REQUEST: (userId: number) => `/follow-requests/${userId}/cancel`,
+    /** GET - Get incoming follow requests */
+    INCOMING_REQUESTS: '/me/follow-requests/incoming',
+    /** POST - Accept a follow request */
+    ACCEPT_REQUEST: (userId: number) => `/me/follow-requests/${userId}/accept`,
+    /** POST - Decline a follow request */
+    DECLINE_REQUEST: (userId: number) => `/me/follow-requests/${userId}/decline`,
+    /** DELETE - Remove a follower */
+    REMOVE_FOLLOWER: (userId: number) => `/me/followers/${userId}`,
+    /** GET - Get user's followers */
+    GET_FOLLOWERS: (userId: number) => `/users/${userId}/followers`,
+    /** GET - Get user's following */
+    GET_FOLLOWING: (userId: number) => `/users/${userId}/following`,
+    /** POST - Lookup relationships for multiple users */
+    LOOKUP_RELATIONSHIPS: '/relationships/lookup',
+    /** GET - Get mutual followers with a user */
+    GET_MUTUALS: (userId: number) => `/users/${userId}/mutuals`,
+    /** GET - Get follow counts for a user */
+    GET_COUNTS: (userId: number) => `/users/${userId}/follow-counts`,
+  },
 } as const;
 
 /**

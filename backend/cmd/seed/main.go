@@ -102,6 +102,11 @@ func main() {
 		log.Fatalf("❌ Failed to seed badges: %v", err)
 	}
 
+	// Seed follow relationships
+	if err := seedFollows(db, users); err != nil {
+		log.Fatalf("❌ Failed to seed follows: %v", err)
+	}
+
 	log.Println("\n🎉 Database seeding complete!")
 	log.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	log.Println("Test Users (password: password123):")
@@ -118,6 +123,9 @@ func runMigrations(db *gorm.DB) error {
 		&models.Activity{},
 		&models.Streak{},
 		&models.UserBadge{},
+		&models.FollowEdgeByFollower{},
+		&models.FollowEdgeByFollowee{},
+		&models.FollowCounter{},
 	)
 }
 
@@ -130,24 +138,89 @@ func seedUsers(db *gorm.DB) ([]models.User, error) {
 		return nil, err
 	}
 
+	// Helper to create string pointers
+	strPtr := func(s string) *string { return &s }
+
 	users := []models.User{
 		{
 			Email:        "alice@local.dev",
 			Username:     "alice",
 			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("📚 Student | 💪 Fitness enthusiast | Building better habits daily"),
 			IsPrivate:    false,
+			IsVerified:   true,
 		},
 		{
 			Email:        "bob@local.dev",
 			Username:     "bob",
 			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("Software developer 🖥️ | Coffee addict ☕"),
 			IsPrivate:    false,
+			IsVerified:   false,
 		},
 		{
 			Email:        "charlie@local.dev",
 			Username:     "charlie",
 			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("Private account 🔒"),
 			IsPrivate:    true,
+			IsVerified:   false,
+		},
+		{
+			Email:        "diana@local.dev",
+			Username:     "diana",
+			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("🎨 Designer | 🧘 Yoga lover | Tracking my growth journey"),
+			IsPrivate:    false,
+			IsVerified:   true,
+		},
+		{
+			Email:        "evan@local.dev",
+			Username:     "evan",
+			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("Entrepreneur 🚀 | Early bird 🌅 | 100 day streak goal"),
+			IsPrivate:    false,
+			IsVerified:   false,
+		},
+		{
+			Email:        "fiona@local.dev",
+			Username:     "fiona",
+			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("Medical student 🏥 | Marathon runner 🏃‍♀️"),
+			IsPrivate:    false,
+			IsVerified:   false,
+		},
+		{
+			Email:        "george@local.dev",
+			Username:     "george",
+			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("📖 Bookworm | 🎮 Gamer | Habit tracking newbie"),
+			IsPrivate:    true,
+			IsVerified:   false,
+		},
+		{
+			Email:        "hannah@local.dev",
+			Username:     "hannah",
+			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("Music teacher 🎵 | Piano & Guitar | Daily practice tracker"),
+			IsPrivate:    false,
+			IsVerified:   false,
+		},
+		{
+			Email:        "ivan@local.dev",
+			Username:     "ivan",
+			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("🏋️ Personal trainer | Helping others reach their goals"),
+			IsPrivate:    false,
+			IsVerified:   true,
+		},
+		{
+			Email:        "julia@local.dev",
+			Username:     "julia",
+			PasswordHash: string(hashedPassword),
+			Bio:          strPtr("Data scientist 📊 | ML enthusiast | Continuous learner"),
+			IsPrivate:    false,
+			IsVerified:   false,
 		},
 	}
 
@@ -173,6 +246,13 @@ func seedActivities(db *gorm.DB, users []models.User) error {
 		// alice: 15-day streak (current)
 		// bob: 45-day streak (longest), broke 5 days ago
 		// charlie: 7-day streak (current)
+		// diana: 30-day streak (current) - verified user
+		// evan: 20-day streak (current)
+		// fiona: 60-day streak (longest), broke 2 days ago
+		// george: 5-day streak (current) - private
+		// hannah: 12-day streak (current)
+		// ivan: 25-day streak (current) - verified
+		// julia: 8-day streak (current)
 		var daysToSeed int
 		var skipDays map[int]bool
 
@@ -185,6 +265,27 @@ func seedActivities(db *gorm.DB, users []models.User) error {
 			skipDays = map[int]bool{1: true, 2: true, 3: true, 4: true, 5: true} // Broke streak 5 days ago
 		case "charlie":
 			daysToSeed = 7
+			skipDays = map[int]bool{}
+		case "diana":
+			daysToSeed = 30
+			skipDays = map[int]bool{}
+		case "evan":
+			daysToSeed = 20
+			skipDays = map[int]bool{}
+		case "fiona":
+			daysToSeed = 65
+			skipDays = map[int]bool{1: true, 2: true} // Broke streak 2 days ago
+		case "george":
+			daysToSeed = 5
+			skipDays = map[int]bool{}
+		case "hannah":
+			daysToSeed = 12
+			skipDays = map[int]bool{}
+		case "ivan":
+			daysToSeed = 25
+			skipDays = map[int]bool{}
+		case "julia":
+			daysToSeed = 8
 			skipDays = map[int]bool{}
 		default:
 			daysToSeed = 10
@@ -284,6 +385,159 @@ func seedBadges(db *gorm.DB, users []models.User) error {
 
 		log.Printf("✅ User %s: awarded %d badge(s) for longest streak of %d days",
 			user.Username, len(eligibleKeys), maxStreak.Longest)
+	}
+
+	return nil
+}
+
+func seedFollows(db *gorm.DB, users []models.User) error {
+	log.Println("👥 Seeding follow relationships...")
+
+	// Create a map for easy user lookup
+	userMap := make(map[string]models.User)
+	for _, u := range users {
+		userMap[u.Username] = u
+	}
+
+	// Define follow relationships
+	// Format: follower -> []followees
+	followRelationships := map[string][]string{
+		"alice":   {"bob", "diana", "evan", "fiona", "hannah", "ivan", "julia"},
+		"bob":     {"alice", "charlie", "diana", "evan"},
+		"charlie": {"alice", "bob"},
+		"diana":   {"alice", "bob", "evan", "fiona", "ivan"},
+		"evan":    {"alice", "diana", "fiona", "hannah"},
+		"fiona":   {"alice", "bob", "diana", "evan", "hannah", "ivan", "julia"},
+		"george":  {"alice", "diana"},
+		"hannah":  {"alice", "bob", "diana", "evan", "fiona"},
+		"ivan":    {"alice", "diana", "evan", "fiona"},
+		"julia":   {"alice", "bob", "diana", "fiona", "ivan"},
+	}
+
+	// Pending requests to private accounts
+	pendingRequests := map[string][]string{
+		"alice": {"charlie", "george"},
+		"bob":   {"george"},
+		"diana": {"charlie", "george"},
+		"evan":  {"charlie"},
+	}
+
+	now := time.Now()
+	var totalFollows, totalPending int
+
+	// Create active follows
+	for followerName, followees := range followRelationships {
+		follower := userMap[followerName]
+		for i, followeeName := range followees {
+			followee := userMap[followeeName]
+
+			// Stagger created_at times for realistic ordering
+			createdAt := now.Add(-time.Duration(rand.Intn(30*24))*time.Hour - time.Duration(i)*time.Minute)
+			acceptedAt := createdAt.Add(time.Duration(rand.Intn(60)) * time.Minute)
+
+			// Create both edges (dual-write pattern)
+			edgeByFollower := models.FollowEdgeByFollower{
+				FollowerID: follower.ID,
+				FolloweeID: followee.ID,
+				State:      models.FollowStateActive,
+				CreatedAt:  createdAt,
+				AcceptedAt: &acceptedAt,
+			}
+			if err := db.Create(&edgeByFollower).Error; err != nil {
+				log.Printf("⚠️  Failed to create follow edge (follower): %v", err)
+				continue
+			}
+
+			edgeByFollowee := models.FollowEdgeByFollowee{
+				FolloweeID: followee.ID,
+				FollowerID: follower.ID,
+				State:      models.FollowStateActive,
+				CreatedAt:  createdAt,
+				AcceptedAt: &acceptedAt,
+			}
+			if err := db.Create(&edgeByFollowee).Error; err != nil {
+				log.Printf("⚠️  Failed to create follow edge (followee): %v", err)
+				continue
+			}
+
+			totalFollows++
+		}
+	}
+
+	// Create pending requests
+	for followerName, followees := range pendingRequests {
+		follower := userMap[followerName]
+		for i, followeeName := range followees {
+			followee := userMap[followeeName]
+
+			createdAt := now.Add(-time.Duration(rand.Intn(7*24))*time.Hour - time.Duration(i)*time.Minute)
+
+			edgeByFollower := models.FollowEdgeByFollower{
+				FollowerID: follower.ID,
+				FolloweeID: followee.ID,
+				State:      models.FollowStatePending,
+				CreatedAt:  createdAt,
+			}
+			if err := db.Create(&edgeByFollower).Error; err != nil {
+				log.Printf("⚠️  Failed to create pending request (follower): %v", err)
+				continue
+			}
+
+			edgeByFollowee := models.FollowEdgeByFollowee{
+				FolloweeID: followee.ID,
+				FollowerID: follower.ID,
+				State:      models.FollowStatePending,
+				CreatedAt:  createdAt,
+			}
+			if err := db.Create(&edgeByFollowee).Error; err != nil {
+				log.Printf("⚠️  Failed to create pending request (followee): %v", err)
+				continue
+			}
+
+			totalPending++
+		}
+	}
+
+	// Update follow counters
+	log.Println("📊 Updating follow counters...")
+	for _, user := range users {
+		var followersCount, followingCount, pendingCount int64
+
+		// Count followers (people who follow this user)
+		db.Model(&models.FollowEdgeByFollowee{}).
+			Where("followee_id = ? AND state = ?", user.ID, models.FollowStateActive).
+			Count(&followersCount)
+
+		// Count following (people this user follows)
+		db.Model(&models.FollowEdgeByFollower{}).
+			Where("follower_id = ? AND state = ?", user.ID, models.FollowStateActive).
+			Count(&followingCount)
+
+		// Count pending requests (for private accounts)
+		db.Model(&models.FollowEdgeByFollowee{}).
+			Where("followee_id = ? AND state = ?", user.ID, models.FollowStatePending).
+			Count(&pendingCount)
+
+		counter := models.FollowCounter{
+			UserID:               user.ID,
+			FollowersCount:       followersCount,
+			FollowingCount:       followingCount,
+			PendingRequestsCount: pendingCount,
+		}
+		if err := db.Save(&counter).Error; err != nil {
+			log.Printf("⚠️  Failed to save counter for user %s: %v", user.Username, err)
+		}
+	}
+
+	log.Printf("✅ Created %d active follows, %d pending requests", totalFollows, totalPending)
+
+	// Print follow summary
+	log.Println("\n📊 Follow Summary:")
+	for _, user := range users {
+		var counter models.FollowCounter
+		db.Where("user_id = ?", user.ID).First(&counter)
+		log.Printf("  • %s: %d followers, %d following, %d pending requests",
+			user.Username, counter.FollowersCount, counter.FollowingCount, counter.PendingRequestsCount)
 	}
 
 	return nil

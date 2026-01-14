@@ -77,18 +77,15 @@ Track time across **16 life categories**:
 ## TODOs
 
 - [ ] Add weekly and monthly analytics dashboard
-- [ ] Setup notifications so that in the long it will be easier to send notifications generically
 - [ ] Social features - follow users, leaderboards
 - [ ] Export data to CSV/PDF
 - [ ] Goal setting per activity category
-- [ ] Friends
 - [ ] Unit test cases
 - [ ] Add attachments
 - [ ] optimized photo upload
 - [ ] email verification
 - [ ] Story like updated their day.
 - [ ] Streak freeze days
-- [ ] Notifications like Aman just completed their day, log your days, 
 - [ ] what criteria should be for verfied
 - [ ] call cleanup for stale data in stale subscriptions
 

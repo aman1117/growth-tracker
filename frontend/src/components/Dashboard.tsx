@@ -567,12 +567,12 @@ export const Dashboard: React.FC = () => {
     }, [isReadOnly, targetUsername]);
 
     // Save tile config to backend (includes custom tiles, hidden, colors)
-    const saveTileConfigToBackend = async (
+    const saveTileConfigToBackend = useCallback(async (
         order: ActivityName[], 
         sizes: Record<ActivityName, TileSize>,
-        hidden: ActivityName[] = hiddenTiles,
-        colors: Record<string, string> = tileColors,
-        customTilesList: CustomTile[] = customTiles
+        hidden: ActivityName[],
+        colors: Record<string, string>,
+        customTilesList: CustomTile[]
     ) => {
         try {
             await api.post('/tile-config', {
@@ -592,7 +592,7 @@ export const Dashboard: React.FC = () => {
         } catch (err) {
             console.error('Failed to save tile config to backend', err);
         }
-    };
+    }, []);
 
     // Listen for edit mode toggle from nav bar
     useEffect(() => {
@@ -746,12 +746,18 @@ export const Dashboard: React.FC = () => {
 
     // Restore a hidden tile (adds to end of grid)
     const handleRestoreTile = (name: ActivityName) => {
-        setHiddenTiles(prev => prev.filter(t => t !== name));
+        const newHiddenTiles = hiddenTiles.filter(t => t !== name);
+        setHiddenTiles(newHiddenTiles);
         
         // If it's not in the tile order (custom tile case), add to end
+        let newTileOrder = tileOrder;
         if (!tileOrder.includes(name)) {
-            setTileOrder(prev => [...prev, name]);
+            newTileOrder = [...tileOrder, name];
+            setTileOrder(newTileOrder);
         }
+        
+        // Save to backend immediately to persist the change
+        saveTileConfigToBackend(newTileOrder, tileSizes, newHiddenTiles, tileColors, customTiles);
     };
 
     // Save a new or edited custom tile
@@ -814,21 +820,21 @@ export const Dashboard: React.FC = () => {
             color,
         });
         
-        // Remove from custom tiles
-        setCustomTiles(prev => prev.filter(t => t.id !== tileId));
+        // Calculate new state values
+        const newCustomTiles = customTiles.filter(t => t.id !== tileId);
+        const newTileOrder = tileOrder.filter(t => t !== activityName);
+        const newHiddenTiles = hiddenTiles.filter(t => t !== activityName);
+        const newTileColors = { ...tileColors };
+        delete newTileColors[activityName];
         
-        // Remove from tile order
-        setTileOrder(prev => prev.filter(t => t !== activityName));
+        // Update local state
+        setCustomTiles(newCustomTiles);
+        setTileOrder(newTileOrder);
+        setHiddenTiles(newHiddenTiles);
+        setTileColors(newTileColors);
         
-        // Remove from hidden tiles
-        setHiddenTiles(prev => prev.filter(t => t !== activityName));
-        
-        // Remove color override
-        setTileColors(prev => {
-            const updated = { ...prev };
-            delete updated[activityName];
-            return updated;
-        });
+        // Save to backend immediately to persist the deletion
+        saveTileConfigToBackend(newTileOrder, tileSizes, newHiddenTiles, newTileColors, newCustomTiles);
         
         // Set timeout to clear undo option after 8 seconds
         const timeoutId = setTimeout(() => {
@@ -855,26 +861,26 @@ export const Dashboard: React.FC = () => {
             return;
         }
         
-        // Restore custom tile
-        setCustomTiles(prev => [...prev, tile]);
+        // Calculate new state values
+        const newCustomTiles = [...customTiles, tile];
+        const newTileOrder = [...tileOrder];
+        const insertIndex = Math.min(orderIndex, newTileOrder.length);
+        newTileOrder.splice(insertIndex, 0, activityName);
+        const newHiddenTiles = wasHidden ? [...hiddenTiles, activityName] : hiddenTiles;
+        const newTileColors = color ? { ...tileColors, [activityName]: color } : tileColors;
         
-        // Restore to original position in tile order
-        setTileOrder(prev => {
-            const newOrder = [...prev];
-            const insertIndex = Math.min(orderIndex, newOrder.length);
-            newOrder.splice(insertIndex, 0, activityName);
-            return newOrder;
-        });
-        
-        // Restore hidden state if it was hidden
+        // Update local state
+        setCustomTiles(newCustomTiles);
+        setTileOrder(newTileOrder);
         if (wasHidden) {
-            setHiddenTiles(prev => [...prev, activityName]);
+            setHiddenTiles(newHiddenTiles);
+        }
+        if (color) {
+            setTileColors(newTileColors);
         }
         
-        // Restore color if it had one
-        if (color) {
-            setTileColors(prev => ({ ...prev, [activityName]: color }));
-        }
+        // Save to backend immediately to persist the restore
+        saveTileConfigToBackend(newTileOrder, tileSizes, newHiddenTiles, newTileColors, newCustomTiles);
         
         // Clear undo state
         if (undoTimeoutId) {
@@ -882,7 +888,7 @@ export const Dashboard: React.FC = () => {
         }
         setDeletedTile(null);
         setUndoTimeoutId(null);
-    }, [deletedTile, undoTimeoutId, customTiles.length]);
+    }, [deletedTile, undoTimeoutId, customTiles, tileOrder, hiddenTiles, tileColors, tileSizes, saveTileConfigToBackend]);
 
     // Get visible tiles (filtering out hidden ones)
     const visibleTiles = tileOrder.filter(name => !hiddenTiles.includes(name));

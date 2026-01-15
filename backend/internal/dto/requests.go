@@ -187,7 +187,7 @@ type UpdatePushPreferencesRequest struct {
 // RelationshipLookupRequest represents a request to lookup relationship states
 // @Description Batch lookup relationship states for UI
 type RelationshipLookupRequest struct {
-	TargetIDs []uint `json:"target_ids" example:"[1, 2, 3]"`
+	TargetIDs []uint `json:"target_ids" example:"1,2,3"`
 }
 
 // FollowListRequest represents a request to get follow lists

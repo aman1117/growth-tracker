@@ -61,7 +61,7 @@ func getUserIDFromContext(c *fiber.Ctx) uint {
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
-// @Router /api/users/{targetId}/follow [post]
+// @Router /users/{targetId}/follow [post]
 func (h *FollowHandler) FollowUser(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -116,7 +116,7 @@ func (h *FollowHandler) FollowUser(c *fiber.Ctx) error {
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/users/{targetId}/follow [delete]
+// @Router /users/{targetId}/follow [delete]
 func (h *FollowHandler) UnfollowUser(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -157,7 +157,7 @@ func (h *FollowHandler) UnfollowUser(c *fiber.Ctx) error {
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/follow-requests/{targetId}/cancel [post]
+// @Router /follow-requests/{targetId}/cancel [post]
 func (h *FollowHandler) CancelFollowRequest(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -200,7 +200,7 @@ func (h *FollowHandler) CancelFollowRequest(c *fiber.Ctx) error {
 // @Param limit query int false "Number of results" default(20)
 // @Success 200 {object} dto.FollowRequestListResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/me/follow-requests/incoming [get]
+// @Router /me/follow-requests/incoming [get]
 func (h *FollowHandler) GetIncomingRequests(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -260,7 +260,7 @@ func (h *FollowHandler) GetIncomingRequests(c *fiber.Ctx) error {
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/me/follow-requests/{requesterId}/accept [post]
+// @Router /me/follow-requests/{requesterId}/accept [post]
 func (h *FollowHandler) AcceptFollowRequest(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -304,7 +304,7 @@ func (h *FollowHandler) AcceptFollowRequest(c *fiber.Ctx) error {
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/me/follow-requests/{requesterId}/decline [post]
+// @Router /me/follow-requests/{requesterId}/decline [post]
 func (h *FollowHandler) DeclineFollowRequest(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -345,7 +345,7 @@ func (h *FollowHandler) DeclineFollowRequest(c *fiber.Ctx) error {
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/me/followers/{followerId} [delete]
+// @Router /me/followers/{followerId} [delete]
 func (h *FollowHandler) RemoveFollower(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -390,7 +390,7 @@ func (h *FollowHandler) RemoveFollower(c *fiber.Ctx) error {
 // @Success 200 {object} dto.FollowListResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 403 {object} dto.ErrorResponse
-// @Router /api/users/{userId}/followers [get]
+// @Router /users/{userId}/followers [get]
 func (h *FollowHandler) GetFollowers(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -461,7 +461,7 @@ func (h *FollowHandler) GetFollowers(c *fiber.Ctx) error {
 // @Success 200 {object} dto.FollowListResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 403 {object} dto.ErrorResponse
-// @Router /api/users/{userId}/following [get]
+// @Router /users/{userId}/following [get]
 func (h *FollowHandler) GetFollowing(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -532,7 +532,7 @@ func (h *FollowHandler) GetFollowing(c *fiber.Ctx) error {
 // @Success 200 {object} dto.RelationshipLookupResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/relationships/lookup [post]
+// @Router /relationships/lookup [post]
 func (h *FollowHandler) LookupRelationships(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -587,7 +587,7 @@ func (h *FollowHandler) LookupRelationships(c *fiber.Ctx) error {
 // @Success 200 {object} dto.MutualsResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 403 {object} dto.ErrorResponse
-// @Router /api/users/{userId}/mutuals [get]
+// @Router /users/{userId}/mutuals [get]
 func (h *FollowHandler) GetMutuals(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -657,7 +657,7 @@ func (h *FollowHandler) GetMutuals(c *fiber.Ctx) error {
 // @Param userId path int true "User ID"
 // @Success 200 {object} dto.FollowCountsResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/users/{userId}/follow-counts [get]
+// @Router /users/{userId}/follow-counts [get]
 func (h *FollowHandler) GetFollowCounts(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {
@@ -708,7 +708,7 @@ func (h *FollowHandler) GetFollowCounts(c *fiber.Ctx) error {
 // @Produce json
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 401 {object} dto.ErrorResponse
-// @Router /api/me/follow-counts/reconcile [post]
+// @Router /me/follow-counts/reconcile [post]
 func (h *FollowHandler) ReconcileMyCounters(c *fiber.Ctx) error {
 	viewerID := getUserIDFromContext(c)
 	if viewerID == 0 {

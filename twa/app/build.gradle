@@ -21,7 +21,7 @@ plugins {
 }
 
 def twaManifest = [
-    applicationId: 'in.trackgrowth.www.twa',
+    applicationId: 'com.amansha.growthtracker',
     hostName: 'www.trackgrowth.in', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
     name: 'Growth Tracker', // The application name.
@@ -52,13 +52,13 @@ def twaManifest = [
 
 android {
     compileSdkVersion 36
-    namespace "in.trackgrowth.www.twa"
+    namespace "com.amansha.growthtracker"
     defaultConfig {
-        applicationId "in.trackgrowth.www.twa"
+        applicationId "com.amansha.growthtracker"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 1
-        versionName "1"
+        versionCode 2
+        versionName "2"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

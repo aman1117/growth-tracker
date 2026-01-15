@@ -21,11 +21,13 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // Import custom service worker code for push notifications
         importScripts: ['/sw-push.js'],
-        // Offline fallback page
-        navigateFallback: '/offline.html',
+        // Offline fallback - only show offline.html when truly offline
+        navigateFallback: '/index.html',
         navigateFallbackDenylist: [
           /^\/api\//,
           /^\/sw-push\.js$/,
+          /^\/\.well-known\//,
+          /^\/offline\.html$/,
         ],
         runtimeCaching: [
           {

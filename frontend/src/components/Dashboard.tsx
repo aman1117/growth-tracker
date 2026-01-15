@@ -35,7 +35,7 @@ import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
 import { renderBadgeIcon } from '../utils/badgeIcons';
-import { Lock, X, BarChart3, Plus, EyeOff, GripVertical, Undo2 } from 'lucide-react';
+import { Lock, X, BarChart3, Plus, EyeOff, GripVertical, Undo2, Settings2 } from 'lucide-react';
 
 const STORAGE_KEY = STORAGE_KEYS.TILE_ORDER;
 const SIZE_STORAGE_KEY = STORAGE_KEYS.TILE_SIZES;
@@ -1119,28 +1119,30 @@ export const Dashboard: React.FC = () => {
 
                     {/* Right: Buttons stacked vertically */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
-                        {hiddenTiles.length > 0 && (
-                            <button
-                                onClick={() => setShowHiddenTilesPanel(true)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '6px',
-                                    padding: '8px 16px',
-                                    background: 'rgba(251, 191, 36, 0.15)',
-                                    color: '#fbbf24',
-                                    border: '1px solid rgba(251, 191, 36, 0.3)',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 500,
-                                }}
-                            >
-                                <EyeOff size={14} />
-                                {hiddenTiles.length} Hidden
-                            </button>
-                        )}
+                        <button
+                            onClick={() => setShowHiddenTilesPanel(true)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '6px',
+                                padding: '8px 16px',
+                                background: hiddenTiles.length > 0 
+                                    ? 'rgba(251, 191, 36, 0.15)' 
+                                    : 'rgba(0, 149, 246, 0.1)',
+                                color: hiddenTiles.length > 0 ? '#fbbf24' : '#0095f6',
+                                border: hiddenTiles.length > 0 
+                                    ? '1px solid rgba(251, 191, 36, 0.3)' 
+                                    : '1px solid rgba(0, 149, 246, 0.3)',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem',
+                                fontWeight: 500,
+                            }}
+                        >
+                            {hiddenTiles.length > 0 ? <EyeOff size={14} /> : <Settings2 size={14} />}
+                            {hiddenTiles.length > 0 ? `${hiddenTiles.length} Hidden` : 'Manage Tiles'}
+                        </button>
                         <button
                             onClick={() => {
                                 // Clear undo state if pending
@@ -1600,6 +1602,7 @@ export const Dashboard: React.FC = () => {
                 onClose={() => setShowHiddenTilesPanel(false)}
                 hiddenTiles={hiddenTiles}
                 customTiles={customTiles}
+                tileOrder={tileOrder}
                 colorOverrides={tileColors}
                 onRestoreTile={handleRestoreTile}
                 onDeleteCustomTile={handleDeleteCustomTile}

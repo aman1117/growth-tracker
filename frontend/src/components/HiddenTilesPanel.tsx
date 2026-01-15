@@ -3,13 +3,14 @@
  * 
  * A slide-up panel showing all hidden tiles with restore functionality.
  * Supports both predefined and custom tiles.
+ * Also shows orphaned custom tiles (tiles in DB but not in order/hidden).
  * Glassmorphism styled to match app theme.
  */
 
 import React, { useCallback, useState } from 'react';
-import { X, Plus, EyeOff, Trash2, AlertTriangle, Pencil } from 'lucide-react';
+import { X, Plus, EyeOff, Trash2, AlertTriangle, Pencil, AlertCircle } from 'lucide-react';
 import { DynamicIcon } from './DynamicIcon';
-import { getActivityConfig } from '../constants/activities';
+import { getActivityConfig, createCustomActivityName } from '../constants/activities';
 import type { ActivityName, CustomTile, PredefinedActivityName } from '../types';
 import { isCustomTile } from '../types';
 import type { LucideIcon } from 'lucide-react';
@@ -19,6 +20,7 @@ interface HiddenTilesPanelProps {
     onClose: () => void;
     hiddenTiles: ActivityName[];
     customTiles: CustomTile[];
+    tileOrder: ActivityName[];
     colorOverrides?: Record<string, string>;
     onRestoreTile: (tileName: ActivityName) => void;
     onDeleteCustomTile?: (tileId: string) => void;
@@ -30,6 +32,7 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
     onClose,
     hiddenTiles,
     customTiles,
+    tileOrder,
     colorOverrides,
     onRestoreTile,
     onDeleteCustomTile,
@@ -62,6 +65,15 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
     // Separate hidden predefined and custom tiles
     const hiddenPredefined = hiddenTiles.filter(t => !isCustomTile(t)) as PredefinedActivityName[];
     const hiddenCustom = hiddenTiles.filter(t => isCustomTile(t));
+    
+    // Find orphaned custom tiles (exist in customTiles but not in order or hidden)
+    const orphanedCustomTiles = customTiles.filter(tile => {
+        const activityName = createCustomActivityName(tile.id);
+        return !tileOrder.includes(activityName) && !hiddenTiles.includes(activityName);
+    });
+    
+    // Check if there's any content to show
+    const hasContent = hiddenTiles.length > 0 || orphanedCustomTiles.length > 0;
 
     return (
         <div
@@ -132,7 +144,7 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
                         fontWeight: 600,
                         color: 'var(--text-primary)',
                     }}>
-                        Hidden Tiles
+                        Manage Tiles
                     </h2>
                     <button
                         onClick={onClose}
@@ -158,7 +170,7 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
                     maxHeight: 'calc(70vh - 100px)',
                     overflowY: 'auto',
                 }}>
-                    {hiddenTiles.length === 0 ? (
+                    {!hasContent ? (
                         <div style={{
                             textAlign: 'center',
                             padding: '40px 20px',
@@ -166,7 +178,7 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
                         }}>
                             <EyeOff size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
                             <p style={{ margin: 0, fontSize: '0.9rem' }}>
-                                No hidden tiles
+                                No hidden or orphaned tiles
                             </p>
                             <p style={{ margin: '8px 0 0', fontSize: '0.8rem' }}>
                                 Tap the X on any tile in edit mode to hide it
@@ -363,6 +375,148 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
                                                     {onDeleteCustomTile && (
                                                         <button
                                                             onClick={() => handleDeleteClick(tileId, config.label)}
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                width: '36px',
+                                                                height: '36px',
+                                                                background: 'rgba(239, 68, 68, 0.1)',
+                                                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                                borderRadius: '8px',
+                                                                color: '#ef4444',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                            title="Delete permanently"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </>
+                            )}
+
+                            {/* Orphaned Custom Tiles Section */}
+                            {orphanedCustomTiles.length > 0 && (
+                                <>
+                                    <div style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        color: '#f59e0b',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.5px',
+                                        marginBottom: '4px',
+                                        marginTop: (hiddenPredefined.length > 0 || hiddenCustom.length > 0) ? '16px' : '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                    }}>
+                                        <AlertCircle size={14} />
+                                        Orphaned Tiles
+                                    </div>
+                                    <div style={{
+                                        fontSize: '0.75rem',
+                                        color: 'var(--text-tertiary)',
+                                        marginBottom: '12px',
+                                        lineHeight: 1.4,
+                                    }}>
+                                        These tiles exist in the database but are not visible on your dashboard. You can restore or delete them.
+                                    </div>
+                                    {orphanedCustomTiles.map((tile) => {
+                                        const activityName = createCustomActivityName(tile.id);
+                                        
+                                        return (
+                                            <div
+                                                key={tile.id}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '12px',
+                                                    padding: '12px 16px',
+                                                    background: 'rgba(245, 158, 11, 0.08)',
+                                                    borderRadius: '12px',
+                                                    border: '1px solid rgba(245, 158, 11, 0.2)',
+                                                }}
+                                            >
+                                                <div style={{
+                                                    width: '40px',
+                                                    height: '40px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    background: `${tile.color}20`,
+                                                    borderRadius: '10px',
+                                                }}>
+                                                    <DynamicIcon 
+                                                        name={tile.icon} 
+                                                        size={20} 
+                                                        color={tile.color} 
+                                                    />
+                                                </div>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={{
+                                                        fontSize: '0.9rem',
+                                                        fontWeight: 500,
+                                                        color: 'var(--text-primary)',
+                                                    }}>
+                                                        {tile.name}
+                                                    </div>
+                                                    <div style={{
+                                                        fontSize: '0.75rem',
+                                                        color: '#f59e0b',
+                                                    }}>
+                                                        Not in dashboard
+                                                    </div>
+                                                </div>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    gap: '8px',
+                                                }}>
+                                                    <button
+                                                        onClick={() => onRestoreTile(activityName)}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '6px',
+                                                            padding: '8px 12px',
+                                                            background: `${tile.color}15`,
+                                                            border: `1px solid ${tile.color}30`,
+                                                            borderRadius: '8px',
+                                                            color: tile.color,
+                                                            fontSize: '0.8rem',
+                                                            fontWeight: 500,
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        <Plus size={14} />
+                                                        Add
+                                                    </button>
+                                                    {onEditCustomTile && (
+                                                        <button
+                                                            onClick={() => onEditCustomTile(tile)}
+                                                            style={{
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                width: '36px',
+                                                                height: '36px',
+                                                                background: 'rgba(0, 149, 246, 0.1)',
+                                                                border: '1px solid rgba(0, 149, 246, 0.3)',
+                                                                borderRadius: '8px',
+                                                                color: '#0095f6',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                            title="Edit tile"
+                                                        >
+                                                            <Pencil size={16} />
+                                                        </button>
+                                                    )}
+                                                    {onDeleteCustomTile && (
+                                                        <button
+                                                            onClick={() => handleDeleteClick(tile.id, tile.name)}
                                                             style={{
                                                                 display: 'flex',
                                                                 alignItems: 'center',

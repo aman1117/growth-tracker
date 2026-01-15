@@ -482,6 +482,29 @@ export const Dashboard: React.FC = () => {
         const fetchTileConfig = async () => {
             setConfigLoading(true);
             
+            // When returning to own profile, immediately restore from localStorage
+            // to prevent flash of other user's config while API loads
+            if (!isReadOnly) {
+                try {
+                    const localHidden = localStorage.getItem(HIDDEN_STORAGE_KEY);
+                    const localColors = localStorage.getItem(COLORS_STORAGE_KEY);
+                    const localCustomTiles = localStorage.getItem(CUSTOM_TILES_STORAGE_KEY);
+                    const localOrder = localStorage.getItem(STORAGE_KEY);
+                    const localSizes = localStorage.getItem(SIZE_STORAGE_KEY);
+                    
+                    if (localHidden) setHiddenTiles(JSON.parse(localHidden));
+                    else setHiddenTiles([]);
+                    if (localColors) setTileColors(JSON.parse(localColors));
+                    else setTileColors({});
+                    if (localCustomTiles) setCustomTiles(JSON.parse(localCustomTiles));
+                    else setCustomTiles([]);
+                    if (localOrder) setTileOrder(JSON.parse(localOrder));
+                    if (localSizes) setTileSizes(JSON.parse(localSizes));
+                } catch (e) {
+                    console.error('Failed to restore from localStorage', e);
+                }
+            }
+            
             try {
                 // Fetch config based on whose profile we're viewing
                 const res = isReadOnly && targetUsername
@@ -497,6 +520,9 @@ export const Dashboard: React.FC = () => {
                         if (!isReadOnly) {
                             localStorage.setItem(CUSTOM_TILES_STORAGE_KEY, JSON.stringify(customTilesData));
                         }
+                    } else if (isReadOnly) {
+                        // Viewing other user with no custom tiles - set empty
+                        setCustomTiles([]);
                     }
                     
                     // Load hidden tiles
@@ -505,6 +531,9 @@ export const Dashboard: React.FC = () => {
                         if (!isReadOnly) {
                             localStorage.setItem(HIDDEN_STORAGE_KEY, JSON.stringify(hidden));
                         }
+                    } else if (isReadOnly) {
+                        // Viewing other user with no hidden tiles - set empty (don't use our own)
+                        setHiddenTiles([]);
                     }
                     
                     // Load color overrides
@@ -513,6 +542,9 @@ export const Dashboard: React.FC = () => {
                         if (!isReadOnly) {
                             localStorage.setItem(COLORS_STORAGE_KEY, JSON.stringify(colors));
                         }
+                    } else if (isReadOnly) {
+                        // Viewing other user with no color overrides - set empty
+                        setTileColors({});
                     }
                     
                     // Validate and apply order (including custom tiles)
@@ -536,8 +568,16 @@ export const Dashboard: React.FC = () => {
                         setTileSizes(getDefaultTileSizes());
                     }
                 } else {
-                    // No config - use defaults, but try localStorage first
-                    if (!isReadOnly) {
+                    // No config from backend
+                    if (isReadOnly) {
+                        // Viewing other user with no config - use defaults, don't touch localStorage
+                        setHiddenTiles([]);
+                        setTileColors({});
+                        setCustomTiles([]);
+                        setTileOrder([...ACTIVITY_NAMES]);
+                        setTileSizes(getDefaultTileSizes());
+                    } else {
+                        // Own profile with no backend config - try localStorage first
                         try {
                             const localHidden = localStorage.getItem(HIDDEN_STORAGE_KEY);
                             const localColors = localStorage.getItem(COLORS_STORAGE_KEY);
@@ -549,15 +589,21 @@ export const Dashboard: React.FC = () => {
                         } catch (e) {
                             console.error('Failed to load from localStorage', e);
                         }
+                        
+                        setTileOrder([...ACTIVITY_NAMES]);
+                        setTileSizes(getDefaultTileSizes());
                     }
-                    
-                    setTileOrder([...ACTIVITY_NAMES]);
-                    setTileSizes(getDefaultTileSizes());
                 }
             } catch (err) {
                 console.error('Failed to fetch tile config', err);
                 setTileOrder([...ACTIVITY_NAMES]);
                 setTileSizes(getDefaultTileSizes());
+                if (isReadOnly) {
+                    // On error viewing other user, use clean defaults
+                    setHiddenTiles([]);
+                    setTileColors({});
+                    setCustomTiles([]);
+                }
             } finally {
                 setConfigLoading(false);
             }

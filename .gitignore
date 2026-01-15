@@ -19,3 +19,12 @@ docker-compose.override.yml
 
 # Air hot-reload temp directory
 backend/tmp/
+
+# TWA Build - KEEP THESE PRIVATE
+twa/android.keystore
+twa/*.apk
+twa/*.aab
+twa/.gradle/
+twa/app/build/
+twa/build/
+twa/hs_err_pid*.log

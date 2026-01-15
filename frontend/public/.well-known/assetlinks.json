@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.amansha.growthtracker",
+      "sha256_cert_fingerprints": [
+        "C1:2C:0B:AF:11:56:3A:74:55:D0:38:C8:BD:ED:96:61:84:A0:8E:38:B7:F0:07:AF:67:71:A5:65:9B:FA:AA:6B"
+      ]
+    }
+  }
+]

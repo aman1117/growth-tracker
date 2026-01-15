@@ -21,6 +21,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         // Import custom service worker code for push notifications
         importScripts: ['/sw-push.js'],
+        // Offline fallback page
+        navigateFallback: '/offline.html',
+        navigateFallbackDenylist: [
+          /^\/api\//,
+          /^\/sw-push\.js$/,
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -122,6 +128,50 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
+          }
+        ],
+        screenshots: [
+          {
+            src: '/screenshots/dashboard.jpg',
+            sizes: '1080x1920',
+            type: 'image/jpeg',
+            form_factor: 'narrow',
+            label: 'Dashboard - Track your daily activities'
+          },
+          {
+            src: '/screenshots/analytics.jpg',
+            sizes: '1080x1920',
+            type: 'image/jpeg',
+            form_factor: 'narrow',
+            label: 'Analytics - Monitor activities'
+          },
+          {
+            src: '/screenshots/settings.jpg',
+            sizes: '1080x1920',
+            type: 'image/jpeg',
+            form_factor: 'narrow',
+            label: 'Settings - Customize your experience'
+          },
+          {
+            src: '/screenshots/notifications.jpg',
+            sizes: '1080x1920',
+            type: 'image/jpeg',
+            form_factor: 'narrow',
+            label: 'Notifications - Stay updated'
+          },
+          {
+            src: '/screenshots/edit-tiles-homescreen.jpg',
+            sizes: '1080x1920',
+            type: 'image/jpeg',
+            form_factor: 'narrow',
+            label: 'Edit Tiles - Customize your home screen'
+          },
+          {
+            src: '/screenshots/edit-tiles-dialog.jpg',
+            sizes: '1080x1920',
+            type: 'image/jpeg',
+            form_factor: 'narrow',
+            label: 'Edit Tiles - Customize your activity'
           }
         ]
       }

@@ -762,25 +762,30 @@ export const Dashboard: React.FC = () => {
 
     // Save a new or edited custom tile
     const handleSaveCustomTile = (tile: CustomTile) => {
-        setCustomTiles(prev => {
-            const existingIndex = prev.findIndex(t => t.id === tile.id);
-            if (existingIndex >= 0) {
-                // Editing existing tile
-                const updated = [...prev];
-                updated[existingIndex] = tile;
-                return updated;
-            } else {
-                // New tile
-                return [...prev, tile];
-            }
-        });
+        const existingIndex = customTiles.findIndex(t => t.id === tile.id);
+        const isNewTile = existingIndex < 0;
+        
+        // Update custom tiles list
+        const newCustomTiles = isNewTile 
+            ? [...customTiles, tile]
+            : customTiles.map((t, i) => i === existingIndex ? tile : t);
+        setCustomTiles(newCustomTiles);
 
         // Create activity name for tile
         const activityName = createCustomActivityName(tile.id);
         
-        // If new tile, add to tile order
-        if (!tileOrder.includes(activityName)) {
-            setTileOrder(prev => [...prev, activityName]);
+        let newTileOrder = tileOrder;
+        let newTileSizes = tileSizes;
+        
+        // If new tile, add to tile order and set default size
+        if (isNewTile && !tileOrder.includes(activityName)) {
+            newTileOrder = [...tileOrder, activityName];
+            setTileOrder(newTileOrder);
+            
+            // Set default size for new custom tile
+            newTileSizes = { ...tileSizes, [activityName]: 'small' as TileSize };
+            setTileSizes(newTileSizes);
+            saveTileSizes(newTileSizes);
         }
         
         // Initialize activity data for the custom tile (if not exists)
@@ -790,6 +795,9 @@ export const Dashboard: React.FC = () => {
                 [activityName]: 0
             }));
         }
+        
+        // Save to backend immediately
+        saveTileConfigToBackend(newTileOrder, newTileSizes, hiddenTiles, tileColors, newCustomTiles);
         
         setShowCustomTileModal(false);
         setEditingCustomTile(undefined);

@@ -56,6 +56,7 @@ func getUserIDFromContext(c *fiber.Ctx) uint {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param targetId path int true "Target User ID"
 // @Success 200 {object} dto.FollowActionResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -112,6 +113,7 @@ func (h *FollowHandler) FollowUser(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param targetId path int true "Target User ID"
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -153,6 +155,7 @@ func (h *FollowHandler) UnfollowUser(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param targetId path int true "Target User ID"
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -196,6 +199,7 @@ func (h *FollowHandler) CancelFollowRequest(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param cursor query string false "Pagination cursor"
 // @Param limit query int false "Number of results" default(20)
 // @Success 200 {object} dto.FollowRequestListResponse
@@ -256,6 +260,7 @@ func (h *FollowHandler) GetIncomingRequests(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param requesterId path int true "Requester User ID"
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -300,6 +305,7 @@ func (h *FollowHandler) AcceptFollowRequest(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param requesterId path int true "Requester User ID"
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -341,6 +347,7 @@ func (h *FollowHandler) DeclineFollowRequest(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param followerId path int true "Follower User ID"
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -384,6 +391,7 @@ func (h *FollowHandler) RemoveFollower(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param userId path int true "User ID"
 // @Param cursor query string false "Pagination cursor"
 // @Param limit query int false "Number of results" default(20)
@@ -455,6 +463,7 @@ func (h *FollowHandler) GetFollowers(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param userId path int true "User ID"
 // @Param cursor query string false "Pagination cursor"
 // @Param limit query int false "Number of results" default(20)
@@ -528,6 +537,7 @@ func (h *FollowHandler) GetFollowing(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param body body dto.RelationshipLookupRequest true "Target user IDs"
 // @Success 200 {object} dto.RelationshipLookupResponse
 // @Failure 400 {object} dto.ErrorResponse
@@ -581,6 +591,7 @@ func (h *FollowHandler) LookupRelationships(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param userId path int true "Target User ID"
 // @Param cursor query string false "Pagination cursor"
 // @Param limit query int false "Number of results" default(20)
@@ -654,6 +665,7 @@ func (h *FollowHandler) GetMutuals(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param userId path int true "User ID"
 // @Success 200 {object} dto.FollowCountsResponse
 // @Failure 401 {object} dto.ErrorResponse
@@ -706,6 +718,7 @@ func (h *FollowHandler) GetFollowCounts(c *fiber.Ctx) error {
 // @Tags Follow
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Success 200 {object} dto.SuccessResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Router /me/follow-counts/reconcile [post]

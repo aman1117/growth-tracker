@@ -1237,6 +1237,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Cancel a follow request
       tags:
       - Follow
@@ -1511,6 +1513,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Reconcile follow counts
       tags:
       - Follow
@@ -1540,6 +1544,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Accept a follow request
       tags:
       - Follow
@@ -1569,6 +1575,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Decline a follow request
       tags:
       - Follow
@@ -1598,6 +1606,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get incoming follow requests
       tags:
       - Follow
@@ -1627,6 +1637,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Remove a follower
       tags:
       - Follow
@@ -1993,6 +2005,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Lookup relationship states
       tags:
       - Follow
@@ -2275,6 +2289,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Unfollow a user
       tags:
       - Follow
@@ -2307,6 +2323,8 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Follow a user
       tags:
       - Follow
@@ -2332,6 +2350,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get follow counts
       tags:
       - Follow
@@ -2370,6 +2390,8 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get user's followers
       tags:
       - Follow
@@ -2408,6 +2430,8 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get user's following
       tags:
       - Follow
@@ -2446,6 +2470,8 @@ paths:
           description: Forbidden
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Get mutual followers
       tags:
       - Follow

@@ -285,6 +285,11 @@ const docTemplate = `{
         },
         "/follow-requests/{targetId}/cancel": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Cancel an outgoing pending follow request",
                 "consumes": [
                     "application/json"
@@ -731,6 +736,11 @@ const docTemplate = `{
         },
         "/me/follow-counts/reconcile": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Recalculate follow counts from actual edge data (fixes counter drift)",
                 "consumes": [
                     "application/json"
@@ -760,6 +770,11 @@ const docTemplate = `{
         },
         "/me/follow-requests/incoming": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get paginated list of pending follow requests",
                 "consumes": [
                     "application/json"
@@ -804,6 +819,11 @@ const docTemplate = `{
         },
         "/me/follow-requests/{requesterId}/accept": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Accept an incoming follow request",
                 "consumes": [
                     "application/json"
@@ -848,6 +868,11 @@ const docTemplate = `{
         },
         "/me/follow-requests/{requesterId}/decline": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Decline an incoming follow request",
                 "consumes": [
                     "application/json"
@@ -892,6 +917,11 @@ const docTemplate = `{
         },
         "/me/followers/{followerId}": {
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Remove a user from your followers list",
                 "consumes": [
                     "application/json"
@@ -1467,6 +1497,11 @@ const docTemplate = `{
         },
         "/relationships/lookup": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Batch lookup relationship states for multiple users",
                 "consumes": [
                     "application/json"
@@ -1920,6 +1955,11 @@ const docTemplate = `{
         },
         "/users/{targetId}/follow": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Follow a user or send a follow request (for private accounts)",
                 "consumes": [
                     "application/json"
@@ -1968,6 +2008,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Unfollow a user",
                 "consumes": [
                     "application/json"
@@ -2012,6 +2057,11 @@ const docTemplate = `{
         },
         "/users/{userId}/follow-counts": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get followers and following counts for a user",
                 "consumes": [
                     "application/json"
@@ -2050,6 +2100,11 @@ const docTemplate = `{
         },
         "/users/{userId}/followers": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get paginated list of user's followers",
                 "consumes": [
                     "application/json"
@@ -2107,6 +2162,11 @@ const docTemplate = `{
         },
         "/users/{userId}/following": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get paginated list of users that user follows",
                 "consumes": [
                     "application/json"
@@ -2164,6 +2224,11 @@ const docTemplate = `{
         },
         "/users/{userId}/mutuals": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get users that both viewer follows and who follow the target user",
                 "consumes": [
                     "application/json"

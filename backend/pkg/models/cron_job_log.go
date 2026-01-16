@@ -6,14 +6,14 @@ import "time"
 type CronJobLog struct {
 	ID uint `gorm:"primaryKey"`
 
-	JobName     string    `gorm:"not null;size:100;index:idx_cron_job_date"`        // e.g., "daily_streak", "streak_reminder", "notification_cleanup"
-	JobDate     time.Time `gorm:"type:date;not null;index:idx_cron_job_date"`       // The date the job was processing for
-	StartedAt   time.Time `gorm:"not null"`                                         // When the job started
-	CompletedAt time.Time `gorm:""`                                                 // When the job completed (null if failed/running)
-	Status      string    `gorm:"not null;size:20;default:'running'"`               // running, completed, failed
-	UsersCount  int       `gorm:"default:0"`                                        // Number of users processed
-	Error       string    `gorm:"type:text"`                                        // Error message if failed
-	InstanceID  string    `gorm:"size:100"`                                         // Container/instance identifier for debugging multi-replica issues
+	JobName     string    `gorm:"not null;size:100;index:idx_cron_job_date"`  // e.g., "daily_streak", "streak_reminder", "notification_cleanup"
+	JobDate     time.Time `gorm:"type:date;not null;index:idx_cron_job_date"` // The date the job was processing for
+	StartedAt   time.Time `gorm:"not null"`                                   // When the job started
+	CompletedAt time.Time `gorm:""`                                           // When the job completed (null if failed/running)
+	Status      string    `gorm:"not null;size:20;default:'running'"`         // running, completed, failed
+	UsersCount  int       `gorm:"default:0"`                                  // Number of users processed
+	Error       string    `gorm:"type:text"`                                  // Error message if failed
+	InstanceID  string    `gorm:"size:100"`                                   // Container/instance identifier for debugging multi-replica issues
 }
 
 // TableName specifies the table name for CronJobLog

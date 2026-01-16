@@ -76,22 +76,6 @@ func main() {
 	}
 	log.Info("Database migrations completed")
 
-	// Run data migrations: set email_verified = true for existing users
-	// This is a one-time migration to avoid requiring existing users to verify
-	result := db.Exec(`
-		UPDATE users 
-		SET email_verified = true 
-		WHERE email_verified = false 
-		  AND created_at < NOW() - INTERVAL '1 minute'
-	`)
-	if result.Error != nil {
-		log.Warnf("Email verified migration failed: %v", result.Error)
-	} else if result.RowsAffected > 0 {
-		log.Infow("Migrated existing users to email_verified",
-			"users_updated", result.RowsAffected,
-		)
-	}
-
 	// Initialize Redis (optional)
 	if cfg.Redis.URL != "" {
 		if err := redis.Init(cfg.Redis.URL); err != nil {

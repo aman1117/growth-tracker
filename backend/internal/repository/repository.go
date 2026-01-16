@@ -152,6 +152,12 @@ func (r *UserRepository) UpdateProfilePic(userID uint, url *string) error {
 	return result.Error
 }
 
+// UpdateEmailVerified updates a user's email verification status
+func (r *UserRepository) UpdateEmailVerified(userID uint, verified bool) error {
+	result := r.db.Model(&models.User{}).Where("id = ?", userID).Update("email_verified", verified)
+	return result.Error
+}
+
 // SearchByUsername searches for users by username (case-insensitive, includes all users)
 func (r *UserRepository) SearchByUsername(query string) ([]models.User, error) {
 	var users []models.User

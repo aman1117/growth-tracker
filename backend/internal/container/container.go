@@ -49,6 +49,7 @@ type Container struct {
 	AnalyticsHandler      *handlers.AnalyticsHandler
 	TileConfigHandler     *handlers.TileConfigHandler
 	PasswordResetHandler  *handlers.PasswordResetHandler
+	VerificationHandler   *handlers.VerificationHandler
 	BlobHandler           *handlers.BlobHandler
 	LikeHandler           *handlers.LikeHandler
 	BadgeHandler          *handlers.BadgeHandler
@@ -101,13 +102,14 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.TokenService = handlers.NewTokenService(&cfg.JWT)
 
 	// Initialize handlers
-	c.AuthHandler = handlers.NewAuthHandler(c.AuthService, c.TokenService, c.ProfileService)
+	c.AuthHandler = handlers.NewAuthHandler(c.AuthService, c.TokenService, c.ProfileService, c.EmailService)
 	c.ProfileHandler = handlers.NewProfileHandler(c.ProfileService, c.AuthService, c.FollowService)
 	c.ActivityHandler = handlers.NewActivityHandler(c.ActivityService, c.AuthService, c.ProfileService)
 	c.StreakHandler = handlers.NewStreakHandler(c.StreakService, c.AuthService, c.ProfileService, c.BadgeService)
 	c.AnalyticsHandler = handlers.NewAnalyticsHandler(c.AnalyticsService, c.AuthService, c.ProfileService)
 	c.TileConfigHandler = handlers.NewTileConfigHandler(c.TileConfigService, c.AuthService, c.ProfileService)
 	c.PasswordResetHandler = handlers.NewPasswordResetHandler(c.AuthService, c.EmailService)
+	c.VerificationHandler = handlers.NewVerificationHandler(c.UserRepo, c.EmailService)
 	c.LikeHandler = handlers.NewLikeHandler(c.LikeRepo, c.AuthService, c.ProfileService, c.NotificationService)
 	c.BadgeHandler = handlers.NewBadgeHandler(c.BadgeService, c.AuthService)
 	c.NotificationHandler = handlers.NewNotificationHandler(c.NotificationService)
@@ -132,6 +134,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.AnalyticsHandler,
 		c.TileConfigHandler,
 		c.PasswordResetHandler,
+		c.VerificationHandler,
 		c.BlobHandler,
 		c.LikeHandler,
 		c.BadgeHandler,

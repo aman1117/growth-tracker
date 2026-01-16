@@ -48,6 +48,15 @@ const (
 	ResetTokenByteLen = 32
 	BearerPrefix      = "Bearer "
 	TraceIDLength     = 8
+
+	// Email verification token constants
+	VerifyTokenPrefix  = "verify:"
+	VerifyTokenTTL     = 24 * time.Hour
+	VerifyTokenByteLen = 32
+
+	// Resend verification rate limiting
+	VerifyResendCooldown = 2 * time.Minute
+	VerifyResendPrefix   = "verify_cooldown:"
 )
 
 // Likes cache constants
@@ -153,6 +162,11 @@ const (
 	// Password reset errors
 	ErrCodeMissingToken      = "MISSING_TOKEN"
 	ErrCodeInvalidResetToken = "INVALID_TOKEN"
+
+	// Email verification errors
+	ErrCodeInvalidVerifyToken   = "INVALID_VERIFY_TOKEN"
+	ErrCodeAlreadyVerified      = "ALREADY_VERIFIED"
+	ErrCodeVerifyResendCooldown = "VERIFY_RESEND_COOLDOWN"
 )
 
 // HTTP status messages
@@ -168,6 +182,11 @@ const (
 	MsgActivityUpdated   = "Activity updated successfully"
 	MsgTileConfigSaved   = "Tile configuration saved successfully"
 	MsgProfilePicDeleted = "Profile picture deleted successfully"
+
+	// Email verification messages
+	MsgEmailVerified         = "Your email has been verified successfully."
+	MsgVerificationEmailSent = "Verification email sent. Please check your inbox."
+	MsgVerificationPending   = "Please verify your email address to access all features."
 )
 
 // Rate limiting constants

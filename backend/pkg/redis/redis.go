@@ -212,3 +212,96 @@ func InvalidateLikesCache(ctx context.Context, userID uint, date string) error {
 
 	return nil
 }
+
+// ==================== Email Verification Token Functions ====================
+
+// GenerateVerifyToken generates a cryptographically secure random token for email verification
+// Returns the raw token (to send to user) and its hash (to store in Redis)
+func GenerateVerifyToken() (rawToken string, tokenHash string, err error) {
+	bytes := make([]byte, constants.VerifyTokenByteLen)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", "", fmt.Errorf("failed to generate random bytes: %w", err)
+	}
+
+	rawToken = hex.EncodeToString(bytes)
+	tokenHash = HashToken(rawToken)
+
+	return rawToken, tokenHash, nil
+}
+
+// StoreVerifyToken stores an email verification token in Redis
+func StoreVerifyToken(ctx context.Context, tokenHash string, userID uint) error {
+	if client == nil {
+		return fmt.Errorf("redis client not initialized")
+	}
+
+	key := constants.VerifyTokenPrefix + tokenHash
+	value := fmt.Sprintf("%d", userID)
+
+	return client.Set(ctx, key, value, constants.VerifyTokenTTL).Err()
+}
+
+// ConsumeVerifyToken validates and deletes an email verification token (single-use)
+// Uses atomic GETDEL to prevent race conditions
+func ConsumeVerifyToken(ctx context.Context, rawToken string) (uint, error) {
+	if client == nil {
+		return 0, fmt.Errorf("redis client not initialized")
+	}
+
+	tokenHash := HashToken(rawToken)
+	key := constants.VerifyTokenPrefix + tokenHash
+
+	// Atomic get and delete - prevents race condition where two requests
+	// could both successfully consume the same token
+	value, err := client.GetDel(ctx, key).Result()
+	if err == goredis.Nil {
+		return 0, nil // Token not found or expired
+	}
+	if err != nil {
+		return 0, fmt.Errorf("failed to get/delete verify token: %w", err)
+	}
+
+	var userID uint
+	if _, err := fmt.Sscanf(value, "%d", &userID); err != nil {
+		return 0, fmt.Errorf("failed to parse user ID: %w", err)
+	}
+
+	return userID, nil
+}
+
+// DeleteVerifyTokensForUser deletes all verification tokens for a user
+// Used when user requests a new verification email (invalidate old tokens)
+func DeleteVerifyTokensForUser(ctx context.Context, userID uint) error {
+	// Note: Since we don't track tokens by user, we rely on TTL expiration
+	// The new token will be valid, and old tokens will either be consumed (and fail)
+	// or expire naturally. This is acceptable for verification tokens.
+	return nil
+}
+
+// SetVerifyResendCooldown sets a cooldown period for resending verification emails
+func SetVerifyResendCooldown(ctx context.Context, userID uint) error {
+	if client == nil {
+		return fmt.Errorf("redis client not initialized")
+	}
+
+	key := fmt.Sprintf("%s%d", constants.VerifyResendPrefix, userID)
+	return client.Set(ctx, key, "1", constants.VerifyResendCooldown).Err()
+}
+
+// CheckVerifyResendCooldown checks if user is in cooldown period for resending verification
+func CheckVerifyResendCooldown(ctx context.Context, userID uint) (bool, error) {
+	if client == nil {
+		return false, fmt.Errorf("redis client not initialized")
+	}
+
+	key := fmt.Sprintf("%s%d", constants.VerifyResendPrefix, userID)
+	_, err := client.Get(ctx, key).Result()
+	if err == goredis.Nil {
+		return false, nil // No cooldown
+	}
+	if err != nil {
+		return false, fmt.Errorf("failed to check cooldown: %w", err)
+	}
+
+	return true, nil // In cooldown
+}

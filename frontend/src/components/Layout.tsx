@@ -146,6 +146,24 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
     const location = useLocation();
     const isSettingsPage = location.pathname === APP_ROUTES.SETTINGS;
+    
+    // Auth flow pages - hide header and footer navigation
+    const isAuthFlowPage = [
+        APP_ROUTES.FORGOT_PASSWORD,
+        APP_ROUTES.RESET_PASSWORD,
+        APP_ROUTES.VERIFY_EMAIL,
+    ].includes(location.pathname as typeof APP_ROUTES.FORGOT_PASSWORD);
+
+    // For auth flow pages, render minimal layout without header/footer
+    if (isAuthFlowPage) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+                <main style={{ flex: 1, paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
+                    {children}
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

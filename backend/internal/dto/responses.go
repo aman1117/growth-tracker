@@ -69,6 +69,7 @@ type ProfileResponse struct {
 	Bio               *string `json:"bio" example:"Software developer"`
 	IsPrivate         bool    `json:"is_private" example:"false"`
 	IsVerified        bool    `json:"is_verified" example:"false"`
+	EmailVerified     bool    `json:"email_verified" example:"true"`
 	FollowersCount    int64   `json:"followers_count" example:"150"`
 	FollowingCount    int64   `json:"following_count" example:"75"`
 	RelationshipState string  `json:"relationship_state,omitempty" example:"FOLLOWING"` // FOLLOWING, REQUESTED, NONE (only for other users)

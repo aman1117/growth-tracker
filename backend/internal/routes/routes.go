@@ -19,6 +19,7 @@ type Router struct {
 	analyticsHandler      *handlers.AnalyticsHandler
 	tileConfigHandler     *handlers.TileConfigHandler
 	passwordResetHandler  *handlers.PasswordResetHandler
+	verificationHandler   *handlers.VerificationHandler
 	blobHandler           *handlers.BlobHandler
 	likeHandler           *handlers.LikeHandler
 	badgeHandler          *handlers.BadgeHandler
@@ -38,6 +39,7 @@ func NewRouter(
 	analyticsHandler *handlers.AnalyticsHandler,
 	tileConfigHandler *handlers.TileConfigHandler,
 	passwordResetHandler *handlers.PasswordResetHandler,
+	verificationHandler *handlers.VerificationHandler,
 	blobHandler *handlers.BlobHandler,
 	likeHandler *handlers.LikeHandler,
 	badgeHandler *handlers.BadgeHandler,
@@ -55,6 +57,7 @@ func NewRouter(
 		analyticsHandler:      analyticsHandler,
 		tileConfigHandler:     tileConfigHandler,
 		passwordResetHandler:  passwordResetHandler,
+		verificationHandler:   verificationHandler,
 		blobHandler:           blobHandler,
 		likeHandler:           likeHandler,
 		badgeHandler:          badgeHandler,
@@ -97,6 +100,10 @@ func (r *Router) Setup(app *fiber.App) {
 	auth.Post("/forgot-password", passwordRateLimiter, r.passwordResetHandler.ForgotPassword)
 	auth.Post("/reset-password", passwordRateLimiter, r.passwordResetHandler.ResetPassword)
 	auth.Get("/reset-password/validate", passwordRateLimiter, r.passwordResetHandler.ValidateResetToken)
+
+	// Email Verification (public endpoint for verifying - no rate limit since token is single-use, protected for resend)
+	auth.Post("/verify-email", r.verificationHandler.VerifyEmail)
+	auth.Post("/resend-verification", authMiddleware, authRateLimiter, r.verificationHandler.ResendVerificationEmail)
 
 	// ==================== Protected Routes ====================
 	// All protected routes have: auth middleware + API rate limiter (100 req/min)

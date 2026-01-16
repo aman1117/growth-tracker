@@ -35,6 +35,12 @@ type ResetPasswordRequest struct {
 	ConfirmPassword string `json:"confirm_password" example:"NewSecurePass123"`
 }
 
+// VerifyEmailRequest represents the email verification request body
+// @Description Email verification with token
+type VerifyEmailRequest struct {
+	Token string `json:"token" example:"abc123def456"`
+}
+
 // ChangePasswordRequest represents the change password request body
 // @Description Change password for authenticated user
 type ChangePasswordRequest struct {

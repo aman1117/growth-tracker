@@ -15,6 +15,7 @@ export interface User {
   profilePic?: string | null;
   bio?: string | null;
   isVerified?: boolean;
+  emailVerified?: boolean;
 }
 
 interface AuthState {
@@ -28,6 +29,7 @@ interface AuthState {
   updateUsername: (newUsername: string) => void;
   updateProfilePic: (url: string | null) => void;
   updateBio: (bio: string | null) => void;
+  updateEmailVerified: (verified: boolean) => void;
   setLoading: (value: boolean) => void;
 }
 
@@ -68,6 +70,8 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem(STORAGE_KEYS.USER_ID);
         localStorage.removeItem(STORAGE_KEYS.PROFILE_PIC);
         localStorage.removeItem(STORAGE_KEYS.BIO);
+        // Clear email verification dismissal so new user sees it
+        localStorage.removeItem('email-verification-dismissed-at');
 
         set({
           user: null,
@@ -101,6 +105,12 @@ export const useAuthStore = create<AuthState>()(
         }
         set((state) => ({
           user: state.user ? { ...state.user, bio } : null,
+        }));
+      },
+
+      updateEmailVerified: (verified) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, emailVerified: verified } : null,
         }));
       },
 
@@ -161,6 +171,7 @@ export const useAuth = () => {
   const updateUsername = useAuthStore((state) => state.updateUsername);
   const updateProfilePic = useAuthStore((state) => state.updateProfilePic);
   const updateBio = useAuthStore((state) => state.updateBio);
+  const updateEmailVerified = useAuthStore((state) => state.updateEmailVerified);
 
   return {
     user,
@@ -171,5 +182,6 @@ export const useAuth = () => {
     updateUsername,
     updateProfilePic,
     updateBio,
+    updateEmailVerified,
   };
 };

@@ -5,16 +5,17 @@ import "time"
 
 // User represents a user in the system
 type User struct {
-	ID           uint      `gorm:"primaryKey"`
-	Email        string    `gorm:"unique;not null"`
-	Username     string    `gorm:"unique;not null"`
-	PasswordHash string    `gorm:"not null"`
-	ProfilePic   *string   `gorm:"default:null"`          // URL to profile picture, null for now
-	Bio          *string   `gorm:"default:null;size:150"` // User bio, max 150 characters
-	IsPrivate    bool      `gorm:"default:false"`
-	IsVerified   bool      `gorm:"default:false"` // Whether user has verified badge (Instagram-like)
-	CreatedAt    time.Time `gorm:"not null;default:now();autoCreateTime"`
-	UpdatedAt    time.Time `gorm:"not null;default:now();autoUpdateTime"`
+	ID            uint      `gorm:"primaryKey"`
+	Email         string    `gorm:"unique;not null"`
+	Username      string    `gorm:"unique;not null"`
+	PasswordHash  string    `gorm:"not null"`
+	ProfilePic    *string   `gorm:"default:null"`          // URL to profile picture, null for now
+	Bio           *string   `gorm:"default:null;size:150"` // User bio, max 150 characters
+	IsPrivate     bool      `gorm:"default:false"`
+	IsVerified    bool      `gorm:"default:false"` // Whether user has verified badge (Instagram-like)
+	EmailVerified bool      `gorm:"default:false"` // Whether user has verified their email address
+	CreatedAt     time.Time `gorm:"not null;default:now();autoCreateTime"`
+	UpdatedAt     time.Time `gorm:"not null;default:now();autoUpdateTime"`
 }
 
 // TableName specifies the table name for User

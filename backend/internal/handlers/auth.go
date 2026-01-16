@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"context"
 	"time"
 
 	"github.com/aman1117/backend/internal/constants"
@@ -10,6 +11,7 @@ import (
 	"github.com/aman1117/backend/internal/response"
 	"github.com/aman1117/backend/internal/services"
 	"github.com/aman1117/backend/internal/validator"
+	"github.com/aman1117/backend/pkg/redis"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -18,14 +20,16 @@ type AuthHandler struct {
 	authSvc    *services.AuthService
 	tokenSvc   *TokenService
 	profileSvc *services.ProfileService
+	emailSvc   *services.EmailService
 }
 
 // NewAuthHandler creates a new AuthHandler
-func NewAuthHandler(authSvc *services.AuthService, tokenSvc *TokenService, profileSvc *services.ProfileService) *AuthHandler {
+func NewAuthHandler(authSvc *services.AuthService, tokenSvc *TokenService, profileSvc *services.ProfileService, emailSvc *services.EmailService) *AuthHandler {
 	return &AuthHandler{
 		authSvc:    authSvc,
 		tokenSvc:   tokenSvc,
 		profileSvc: profileSvc,
+		emailSvc:   emailSvc,
 	}
 }
 
@@ -64,6 +68,37 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	if err := h.authSvc.Register(req.Email, req.Username, req.Password); err != nil {
 		logger.Sugar.Warnw("Registration failed", "email", req.Email, "username", req.Username, "error", err)
 		return response.BadRequest(c, "Could not create user (maybe email/username already used)", constants.ErrCodeUserExists)
+	}
+
+	// Get the newly created user to get their ID for the verification token
+	user, err := h.authSvc.GetUserByEmail(req.Email)
+	if err == nil && user != nil && h.emailSvc != nil {
+		// Send verification email asynchronously (don't block registration)
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			// Generate verification token
+			rawToken, tokenHash, err := redis.GenerateVerifyToken()
+			if err != nil {
+				logger.Sugar.Warnw("Failed to generate verify token during registration", "user_id", user.ID, "error", err)
+				return
+			}
+
+			// Store token
+			if err := redis.StoreVerifyToken(ctx, tokenHash, user.ID); err != nil {
+				logger.Sugar.Warnw("Failed to store verify token during registration", "user_id", user.ID, "error", err)
+				return
+			}
+
+			// Send email
+			if err := h.emailSvc.SendVerificationEmail(user.Email, user.Username, rawToken); err != nil {
+				logger.Sugar.Warnw("Failed to send verification email during registration", "user_id", user.ID, "error", err)
+				return
+			}
+
+			logger.Sugar.Infow("Verification email sent for new user", "user_id", user.ID, "username", user.Username)
+		}()
 	}
 
 	logger.Sugar.Infow("New user registered", "username", req.Username)

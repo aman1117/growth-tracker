@@ -7,6 +7,7 @@ import { Layout } from './components/Layout';
 import { LoadingSpinner } from './components/ui';
 import { api } from './services/api';
 import { OfflineBanner } from './components/OfflineBanner';
+import { EmailVerificationBanner } from './components/EmailVerificationBanner';
 import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
 
 // Lazy load route components for code splitting
@@ -14,6 +15,7 @@ const AuthForm = lazy(() => import('./components/AuthForm').then(m => ({ default
 const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
 const ForgotPassword = lazy(() => import('./components/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
 const ResetPassword = lazy(() => import('./components/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const VerifyEmail = lazy(() => import('./components/VerifyEmail').then(m => ({ default: m.VerifyEmail })));
 const SettingsPage = lazy(() => import('./components/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const AnalyticsPage = lazy(() => import('./components/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 
@@ -58,14 +60,14 @@ const ThemeInitializer: React.FC<{ children: React.ReactNode }> = ({ children })
  * This ensures the profile picture is available in the nav without visiting settings
  */
 const ProfileInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading, updateProfilePic, updateBio } = useAuth();
+  const { isAuthenticated, isLoading, updateProfilePic, updateBio, updateEmailVerified } = useAuth();
   const hasFetched = useRef(false);
 
   useEffect(() => {
     // Fetch profile once per session when authenticated
     if (isAuthenticated && !isLoading && !hasFetched.current) {
       hasFetched.current = true;
-      api.get<{ profile_pic?: string; bio?: string }>('/profile')
+      api.get<{ profile_pic?: string; bio?: string; email_verified?: boolean }>('/profile')
         .then(data => {
           if (data?.profile_pic) {
             updateProfilePic(data.profile_pic);
@@ -73,12 +75,16 @@ const ProfileInitializer: React.FC<{ children: React.ReactNode }> = ({ children 
           if (data?.bio) {
             updateBio(data.bio);
           }
+          // Update email verification status
+          if (data?.email_verified !== undefined) {
+            updateEmailVerified(data.email_verified);
+          }
         })
         .catch(() => {
           // Silently fail - profile data is not critical for app function
         });
     }
-  }, [isAuthenticated, isLoading, updateProfilePic, updateBio]);
+  }, [isAuthenticated, isLoading, updateProfilePic, updateBio, updateEmailVerified]);
 
   // Reset fetch flag on logout so it fetches again on next login
   useEffect(() => {
@@ -96,6 +102,7 @@ function App() {
       <ThemeInitializer>
         <ProfileInitializer>
           <OfflineBanner />
+          <EmailVerificationBanner />
           <PWAUpdatePrompt />
           <Router>
             <Layout>
@@ -104,6 +111,7 @@ function App() {
                 <Route path={APP_ROUTES.LOGIN} element={<AuthForm />} />
                 <Route path={APP_ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
                 <Route path={APP_ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+                <Route path={APP_ROUTES.VERIFY_EMAIL} element={<VerifyEmail />} />
                 <Route
                   path={APP_ROUTES.HOME}
                   element={

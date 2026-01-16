@@ -125,6 +125,82 @@ func (s *EmailService) SendPasswordResetEmail(email, username, token string) err
 	return s.sender.Send([]string{email}, "Reset Your Password - Growth Tracker", htmlContent)
 }
 
+// SendVerificationEmail sends an email verification email to a new user
+func (s *EmailService) SendVerificationEmail(email, username, token string) error {
+	verifyLink := fmt.Sprintf("%s/verify-email?token=%s", s.frontendURL, token)
+
+	htmlContent := s.buildVerificationEmailHTML(username, verifyLink)
+
+	return s.sender.Send([]string{email}, "Verify Your Email - Growth Tracker", htmlContent)
+}
+
+func (s *EmailService) buildVerificationEmailHTML(username, verifyLink string) string {
+	return fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+    <table width="100%%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="100%%" style="max-width: 480px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                    <tr>
+                        <td style="padding: 40px 32px;">
+                            <div style="text-align: center; margin-bottom: 32px;">
+                                <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">
+                                    ✉️ Verify Your Email
+                                </h1>
+                            </div>
+                            
+                            <p style="margin: 0 0 16px; font-size: 16px; color: #333; line-height: 1.5;">
+                                Hi <strong>%s</strong>,
+                            </p>
+                            <p style="margin: 0 0 24px; font-size: 16px; color: #333; line-height: 1.5;">
+                                Welcome to Growth Tracker! Please verify your email address by clicking the button below:
+                            </p>
+                            
+                            <div style="text-align: center; margin: 32px 0;">
+                                <a href="%s" style="display: inline-block; padding: 14px 32px; background-color: #22c55e; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 16px; border-radius: 8px;">
+                                    Verify Email Address
+                                </a>
+                            </div>
+                            
+                            <p style="margin: 0 0 16px; font-size: 14px; color: #666; line-height: 1.5;">
+                                ⏰ This link will expire in <strong>24 hours</strong>.
+                            </p>
+                            
+                            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 16px; margin-top: 24px;">
+                                <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.5;">
+                                    If you didn't create an account with Growth Tracker, you can safely ignore this email.
+                                </p>
+                            </div>
+                            
+                            <p style="margin: 24px 0 0; font-size: 12px; color: #999; line-height: 1.5; word-break: break-all;">
+                                If the button doesn't work, copy and paste this link into your browser:<br>
+                                <a href="%s" style="color: #22c55e;">%s</a>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="padding: 24px 32px; border-top: 1px solid #eee; text-align: center;">
+                            <p style="margin: 0; font-size: 12px; color: #999;">
+                                Growth Tracker • Track your daily activities
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+`, username, verifyLink, verifyLink, verifyLink)
+}
+
 func (s *EmailService) buildPasswordResetHTML(username, resetLink string) string {
 	return fmt.Sprintf(`
 <!DOCTYPE html>

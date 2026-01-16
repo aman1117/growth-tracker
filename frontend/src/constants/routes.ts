@@ -18,6 +18,8 @@ export const API_ROUTES = {
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
     VALIDATE_RESET_TOKEN: '/auth/reset-password/validate',
+    VERIFY_EMAIL: '/auth/verify-email',
+    RESEND_VERIFICATION: '/auth/resend-verification',
   },
 
   // ============================================================================
@@ -148,6 +150,7 @@ export const APP_ROUTES = {
   LOGIN: '/login',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
+  VERIFY_EMAIL: '/verify-email',
   SETTINGS: '/settings',
   ANALYTICS: '/analytics',
   USER_PROFILE: (username: string) => `/user/${username}`,

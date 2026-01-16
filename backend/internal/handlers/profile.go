@@ -183,6 +183,7 @@ func (h *ProfileHandler) GetProfile(c *fiber.Ctx) error {
 		Bio:            user.Bio,
 		IsPrivate:      user.IsPrivate,
 		IsVerified:     user.IsVerified,
+		EmailVerified:  user.EmailVerified,
 		FollowersCount: followersCount,
 		FollowingCount: followingCount,
 	})

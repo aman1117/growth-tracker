@@ -289,6 +289,48 @@ func (r *StreakRepository) FindUsersMissedStreak(date string) ([]uint, error) {
 	return userIDs, result.Error
 }
 
+// ==================== Cron Job Log Repository ====================
+
+// CronJobLogRepository handles cron job log data operations
+type CronJobLogRepository struct {
+	db *gorm.DB
+}
+
+// NewCronJobLogRepository creates a new CronJobLogRepository
+func NewCronJobLogRepository(db *gorm.DB) *CronJobLogRepository {
+	return &CronJobLogRepository{db: db}
+}
+
+// Create creates a new cron job log entry
+func (r *CronJobLogRepository) Create(log *models.CronJobLog) error {
+	return r.db.Create(log).Error
+}
+
+// Update updates an existing cron job log entry
+func (r *CronJobLogRepository) Update(log *models.CronJobLog) error {
+	return r.db.Save(log).Error
+}
+
+// FindByJobNameAndDate finds a cron job log by job name and date
+func (r *CronJobLogRepository) FindByJobNameAndDate(jobName string, jobDate time.Time) (*models.CronJobLog, error) {
+	var log models.CronJobLog
+	result := r.db.Where("job_name = ? AND job_date = ? AND status = ?", jobName, jobDate, models.CronJobStatusCompleted).First(&log)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &log, nil
+}
+
+// FindRecentByJobName finds recent cron job logs by job name
+func (r *CronJobLogRepository) FindRecentByJobName(jobName string, limit int) ([]models.CronJobLog, error) {
+	var logs []models.CronJobLog
+	result := r.db.Where("job_name = ?", jobName).Order("started_at DESC").Limit(limit).Find(&logs)
+	return logs, result.Error
+}
+
 // ==================== Tile Config Repository ====================
 
 // TileConfigRepository handles tile configuration data operations

@@ -25,6 +25,7 @@ type Container struct {
 	NotificationRepo *repository.NotificationRepository
 	PushRepo         *repository.PushRepository
 	FollowRepo       *repository.FollowRepository
+	CronJobLogRepo   *repository.CronJobLogRepository
 
 	// Services
 	AuthService         *services.AuthService
@@ -76,6 +77,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.NotificationRepo = repository.NewNotificationRepository(db)
 	c.PushRepo = repository.NewPushRepository(db)
 	c.FollowRepo = repository.NewFollowRepository(db)
+	c.CronJobLogRepo = repository.NewCronJobLogRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -96,7 +98,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	}
 
 	// Initialize cron service
-	c.CronService = services.NewCronService(c.UserRepo, c.StreakRepo, c.StreakService, c.EmailService, c.NotificationService)
+	c.CronService = services.NewCronService(c.UserRepo, c.StreakRepo, c.CronJobLogRepo, c.StreakService, c.EmailService, c.NotificationService)
 
 	// Initialize token service
 	c.TokenService = handlers.NewTokenService(&cfg.JWT)

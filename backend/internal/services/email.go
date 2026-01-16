@@ -272,37 +272,42 @@ func (s *EmailService) buildPasswordResetHTML(username, resetLink string) string
 
 // CronService handles scheduled job logic
 type CronService struct {
-	userRepo   *repository.UserRepository
-	streakRepo *repository.StreakRepository
-	streakSvc  *StreakService
-	emailSvc   *EmailService
-	notifSvc   *NotificationService
+	userRepo       *repository.UserRepository
+	streakRepo     *repository.StreakRepository
+	cronJobLogRepo *repository.CronJobLogRepository
+	streakSvc      *StreakService
+	emailSvc       *EmailService
+	notifSvc       *NotificationService
+	instanceID     string
 }
 
 // NewCronService creates a new CronService
 func NewCronService(
 	userRepo *repository.UserRepository,
 	streakRepo *repository.StreakRepository,
+	cronJobLogRepo *repository.CronJobLogRepository,
 	streakSvc *StreakService,
 	emailSvc *EmailService,
 	notifSvc *NotificationService,
 ) *CronService {
+	// Generate instance ID from hostname or random string for tracking
+	instanceID := os.Getenv("HOSTNAME")
+	if instanceID == "" {
+		instanceID = fmt.Sprintf("instance-%d", time.Now().UnixNano()%10000)
+	}
 	return &CronService{
-		userRepo:   userRepo,
-		streakRepo: streakRepo,
-		streakSvc:  streakSvc,
-		emailSvc:   emailSvc,
-		notifSvc:   notifSvc,
+		userRepo:       userRepo,
+		streakRepo:     streakRepo,
+		cronJobLogRepo: cronJobLogRepo,
+		streakSvc:      streakSvc,
+		emailSvc:       emailSvc,
+		notifSvc:       notifSvc,
+		instanceID:     instanceID,
 	}
 }
 
 // RunDailyJob runs the daily streak processing job
 func (s *CronService) RunDailyJob(ctx context.Context) error {
-	users, err := s.userRepo.GetAll()
-	if err != nil {
-		return err
-	}
-
 	// Compute today's date in IST
 	loc, _ := time.LoadLocation(constants.TimezoneIST)
 	nowIST := time.Now().In(loc)
@@ -314,13 +319,71 @@ func (s *CronService) RunDailyJob(ctx context.Context) error {
 		loc,
 	)
 
-	for _, user := range users {
-		if err := s.streakSvc.AddStreak(user.ID, todayIST, true); err != nil {
-			return err
+	// Check if job already ran successfully today (idempotency)
+	if s.cronJobLogRepo != nil {
+		existingLog, err := s.cronJobLogRepo.FindByJobNameAndDate(models.CronJobDailyStreak, todayIST)
+		if err != nil {
+			logger.Sugar.Warnw("Failed to check existing cron job log", "error", err)
+		}
+		if existingLog != nil {
+			logger.Sugar.Infow("Daily streak job already completed for today, skipping",
+				"job_date", todayIST.Format(constants.DateFormat),
+				"completed_by", existingLog.InstanceID,
+			)
+			return nil
 		}
 	}
 
+	// Create job log entry
+	jobLog := &models.CronJobLog{
+		JobName:    models.CronJobDailyStreak,
+		JobDate:    todayIST,
+		StartedAt:  time.Now(),
+		Status:     models.CronJobStatusRunning,
+		InstanceID: s.instanceID,
+	}
+	if s.cronJobLogRepo != nil {
+		if err := s.cronJobLogRepo.Create(jobLog); err != nil {
+			logger.Sugar.Warnw("Failed to create cron job log", "error", err)
+		}
+	}
+
+	users, err := s.userRepo.GetAll()
+	if err != nil {
+		s.updateJobLog(jobLog, models.CronJobStatusFailed, 0, err.Error())
+		return err
+	}
+
+	processedCount := 0
+	for _, user := range users {
+		if err := s.streakSvc.AddStreak(user.ID, todayIST, true); err != nil {
+			s.updateJobLog(jobLog, models.CronJobStatusFailed, processedCount, err.Error())
+			return err
+		}
+		processedCount++
+	}
+
+	s.updateJobLog(jobLog, models.CronJobStatusCompleted, processedCount, "")
+	logger.Sugar.Infow("Daily streak job completed",
+		"users_processed", processedCount,
+		"instance_id", s.instanceID,
+	)
+
 	return nil
+}
+
+// updateJobLog updates a job log with completion status
+func (s *CronService) updateJobLog(log *models.CronJobLog, status string, usersCount int, errorMsg string) {
+	if s.cronJobLogRepo == nil || log == nil || log.ID == 0 {
+		return
+	}
+	log.Status = status
+	log.UsersCount = usersCount
+	log.CompletedAt = time.Now()
+	log.Error = errorMsg
+	if err := s.cronJobLogRepo.Update(log); err != nil {
+		logger.Sugar.Warnw("Failed to update cron job log", "error", err)
+	}
 }
 
 // SendStreakReminders sends push and in-app notifications to users who haven't logged today.

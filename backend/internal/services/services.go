@@ -404,6 +404,16 @@ func (s *StreakService) AddStreak(userID uint, date time.Time, isCron bool) erro
 	}
 
 	if isCron {
+		// Check if a streak record already exists for this date (idempotency check)
+		existingStreak, err := s.streakRepo.FindByUserAndDate(userID, date)
+		if err != nil {
+			return err
+		}
+		if existingStreak != nil {
+			// Record already exists, skip to prevent duplicates
+			return nil
+		}
+
 		// Cron job creates a new day's streak record with current = 0 (broken)
 		longest := 0
 		if streak != nil {

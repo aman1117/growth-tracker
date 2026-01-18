@@ -905,7 +905,10 @@ export const AnalyticsPage: React.FC = () => {
                                 marginBottom: '1rem',
                                 animation: animateBars ? 'fadeInUp 0.4s ease-out forwards' : 'none',
                                 opacity: animateBars ? 1 : 0,
-                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                                overflow: 'visible',
+                                position: 'relative',
+                                zIndex: 10
                             }}
                         >
                             <div style={{ 
@@ -962,8 +965,8 @@ export const AnalyticsPage: React.FC = () => {
                                             WebkitBackdropFilter: 'blur(16px)',
                                             border: '1px solid var(--tile-glass-border)',
                                             borderRadius: '12px',
-                                            boxShadow: 'var(--tile-glass-shadow-active)',
-                                            zIndex: 100,
+                                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                                            zIndex: 9999,
                                             minWidth: '160px',
                                             maxHeight: '250px',
                                             overflowY: 'auto'

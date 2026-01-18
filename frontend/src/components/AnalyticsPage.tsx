@@ -66,7 +66,7 @@ export const AnalyticsPage: React.FC = () => {
     const [analytics, setAnalytics] = useState<WeekAnalyticsResponse | null>(null);
     const [isPrivateAccount, setIsPrivateAccount] = useState(false);
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
-    const [activityFilter, setActivityFilter] = useState<string>('all');
+    const [activityFilter, setActivityFilter] = useState<string[]>([]);
     const [showActivityFilter, setShowActivityFilter] = useState(false);
     const activityFilterRef = useRef<HTMLDivElement>(null);
     const [animateStats, setAnimateStats] = useState(false);
@@ -217,11 +217,13 @@ export const AnalyticsPage: React.FC = () => {
                 const analyticsData = res as WeekAnalyticsResponse;
                 setAnalytics(analyticsData);
                 
-                // Reset activity filter if selected activity doesn't exist in new week's data
+                // Reset activity filter if selected activities don't exist in new week's data
                 setActivityFilter(prev => {
-                    if (prev === 'all') return 'all';
-                    const activityExists = analyticsData.activity_summary?.some(a => a.name === prev);
-                    return activityExists ? prev : 'all';
+                    if (prev.length === 0) return [];
+                    const validActivities = prev.filter(p => 
+                        analyticsData.activity_summary?.some(a => a.name === p)
+                    );
+                    return validActivities;
                 });
                 
                 // Trigger animations after data loads
@@ -939,7 +941,11 @@ export const AnalyticsPage: React.FC = () => {
                                             transition: 'all 0.2s'
                                         }}
                                     >
-                                        {activityFilter === 'all' ? 'All Activities' : getActivityConfig(activityFilter as ActivityName, customTiles, tileColors).label}
+                                        {activityFilter.length === 0 
+                                            ? 'All Activities' 
+                                            : activityFilter.length === 1 
+                                                ? getActivityConfig(activityFilter[0] as ActivityName, customTiles, tileColors).label
+                                                : `${activityFilter.length} Activities`}
                                         <ChevronDown size={12} style={{ 
                                             transition: 'transform 0.2s',
                                             transform: showActivityFilter ? 'rotate(180deg)' : 'rotate(0deg)'
@@ -958,38 +964,77 @@ export const AnalyticsPage: React.FC = () => {
                                             borderRadius: '12px',
                                             boxShadow: 'var(--tile-glass-shadow-active)',
                                             zIndex: 100,
-                                            minWidth: '140px',
-                                            maxHeight: '200px',
+                                            minWidth: '160px',
+                                            maxHeight: '250px',
                                             overflowY: 'auto'
                                         }}>
                                             <div
-                                                onClick={() => { setActivityFilter('all'); setShowActivityFilter(false); }}
+                                                onClick={() => { setActivityFilter([]); }}
                                                 style={{
                                                     padding: '0.5rem 0.75rem',
                                                     fontSize: '0.75rem',
-                                                    color: activityFilter === 'all' ? 'var(--accent)' : 'var(--text-primary)',
+                                                    color: activityFilter.length === 0 ? 'var(--accent)' : 'var(--text-primary)',
                                                     cursor: 'pointer',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'space-between',
-                                                    transition: 'background 0.15s'
+                                                    transition: 'background 0.15s',
+                                                    borderBottom: '1px solid var(--tile-glass-border)'
                                                 }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                             >
                                                 All Activities
-                                                {activityFilter === 'all' && <Check size={12} />}
+                                                {activityFilter.length === 0 && <Check size={12} />}
                                             </div>
+                                            {/* Clear selection option when activities are selected */}
+                                            {activityFilter.length > 0 && (
+                                                <div
+                                                    onClick={() => { setActivityFilter([]); }}
+                                                    style={{
+                                                        padding: '0.4rem 0.75rem',
+                                                        fontSize: '0.7rem',
+                                                        color: 'var(--text-tertiary)',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.25rem',
+                                                        transition: 'background 0.15s',
+                                                        borderBottom: '1px solid var(--tile-glass-border)'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                                                        e.currentTarget.style.color = 'var(--text-secondary)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                                        e.currentTarget.style.color = 'var(--text-tertiary)';
+                                                    }}
+                                                >
+                                                    <X size={10} />
+                                                    Clear selection ({activityFilter.length})
+                                                </div>
+                                            )}
                                             {analytics.activity_summary.map(activity => {
                                                 const config = getActivityConfig(activity.name as ActivityName, customTiles, tileColors);
+                                                const isSelected = activityFilter.includes(activity.name);
                                                 return (
                                                 <div
                                                     key={activity.name}
-                                                    onClick={() => { setActivityFilter(activity.name); setShowActivityFilter(false); }}
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation();
+                                                        setActivityFilter(prev => {
+                                                            if (prev.includes(activity.name)) {
+                                                                return prev.filter(a => a !== activity.name);
+                                                            } else {
+                                                                return [...prev, activity.name];
+                                                            }
+                                                        });
+                                                    }}
                                                     style={{
                                                         padding: '0.5rem 0.75rem',
                                                         fontSize: '0.75rem',
-                                                        color: activityFilter === activity.name ? 'var(--accent)' : 'var(--text-primary)',
+                                                        color: isSelected ? 'var(--accent)' : 'var(--text-primary)',
                                                         cursor: 'pointer',
                                                         display: 'flex',
                                                         alignItems: 'center',
@@ -1002,14 +1047,20 @@ export const AnalyticsPage: React.FC = () => {
                                                 >
                                                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                         <span style={{ 
-                                                            width: '8px', 
-                                                            height: '8px', 
-                                                            borderRadius: '2px', 
-                                                            backgroundColor: config.color 
-                                                        }} />
+                                                            width: '14px', 
+                                                            height: '14px', 
+                                                            borderRadius: '3px', 
+                                                            backgroundColor: isSelected ? config.color : 'transparent',
+                                                            border: `2px solid ${config.color}`,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            transition: 'all 0.15s'
+                                                        }}>
+                                                            {isSelected && <Check size={10} color="white" strokeWidth={3} />}
+                                                        </span>
                                                         {config.label || activity.name}
                                                     </span>
-                                                    {activityFilter === activity.name && <Check size={12} />}
                                                 </div>
                                             );})}
                                         </div>
@@ -1020,12 +1071,14 @@ export const AnalyticsPage: React.FC = () => {
                             {(() => {
                                 // Calculate average based on filter
                                 let avgHours: number;
-                                if (activityFilter === 'all') {
+                                if (activityFilter.length === 0) {
                                     avgHours = analytics.daily_breakdown.reduce((sum, d) => sum + d.total_hours, 0) / 7;
                                 } else {
                                     avgHours = analytics.daily_breakdown.reduce((sum, d) => {
-                                        const activity = d.activities.find(a => a.name === activityFilter);
-                                        return sum + (activity?.hours || 0);
+                                        const filteredHours = d.activities
+                                            .filter(a => activityFilter.includes(a.name))
+                                            .reduce((h, a) => h + a.hours, 0);
+                                        return sum + filteredHours;
                                     }, 0) / 7;
                                 }
                                 // Bar area is 140px, labels below take ~30px, chart height is 180px with 24px paddingTop
@@ -1261,31 +1314,30 @@ const DayBar: React.FC<{
     day: DayAnalytics; 
     animate: boolean; 
     delay: number; 
-    activityFilter?: string;
+    activityFilter?: string[];
     customTiles?: CustomTile[];
     tileColors?: Record<string, string>;
-}> = ({ day, animate, delay, activityFilter = 'all', customTiles = [], tileColors = {} }) => {
+}> = ({ day, animate, delay, activityFilter = [], customTiles = [], tileColors = {} }) => {
     const maxHeight = 140;
     
     // Helper to get config for an activity
     const getConfig = (name: string) => getActivityConfig(name as ActivityName, customTiles, tileColors);
     
-    // Calculate hours based on filter
+    // Calculate hours based on filter (empty array = all activities)
     let displayHours = day.total_hours;
-    let barColor = 'var(--accent)';
+    let filteredActivities = day.activities;
     
-    if (activityFilter !== 'all') {
-        // Find the specific activity
-        const filteredActivity = day.activities.find(a => a.name === activityFilter);
-        displayHours = filteredActivity?.hours || 0;
-        barColor = getConfig(activityFilter).color || '#64748b';
+    if (activityFilter.length > 0) {
+        // Filter to only selected activities
+        filteredActivities = day.activities.filter(a => activityFilter.includes(a.name));
+        displayHours = filteredActivities.reduce((sum, a) => sum + a.hours, 0);
     }
     
     const barHeight = Math.min((displayHours / 24) * maxHeight, maxHeight);
     
-    // Get top 3 activities and others (for stacked view)
-    const topActivities = day.activities.slice(0, 3);
-    const othersHours = day.activities.slice(3).reduce((sum, a) => sum + a.hours, 0);
+    // Get top 3 activities and others (for stacked view) - from filtered activities
+    const topActivities = filteredActivities.slice(0, 3);
+    const othersHours = filteredActivities.slice(3).reduce((sum, a) => sum + a.hours, 0);
     
     return (
         <div style={{ 
@@ -1316,18 +1368,18 @@ const DayBar: React.FC<{
                             overflow: 'hidden'
                         }}
                     >
-                        {activityFilter !== 'all' ? (
+                        {activityFilter.length === 1 ? (
                             // Single activity filter - show single color bar
                             <div 
                                 style={{
                                     flex: 1,
-                                    backgroundColor: barColor,
+                                    backgroundColor: getConfig(activityFilter[0]).color || '#64748b',
                                     minHeight: '2px'
                                 }}
-                                title={`${getConfig(activityFilter).label}: ${displayHours.toFixed(1)}h`}
+                                title={`${getConfig(activityFilter[0]).label}: ${displayHours.toFixed(1)}h`}
                             />
                         ) : (
-                            // All activities - stacked segments
+                            // Multiple/all activities - stacked segments
                             (() => {
                                 const segments: { name: string; hours: number; color: string }[] = [];
                                 

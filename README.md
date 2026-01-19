@@ -1,6 +1,10 @@
 <div align="center">
 
-<img src="frontend/public/logo.png" alt="Growth Tracker" width="400"/>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/logo-light.png">
+  <source media="(prefers-color-scheme: light)" srcset="frontend/public/logo.png">
+  <img src="frontend/public/logo.png" alt="Growth Tracker" width="400"/>
+</picture>
 
 ### Track all 24 hours. Build streaks. Grow intentionally.
 

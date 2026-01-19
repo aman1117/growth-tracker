@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌱 Growth Tracker
+<img src="frontend/public/logo.png" alt="Growth Tracker" width="400"/>
 
 ### Track all 24 hours. Build streaks. Grow intentionally.
 
@@ -120,12 +120,6 @@ Track time across **16 life categories**:
 Ready to run locally? Check out the full setup guide:
 
 👉 **[LOCAL_DEV_README.md](LOCAL_DEV_README.md)**
-
-Quick overview:
-1. Clone the repo
-2. Run `docker-compose up` to start backend services
-3. Run `npm install && npm run dev` in the frontend folder
-4. Open `http://localhost:5173`
 
 ---
 

@@ -204,7 +204,8 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                         >
                             Hours
                         </label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {/* -0.5 button */}
                             <button
                                 type="button"
                                 onClick={() => {
@@ -225,9 +226,40 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
                                     flexShrink: 0,
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
                                 }}
+                                title="-0.5"
                             >
-                                <Minus size={16} />
+                                -.5
+                            </button>
+                            {/* -0.25 button */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const current = parseFloat(hours) || 0;
+                                    const newVal = Math.max(0, current - 0.25);
+                                    setHours(newVal.toString());
+                                }}
+                                style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--border)',
+                                    background: 'var(--bg-secondary)',
+                                    color: 'var(--text-primary)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease',
+                                    flexShrink: 0,
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                }}
+                                title="-0.25"
+                            >
+                                -.25
                             </button>
                             <input
                                 type="number"
@@ -246,6 +278,35 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                                     textAlign: 'center',
                                 }}
                             />
+                            {/* +0.25 button */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const current = parseFloat(hours) || 0;
+                                    const newVal = Math.min(24, current + 0.25);
+                                    setHours(newVal.toString());
+                                }}
+                                style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--border)',
+                                    background: 'var(--bg-secondary)',
+                                    color: 'var(--text-primary)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease',
+                                    flexShrink: 0,
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                }}
+                                title="+0.25"
+                            >
+                                +.25
+                            </button>
+                            {/* +0.5 button */}
                             <button
                                 type="button"
                                 onClick={() => {
@@ -266,9 +327,12 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
                                     justifyContent: 'center',
                                     transition: 'all 0.2s ease',
                                     flexShrink: 0,
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
                                 }}
+                                title="+0.5"
                             >
-                                <Plus size={16} />
+                                +.5
                             </button>
                         </div>
                     </div>

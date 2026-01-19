@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ActivityName } from '../types';
 import { getActivityConfig } from '../constants/activities';
-import { X, ChevronDown, Plus, Minus } from 'lucide-react';
+import { X, ChevronDown } from 'lucide-react';
 import type { CustomTile } from '../types';
 
 interface ActivityModalProps {

@@ -1,10 +1,7 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/logo-light.png">
-  <source media="(prefers-color-scheme: light)" srcset="frontend/public/logo.png">
-  <img src="frontend/public/logo.png" alt="Growth Tracker" width="400"/>
-</picture>
+![Growth Tracker](frontend/public/logo.png#gh-light-mode-only)
+![Growth Tracker](frontend/public/logo-light.png#gh-dark-mode-only)
 
 ### Track all 24 hours. Build streaks. Grow intentionally.
 

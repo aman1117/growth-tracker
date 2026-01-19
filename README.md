@@ -1,93 +1,155 @@
-# Growth Tracker 🌱
+<div align="center">
 
-**Track every hour of your day. Build better habits. Grow intentionally.**
+# 🌱 Growth Tracker
 
-Growth Tracker is a personal productivity app that helps you account for all 24 hours of your day. By tracking how you spend your time across different life activities, you gain insights into your daily patterns and build consistency through streaks.
+### Track all 24 hours. Build streaks. Grow intentionally.
 
----
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Go](https://img.shields.io/badge/Go-1.24-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-## What is Growth Tracker?
-
-We all have the same 24 hours, but few of us know where they actually go. Growth Tracker solves this by letting you log your time across meaningful categories — sleep, study, work, family, fitness, and more.
-
-The goal is simple: **complete your day by logging all 24 hours**. Do it consistently, and watch your streak grow!
+</div>
 
 ---
 
-## Screenshots
+## 💡 What is Growth Tracker?
 
-### 📱 Dashboard - Dark & Light Mode
+We all have 24 hours in a day — but where do they actually go?
+
+**Growth Tracker** helps you answer that question by logging time across meaningful life categories like sleep, work, fitness, family, and more. Complete your day by logging all 24 hours, stay consistent, and watch your streak grow!
+
+---
+
+## 📸 Screenshots
+
+### 🔐 Login → 📊 Dashboard
 
 <p align="center">
-  <img src="docs/screenshots/dashboard-dark.png" width="280" alt="Dashboard Dark Mode"/>
+  <img src="frontend/public/screenshots/auth.jpeg" width="280" alt="Login Screen"/>
   &nbsp;&nbsp;&nbsp;
-  <img src="docs/screenshots/dashboard-light.png" width="280" alt="Dashboard Light Mode"/>
+  <img src="frontend/public/screenshots/dashboard.jpg" width="280" alt="Dashboard"/>
 </p>
 
-The dashboard shows your daily progress at a glance:
-- **Date Navigator** — Browse through your past days
-- **Progress Bar** — See how many hours you've logged out of 24
-- **Streak Counter** — Your best streak for motivation
-- **Activity Grid** — Colorful tiles for each life category with logged hours
-
-### 🔍 User Search
-
-<p align="center">
-  <img src="docs/screenshots/search.png" width="280" alt="User Search"/>
-</p>
-
-Find and connect with other users to view their tracked days and get inspired by how others spend their time.
-
-### 🔐 Authentication - Light & Dark
-
-<p align="center">
-  <img src="docs/screenshots/auth-light.png" width="280" alt="Login Light Mode"/>
-  &nbsp;&nbsp;&nbsp;
-  <img src="docs/screenshots/auth-dark.png" width="280" alt="Login Dark Mode"/>
-</p>
-
-Clean, minimal login and registration screens with support for both light and dark themes.
+> **Left:** Clean authentication screen to get started  
+> **Right:** Your daily hub — see progress, streak, and activity tiles at a glance
 
 ---
 
-## Activity Categories
+### 📈 Analytics → 🔔 Notifications
+
+<p align="center">
+  <img src="frontend/public/screenshots/analytics.jpg" width="280" alt="Analytics"/>
+  &nbsp;&nbsp;&nbsp;
+  <img src="frontend/public/screenshots/notifications.jpg" width="280" alt="Notifications"/>
+</p>
+
+> **Left:** Weekly insights into how you spend your time  
+> **Right:** Stay on track with streak reminders and updates
+
+---
+
+### ✏️ Customize Your Tiles
+
+<p align="center">
+  <img src="frontend/public/screenshots/edit-tiles-homescreen.jpg" width="280" alt="Edit Tiles - Homescreen"/>
+  &nbsp;&nbsp;&nbsp;
+  <img src="frontend/public/screenshots/edit-tiles-dialog.jpg" width="280" alt="Edit Tiles - Dialog"/>
+</p>
+
+> Drag-and-drop to reorder tiles, create custom activities, or hide what you don't need
+
+---
+
+### 🔍 Search Users → ⚙️ Settings
+
+<p align="center">
+  <img src="frontend/public/screenshots/search.jpeg" width="280" alt="User Search"/>
+  &nbsp;&nbsp;&nbsp;
+  <img src="frontend/public/screenshots/settings.jpg" width="280" alt="Settings"/>
+</p>
+
+> **Left:** Find and follow other users to see how they spend their time  
+> **Right:** Customize your experience — theme, notifications, profile
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---------|-------------|
+| ⏱️ **24-Hour Tracking** | Log activities until your day is complete |
+| 🔥 **Streak System** | Build consistency — don't break the chain! |
+| 🏆 **Badges** | Earn achievements for milestones |
+| 👥 **Social** | Follow users, like activities, view profiles |
+| 🔔 **Push Notifications** | Streak reminders to keep you on track |
+| 🎨 **Tile Customization** | Drag-drop reorder, custom tiles, hide/show |
+| 🌗 **Dark & Light Mode** | Beautiful glassmorphism UI in both themes |
+| 📱 **PWA Support** | Install as app on any device |
+
+---
+
+## 🎯 Activity Categories
 
 Track time across **16 life categories**:
 
-| Category | Category | Category | Category |
-|----------|----------|----------|----------|
+| | | | |
+|:---:|:---:|:---:|:---:|
 | 😴 Sleep | 📚 Study | 📖 Book Reading | 🍽️ Eating |
 | 👥 Friends | 💆 Grooming | 🏋️ Workout | 📱 Reels |
 | 🏠 Family | ☕ Idle | 🎨 Creative | ✈️ Travelling |
 | 🛒 Errand | 🛋️ Rest | 🎮 Entertainment | 💼 Office |
 
----
-
-## Features
-
-✨ **24-Hour Day Tracking** — Log activities until your day is complete  
-🔥 **Streak System** — Build consistency with daily streaks  
-🌗 **Dark & Light Mode** — Beautiful warm theme in both modes  
-📅 **Historical View** — Browse and edit past days  
-👥 **Social Features** — Search and view other users' progress  
-📱 **Cross-Platform** — Web app + Native Android app  
+*Plus create your own custom categories!*
 
 ---
 
-## TODOs
+## 🛠️ Tech Stack
 
-- [ ] Add weekly and monthly analytics dashboard
-- [ ] Social features - follow users, leaderboards
+| Frontend | Backend |
+|:--------:|:-------:|
+| React 19 | Go 1.24 |
+| TypeScript | Fiber v2 |
+| Vite | PostgreSQL 16 |
+| Zustand | Redis 7 |
+| PWA | Azure Blob |
+
+---
+
+## 🚀 Getting Started
+
+Ready to run locally? Check out the full setup guide:
+
+👉 **[LOCAL_DEV_README.md](LOCAL_DEV_README.md)**
+
+Quick overview:
+1. Clone the repo
+2. Run `docker-compose up` to start backend services
+3. Run `npm install && npm run dev` in the frontend folder
+4. Open `http://localhost:5173`
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. 🐛 **Report bugs** — Open an issue describing the problem
+2. 💡 **Suggest features** — Share your ideas in discussions
+3. 🔧 **Submit PRs** — Fork, create a branch, and submit a pull request
+
+---
+
+## 📋 TODOs
+
 - [ ] Export data to CSV/PDF
 - [ ] Goal setting per activity category
 - [ ] Unit test cases
-- [ ] Add attachments
-- [ ] optimized photo upload
-- [ ] email verification
-- [ ] Story like updated their day.
+- [ ] Add attachments to activities
+- [ ] Optimized photo upload
+- [ ] Story-like "updated their day" feature
 - [ ] Streak freeze days
-- [ ] what criteria should be for verfied
-- [ ] call cleanup for stale data in stale subscriptions
+- [ ] Verified user criteria
+- [ ] Cleanup for stale subscriptions
 
 
 

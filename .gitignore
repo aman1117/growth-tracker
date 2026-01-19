@@ -28,3 +28,6 @@ twa/.gradle/
 twa/app/build/
 twa/build/
 twa/hs_err_pid*.log
+
+#PowerShell scripts
+scripts/send-servicebus-streak-reminders.ps1

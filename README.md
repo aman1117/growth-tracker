@@ -1,7 +1,10 @@
 <div align="center">
 
-![Growth Tracker](frontend/public/logo.png#gh-light-mode-only)
-![Growth Tracker](frontend/public/logo-light.png#gh-dark-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/amansha/growth-tracker/main/frontend/public/logo-light.png" width="400">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/amansha/growth-tracker/main/frontend/public/logo.png" width="400">
+  <img src="frontend/public/logo.png" alt="Growth Tracker" width="400"/>
+</picture>
 
 ### Track all 24 hours. Build streaks. Grow intentionally.
 

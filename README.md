@@ -148,6 +148,7 @@ Contributions are welcome! Here's how you can help:
 - [ ] Streak freeze days
 - [ ] Verified user criteria
 - [ ] Cleanup for stale subscriptions
+- [ ] Snooze 
 
 
 

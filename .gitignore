@@ -32,3 +32,15 @@ twa/hs_err_pid*.log
 #PowerShell scripts
 scripts/send-servicebus-streak-reminders.ps1
 backend/image-worker/README.md
+
+# Rust build artifacts
+backend/image_worker/target/
+
+# Android app build outputs
+android-app/app/build/
+android-app/.gradle/
+
+# Android native app
+android/.gradle/
+android/.idea/
+android/local.properties

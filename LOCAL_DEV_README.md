@@ -1,36 +1,62 @@
 # Local Development Setup
 
-A complete Docker-based local development environment that mirrors production infrastructure.
+A complete Docker-based local development environment that mirrors production infrastructure with full debugging support.
 
 ## Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+- [Visual Studio Code](https://code.visualstudio.com/) with the [Go extension](https://marketplace.visualstudio.com/items?itemName=golang.Go)
 - Git
 
 ## Quick Start
 
-```powershell
-# Start all services and seed the database (one command)
-docker-compose up -d && docker-compose --profile seed up seed
+### Windows (PowerShell)
 
-# Open the app
-# Frontend: http://localhost:5173
-# Backend:  http://localhost:8000
+```powershell
+# Setup environment (optional - only needed for push notifications)
+Copy-Item .env.example .env
+# Edit .env if you need push notification testing
+
+# Start all services and seed the database
+docker-compose up -d; docker-compose --profile seed up seed
 ```
+
+### macOS / Linux (Bash)
+
+```bash
+# Setup environment (optional - only needed for push notifications)
+cp .env.example .env
+# Edit .env if you need push notification testing
+
+# Start all services and seed the database
+docker-compose up -d && docker-compose --profile seed up seed
+```
+
+### Access Points
+
+| Service | URL |
+|---------|-----|
+| **Frontend** | http://localhost:5173 |
+| **Backend API** | http://localhost:8000 |
+| **Email UI** | http://localhost:8025 |
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Host Machine                              │
-├─────────────────────────────────────────────────────────────────┤
-│  localhost:5173 ──► Frontend (Vite + React)                     │
-│  localhost:8000 ──► Backend (Go + Fiber)                        │
-│  localhost:8025 ──► Mailpit Web UI                              │
-│  localhost:5432 ──► PostgreSQL                                  │
-│  localhost:6379 ──► Redis                                       │
-│  localhost:10000 ─► Azurite (Blob Storage)                      │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            Host Machine                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  localhost:5173  ──► Frontend (Vite + React)                                │
+│  localhost:8000  ──► Backend (Go + Fiber)                                   │
+│  localhost:8025  ──► Mailpit Web UI                                         │
+│  localhost:5432  ──► PostgreSQL                                             │
+│  localhost:6379  ──► Redis                                                  │
+│  localhost:10000 ──► Azurite (Blob Storage)                                 │
+│                                                                             │
+│  Debug Ports:                                                               │
+│  localhost:2345  ──► Backend Delve Debugger                                 │
+│  localhost:2346  ──► Push Worker Delve Debugger                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Services
@@ -130,6 +156,62 @@ Both backend and frontend support hot-reload:
 - **Backend (Go)**: Uses [Air](https://github.com/air-verse/air). Edit any `.go` file and it auto-rebuilds.
 - **Frontend (React)**: Uses Vite. Edit any file in `frontend/src/` and it auto-refreshes.
 
+## Debugging Go Services
+
+The development environment includes full debugging support using [Delve](https://github.com/go-delve/delve), the Go debugger.
+
+### Debug Configuration
+
+VS Code launch configurations are pre-configured in `.vscode/launch.json`:
+
+| Configuration | Port | Description |
+|--------------|------|-------------|
+| **Backend (Docker)** | 2345 | Debug the main API server |
+| **Push Worker (Docker)** | 2346 | Debug the push notification worker |
+| **All Services** | - | Attach to both services simultaneously |
+
+### How to Debug
+
+1. **Start the containers** (if not already running):
+   ```powershell
+   docker-compose up -d
+   ```
+
+2. **Set breakpoints** in VS Code by clicking in the gutter next to line numbers in any Go file under `backend/`
+
+3. **Attach the debugger**:
+   - Press `F5` or go to **Run and Debug** panel (Ctrl+Shift+D)
+   - Select **Backend (Docker)** or **Push Worker (Docker)**
+   - Click the green play button
+
+4. **Trigger your breakpoint** by making a request to the API:
+   ```powershell
+   curl http://localhost:8000/
+   ```
+
+5. **Debug** using VS Code's debug controls:
+   - **F10** - Step Over
+   - **F11** - Step Into
+   - **Shift+F11** - Step Out
+   - **F5** - Continue
+   - Inspect variables in the **Variables** panel
+   - Evaluate expressions in the **Debug Console**
+
+### Troubleshooting Debugging
+
+**Hollow breakpoints (not binding):**
+- Ensure containers are running: `docker-compose ps`
+- Rebuild containers: `docker-compose up -d --build backend`
+- Check Delve is listening: `docker logs growth-tracker-backend`
+
+**"Failed to attach" error:**
+- The app may have crashed. Check logs: `docker-compose logs backend`
+- Restart the container: `docker-compose restart backend`
+
+**Breakpoint not hit:**
+- Verify the code path is being executed
+- Check substitutePath mapping in `.vscode/launch.json`
+
 ## Email Testing
 
 All emails sent by the app are captured by **Mailpit** instead of being sent to real addresses.
@@ -147,11 +229,42 @@ Profile picture uploads work locally using **Azurite** (Azure Storage emulator):
 
 ## Environment Variables
 
-The docker-compose.yml contains all necessary environment variables for local development. If you need to customize:
+The local development setup uses a `.env` file for secrets that should not be committed to git.
 
-1. Copy `.env.local.example` to `.env.local`
-2. Modify values as needed
-3. Restart services: `docker-compose up -d`
+### Required Setup
+
+1. Copy the example file:
+   ```powershell
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and add your secrets:
+   ```env
+   # Azure Service Bus (for push notifications)
+   AZURE_SERVICEBUS_CONNECTION_STRING=Endpoint=sb://...
+
+   # VAPID Keys (for Web Push)
+   VAPID_PUBLIC_KEY=your_public_key
+   VAPID_PRIVATE_KEY=your_private_key
+   ```
+
+### Getting Azure Service Bus Connection String
+
+```powershell
+az servicebus namespace authorization-rule keys list `
+  --resource-group growth-tracker `
+  --namespace-name growthtrackerservicebus `
+  --name RootManageSharedAccessKey `
+  --query primaryConnectionString -o tsv
+```
+
+### Generating VAPID Keys
+
+```powershell
+npx web-push generate-vapid-keys
+```
+
+> **Note:** The `.env` file is gitignored. Never commit secrets to the repository.
 
 ## Troubleshooting
 
@@ -209,16 +322,26 @@ docker-compose --profile seed up seed
 
 ```
 growth-tracker/
-├── docker-compose.yml      # Main orchestration file
-├── .env.local.example      # Environment template
+├── .env                        # Local secrets (gitignored)
+├── .env.example                # Environment template
+├── .vscode/
+│   └── launch.json             # Debug configurations
+├── docker-compose.yml          # Main orchestration file
+├── LOCAL_DEV_README.md         # This file
 ├── backend/
-│   ├── Dockerfile          # Production build
-│   ├── Dockerfile.dev      # Development with Air
-│   ├── air.toml            # Air hot-reload config
-│   └── cmd/seed/main.go    # Database seeder
+│   ├── Dockerfile              # Production build
+│   ├── Dockerfile.dev          # Development with Delve debugger
+│   ├── Dockerfile.pushworker   # Production push worker
+│   ├── Dockerfile.pushworker.dev # Development push worker with debugger
+│   ├── air.toml                # Air hot-reload config
+│   ├── cmd/
+│   │   ├── server/             # Main API entry point
+│   │   ├── pushworker/         # Push notification worker
+│   │   └── seed/               # Database seeder
+│   └── internal/               # Application code
 └── frontend/
-    ├── Dockerfile.dev      # Development with Vite
-    └── .dockerignore
+    ├── Dockerfile.dev          # Development with Vite
+    └── src/                    # React application
 ```
 
 ## Local vs Production Parity

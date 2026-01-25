@@ -1,0 +1,21 @@
+# Development Dockerfile with Delve debugger for Push Worker
+FROM golang:1.24-alpine
+
+WORKDIR /app
+
+# Install git and Delve debugger
+RUN apk add --no-cache git curl ca-certificates tzdata && \
+    go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Copy go mod files
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code (will be overwritten by volume mount)
+COPY . .
+
+# Expose ports: 8001 for health check, 2346 for debugger
+EXPOSE 8001 2346
+
+# Build and run with Delve debugger (no --continue so debugger can attach first)
+CMD sh -c "go build -gcflags='all=-N -l' -o /tmp/pushworker ./cmd/pushworker && dlv exec /tmp/pushworker --headless --listen=:2346 --api-version=2 --accept-multiclient --log"

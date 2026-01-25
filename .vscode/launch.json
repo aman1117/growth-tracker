@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Backend (Docker)",
+            "type": "go",
+            "request": "attach",
+            "mode": "remote",
+            "port": 2345,
+            "host": "localhost",
+            "substitutePath": [
+                { "from": "${workspaceFolder}\\backend", "to": "/app" },
+                { "from": "${workspaceFolder}/backend", "to": "/app" }
+            ],
+            "showLog": true
+        },
+        {
+            "name": "Push Worker (Docker)",
+            "type": "go",
+            "request": "attach",
+            "mode": "remote",
+            "port": 2346,
+            "host": "localhost",
+            "substitutePath": [
+                { "from": "${workspaceFolder}\\backend", "to": "/app" },
+                { "from": "${workspaceFolder}/backend", "to": "/app" }
+            ],
+            "showLog": true
+        }
+    ],
+    "compounds": [
+        {
+            "name": "All Services",
+            "configurations": ["Backend (Docker)", "Push Worker (Docker)"]
+        }
+    ]
+}

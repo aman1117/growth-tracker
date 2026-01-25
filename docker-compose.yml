@@ -77,7 +77,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend with Air hot-reload
+  # Backend with Delve debugger
   backend:
     build:
       context: ./backend
@@ -85,10 +85,15 @@ services:
     container_name: growth-tracker-backend
     ports:
       - "8000:8000"
+      - "2345:2345"   # Delve debugger port
     volumes:
       - ./backend:/app
       - go_mod_cache:/go/pkg/mod
       - go_build_cache:/root/.cache/go-build
+    security_opt:
+      - "seccomp:unconfined"  # Required for Delve
+    cap_add:
+      - SYS_PTRACE  # Required for Delve
     environment:
       # Database - LOCAL ONLY
       DB_HOST: postgres
@@ -128,11 +133,11 @@ services:
       AZURE_SERVICEBUS_CONNECTION_STRING: ${AZURE_SERVICEBUS_CONNECTION_STRING:-}
       AZURE_SERVICEBUS_QUEUE_NAME: ${AZURE_SERVICEBUS_QUEUE_NAME:-push-notifications-dev}
 
-      # VAPID Keys for Web Push (set these env vars locally)
+      # VAPID Keys for Web Push (from .env file, optional - push notifications disabled if not set)
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
-      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:dev@localhost}
-      VAPID_KEY_ID: ${VAPID_KEY_ID:-dev-local}
+      VAPID_SUBJECT: mailto:dev@localhost
+      VAPID_KEY_ID: dev-local
     depends_on:
       postgres:
         condition: service_healthy
@@ -222,18 +227,23 @@ services:
     profiles:
       - send-reminders
 
-  # Push Worker - Web Push notification delivery service
+  # Push Worker - Web Push notification delivery service with Delve debugger
   pushworker:
     build:
       context: ./backend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.pushworker.dev
     container_name: growth-tracker-pushworker
     ports:
       - "8001:8001"
+      - "2346:2346"   # Delve debugger port
     volumes:
       - ./backend:/app
       - go_mod_cache:/go/pkg/mod
       - go_build_cache:/root/.cache/go-build
+    security_opt:
+      - "seccomp:unconfined"  # Required for Delve
+    cap_add:
+      - SYS_PTRACE  # Required for Delve
     environment:
       # Database - LOCAL ONLY
       DB_HOST: postgres
@@ -247,15 +257,15 @@ services:
       ENV: development
       PORT: 8001
 
-      # Service Bus - Use dev namespace (set these env vars locally)
+      # Service Bus - dev namespace (from .env file, optional - push notifications disabled if not set)
       AZURE_SERVICEBUS_CONNECTION_STRING: ${AZURE_SERVICEBUS_CONNECTION_STRING:-}
-      AZURE_SERVICEBUS_QUEUE_NAME: ${AZURE_SERVICEBUS_QUEUE_NAME:-push-notifications-dev}
+      AZURE_SERVICEBUS_QUEUE_NAME: push-notifications-dev
 
-      # VAPID Keys for Web Push (set these env vars locally)
+      # VAPID Keys for Web Push (from .env file, optional - push notifications disabled if not set)
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
-      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:dev@localhost}
-      VAPID_KEY_ID: ${VAPID_KEY_ID:-dev-local}
+      VAPID_SUBJECT: mailto:dev@localhost
+      VAPID_KEY_ID: dev-local
 
       # Push Worker Config
       PUSH_SEND_RATE_LIMIT: 100
@@ -266,9 +276,6 @@ services:
         condition: service_healthy
       backend:
         condition: service_started
-    command: ["go", "run", "./cmd/pushworker/main.go"]
-    profiles:
-      - pushworker
 
   # Frontend with Vite hot-reload
   frontend:

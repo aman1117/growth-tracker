@@ -2,6 +2,7 @@
 package observability
 
 import (
+	"crypto/subtle"
 	"log"
 	"strings"
 	"time"
@@ -122,7 +123,7 @@ func pprofAuthMiddleware(expectedToken string, prefix string) fiber.Handler {
 			// Expect format: "Bearer <token>"
 			parts := strings.SplitN(authHeader, " ", 2)
 			if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
-				if parts[1] == expectedToken {
+				if secureCompare(parts[1], expectedToken) {
 					return c.Next()
 				}
 			}
@@ -130,7 +131,7 @@ func pprofAuthMiddleware(expectedToken string, prefix string) fiber.Handler {
 
 		// Check X-PPROF-Token header
 		pprofToken := c.Get("X-PPROF-Token")
-		if pprofToken == expectedToken {
+		if secureCompare(pprofToken, expectedToken) {
 			return c.Next()
 		}
 
@@ -139,4 +140,16 @@ func pprofAuthMiddleware(expectedToken string, prefix string) fiber.Handler {
 			"error": "unauthorized: valid pprof token required",
 		})
 	}
+}
+
+// secureCompare performs constant-time string comparison to prevent timing attacks.
+// Returns false if either string is empty.
+func secureCompare(a, b string) bool {
+	if len(a) == 0 || len(b) == 0 {
+		return false
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }

@@ -212,6 +212,7 @@
   animation: dayPop 0.25s var(--ease-out) backwards;
 }
 
+
 /* Staggered animation for days */
 .day:nth-child(7n + 1) {
   animation-delay: 0.02s;
@@ -257,16 +258,38 @@
   animation: todayPulse 2s infinite;
 }
 
+:global(:root:not([data-theme='dark'])) .day.today:not(.selected) {
+  color: var(--text-primary);
+}
+
 .day.selected {
-  background: var(--color-primary);
-  color: white;
+  background: rgba(59, 130, 246, 0.18);
+  color: var(--text-primary);
   font-weight: var(--font-bold);
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    inset 0 0 0 2px rgba(59, 130, 246, 0.65),
+    0 0 8px rgba(59, 130, 246, 0.35);
   transform: scale(1.05);
 }
 
+:global(:root:not([data-theme='dark'])) .day.selected {
+  background: rgba(59, 130, 246, 0.16);
+  box-shadow:
+    inset 0 0 0 2px rgba(59, 130, 246, 0.6),
+    0 0 8px rgba(59, 130, 246, 0.28);
+  color: var(--text-primary);
+}
+
+:global([data-theme='dark']) .day.selected {
+  background: rgba(96, 165, 250, 0.18);
+  box-shadow:
+    inset 0 0 0 2px rgba(96, 165, 250, 0.6),
+    0 0 10px rgba(96, 165, 250, 0.35);
+  color: var(--text-primary);
+}
+
 .day.selected:hover {
-  background: var(--color-primary-hover);
+  background: rgba(59, 130, 246, 0.24);
   transform: scale(1.1);
 }
 
@@ -324,8 +347,33 @@
 .day.selected.heatLevel3,
 .day.selected.heatLevel4,
 .day.selected.heatComplete {
-  background: var(--color-primary);
-  color: white;
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: var(--text-primary);
+  box-shadow:
+    inset 0 0 0 2px rgba(59, 130, 246, 0.65),
+    0 0 8px rgba(59, 130, 246, 0.35);
+}
+
+:global(:root:not([data-theme='dark'])) .day.selected.heatLevel1,
+:global(:root:not([data-theme='dark'])) .day.selected.heatLevel2,
+:global(:root:not([data-theme='dark'])) .day.selected.heatLevel3,
+:global(:root:not([data-theme='dark'])) .day.selected.heatLevel4,
+:global(:root:not([data-theme='dark'])) .day.selected.heatComplete {
+  background: rgba(59, 130, 246, 0.16) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(59, 130, 246, 0.6),
+    0 0 8px rgba(59, 130, 246, 0.28);
+}
+
+:global([data-theme='dark']) .day.selected.heatLevel1,
+:global([data-theme='dark']) .day.selected.heatLevel2,
+:global([data-theme='dark']) .day.selected.heatLevel3,
+:global([data-theme='dark']) .day.selected.heatLevel4,
+:global([data-theme='dark']) .day.selected.heatComplete {
+  background: rgba(96, 165, 250, 0.18) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(96, 165, 250, 0.6),
+    0 0 10px rgba(96, 165, 250, 0.35);
 }
 
 /* Dark mode - increase heat map visibility */

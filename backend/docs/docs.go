@@ -56,6 +56,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/resend-verification": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Resend verification email to the authenticated user (rate limited)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Resend verification email",
+                "responses": {
+                    "200": {
+                        "description": "Verification email sent",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Already verified or in cooldown",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/reset-password": {
             "post": {
                 "description": "Reset password using the token from email",
@@ -89,6 +129,46 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid token or validation error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify-email": {
+            "post": {
+                "description": "Verify user's email address using the token from email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify email address",
+                "parameters": [
+                    {
+                        "description": "Verification token",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VerifyEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verified successfully",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or expired token",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -428,6 +508,79 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/get-daily-totals": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve total hours per day for a user within a date range",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "Get daily totals for heat map",
+                "parameters": [
+                    {
+                        "description": "Date range and username",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetDailyTotalsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Map of dates to total hours",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.DataResponse"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "number",
+                                                "format": "float32"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error or user not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Private account",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -2787,6 +2940,26 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GetDailyTotalsRequest": {
+            "description": "Get daily hour totals for a date range (for calendar heat map)",
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "description": "Format: YYYY-MM-DD",
+                    "type": "string",
+                    "example": "2026-01-31"
+                },
+                "start_date": {
+                    "description": "Format: YYYY-MM-DD",
+                    "type": "string",
+                    "example": "2026-01-01"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
         "dto.GetLikesRequest": {
             "description": "Get likes for a specific day",
             "type": "object",
@@ -3125,6 +3298,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "john@example.com"
                 },
+                "email_verified": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "followers_count": {
                     "type": "integer",
                     "example": 150
@@ -3188,6 +3365,11 @@ const docTemplate = `{
                 "is_verified": {
                     "type": "boolean",
                     "example": false
+                },
+                "last_logged_at": {
+                    "description": "Hidden for private accounts unless following",
+                    "type": "string",
+                    "example": "2026-01-29T00:00:00Z"
                 },
                 "profile_pic": {
                     "type": "string",
@@ -3654,6 +3836,16 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "dto.VerifyEmailRequest": {
+            "description": "Email verification with token",
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "abc123def456"
                 }
             }
         },

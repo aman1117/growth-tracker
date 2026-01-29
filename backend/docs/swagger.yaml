@@ -321,6 +321,21 @@ definitions:
         example: john_doe
         type: string
     type: object
+  dto.GetDailyTotalsRequest:
+    description: Get daily hour totals for a date range (for calendar heat map)
+    properties:
+      end_date:
+        description: 'Format: YYYY-MM-DD'
+        example: "2026-01-31"
+        type: string
+      start_date:
+        description: 'Format: YYYY-MM-DD'
+        example: "2026-01-01"
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
   dto.GetLikesRequest:
     description: Get likes for a specific day
     properties:
@@ -566,6 +581,9 @@ definitions:
       email:
         example: john@example.com
         type: string
+      email_verified:
+        example: true
+        type: boolean
       followers_count:
         example: 150
         type: integer
@@ -614,6 +632,10 @@ definitions:
       is_verified:
         example: false
         type: boolean
+      last_logged_at:
+        description: Hidden for private accounts unless following
+        example: "2026-01-29T00:00:00Z"
+        type: string
       profile_pic:
         example: https://storage.blob.core.windows.net/pics/1/abc.jpg
         type: string
@@ -946,6 +968,13 @@ definitions:
         example: true
         type: boolean
     type: object
+  dto.VerifyEmailRequest:
+    description: Email verification with token
+    properties:
+      token:
+        example: abc123def456
+        type: string
+    type: object
   dto.WeekAnalyticsResponse:
     description: Weekly analytics data
     properties:
@@ -1068,6 +1097,31 @@ paths:
       summary: Request password reset
       tags:
       - Authentication
+  /auth/resend-verification:
+    post:
+      consumes:
+      - application/json
+      description: Resend verification email to the authenticated user (rate limited)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification email sent
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Already verified or in cooldown
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Resend verification email
+      tags:
+      - Authentication
   /auth/reset-password:
     post:
       consumes:
@@ -1092,6 +1146,32 @@ paths:
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Reset password with token
+      tags:
+      - Authentication
+  /auth/verify-email:
+    post:
+      consumes:
+      - application/json
+      description: Verify user's email address using the token from email
+      parameters:
+      - description: Verification token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email verified successfully
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Invalid or expired token
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Verify email address
       tags:
       - Authentication
   /badges:
@@ -1304,6 +1384,50 @@ paths:
       summary: Get bio
       tags:
       - Profile
+  /get-daily-totals:
+    post:
+      consumes:
+      - application/json
+      description: Retrieve total hours per day for a user within a date range
+      parameters:
+      - description: Date range and username
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GetDailyTotalsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Map of dates to total hours
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.DataResponse'
+            - properties:
+                data:
+                  additionalProperties:
+                    format: float32
+                    type: number
+                  type: object
+              type: object
+        "400":
+          description: Validation error or user not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Private account
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get daily totals for heat map
+      tags:
+      - Activities
   /get-likes:
     post:
       consumes:

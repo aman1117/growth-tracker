@@ -88,6 +88,14 @@ type GetActivitiesRequest struct {
 	EndDate   string `json:"end_date" example:"2026-01-07"`   // Format: YYYY-MM-DD
 }
 
+// GetDailyTotalsRequest represents the request to fetch daily totals for heat map
+// @Description Get daily hour totals for a date range (for calendar heat map)
+type GetDailyTotalsRequest struct {
+	Username  string `json:"username" example:"john_doe"`
+	StartDate string `json:"start_date" example:"2026-01-01"` // Format: YYYY-MM-DD
+	EndDate   string `json:"end_date" example:"2026-01-31"`   // Format: YYYY-MM-DD
+}
+
 // ==================== Streak DTOs ====================
 
 // GetStreakRequest represents the request to fetch streak data

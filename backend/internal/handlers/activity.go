@@ -146,6 +146,78 @@ func (h *ActivityHandler) GetActivities(c *fiber.Ctx) error {
 	return response.Data(c, toActivityDTOs(activities, isOwnProfile))
 }
 
+// GetDailyTotals handles fetching daily hour totals for calendar heat map
+// @Summary Get daily totals for heat map
+// @Description Retrieve total hours per day for a user within a date range
+// @Tags Activities
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body dto.GetDailyTotalsRequest true "Date range and username"
+// @Success 200 {object} dto.DataResponse{data=map[string]float32} "Map of dates to total hours"
+// @Failure 400 {object} dto.ErrorResponse "Validation error or user not found"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 403 {object} dto.ErrorResponse "Private account"
+// @Router /get-daily-totals [post]
+func (h *ActivityHandler) GetDailyTotals(c *fiber.Ctx) error {
+	var req dto.GetDailyTotalsRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.InvalidRequest(c)
+	}
+
+	// Parse dates
+	startDate, err := time.Parse(constants.DateFormat, req.StartDate)
+	if err != nil {
+		return response.BadRequest(c, "Invalid start_date format, use YYYY-MM-DD", constants.ErrCodeInvalidDate)
+	}
+
+	endDate, err := time.Parse(constants.DateFormat, req.EndDate)
+	if err != nil {
+		return response.BadRequest(c, "Invalid end_date format, use YYYY-MM-DD", constants.ErrCodeInvalidDate)
+	}
+
+	if startDate.After(endDate) {
+		return response.BadRequest(c, "Start date must be before end date", constants.ErrCodeInvalidDateRange)
+	}
+
+	// Limit date range to prevent abuse (max 93 days = ~3 months)
+	if endDate.Sub(startDate).Hours() > 93*24 {
+		return response.BadRequest(c, "Date range cannot exceed 93 days", constants.ErrCodeInvalidDateRange)
+	}
+
+	currentUserID := getUserID(c)
+	traceID := getTraceID(c)
+
+	// Find target user
+	user, err := h.authSvc.GetUserByUsername(req.Username)
+	if err != nil || user == nil {
+		logger.LogWithContext(traceID, currentUserID).Warnw("Daily totals fetch failed - user not found", "target_username", req.Username)
+		return response.UserNotFound(c)
+	}
+
+	// Check privacy
+	if !h.profileSvc.CanViewProfile(user, currentUserID) {
+		logger.LogWithContext(traceID, currentUserID).Debugw("Daily totals access denied - private account", "target_username", req.Username)
+		return response.PrivateAccount(c)
+	}
+
+	// Fetch daily totals
+	totals, err := h.activitySvc.GetDailyTotals(user.ID, startDate, endDate)
+	if err != nil {
+		logger.Sugar.Errorw("Daily totals fetch failed", "user_id", user.ID, "username", req.Username, "error", err)
+		return response.BadRequest(c, "Failed to fetch daily totals", constants.ErrCodeFetchFailed)
+	}
+
+	logger.LogWithContext(traceID, currentUserID).Debugw("Daily totals fetched",
+		"target_username", req.Username,
+		"start_date", req.StartDate,
+		"end_date", req.EndDate,
+		"days_with_data", len(totals),
+	)
+
+	return response.Data(c, totals)
+}
+
 // toActivityDTOs converts activities to DTOs
 func toActivityDTOs(activities []models.Activity, includeNotes bool) []dto.ActivityDTO {
 	result := make([]dto.ActivityDTO, 0, len(activities))

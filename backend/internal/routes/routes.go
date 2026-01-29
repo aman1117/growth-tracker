@@ -114,6 +114,7 @@ func (r *Router) Setup(app *fiber.App) {
 	// Activities
 	api.Post("/create-activity", authMiddleware, apiRateLimiter, r.activityHandler.CreateActivity)
 	api.Post("/get-activities", authMiddleware, apiRateLimiter, r.activityHandler.GetActivities)
+	api.Post("/get-daily-totals", authMiddleware, apiRateLimiter, r.activityHandler.GetDailyTotals)
 
 	// Streaks
 	api.Post("/get-streak", authMiddleware, apiRateLimiter, r.streakHandler.GetStreak)

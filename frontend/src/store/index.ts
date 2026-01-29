@@ -52,3 +52,10 @@ export {
   useFollowCounts,
   usePendingRequestsCount,
 } from './useFollowStore';
+
+export {
+  useCompletionStore,
+  useMonthCompletion,
+  useMonthCompletionLoading,
+  type MonthCompletionData,
+} from './useCompletionStore';

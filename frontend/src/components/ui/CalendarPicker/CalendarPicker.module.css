@@ -250,7 +250,7 @@
 }
 
 .day.today:not(.selected) {
-  background: var(--color-primary-alpha-10);
+  /* No background - let heat map show through */
   color: var(--color-primary);
   font-weight: var(--font-bold);
   box-shadow: inset 0 0 0 2px var(--color-primary);
@@ -273,6 +273,80 @@
 .day.disabled {
   opacity: 0.25;
   cursor: not-allowed;
+}
+
+/* ============================================================================
+   Heat Map Styles
+   ============================================================================ */
+
+/*
+ * Heat map uses direct background colors on the .day element.
+ * Using !important to ensure heat map always shows through other states.
+ */
+
+/* Level 1: 1-6 hours - Lightest */
+.day.heatLevel1 {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+/* Level 2: 6-12 hours */
+.day.heatLevel2 {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+}
+
+/* Level 3: 12-18 hours */
+.day.heatLevel3 {
+  background-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+/* Level 4: 18-24 hours */
+.day.heatLevel4 {
+  background-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Complete: 24 hours - Full intensity */
+.day.heatComplete {
+  background-color: rgba(59, 130, 246, 0.65) !important;
+}
+
+/* Outside month with heat map - reduced opacity */
+.day.outside.heatLevel1,
+.day.outside.heatLevel2,
+.day.outside.heatLevel3,
+.day.outside.heatLevel4,
+.day.outside.heatComplete {
+  opacity: 0.5;
+}
+
+/* Selected state overrides everything */
+.day.selected.heatLevel1,
+.day.selected.heatLevel2,
+.day.selected.heatLevel3,
+.day.selected.heatLevel4,
+.day.selected.heatComplete {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Dark mode - increase heat map visibility */
+:global([data-theme='dark']) .day.heatLevel1 {
+  background-color: rgba(96, 165, 250, 0.15) !important;
+}
+
+:global([data-theme='dark']) .day.heatLevel2 {
+  background-color: rgba(96, 165, 250, 0.25) !important;
+}
+
+:global([data-theme='dark']) .day.heatLevel3 {
+  background-color: rgba(96, 165, 250, 0.38) !important;
+}
+
+:global([data-theme='dark']) .day.heatLevel4 {
+  background-color: rgba(96, 165, 250, 0.52) !important;
+}
+
+:global([data-theme='dark']) .day.heatComplete {
+  background-color: rgba(96, 165, 250, 0.68) !important;
 }
 
 /* Grid Views - Months & Years */

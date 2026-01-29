@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '../services/api';
 import { Flame, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import { LikeButton, CalendarPicker } from './ui';
+import type { CompletionData } from './ui/CalendarPicker';
 import { renderBadgeIcon } from '../utils/badgeIcons';
 import type { Badge } from '../types/api';
+import { useCompletionStore } from '../store';
 
 interface DaySummaryCardProps {
     username: string;
@@ -41,6 +43,13 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     const [badges, setBadges] = useState<Badge[]>([]);
     const [badgesLoading, setBadgesLoading] = useState(true);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [calendarViewMonth, setCalendarViewMonth] = useState<{ year: number; month: number }>({
+        year: currentDate.getFullYear(),
+        month: currentDate.getMonth(),
+    });
+
+    // Completion store for heat map
+    const { fetchMonthData, getMonthData } = useCompletionStore();
 
     const formatDateForApi = (date: Date) => {
         const year = date.getFullYear();
@@ -100,6 +109,23 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
         fetchBadges();
         // eslint-disable-next-line react-hooks-deps
     }, [username]);
+
+    // Fetch heat map data when calendar view month changes
+    useEffect(() => {
+        if (isCalendarOpen && username) {
+            fetchMonthData(username, calendarViewMonth.year, calendarViewMonth.month);
+        }
+    }, [isCalendarOpen, username, calendarViewMonth.year, calendarViewMonth.month, fetchMonthData]);
+
+    // Handle calendar month navigation
+    const handleCalendarMonthChange = useCallback((year: number, month: number) => {
+        setCalendarViewMonth({ year, month });
+    }, []);
+
+    // Get completion data for current calendar view month
+    const completionData: CompletionData | undefined = username
+        ? getMonthData(username, calendarViewMonth.year, calendarViewMonth.month) ?? undefined
+        : undefined;
 
     const formatDate = (d: Date) => {
         const today = new Date();
@@ -371,13 +397,15 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
                 />
             </div>
 
-            {/* Custom Calendar Picker */}
+            {/* Custom Calendar Picker with Heat Map */}
             <CalendarPicker
                 isOpen={isCalendarOpen}
                 onClose={() => setIsCalendarOpen(false)}
                 selectedDate={currentDate}
                 onDateSelect={onDateChange}
                 maxDate={new Date()}
+                completionData={completionData}
+                onMonthChange={handleCalendarMonthChange}
             />
         </div>
     );

@@ -50,6 +50,7 @@ export const API_ROUTES = {
   ACTIVITY: {
     CREATE: '/create-activity',
     GET: '/get-activities',
+    DAILY_TOTALS: '/get-daily-totals',
   },
 
   // ============================================================================

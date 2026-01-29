@@ -375,6 +375,24 @@ func (s *ActivityService) GetActivities(userID uint, startDate, endDate time.Tim
 	return s.activityRepo.FindByUserAndDateRange(userID, startDate, endDate)
 }
 
+// GetDailyTotals retrieves total hours per day for a user within a date range
+// Returns a map of date string (YYYY-MM-DD) to total hours
+func (s *ActivityService) GetDailyTotals(userID uint, startDate, endDate time.Time) (map[string]float32, error) {
+	activities, err := s.activityRepo.FindByUserAndDateRange(userID, startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Aggregate hours by date
+	totals := make(map[string]float32)
+	for _, a := range activities {
+		dateStr := a.ActivityDate.Format(constants.DateFormat)
+		totals[dateStr] += a.DurationHours
+	}
+
+	return totals, nil
+}
+
 // ==================== Streak Service ====================
 
 // StreakService handles streak-related business logic

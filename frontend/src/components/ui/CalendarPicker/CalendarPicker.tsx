@@ -3,12 +3,16 @@
  *
  * A professional calendar date picker with glassmorphism design.
  * Features day/month/year selection views with smooth animations.
+ * Includes optional heat map visualization for activity completion.
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './CalendarPicker.module.css';
+
+/** Map of date string (YYYY-MM-DD) to total hours logged */
+export type CompletionData = Record<string, number>;
 
 export interface CalendarPickerProps {
   /** Whether the calendar is open */
@@ -21,6 +25,10 @@ export interface CalendarPickerProps {
   onDateSelect: (date: Date) => void;
   /** Maximum selectable date (defaults to today) */
   maxDate?: Date;
+  /** Completion data for heat map (date string -> hours logged) */
+  completionData?: CompletionData;
+  /** Callback when viewed month changes (for fetching heat map data) */
+  onMonthChange?: (year: number, month: number) => void;
 }
 
 const MONTHS = [
@@ -54,6 +62,8 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
   selectedDate,
   onDateSelect,
   maxDate = new Date(),
+  completionData,
+  onMonthChange,
 }) => {
   const [isClosing, setIsClosing] = useState(false);
   const [viewDate, setViewDate] = useState(selectedDate);
@@ -78,6 +88,13 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
       setIsClosing(false);
     }
   }, [isOpen, selectedDate]);
+
+  // Notify parent when viewed month changes (for fetching heat map data)
+  useEffect(() => {
+    if (isOpen && onMonthChange) {
+      onMonthChange(viewDate.getFullYear(), viewDate.getMonth());
+    }
+  }, [isOpen, viewDate, onMonthChange]);
 
   // Handle click outside
   useEffect(() => {
@@ -221,9 +238,45 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
     return nextMonth <= maxDate;
   };
 
+  // Format date to YYYY-MM-DD for completion data lookup
+  const formatDateKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get heat level class based on hours logged
+  const getHeatLevelClass = (date: Date): string | null => {
+    if (!completionData) return null;
+
+    const dateKey = formatDateKey(date);
+    const hours = completionData[dateKey];
+
+    if (hours === undefined || hours <= 0) return null;
+    if (hours >= 24) return styles.heatComplete;
+    if (hours >= 18) return styles.heatLevel4;
+    if (hours >= 12) return styles.heatLevel3;
+    if (hours >= 6) return styles.heatLevel2;
+    return styles.heatLevel1;
+  };
+
+  // Get tooltip text for a day
+  const getDayTooltip = (date: Date): string | undefined => {
+    if (!completionData) return undefined;
+
+    const dateKey = formatDateKey(date);
+    const hours = completionData[dateKey];
+
+    if (hours === undefined || hours <= 0) return undefined;
+    if (hours >= 24) return '24/24 hours - Day complete! ✓';
+    return `${hours}/24 hours logged`;
+  };
+
   if (!isOpen) return null;
 
   const getDayClassName = (day: {
+    date: Date;
     isCurrentMonth: boolean;
     isToday: boolean;
     isSelected: boolean;
@@ -235,6 +288,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
       day.isToday && styles.today,
       day.isSelected && styles.selected,
       day.isDisabled && styles.disabled,
+      getHeatLevelClass(day.date),
     ]
       .filter(Boolean)
       .join(' ');
@@ -318,6 +372,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
                   className={getDayClassName(day)}
                   onClick={() => !day.isDisabled && handleDateClick(day.date)}
                   disabled={day.isDisabled}
+                  title={getDayTooltip(day.date)}
                 >
                   {day.date.getDate()}
                 </button>

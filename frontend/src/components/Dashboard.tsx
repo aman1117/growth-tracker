@@ -16,7 +16,7 @@ import {
     sortableKeyboardCoordinates,
     rectSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useAuth, useFollowStore } from '../store';
+import { useAuth, useFollowStore, useCompletionStore } from '../store';
 import { api, ApiError } from '../services/api';
 import { ACTIVITY_NAMES, isCustomTile, MAX_CUSTOM_TILES, formatLastLogged } from '../types';
 import type { ActivityName, Activity, CustomTile, PredefinedActivityName } from '../types';
@@ -421,6 +421,19 @@ export const Dashboard: React.FC = () => {
         fetchActivities();
     }, [fetchActivities]);
 
+    // Prefetch heat map data for calendar on Dashboard load
+    const { fetchMonthData, updateDay } = useCompletionStore();
+    
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    
+    useEffect(() => {
+        if (targetUsername) {
+            // Prefetch current month's completion data for heat map
+            fetchMonthData(targetUsername, currentYear, currentMonth);
+        }
+    }, [targetUsername, currentYear, currentMonth, fetchMonthData]);
+
     // Listen for follow-accepted events to refresh profile data
     useEffect(() => {
         const handleFollowAccepted = (event: CustomEvent<{ actorId: number; actorUsername: string }>) => {
@@ -772,6 +785,11 @@ export const Dashboard: React.FC = () => {
                     }
                     return newNotes;
                 });
+
+                // Update completion store for heat map (optimistic update)
+                if (targetUsername) {
+                    updateDay(targetUsername, currentDate, newTotalHours);
+                }
             } else {
                 throw new Error(res.error);
             }

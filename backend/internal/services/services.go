@@ -482,6 +482,11 @@ func (s *StreakService) GetLatestStreak(userID uint) (*models.Streak, error) {
 	return s.streakRepo.FindLatestByUser(userID)
 }
 
+// GetLatestActiveStreak retrieves the latest streak where user actually logged activity (current > 0)
+func (s *StreakService) GetLatestActiveStreak(userID uint) (*models.Streak, error) {
+	return s.streakRepo.FindLatestActiveByUser(userID)
+}
+
 // GetAllStreaks retrieves all streaks for a user
 func (s *StreakService) GetAllStreaks(userID uint) ([]models.Streak, error) {
 	return s.streakRepo.FindAllByUser(userID)

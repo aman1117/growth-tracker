@@ -250,7 +250,7 @@ func (h *ProfileHandler) GetUserProfile(c *fiber.Ctx) error {
 
 	// Only show last_logged_at if viewer can see private info and streak exists
 	if canViewPrivateInfo && h.streakSvc != nil {
-		streak, err := h.streakSvc.GetLatestStreak(uint(targetID))
+		streak, err := h.streakSvc.GetLatestActiveStreak(uint(targetID))
 		if err == nil && streak != nil {
 			resp.LastLoggedAt = &streak.ActivityDate
 		}

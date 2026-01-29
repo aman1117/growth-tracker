@@ -246,6 +246,19 @@ func (r *StreakRepository) FindLatestByUser(userID uint) (*models.Streak, error)
 	return &streak, nil
 }
 
+// FindLatestActiveByUser finds the most recent streak where user actually logged activity (current > 0)
+func (r *StreakRepository) FindLatestActiveByUser(userID uint) (*models.Streak, error) {
+	var streak models.Streak
+	result := r.db.Where("user_id = ? AND current > 0", userID).Order("activity_date DESC").Limit(1).Find(&streak)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, nil
+	}
+	return &streak, nil
+}
+
 // FindPreviousByUser finds the second most recent streak for a user
 func (r *StreakRepository) FindPreviousByUser(userID uint) (*models.Streak, error) {
 	var streak models.Streak

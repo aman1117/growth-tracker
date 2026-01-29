@@ -5,8 +5,9 @@
  * Uses design tokens for consistent styling.
  */
 
-import React from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import React from 'react';
+
 import styles from './IconButton.module.css';
 
 export type IconButtonVariant = 'default' | 'ghost' | 'glass' | 'danger';
@@ -45,11 +46,7 @@ export const IconButton: React.FC<IconButtonProps> = ({
     .join(' ');
 
   return (
-    <button
-      className={classNames}
-      disabled={disabled || loading}
-      {...props}
-    >
+    <button className={classNames} disabled={disabled || loading} {...props}>
       {loading ? <span className={styles.spinner} /> : icon}
     </button>
   );

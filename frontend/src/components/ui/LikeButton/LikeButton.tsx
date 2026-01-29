@@ -6,11 +6,12 @@
  * Uses design tokens for consistent styling.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
 import { Heart } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+
 import { likeApi } from '../../../services/api';
-import LikersModal from './LikersModal';
 import styles from './LikeButton.module.css';
+import LikersModal from './LikersModal';
 
 export interface LikeButtonProps {
   /** Username of the profile being viewed */
@@ -73,72 +74,71 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
     if (initialLiked !== undefined) setLiked(initialLiked);
   }, [initialCount, initialLiked]);
 
-  const handleClick = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const handleClick = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
 
-    if (loading) return;
+      if (loading) return;
 
-    setLoading(true);
-    const previousLiked = liked;
-    const previousCount = count;
+      setLoading(true);
+      const previousLiked = liked;
+      const previousCount = count;
 
-    // Optimistic update
-    const newLiked = !liked;
-    const newCount = newLiked ? count + 1 : Math.max(0, count - 1);
-    setLiked(newLiked);
-    setCount(newCount);
+      // Optimistic update
+      const newLiked = !liked;
+      const newCount = newLiked ? count + 1 : Math.max(0, count - 1);
+      setLiked(newLiked);
+      setCount(newCount);
 
-    try {
-      const response = newLiked
-        ? await likeApi.likeDay(username, date)
-        : await likeApi.unlikeDay(username, date);
+      try {
+        const response = newLiked
+          ? await likeApi.likeDay(username, date)
+          : await likeApi.unlikeDay(username, date);
 
-      if (response.success) {
-        setLiked(response.liked);
-        setCount(response.new_count);
-        onLikeChange?.(response.liked, response.new_count);
-      } else {
-        // Revert on failure
+        if (response.success) {
+          setLiked(response.liked);
+          setCount(response.new_count);
+          onLikeChange?.(response.liked, response.new_count);
+        } else {
+          // Revert on failure
+          setLiked(previousLiked);
+          setCount(previousCount);
+        }
+      } catch (error) {
+        console.error('Failed to toggle like:', error);
+        // Revert on error
         setLiked(previousLiked);
         setCount(previousCount);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to toggle like:', error);
-      // Revert on error
-      setLiked(previousLiked);
-      setCount(previousCount);
-    } finally {
-      setLoading(false);
-    }
-  }, [liked, count, loading, username, date, onLikeChange]);
+    },
+    [liked, count, loading, username, date, onLikeChange]
+  );
 
   const iconSize = size === 'sm' ? 16 : 20;
 
-  const handleCountClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (count > 0) {
-      setShowLikersModal(true);
-    }
-  }, [count]);
+  const handleCountClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (count > 0) {
+        setShowLikersModal(true);
+      }
+    },
+    [count]
+  );
 
-  const containerClasses = [
-    styles.container,
-    styles[size],
-  ].join(' ');
+  const containerClasses = [styles.container, styles[size]].join(' ');
 
-  const buttonClasses = [
-    styles.button,
-    liked ? styles.liked : '',
-    loading ? styles.loading : '',
-  ].filter(Boolean).join(' ');
+  const buttonClasses = [styles.button, liked ? styles.liked : '', loading ? styles.loading : '']
+    .filter(Boolean)
+    .join(' ');
 
-  const countClasses = [
-    styles.count,
-    liked ? styles.liked : '',
-    count > 0 ? styles.clickable : '',
-  ].filter(Boolean).join(' ');
+  const countClasses = [styles.count, liked ? styles.liked : '', count > 0 ? styles.clickable : '']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <>
@@ -149,17 +149,10 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
           className={buttonClasses}
           title={liked ? 'Unlike this day' : 'Like this day'}
         >
-          <Heart
-            size={iconSize}
-            fill={liked ? 'currentColor' : 'none'}
-            className={styles.icon}
-          />
+          <Heart size={iconSize} fill={liked ? 'currentColor' : 'none'} className={styles.icon} />
         </button>
         {showCount && (
-          <span 
-            onClick={handleCountClick}
-            className={countClasses}
-          >
+          <span onClick={handleCountClick} className={countClasses}>
             {count}
           </span>
         )}

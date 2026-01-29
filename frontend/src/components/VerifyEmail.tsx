@@ -5,13 +5,14 @@
  * Shows loading, success, or error states with glassmorphism design.
  */
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Loader2, XCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, Loader2, RefreshCw, XCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+
+import { API_ROUTES, APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
-import { SnapToast } from './ui';
-import { APP_ROUTES, API_ROUTES } from '../constants/routes';
 import { useAuth } from '../store';
+import { SnapToast } from './ui';
 
 type VerificationState = 'verifying' | 'success' | 'error' | 'already_verified';
 
@@ -36,10 +37,11 @@ export const VerifyEmail: React.FC = () => {
       }
 
       try {
-        const res = await api.post<{ success: boolean; message?: string; already_verified?: boolean }>(
-          API_ROUTES.AUTH.VERIFY_EMAIL,
-          { token }
-        );
+        const res = await api.post<{
+          success: boolean;
+          message?: string;
+          already_verified?: boolean;
+        }>(API_ROUTES.AUTH.VERIFY_EMAIL, { token });
 
         if (res.success) {
           if (res.already_verified) {
@@ -107,7 +109,8 @@ export const VerifyEmail: React.FC = () => {
               width: '56px',
               height: '56px',
               borderRadius: '16px',
-              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)',
+              background:
+                'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -154,7 +157,8 @@ export const VerifyEmail: React.FC = () => {
               width: '56px',
               height: '56px',
               borderRadius: '16px',
-              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.05) 100%)',
+              background:
+                'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.05) 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -166,7 +170,9 @@ export const VerifyEmail: React.FC = () => {
           <h2 style={{ marginBottom: '0.5rem', fontSize: '1.15rem', color: 'var(--text-primary)' }}>
             {state === 'already_verified' ? 'Already Verified!' : 'Email Verified!'}
           </h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+          <p
+            style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}
+          >
             {state === 'already_verified'
               ? 'Your email address was already verified.'
               : 'Your email address has been successfully verified.'}
@@ -206,11 +212,7 @@ export const VerifyEmail: React.FC = () => {
   return (
     <div className="container" style={{ maxWidth: '360px', marginTop: '3rem' }}>
       {toast && (
-        <SnapToast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
       <div
         className="glass-panel"
@@ -225,7 +227,8 @@ export const VerifyEmail: React.FC = () => {
             width: '56px',
             height: '56px',
             borderRadius: '16px',
-            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%)',
+            background:
+              'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

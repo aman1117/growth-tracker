@@ -6,10 +6,11 @@
  * Features glass-panel styling with design tokens.
  */
 
-import React, { useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
+import type { ReactNode } from 'react';
+import React, { useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+
 import styles from './Modal.module.css';
 
 export type ModalSize = 'small' | 'medium' | 'large' | 'fullscreen';
@@ -83,19 +84,15 @@ export const Modal: React.FC<ModalProps> = ({
 
   const modalContent = (
     <div className={styles.backdrop} onClick={handleBackdropClick}>
-      <div 
-        className={`${styles.modal} ${styles[size]} ${className || ''}`} 
+      <div
+        className={`${styles.modal} ${styles[size]} ${className || ''}`}
         style={maxWidth ? { maxWidth } : undefined}
       >
         {(title || showCloseButton) && (
           <div className={styles.header}>
             {title && <h2 className={styles.title}>{title}</h2>}
             {showCloseButton && (
-              <button
-                className={styles.closeButton}
-                onClick={onClose}
-                aria-label="Close"
-              >
+              <button className={styles.closeButton} onClick={onClose} aria-label="Close">
                 <X size={18} />
               </button>
             )}

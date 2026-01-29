@@ -6,9 +6,10 @@
  * Includes optional heat map visualization for activity completion.
  */
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+
 import styles from './CalendarPicker.module.css';
 
 /** Map of date string (YYYY-MM-DD) to total hours logged */
@@ -81,6 +82,14 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
   }, [maxDate]);
 
   // Reset view when calendar opens
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 150);
+  }, [onClose]);
+
   useEffect(() => {
     if (isOpen) {
       setViewDate(selectedDate);
@@ -101,10 +110,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
     if (!isOpen) return;
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (
-        calendarRef.current &&
-        !calendarRef.current.contains(e.target as Node)
-      ) {
+      if (calendarRef.current && !calendarRef.current.contains(e.target as Node)) {
         handleClose();
       }
     };
@@ -119,7 +125,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   // Handle escape key
   useEffect(() => {
@@ -133,15 +139,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
-
-  const handleClose = useCallback(() => {
-    setIsClosing(true);
-    setTimeout(() => {
-      onClose();
-      setIsClosing(false);
-    }, 150);
-  }, [onClose]);
+  }, [isOpen, handleClose]);
 
   const handleDateClick = (date: Date) => {
     onDateSelect(date);
@@ -155,9 +153,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
   };
 
   const navigateMonth = (delta: number) => {
-    setViewDate(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1)
-    );
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
   };
 
   const handleMonthSelect = (monthIndex: number) => {
@@ -230,11 +226,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
   }, [viewDate, selectedDate, maxDate]);
 
   const canGoNext = () => {
-    const nextMonth = new Date(
-      viewDate.getFullYear(),
-      viewDate.getMonth() + 1,
-      1
-    );
+    const nextMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
     return nextMonth <= maxDate;
   };
 
@@ -295,10 +287,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
   };
 
   const calendarContent = (
-    <div
-      className={`${styles.overlay} ${isClosing ? styles.closing : ''}`}
-      onClick={handleClose}
-    >
+    <div className={`${styles.overlay} ${isClosing ? styles.closing : ''}`} onClick={handleClose}>
       <div
         ref={calendarRef}
         className={`${styles.modal} ${isClosing ? styles.closing : ''}`}
@@ -308,9 +297,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
         <div className={styles.header}>
           <button
             className={styles.navButton}
-            onClick={() =>
-              view === 'days' ? navigateMonth(-1) : setView('years')
-            }
+            onClick={() => (view === 'days' ? navigateMonth(-1) : setView('years'))}
             disabled={view === 'years'}
           >
             <ChevronLeft size={16} />
@@ -319,31 +306,20 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
           <div className={styles.titleGroup}>
             {view === 'days' && (
               <>
-                <button
-                  className={styles.titleButton}
-                  onClick={() => setView('months')}
-                >
+                <button className={styles.titleButton} onClick={() => setView('months')}>
                   {MONTHS[viewDate.getMonth()]}
                 </button>
-                <button
-                  className={styles.titleButton}
-                  onClick={() => setView('years')}
-                >
+                <button className={styles.titleButton} onClick={() => setView('years')}>
                   {viewDate.getFullYear()}
                 </button>
               </>
             )}
             {view === 'months' && (
-              <button
-                className={styles.titleButton}
-                onClick={() => setView('years')}
-              >
+              <button className={styles.titleButton} onClick={() => setView('years')}>
                 {viewDate.getFullYear()}
               </button>
             )}
-            {view === 'years' && (
-              <span className={styles.titleText}>Select Year</span>
-            )}
+            {view === 'years' && <span className={styles.titleText}>Select Year</span>}
           </div>
 
           <button
@@ -386,8 +362,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
           <div className={`${styles.grid} ${styles.monthsGrid}`}>
             {MONTHS.map((month, idx) => {
               const isDisabled =
-                viewDate.getFullYear() === maxDate.getFullYear() &&
-                idx > maxDate.getMonth();
+                viewDate.getFullYear() === maxDate.getFullYear() && idx > maxDate.getMonth();
               return (
                 <button
                   key={month}

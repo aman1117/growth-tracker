@@ -1,196 +1,220 @@
-import React, { useState, useEffect, useRef } from 'react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Bell,
+  BellOff,
+  Camera,
+  ChevronRight,
+  Key,
+  Lock,
+  LogOut,
+  Monitor,
+  Moon,
+  Palette,
+  Pencil,
+  Sun,
+  Trash2,
+  User,
+  UserPlus,
+  X,
+} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { 
-    ArrowLeft, User, Key, Lock, Camera, Trash2, X, 
-    LogOut, AlertTriangle, ChevronRight, Pencil,
-    Sun, Moon, Monitor, Palette, Bell, BellOff, UserPlus
-} from 'lucide-react';
-import { useAuth, useTheme, useFollowStore, usePendingRequestsCount } from '../store';
-import { api } from '../services/api';
-import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
-import { SnapToast, ProtectedImage } from './ui';
-import { FollowRequestsModal, FollowListModal } from './social';
+
 import { APP_ROUTES } from '../constants/routes';
+import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
+import { usePushNotifications } from '../hooks/usePushNotifications';
+import { api } from '../services/api';
+import { useAuth, useFollowStore, usePendingRequestsCount, useTheme } from '../store';
+import type { Badge } from '../types/api';
 import { BadgeShowcase } from './BadgeShowcase';
 import { PushNotificationSettings } from './PushNotificationSettings';
-import { usePushNotifications } from '../hooks/usePushNotifications';
-import type { Badge } from '../types/api';
+import { FollowListModal, FollowRequestsModal } from './social';
+import { ProtectedImage, SnapToast } from './ui';
 
 export const SettingsPage: React.FC = () => {
-    const navigate = useNavigate();
-    const { user, logout, updateUsername, updateProfilePic, updateBio } = useAuth();
-    const { theme, setTheme } = useTheme();
-    const { getIncomingRequests, getCounts } = useFollowStore();
-    const pendingRequestsCount = usePendingRequestsCount();
-    
-    // Dialog states
-    const [showUsernameDialog, setShowUsernameDialog] = useState(false);
-    const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-    const [showFullscreenPic, setShowFullscreenPic] = useState(false);
-    const [showPicDialog, setShowPicDialog] = useState(false);
-    const [showBioDialog, setShowBioDialog] = useState(false);
-    const [showFollowRequestsModal, setShowFollowRequestsModal] = useState(false);
-    const [showFollowListModal, setShowFollowListModal] = useState<'followers' | 'following' | null>(null);
-    
-    // Follow counts
-    const [followersCount, setFollowersCount] = useState(0);
-    const [followingCount, setFollowingCount] = useState(0);
-    
-    // Profile picture state
-    const [isUploadingPic, setIsUploadingPic] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    
-    // Privacy state
-    const [isPrivate, setIsPrivate] = useState(false);
-    const [isPrivacyLoading, setIsPrivacyLoading] = useState(false);
-    
-    // Badges state
-    const [badges, setBadges] = useState<Badge[]>([]);
-    const [longestStreak, setLongestStreak] = useState(0);
-    const [badgesLoading, setBadgesLoading] = useState(true);
-    
-    // Toast
-    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-    
-    // Page animation
-    const [isExiting, setIsExiting] = useState(false);
+  const navigate = useNavigate();
+  const { user, logout, updateUsername, updateProfilePic, updateBio } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const { getIncomingRequests, getCounts } = useFollowStore();
+  const pendingRequestsCount = usePendingRequestsCount();
 
-    // Fetch privacy setting on mount
-    useEffect(() => {
-        if (user) {
-            api.get('/get-privacy').then(res => {
-                if (res.success) {
-                    setIsPrivate(res.is_private);
-                }
-            });
-            api.get('/profile').then(res => {
-                if (res.success) {
-                    if (res.profile_pic) {
-                        updateProfilePic(res.profile_pic);
-                    }
-                    if (res.bio !== undefined) {
-                        updateBio(res.bio);
-                    }
-                }
-            });
-            // Fetch badges
-            api.get('/badges').then(res => {
-                if (res.success && res.badges) {
-                    setBadges(res.badges);
-                }
-            }).finally(() => setBadgesLoading(false));
-            // Fetch streak for longest
-            const today = new Date().toISOString().split('T')[0];
-            api.post('/get-streak', { username: user.username, date: today }).then(res => {
-                if (res.success && res.data) {
-                    setLongestStreak(res.data.longest);
-                }
-            });
-            // Fetch pending follow requests count
-            getIncomingRequests(undefined, 1); // Just to get the count
-            // Fetch follow counts
-            getCounts(user.id).then(counts => {
-                if (counts) {
-                    setFollowersCount(counts.followers);
-                    setFollowingCount(counts.following);
-                }
-            });
+  // Dialog states
+  const [showUsernameDialog, setShowUsernameDialog] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showFullscreenPic, setShowFullscreenPic] = useState(false);
+  const [showPicDialog, setShowPicDialog] = useState(false);
+  const [showBioDialog, setShowBioDialog] = useState(false);
+  const [showFollowRequestsModal, setShowFollowRequestsModal] = useState(false);
+  const [showFollowListModal, setShowFollowListModal] = useState<'followers' | 'following' | null>(
+    null
+  );
+
+  // Follow counts
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
+  // Profile picture state
+  const [isUploadingPic, setIsUploadingPic] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Privacy state
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [isPrivacyLoading, setIsPrivacyLoading] = useState(false);
+
+  // Badges state
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [longestStreak, setLongestStreak] = useState(0);
+  const [badgesLoading, setBadgesLoading] = useState(true);
+
+  // Toast
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Page animation
+  const [isExiting, setIsExiting] = useState(false);
+
+  // Fetch privacy setting on mount
+  useEffect(() => {
+    if (user) {
+      api.get('/get-privacy').then((res) => {
+        if (res.success) {
+          setIsPrivate(res.is_private);
         }
+      });
+      api.get('/profile').then((res) => {
+        if (res.success) {
+          if (res.profile_pic) {
+            updateProfilePic(res.profile_pic);
+          }
+          if (res.bio !== undefined) {
+            updateBio(res.bio);
+          }
+        }
+      });
+      // Fetch badges
+      api
+        .get('/badges')
+        .then((res) => {
+          if (res.success && res.badges) {
+            setBadges(res.badges);
+          }
+        })
+        .finally(() => setBadgesLoading(false));
+      // Fetch streak for longest
+      const today = new Date().toISOString().split('T')[0];
+      api.post('/get-streak', { username: user.username, date: today }).then((res) => {
+        if (res.success && res.data) {
+          setLongestStreak(res.data.longest);
+        }
+      });
+      // Fetch pending follow requests count
+      getIncomingRequests(undefined, 1); // Just to get the count
+      // Fetch follow counts
+      getCounts(user.id).then((counts) => {
+        if (counts) {
+          setFollowersCount(counts.followers);
+          setFollowingCount(counts.following);
+        }
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+  }, []);
 
-    if (!user) {
-        navigate(APP_ROUTES.LOGIN);
-        return null;
+  if (!user) {
+    navigate(APP_ROUTES.LOGIN);
+    return null;
+  }
+
+  const togglePrivacy = async () => {
+    setIsPrivacyLoading(true);
+    try {
+      const res = await api.post('/update-privacy', { is_private: !isPrivate });
+      if (res.success) {
+        setIsPrivate(res.is_private);
+      }
+    } catch {
+      console.error('Failed to update privacy');
+    } finally {
+      setIsPrivacyLoading(false);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ext = file.name.toLowerCase().split('.').pop();
+
+    if (
+      !VALIDATION.ALLOWED_IMAGE_TYPES.includes(file.type) &&
+      !VALIDATION.ALLOWED_IMAGE_EXTENSIONS.includes(ext || '')
+    ) {
+      setToast({ message: VALIDATION_MESSAGES.FILE_TYPE_ERROR, type: 'error' });
+      return;
     }
 
-    const togglePrivacy = async () => {
-        setIsPrivacyLoading(true);
-        try {
-            const res = await api.post('/update-privacy', { is_private: !isPrivate });
-            if (res.success) {
-                setIsPrivate(res.is_private);
-            }
-        } catch (err) {
-            console.error('Failed to update privacy');
-        } finally {
-            setIsPrivacyLoading(false);
-        }
-    };
+    if (file.size > VALIDATION.MAX_FILE_SIZE) {
+      setToast({ message: VALIDATION_MESSAGES.FILE_SIZE_ERROR, type: 'error' });
+      return;
+    }
 
-    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    setIsUploadingPic(true);
+    setShowPicDialog(false);
 
-        const ext = file.name.toLowerCase().split('.').pop();
-        
-        if (!VALIDATION.ALLOWED_IMAGE_TYPES.includes(file.type) && !VALIDATION.ALLOWED_IMAGE_EXTENSIONS.includes(ext || '')) {
-            setToast({ message: VALIDATION_MESSAGES.FILE_TYPE_ERROR, type: 'error' });
-            return;
-        }
+    try {
+      const res = await api.uploadFile('/profile/upload-picture', file);
+      if (res.success) {
+        updateProfilePic(res.profile_pic ?? null);
+        setToast({ message: 'Profile picture updated!', type: 'success' });
+      } else {
+        setToast({ message: res.error || 'Failed to upload image', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Failed to upload image', type: 'error' });
+    } finally {
+      setIsUploadingPic(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
-        if (file.size > VALIDATION.MAX_FILE_SIZE) {
-            setToast({ message: VALIDATION_MESSAGES.FILE_SIZE_ERROR, type: 'error' });
-            return;
-        }
+  const handleRemovePicture = async () => {
+    setIsUploadingPic(true);
+    setShowPicDialog(false);
 
-        setIsUploadingPic(true);
-        setShowPicDialog(false);
+    try {
+      const res = await api.delete('/profile/picture');
+      if (res.success) {
+        updateProfilePic(null);
+        setToast({ message: 'Profile picture removed', type: 'success' });
+      } else {
+        setToast({ message: res.error || 'Failed to remove image', type: 'error' });
+      }
+    } catch {
+      setToast({ message: 'Failed to remove image', type: 'error' });
+    } finally {
+      setIsUploadingPic(false);
+    }
+  };
 
-        try {
-            const res = await api.uploadFile('/profile/upload-picture', file);
-            if (res.success) {
-                updateProfilePic(res.profile_pic ?? null);
-                setToast({ message: 'Profile picture updated!', type: 'success' });
-            } else {
-                setToast({ message: res.error || 'Failed to upload image', type: 'error' });
-            }
-        } catch (err) {
-            setToast({ message: 'Failed to upload image', type: 'error' });
-        } finally {
-            setIsUploadingPic(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-        }
-    };
+  const handleLogout = () => {
+    logout();
+    navigate(APP_ROUTES.LOGIN);
+  };
 
-    const handleRemovePicture = async () => {
-        setIsUploadingPic(true);
-        setShowPicDialog(false);
+  const handleBack = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+      navigate(-1);
+    }, 200);
+  };
 
-        try {
-            const res = await api.delete('/profile/picture');
-            if (res.success) {
-                updateProfilePic(null);
-                setToast({ message: 'Profile picture removed', type: 'success' });
-            } else {
-                setToast({ message: res.error || 'Failed to remove image', type: 'error' });
-            }
-        } catch (err) {
-            setToast({ message: 'Failed to remove image', type: 'error' });
-        } finally {
-            setIsUploadingPic(false);
-        }
-    };
-
-    const handleLogout = () => {
-        logout();
-        navigate(APP_ROUTES.LOGIN);
-    };
-
-    const handleBack = () => {
-        setIsExiting(true);
-        setTimeout(() => {
-            navigate(-1);
-        }, 200);
-    };
-
-    return (
-        <>
-            <style>{`
+  return (
+    <>
+      <style>{`
                 @keyframes slideInFromRight {
                     from {
                         transform: translateX(100%);
@@ -212,1427 +236,1552 @@ export const SettingsPage: React.FC = () => {
                     }
                 }
             `}</style>
-            <div 
-                className="container" 
-                style={{ 
-                    maxWidth: '480px', 
-                    padding: '0.5rem 1rem', 
-                    paddingBottom: '2rem',
-                    animation: isExiting ? 'slideOutToRight 0.2s ease-in forwards' : 'slideInFromRight 0.25s ease-out'
-                }}
-            >
-            {/* Header */}
-            <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem',
-                marginBottom: '0.75rem'
-            }}>
-                <button
-                    onClick={handleBack}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        padding: '0.25rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '8px',
-                        transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                    <ArrowLeft size={20} />
-                </button>
-                <h1 style={{ 
-                    fontSize: '1.25rem', 
-                    fontWeight: 700, 
-                    color: 'var(--text-primary)',
-                    margin: 0
-                }}>
-                    Settings
-                </h1>
-            </div>
-
-            {/* Profile Section */}
-            <div className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {/* Profile Picture */}
-                    <div style={{ position: 'relative' }}>
-                        <div
-                            style={{
-                                width: '56px',
-                                height: '56px',
-                                borderRadius: '50%',
-                                backgroundColor: 'var(--avatar-bg)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontWeight: 700,
-                                fontSize: '1.5rem',
-                                color: 'var(--text-primary)',
-                                textTransform: 'uppercase',
-                                overflow: 'hidden',
-                                cursor: user.profilePic ? 'zoom-in' : 'pointer',
-                                border: '2px solid var(--border)',
-                                transition: 'border-color 0.2s'
-                            }}
-                            onClick={() => {
-                                if (user.profilePic) {
-                                    setShowFullscreenPic(true);
-                                } else {
-                                    setShowPicDialog(true);
-                                }
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
-                            onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
-                        >
-                            {isUploadingPic ? (
-                                <div style={{
-                                    width: '20px',
-                                    height: '20px',
-                                    border: '2px solid var(--text-secondary)',
-                                    borderTopColor: 'var(--accent)',
-                                    borderRadius: '50%',
-                                    animation: 'spin 1s linear infinite'
-                                }} />
-                            ) : user.profilePic ? (
-                                <ProtectedImage
-                                    src={user.profilePic}
-                                    alt={user.username}
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover'
-                                    }}
-                                />
-                            ) : (
-                                user.username.charAt(0)
-                            )}
-                        </div>
-                        
-                        {/* Camera icon overlay */}
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowPicDialog(true);
-                            }}
-                            style={{
-                                position: 'absolute',
-                                bottom: '-2px',
-                                right: '-2px',
-                                width: '22px',
-                                height: '22px',
-                                borderRadius: '50%',
-                                backgroundColor: 'var(--accent)',
-                                border: '2px solid var(--bg-primary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <Camera size={10} color="white" />
-                        </button>
-                    </div>
-
-                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                        <h2 style={{ 
-                            fontSize: '1rem', 
-                            fontWeight: 600, 
-                            color: 'var(--text-primary)',
-                            margin: 0
-                        }}>
-                            {user.username}
-                        </h2>
-                        <div 
-                            onClick={() => setShowBioDialog(true)}
-                            style={{ 
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.35rem',
-                                marginTop: '0.25rem',
-                                cursor: 'pointer',
-                                maxWidth: '100%'
-                            }}
-                        >
-                            <p style={{ 
-                                fontSize: '0.8rem', 
-                                color: user.bio ? 'var(--text-secondary)' : 'var(--accent)',
-                                margin: 0,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                flex: 1,
-                                minWidth: 0
-                            }}>
-                                {user.bio || '+ Add bio'}
-                            </p>
-                            <Pencil size={12} color="var(--accent)" style={{ flexShrink: 0 }} />
-                        </div>
-                        
-                        {/* Followers / Following Stats */}
-                        <div style={{
-                            display: 'flex',
-                            gap: '1rem',
-                            marginTop: '0.5rem'
-                        }}>
-                            <button
-                                onClick={() => setShowFollowListModal('followers')}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    padding: 0,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.25rem'
-                                }}
-                            >
-                                <span style={{ 
-                                    fontSize: '0.875rem', 
-                                    fontWeight: 600, 
-                                    color: 'var(--text-primary)' 
-                                }}>
-                                    {followersCount}
-                                </span>
-                                <span style={{ 
-                                    fontSize: '0.8rem', 
-                                    color: 'var(--text-secondary)' 
-                                }}>
-                                    Followers
-                                </span>
-                            </button>
-                            <button
-                                onClick={() => setShowFollowListModal('following')}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    padding: 0,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.25rem'
-                                }}
-                            >
-                                <span style={{ 
-                                    fontSize: '0.875rem', 
-                                    fontWeight: 600, 
-                                    color: 'var(--text-primary)' 
-                                }}>
-                                    {followingCount}
-                                </span>
-                                <span style={{ 
-                                    fontSize: '0.8rem', 
-                                    color: 'var(--text-secondary)' 
-                                }}>
-                                    Following
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Hidden file input */}
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-                    onChange={handleFileSelect}
-                    style={{ display: 'none' }}
-                />
-            </div>
-
-            {/* Badges Section - inside card */}
-            {!badgesLoading && badges.length > 0 && (
-                <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)', marginBottom: '0.75rem' }}>
-                    <div style={{ padding: '0.75rem 1rem' }}>
-                        <BadgeShowcase
-                            badges={badges}
-                            longestStreak={longestStreak}
-                            showProgress={true}
-                            size="sm"
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Account Settings */}
-            <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)' }}>
-                <SettingsItem
-                    icon={<User size={18} />}
-                    label="Username"
-                    value={`@${user.username}`}
-                    onClick={() => setShowUsernameDialog(true)}
-                    showBorder
-                    iconColor="var(--text-secondary)"
-                    iconBg="var(--icon-bg-muted)"
-                />
-                
-                <SettingsItem
-                    icon={<Key size={18} />}
-                    label="Password"
-                    value="••••••••"
-                    onClick={() => setShowPasswordDialog(true)}
-                    showBorder
-                    iconColor="var(--text-secondary)"
-                    iconBg="var(--icon-bg-muted)"
-                />
-
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0.75rem 1rem',
-                    gap: '0.75rem',
-                    borderBottom: '1px solid var(--border)'
-                }}>
-                    <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '8px',
-                        backgroundColor: 'var(--icon-bg-muted)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'var(--text-secondary)'
-                    }}>
-                        <Lock size={16} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ 
-                            fontSize: '0.875rem', 
-                            fontWeight: 500, 
-                            color: 'var(--text-primary)' 
-                        }}>
-                            Private account
-                        </div>
-                    </div>
-                    <button
-                        onClick={togglePrivacy}
-                        disabled={isPrivacyLoading}
-                        style={{
-                            width: '44px',
-                            height: '24px',
-                            borderRadius: '12px',
-                            border: 'none',
-                            backgroundColor: isPrivate ? '#0095f6' : 'var(--border)',
-                            cursor: 'pointer',
-                            position: 'relative',
-                            transition: 'background-color 0.2s'
-                        }}
-                    >
-                        <div style={{
-                            width: '18px',
-                            height: '18px',
-                            borderRadius: '50%',
-                            backgroundColor: 'white',
-                            position: 'absolute',
-                            top: '3px',
-                            left: isPrivate ? '23px' : '3px',
-                            transition: 'left 0.2s',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-                        }} />
-                    </button>
-                </div>
-
-                {/* Follow Requests - always visible */}
-                <div 
-                    onClick={() => setShowFollowRequestsModal(true)}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '0.75rem 1rem',
-                        gap: '0.75rem',
-                        borderBottom: '1px solid var(--border)',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                    <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '8px',
-                        backgroundColor: pendingRequestsCount > 0 ? 'rgba(245, 158, 11, 0.15)' : 'var(--icon-bg-muted)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: pendingRequestsCount > 0 ? '#f59e0b' : 'var(--text-secondary)'
-                    }}>
-                        <UserPlus size={16} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ 
-                            fontSize: '0.875rem', 
-                            fontWeight: 500, 
-                            color: 'var(--text-primary)' 
-                        }}>
-                            Follow requests
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {pendingRequestsCount > 0 && (
-                            <span style={{
-                                backgroundColor: '#f59e0b',
-                                color: 'white',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                padding: '0.125rem 0.5rem',
-                                borderRadius: '10px',
-                                minWidth: '20px',
-                                textAlign: 'center'
-                            }}>
-                                {pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}
-                            </span>
-                        )}
-                        <ChevronRight size={18} color="var(--text-tertiary)" />
-                    </div>
-                </div>
-
-                {/* Theme Selection */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0.75rem 1rem',
-                    gap: '0.75rem',
-                    borderBottom: '1px solid var(--border)'
-                }}>
-                    <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '8px',
-                        backgroundColor: 'var(--icon-bg-muted)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'var(--text-secondary)'
-                    }}>
-                        <Palette size={16} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <div style={{ 
-                            fontSize: '0.875rem', 
-                            fontWeight: 500, 
-                            color: 'var(--text-primary)' 
-                        }}>
-                            Theme
-                        </div>
-                    </div>
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: '0.5rem',
-                        backgroundColor: 'var(--bg-secondary)',
-                        padding: '0.25rem',
-                        borderRadius: '10px'
-                    }}>
-                        <button
-                            onClick={() => setTheme('light')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '0.5rem',
-                                borderRadius: '8px',
-                                border: 'none',
-                                backgroundColor: theme === 'light' ? 'var(--bg-primary)' : 'transparent',
-                                boxShadow: theme === 'light' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                color: theme === 'light' ? 'var(--accent)' : 'var(--text-secondary)'
-                            }}
-                            title="Light theme"
-                        >
-                            <Sun size={16} />
-                        </button>
-                        <button
-                            onClick={() => setTheme('dark')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '0.5rem',
-                                borderRadius: '8px',
-                                border: 'none',
-                                backgroundColor: theme === 'dark' ? 'var(--bg-primary)' : 'transparent',
-                                boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                color: theme === 'dark' ? 'var(--accent)' : 'var(--text-secondary)'
-                            }}
-                            title="Dark theme"
-                        >
-                            <Moon size={16} />
-                        </button>
-                        <button
-                            onClick={() => setTheme('system')}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '0.5rem',
-                                borderRadius: '8px',
-                                border: 'none',
-                                backgroundColor: theme === 'system' ? 'var(--bg-primary)' : 'transparent',
-                                boxShadow: theme === 'system' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                color: theme === 'system' ? 'var(--accent)' : 'var(--text-secondary)'
-                            }}
-                            title="System theme"
-                        >
-                            <Monitor size={16} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Push Notifications - Inline */}
-                <PushNotificationsSection onToast={(message, type) => setToast({ message, type })} />
-
-                {/* Log Out */}
-                <button
-                    onClick={() => setShowLogoutDialog(true)}
-                    style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '0.75rem 1rem',
-                        gap: '0.75rem',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left'
-                    }}
-                >
-                    <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '8px',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#ef4444'
-                    }}>
-                        <LogOut size={16} />
-                    </div>
-                    <span style={{ 
-                        fontSize: '0.875rem', 
-                        fontWeight: 500, 
-                        color: '#ef4444' 
-                    }}>
-                        Log out
-                    </span>
-                </button>
-            </div>
-
-            {/* Profile Picture Dialog */}
-            <ProfilePictureDialog
-                isOpen={showPicDialog}
-                onClose={() => setShowPicDialog(false)}
-                hasProfilePic={!!user.profilePic}
-                onUploadClick={() => fileInputRef.current?.click()}
-                onRemoveClick={handleRemovePicture}
-            />
-
-            {/* Username Dialog */}
-            <UsernameDialog
-                isOpen={showUsernameDialog}
-                onClose={() => setShowUsernameDialog(false)}
-                currentUsername={user.username}
-                onSuccess={(newUsername) => {
-                    updateUsername(newUsername);
-                    setToast({ message: 'Username updated!', type: 'success' });
-                }}
-            />
-
-            {/* Password Dialog */}
-            <PasswordDialog
-                isOpen={showPasswordDialog}
-                onClose={() => setShowPasswordDialog(false)}
-                onSuccess={() => {
-                    setToast({ message: 'Password changed successfully!', type: 'success' });
-                }}
-            />
-
-            {/* Bio Dialog */}
-            <BioDialog
-                isOpen={showBioDialog}
-                onClose={() => setShowBioDialog(false)}
-                currentBio={user.bio || ''}
-                onSuccess={(newBio) => {
-                    updateBio(newBio || null);
-                    setToast({ message: 'Bio updated!', type: 'success' });
-                }}
-            />
-
-            {/* Logout Confirmation Dialog */}
-            <LogoutDialog
-                isOpen={showLogoutDialog}
-                onClose={() => setShowLogoutDialog(false)}
-                onConfirm={handleLogout}
-            />
-
-            {/* Fullscreen Profile Picture */}
-            {showFullscreenPic && user.profilePic && (
-                <div
-                    onClick={() => setShowFullscreenPic(false)}
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 10000,
-                        cursor: 'zoom-out',
-                        animation: 'fadeIn 0.2s ease-out'
-                    }}
-                >
-                    <button
-                        onClick={() => setShowFullscreenPic(false)}
-                        style={{
-                            position: 'absolute',
-                            top: '20px',
-                            right: '20px',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            border: 'none',
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                            color: 'white',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                    >
-                        <X size={24} />
-                    </button>
-                    <ProtectedImage
-                        src={user.profilePic}
-                        alt={user.username}
-                        style={{
-                            maxWidth: '90vw',
-                            maxHeight: '90vh',
-                            objectFit: 'contain',
-                            borderRadius: '8px',
-                            cursor: 'default',
-                            animation: 'scaleIn 0.2s ease-out'
-                        }}
-                    />
-                    <div style={{
-                        position: 'absolute',
-                        bottom: '30px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        color: 'white',
-                        fontSize: '1rem',
-                        fontWeight: 500,
-                        padding: '8px 16px',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        borderRadius: '20px'
-                    }}>
-                        {user.username}
-                    </div>
-                </div>
-            )}
-
-            {/* Toast */}
-            {toast && (
-                <SnapToast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                />
-            )}
-
-            {/* Follow Requests Modal */}
-            <FollowRequestsModal
-                isOpen={showFollowRequestsModal}
-                onClose={() => setShowFollowRequestsModal(false)}
-            />
-
-            {/* Follow List Modal (Followers/Following) */}
-            {showFollowListModal && (
-                <FollowListModal
-                    isOpen={!!showFollowListModal}
-                    onClose={() => setShowFollowListModal(null)}
-                    userId={user.id}
-                    username={user.username}
-                    type={showFollowListModal}
-                />
-            )}
+      <div
+        className="container"
+        style={{
+          maxWidth: '480px',
+          padding: '0.5rem 1rem',
+          paddingBottom: '2rem',
+          animation: isExiting
+            ? 'slideOutToRight 0.2s ease-in forwards'
+            : 'slideInFromRight 0.25s ease-out',
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '0.75rem',
+          }}
+        >
+          <button
+            onClick={handleBack}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              padding: '0.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '8px',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h1
+            style={{
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              margin: 0,
+            }}
+          >
+            Settings
+          </h1>
         </div>
-        </>
-    );
+
+        {/* Profile Section */}
+        <div className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {/* Profile Picture */}
+            <div style={{ position: 'relative' }}>
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--avatar-bg)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '1.5rem',
+                  color: 'var(--text-primary)',
+                  textTransform: 'uppercase',
+                  overflow: 'hidden',
+                  cursor: user.profilePic ? 'zoom-in' : 'pointer',
+                  border: '2px solid var(--border)',
+                  transition: 'border-color 0.2s',
+                }}
+                onClick={() => {
+                  if (user.profilePic) {
+                    setShowFullscreenPic(true);
+                  } else {
+                    setShowPicDialog(true);
+                  }
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+              >
+                {isUploadingPic ? (
+                  <div
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      border: '2px solid var(--text-secondary)',
+                      borderTopColor: 'var(--accent)',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                    }}
+                  />
+                ) : user.profilePic ? (
+                  <ProtectedImage
+                    src={user.profilePic}
+                    alt={user.username}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  user.username.charAt(0)
+                )}
+              </div>
+
+              {/* Camera icon overlay */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPicDialog(true);
+                }}
+                style={{
+                  position: 'absolute',
+                  bottom: '-2px',
+                  right: '-2px',
+                  width: '22px',
+                  height: '22px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--accent)',
+                  border: '2px solid var(--bg-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                <Camera size={10} color="white" />
+              </button>
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+              <h2
+                style={{
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                }}
+              >
+                {user.username}
+              </h2>
+              <div
+                onClick={() => setShowBioDialog(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  marginTop: '0.25rem',
+                  cursor: 'pointer',
+                  maxWidth: '100%',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: '0.8rem',
+                    color: user.bio ? 'var(--text-secondary)' : 'var(--accent)',
+                    margin: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  {user.bio || '+ Add bio'}
+                </p>
+                <Pencil size={12} color="var(--accent)" style={{ flexShrink: 0 }} />
+              </div>
+
+              {/* Followers / Following Stats */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  marginTop: '0.5rem',
+                }}
+              >
+                <button
+                  onClick={() => setShowFollowListModal('followers')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    {followersCount}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Followers
+                  </span>
+                </button>
+                <button
+                  onClick={() => setShowFollowListModal('following')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)',
+                    }}
+                  >
+                    {followingCount}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    Following
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+        </div>
+
+        {/* Badges Section - inside card */}
+        {!badgesLoading && badges.length > 0 && (
+          <div
+            className="card"
+            style={{
+              padding: 0,
+              overflow: 'hidden',
+              border: '1px solid var(--border)',
+              marginBottom: '0.75rem',
+            }}
+          >
+            <div style={{ padding: '0.75rem 1rem' }}>
+              <BadgeShowcase
+                badges={badges}
+                longestStreak={longestStreak}
+                showProgress={true}
+                size="sm"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Account Settings */}
+        <div
+          className="card"
+          style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)' }}
+        >
+          <SettingsItem
+            icon={<User size={18} />}
+            label="Username"
+            value={`@${user.username}`}
+            onClick={() => setShowUsernameDialog(true)}
+            showBorder
+            iconColor="var(--text-secondary)"
+            iconBg="var(--icon-bg-muted)"
+          />
+
+          <SettingsItem
+            icon={<Key size={18} />}
+            label="Password"
+            value="••••••••"
+            onClick={() => setShowPasswordDialog(true)}
+            showBorder
+            iconColor="var(--text-secondary)"
+            iconBg="var(--icon-bg-muted)"
+          />
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.75rem 1rem',
+              gap: '0.75rem',
+              borderBottom: '1px solid var(--border)',
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--icon-bg-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <Lock size={16} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                Private account
+              </div>
+            </div>
+            <button
+              onClick={togglePrivacy}
+              disabled={isPrivacyLoading}
+              style={{
+                width: '44px',
+                height: '24px',
+                borderRadius: '12px',
+                border: 'none',
+                backgroundColor: isPrivate ? '#0095f6' : 'var(--border)',
+                cursor: 'pointer',
+                position: 'relative',
+                transition: 'background-color 0.2s',
+              }}
+            >
+              <div
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  backgroundColor: 'white',
+                  position: 'absolute',
+                  top: '3px',
+                  left: isPrivate ? '23px' : '3px',
+                  transition: 'left 0.2s',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                }}
+              />
+            </button>
+          </div>
+
+          {/* Follow Requests - always visible */}
+          <div
+            onClick={() => setShowFollowRequestsModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.75rem 1rem',
+              gap: '0.75rem',
+              borderBottom: '1px solid var(--border)',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                backgroundColor:
+                  pendingRequestsCount > 0 ? 'rgba(245, 158, 11, 0.15)' : 'var(--icon-bg-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: pendingRequestsCount > 0 ? '#f59e0b' : 'var(--text-secondary)',
+              }}
+            >
+              <UserPlus size={16} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                Follow requests
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              {pendingRequestsCount > 0 && (
+                <span
+                  style={{
+                    backgroundColor: '#f59e0b',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    padding: '0.125rem 0.5rem',
+                    borderRadius: '10px',
+                    minWidth: '20px',
+                    textAlign: 'center',
+                  }}
+                >
+                  {pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}
+                </span>
+              )}
+              <ChevronRight size={18} color="var(--text-tertiary)" />
+            </div>
+          </div>
+
+          {/* Theme Selection */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.75rem 1rem',
+              gap: '0.75rem',
+              borderBottom: '1px solid var(--border)',
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--icon-bg-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <Palette size={16} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                Theme
+              </div>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.5rem',
+                backgroundColor: 'var(--bg-secondary)',
+                padding: '0.25rem',
+                borderRadius: '10px',
+              }}
+            >
+              <button
+                onClick={() => setTheme('light')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: theme === 'light' ? 'var(--bg-primary)' : 'transparent',
+                  boxShadow: theme === 'light' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  color: theme === 'light' ? 'var(--accent)' : 'var(--text-secondary)',
+                }}
+                title="Light theme"
+              >
+                <Sun size={16} />
+              </button>
+              <button
+                onClick={() => setTheme('dark')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: theme === 'dark' ? 'var(--bg-primary)' : 'transparent',
+                  boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  color: theme === 'dark' ? 'var(--accent)' : 'var(--text-secondary)',
+                }}
+                title="Dark theme"
+              >
+                <Moon size={16} />
+              </button>
+              <button
+                onClick={() => setTheme('system')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.5rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: theme === 'system' ? 'var(--bg-primary)' : 'transparent',
+                  boxShadow: theme === 'system' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  color: theme === 'system' ? 'var(--accent)' : 'var(--text-secondary)',
+                }}
+                title="System theme"
+              >
+                <Monitor size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Push Notifications - Inline */}
+          <PushNotificationsSection onToast={(message, type) => setToast({ message, type })} />
+
+          {/* Log Out */}
+          <button
+            onClick={() => setShowLogoutDialog(true)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.75rem 1rem',
+              gap: '0.75rem',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ef4444',
+              }}
+            >
+              <LogOut size={16} />
+            </div>
+            <span
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: '#ef4444',
+              }}
+            >
+              Log out
+            </span>
+          </button>
+        </div>
+
+        {/* Profile Picture Dialog */}
+        <ProfilePictureDialog
+          isOpen={showPicDialog}
+          onClose={() => setShowPicDialog(false)}
+          hasProfilePic={!!user.profilePic}
+          onUploadClick={() => fileInputRef.current?.click()}
+          onRemoveClick={handleRemovePicture}
+        />
+
+        {/* Username Dialog */}
+        <UsernameDialog
+          isOpen={showUsernameDialog}
+          onClose={() => setShowUsernameDialog(false)}
+          currentUsername={user.username}
+          onSuccess={(newUsername) => {
+            updateUsername(newUsername);
+            setToast({ message: 'Username updated!', type: 'success' });
+          }}
+        />
+
+        {/* Password Dialog */}
+        <PasswordDialog
+          isOpen={showPasswordDialog}
+          onClose={() => setShowPasswordDialog(false)}
+          onSuccess={() => {
+            setToast({ message: 'Password changed successfully!', type: 'success' });
+          }}
+        />
+
+        {/* Bio Dialog */}
+        <BioDialog
+          isOpen={showBioDialog}
+          onClose={() => setShowBioDialog(false)}
+          currentBio={user.bio || ''}
+          onSuccess={(newBio) => {
+            updateBio(newBio || null);
+            setToast({ message: 'Bio updated!', type: 'success' });
+          }}
+        />
+
+        {/* Logout Confirmation Dialog */}
+        <LogoutDialog
+          isOpen={showLogoutDialog}
+          onClose={() => setShowLogoutDialog(false)}
+          onConfirm={handleLogout}
+        />
+
+        {/* Fullscreen Profile Picture */}
+        {showFullscreenPic && user.profilePic && (
+          <div
+            onClick={() => setShowFullscreenPic(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.95)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10000,
+              cursor: 'zoom-out',
+              animation: 'fadeIn 0.2s ease-out',
+            }}
+          >
+            <button
+              onClick={() => setShowFullscreenPic(false)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                border: 'none',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'white',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <X size={24} />
+            </button>
+            <ProtectedImage
+              src={user.profilePic}
+              alt={user.username}
+              style={{
+                maxWidth: '90vw',
+                maxHeight: '90vh',
+                objectFit: 'contain',
+                borderRadius: '8px',
+                cursor: 'default',
+                animation: 'scaleIn 0.2s ease-out',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '30px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 500,
+                padding: '8px 16px',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                borderRadius: '20px',
+              }}
+            >
+              {user.username}
+            </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {toast && (
+          <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+        )}
+
+        {/* Follow Requests Modal */}
+        <FollowRequestsModal
+          isOpen={showFollowRequestsModal}
+          onClose={() => setShowFollowRequestsModal(false)}
+        />
+
+        {/* Follow List Modal (Followers/Following) */}
+        {showFollowListModal && (
+          <FollowListModal
+            isOpen={!!showFollowListModal}
+            onClose={() => setShowFollowListModal(null)}
+            userId={user.id}
+            username={user.username}
+            type={showFollowListModal}
+          />
+        )}
+      </div>
+    </>
+  );
 };
 
 // Settings Item Component
 const SettingsItem: React.FC<{
-    icon: React.ReactNode;
-    label: string;
-    value?: string;
-    onClick: () => void;
-    showBorder?: boolean;
-    iconColor?: string;
-    iconBg?: string;
-}> = ({ icon, label, value, onClick, showBorder, iconColor = '#3b82f6', iconBg = 'rgba(59, 130, 246, 0.1)' }) => (
-    <button
-        onClick={onClick}
-        style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0.75rem 1rem',
-            gap: '0.75rem',
-            background: 'none',
-            border: 'none',
-            borderBottom: showBorder ? '1px solid var(--border)' : 'none',
-            cursor: 'pointer',
-            textAlign: 'left',
-            transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+  icon: React.ReactNode;
+  label: string;
+  value?: string;
+  onClick: () => void;
+  showBorder?: boolean;
+  iconColor?: string;
+  iconBg?: string;
+}> = ({
+  icon,
+  label,
+  value,
+  onClick,
+  showBorder,
+  iconColor = '#3b82f6',
+  iconBg = 'rgba(59, 130, 246, 0.1)',
+}) => (
+  <button
+    onClick={onClick}
+    style={{
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      padding: '0.75rem 1rem',
+      gap: '0.75rem',
+      background: 'none',
+      border: 'none',
+      borderBottom: showBorder ? '1px solid var(--border)' : 'none',
+      cursor: 'pointer',
+      textAlign: 'left',
+      transition: 'background-color 0.2s',
+    }}
+    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
+    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+  >
+    <div
+      style={{
+        width: '32px',
+        height: '32px',
+        borderRadius: '8px',
+        backgroundColor: iconBg,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: iconColor,
+      }}
     >
-        <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            backgroundColor: iconBg,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: iconColor
-        }}>
-            {icon}
+      {icon}
+    </div>
+    <div style={{ flex: 1 }}>
+      <div
+        style={{
+          fontSize: '0.875rem',
+          fontWeight: 500,
+          color: 'var(--text-primary)',
+        }}
+      >
+        {label}
+      </div>
+      {value && (
+        <div
+          style={{
+            fontSize: '0.75rem',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          {value}
         </div>
-        <div style={{ flex: 1 }}>
-            <div style={{ 
-                fontSize: '0.875rem', 
-                fontWeight: 500, 
-                color: 'var(--text-primary)' 
-            }}>
-                {label}
-            </div>
-            {value && (
-                <div style={{ 
-                    fontSize: '0.75rem', 
-                    color: 'var(--text-secondary)' 
-                }}>
-                    {value}
-                </div>
-            )}
-        </div>
-        <ChevronRight size={18} color="var(--text-secondary)" />
-    </button>
+      )}
+    </div>
+    <ChevronRight size={18} color="var(--text-secondary)" />
+  </button>
 );
 
 // Profile Picture Dialog
 const ProfilePictureDialog: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    hasProfilePic: boolean;
-    onUploadClick: () => void;
-    onRemoveClick: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  hasProfilePic: boolean;
+  onUploadClick: () => void;
+  onRemoveClick: () => void;
 }> = ({ isOpen, onClose, hasProfilePic, onUploadClick, onRemoveClick }) => {
-    if (!isOpen) return null;
+  if (!isOpen) return null;
 
-    return (
-        <DialogWrapper onClose={onClose}>
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '1rem'
-            }}>
-                <h3 style={{ 
-                    margin: 0, 
-                    fontSize: '1.125rem', 
-                    fontWeight: 600,
-                    color: 'var(--text-primary)'
-                }}>
-                    Profile photo
-                </h3>
-                <button
-                    type="button"
-                    onClick={onClose}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        padding: '0.25rem'
-                    }}
-                >
-                    <X size={20} />
-                </button>
-            </div>
+  return (
+    <DialogWrapper onClose={onClose}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '1rem',
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            fontSize: '1.125rem',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+          }}
+        >
+          Profile photo
+        </h3>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            padding: '0.25rem',
+          }}
+        >
+          <X size={20} />
+        </button>
+      </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                    onClick={() => {
-                        onUploadClick();
-                        onClose();
-                    }}
-                    style={{
-                        flex: 1,
-                        padding: '0.625rem 1.25rem',
-                        borderRadius: '8px',
-                        border: 'none',
-                        backgroundColor: '#0095f6',
-                        color: '#ffffff',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        fontWeight: 500
-                    }}
-                >
-                    <Camera size={16} />
-                    {hasProfilePic ? 'Change' : 'Upload'}
-                </button>
-                {hasProfilePic && (
-                    <button
-                        onClick={onRemoveClick}
-                        style={{
-                            flex: 1,
-                            padding: '0.625rem 1.25rem',
-                            borderRadius: '8px',
-                            border: '1px solid #ef4444',
-                            backgroundColor: 'transparent',
-                            color: '#ef4444',
-                            fontSize: '0.875rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            fontWeight: 500
-                        }}
-                    >
-                        <Trash2 size={16} />
-                        Remove
-                    </button>
-                )}
-            </div>
-        </DialogWrapper>
-    );
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <button
+          onClick={() => {
+            onUploadClick();
+            onClose();
+          }}
+          style={{
+            flex: 1,
+            padding: '0.625rem 1.25rem',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: '#0095f6',
+            color: '#ffffff',
+            fontSize: '0.875rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            fontWeight: 500,
+          }}
+        >
+          <Camera size={16} />
+          {hasProfilePic ? 'Change' : 'Upload'}
+        </button>
+        {hasProfilePic && (
+          <button
+            onClick={onRemoveClick}
+            style={{
+              flex: 1,
+              padding: '0.625rem 1.25rem',
+              borderRadius: '8px',
+              border: '1px solid #ef4444',
+              backgroundColor: 'transparent',
+              color: '#ef4444',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              fontWeight: 500,
+            }}
+          >
+            <Trash2 size={16} />
+            Remove
+          </button>
+        )}
+      </div>
+    </DialogWrapper>
+  );
 };
 
 // Username Dialog
 const UsernameDialog: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    currentUsername: string;
-    onSuccess: (newUsername: string) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  currentUsername: string;
+  onSuccess: (newUsername: string) => void;
 }> = ({ isOpen, onClose, currentUsername, onSuccess }) => {
-    const [username, setUsername] = useState(currentUsername);
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+  const [username, setUsername] = useState(currentUsername);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            setUsername(currentUsername);
-            setError('');
-        }
-    }, [isOpen, currentUsername]);
+  useEffect(() => {
+    if (isOpen) {
+      setUsername(currentUsername);
+      setError('');
+    }
+  }, [isOpen, currentUsername]);
 
-    if (!isOpen) return null;
+  if (!isOpen) return null;
 
-    const validateUsername = (value: string): string | null => {
-        if (value.length < 3 || value.length > 20) {
-            return 'Username must be 3-20 characters';
-        }
-        if (!/^[a-z0-9_.]+$/.test(value)) {
-            return 'Only lowercase letters, numbers, _ and . allowed';
-        }
-        return null;
-    };
+  const validateUsername = (value: string): string | null => {
+    if (value.length < 3 || value.length > 20) {
+      return 'Username must be 3-20 characters';
+    }
+    if (!/^[a-z0-9_.]+$/.test(value)) {
+      return 'Only lowercase letters, numbers, _ and . allowed';
+    }
+    return null;
+  };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        const validationError = validateUsername(username);
-        if (validationError) {
-            setError(validationError);
-            return;
-        }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-        if (username === currentUsername) {
-            onClose();
-            return;
-        }
+    const validationError = validateUsername(username);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
 
-        setIsLoading(true);
-        try {
-            const res = await api.post('/update-username', { new_username: username });
-            if (res.success) {
-                onSuccess(res.new_username);
-                onClose();
-            } else {
-                setError(res.error || 'Failed to update username');
-            }
-        } catch (err) {
-            setError('Failed to update username');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    if (username === currentUsername) {
+      onClose();
+      return;
+    }
 
-    return (
-        <DialogWrapper onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '1rem'
-                }}>
-                    <h3 style={{ 
-                        margin: 0, 
-                        fontSize: '1.125rem', 
-                        fontWeight: 600,
-                        color: 'var(--text-primary)'
-                    }}>
-                        Change username
-                    </h3>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            padding: '0.25rem'
-                        }}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
+    setIsLoading(true);
+    try {
+      const res = await api.post('/update-username', { new_username: username });
+      if (res.success) {
+        onSuccess(res.new_username);
+        onClose();
+      } else {
+        setError(res.error || 'Failed to update username');
+      }
+    } catch {
+      setError('Failed to update username');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ 
-                        fontSize: '0.875rem', 
-                        color: 'var(--text-secondary)',
-                        display: 'block',
-                        marginBottom: '0.5rem'
-                    }}>
-                        Username
-                    </label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => {
-                            setUsername(e.target.value.toLowerCase());
-                            setError('');
-                        }}
-                        placeholder="Enter new username"
-                        autoFocus
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            borderRadius: '8px',
-                            border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
-                            backgroundColor: 'var(--bg-secondary)',
-                            color: 'var(--text-primary)',
-                            fontSize: '16px', // Prevents iOS auto-zoom
-                            outline: 'none'
-                        }}
-                    />
-                    {error && (
-                        <p style={{ 
-                            color: '#ef4444', 
-                            fontSize: '0.75rem', 
-                            marginTop: '0.5rem',
-                            margin: '0.5rem 0 0 0'
-                        }}>
-                            {error}
-                        </p>
-                    )}
-                </div>
+  return (
+    <DialogWrapper onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem',
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+            }}
+          >
+            Change username
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              padding: '0.25rem',
+            }}
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
-                    <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}>
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="btn btn-primary"
-                        style={{
-                            flex: 1,
-                            padding: '0.6rem',
-                            fontSize: '0.85rem',
-                            opacity: isLoading ? 0.7 : 1
-                        }}
-                    >
-                        {isLoading ? 'Saving...' : 'Save'}
-                    </button>
-                </div>
-            </form>
-        </DialogWrapper>
-    );
+        <div style={{ marginBottom: '1rem' }}>
+          <label
+            style={{
+              fontSize: '0.875rem',
+              color: 'var(--text-secondary)',
+              display: 'block',
+              marginBottom: '0.5rem',
+            }}
+          >
+            Username
+          </label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value.toLowerCase());
+              setError('');
+            }}
+            placeholder="Enter new username"
+            autoFocus
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '8px',
+              border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              fontSize: '16px', // Prevents iOS auto-zoom
+              outline: 'none',
+            }}
+          />
+          {error && (
+            <p
+              style={{
+                color: '#ef4444',
+                fontSize: '0.75rem',
+                marginTop: '0.5rem',
+                margin: '0.5rem 0 0 0',
+              }}
+            >
+              {error}
+            </p>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-outline"
+            style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-primary"
+            style={{
+              flex: 1,
+              padding: '0.6rem',
+              fontSize: '0.85rem',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+          >
+            {isLoading ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </form>
+    </DialogWrapper>
+  );
 };
 
 // Password Dialog
 const PasswordDialog: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }> = ({ isOpen, onClose, onSuccess }) => {
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            setCurrentPassword('');
-            setNewPassword('');
-            setError('');
-        }
-    }, [isOpen]);
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentPassword('');
+      setNewPassword('');
+      setError('');
+    }
+  }, [isOpen]);
 
-    if (!isOpen) return null;
+  if (!isOpen) return null;
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        if (!currentPassword || !newPassword) {
-            setError('All fields are required');
-            return;
-        }
-        if (newPassword.length < 8) {
-            setError('Password must be at least 8 characters');
-            return;
-        }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-        setIsLoading(true);
-        try {
-            const res = await api.post('/change-password', {
-                current_password: currentPassword,
-                new_password: newPassword
-            });
-            if (res.success) {
-                onSuccess();
-                onClose();
-            } else {
-                setError(res.error || 'Failed to change password');
-            }
-        } catch (err) {
-            setError('Failed to change password');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    if (!currentPassword || !newPassword) {
+      setError('All fields are required');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
 
-    return (
-        <DialogWrapper onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '1rem'
-                }}>
-                    <h3 style={{ 
-                        margin: 0, 
-                        fontSize: '1.125rem', 
-                        fontWeight: 600,
-                        color: 'var(--text-primary)'
-                    }}>
-                        Change password
-                    </h3>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            padding: '0.25rem'
-                        }}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
+    setIsLoading(true);
+    try {
+      const res = await api.post('/change-password', {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      if (res.success) {
+        onSuccess();
+        onClose();
+      } else {
+        setError(res.error || 'Failed to change password');
+      }
+    } catch {
+      setError('Failed to change password');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-                <div style={{ marginBottom: '0.75rem' }}>
-                    <label style={{ 
-                        fontSize: '0.875rem', 
-                        color: 'var(--text-secondary)',
-                        display: 'block',
-                        marginBottom: '0.5rem'
-                    }}>
-                        Current password
-                    </label>
-                    <input
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => {
-                            setCurrentPassword(e.target.value);
-                            setError('');
-                        }}
-                        placeholder="Enter current password"
-                        autoFocus
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border)',
-                            backgroundColor: 'var(--bg-secondary)',
-                            color: 'var(--text-primary)',
-                            fontSize: '16px', // Prevents iOS auto-zoom
-                            outline: 'none'
-                        }}
-                    />
-                </div>
+  return (
+    <DialogWrapper onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem',
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+            }}
+          >
+            Change password
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              padding: '0.25rem',
+            }}
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ 
-                        fontSize: '0.875rem', 
-                        color: 'var(--text-secondary)',
-                        display: 'block',
-                        marginBottom: '0.5rem'
-                    }}>
-                        New password
-                    </label>
-                    <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => {
-                            setNewPassword(e.target.value);
-                            setError('');
-                        }}
-                        placeholder="Enter new password"
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            borderRadius: '8px',
-                            border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
-                            backgroundColor: 'var(--bg-secondary)',
-                            color: 'var(--text-primary)',
-                            fontSize: '16px', // Prevents iOS auto-zoom
-                            outline: 'none'
-                        }}
-                    />
-                    {error && (
-                        <p style={{ 
-                            color: '#ef4444', 
-                            fontSize: '0.75rem', 
-                            marginTop: '0.5rem',
-                            margin: '0.5rem 0 0 0'
-                        }}>
-                            {error}
-                        </p>
-                    )}
-                </div>
+        <div style={{ marginBottom: '0.75rem' }}>
+          <label
+            style={{
+              fontSize: '0.875rem',
+              color: 'var(--text-secondary)',
+              display: 'block',
+              marginBottom: '0.5rem',
+            }}
+          >
+            Current password
+          </label>
+          <input
+            type="password"
+            value={currentPassword}
+            onChange={(e) => {
+              setCurrentPassword(e.target.value);
+              setError('');
+            }}
+            placeholder="Enter current password"
+            autoFocus
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              fontSize: '16px', // Prevents iOS auto-zoom
+              outline: 'none',
+            }}
+          />
+        </div>
 
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
-                    <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}>
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="btn btn-primary"
-                        style={{
-                            flex: 1,
-                            padding: '0.6rem',
-                            fontSize: '0.85rem',
-                            opacity: isLoading ? 0.7 : 1
-                        }}
-                    >
-                        {isLoading ? 'Saving...' : 'Update'}
-                    </button>
-                </div>
-            </form>
-        </DialogWrapper>
-    );
+        <div style={{ marginBottom: '1rem' }}>
+          <label
+            style={{
+              fontSize: '0.875rem',
+              color: 'var(--text-secondary)',
+              display: 'block',
+              marginBottom: '0.5rem',
+            }}
+          >
+            New password
+          </label>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => {
+              setNewPassword(e.target.value);
+              setError('');
+            }}
+            placeholder="Enter new password"
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '8px',
+              border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              fontSize: '16px', // Prevents iOS auto-zoom
+              outline: 'none',
+            }}
+          />
+          {error && (
+            <p
+              style={{
+                color: '#ef4444',
+                fontSize: '0.75rem',
+                marginTop: '0.5rem',
+                margin: '0.5rem 0 0 0',
+              }}
+            >
+              {error}
+            </p>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-outline"
+            style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-primary"
+            style={{
+              flex: 1,
+              padding: '0.6rem',
+              fontSize: '0.85rem',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+          >
+            {isLoading ? 'Saving...' : 'Update'}
+          </button>
+        </div>
+      </form>
+    </DialogWrapper>
+  );
 };
 
 // Bio Dialog
 const BioDialog: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    currentBio: string;
-    onSuccess: (newBio: string) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  currentBio: string;
+  onSuccess: (newBio: string) => void;
 }> = ({ isOpen, onClose, currentBio, onSuccess }) => {
-    const [bio, setBio] = useState(currentBio);
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+  const [bio, setBio] = useState(currentBio);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            setBio(currentBio);
-            setError('');
-        }
-    }, [isOpen, currentBio]);
+  useEffect(() => {
+    if (isOpen) {
+      setBio(currentBio);
+      setError('');
+    }
+  }, [isOpen, currentBio]);
 
-    if (!isOpen) return null;
+  if (!isOpen) return null;
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        const trimmedBio = bio.trim();
-        
-        if (trimmedBio.length > 150) {
-            setError('Bio must be 150 characters or less');
-            return;
-        }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-        if (trimmedBio === currentBio) {
-            onClose();
-            return;
-        }
+    const trimmedBio = bio.trim();
 
-        setIsLoading(true);
-        try {
-            const res = await api.post('/update-bio', { bio: trimmedBio });
-            if (res.success) {
-                onSuccess(res.bio || '');
-                onClose();
-            } else {
-                setError(res.error || 'Failed to update bio');
-            }
-        } catch (err) {
-            setError('Failed to update bio');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    if (trimmedBio.length > 150) {
+      setError('Bio must be 150 characters or less');
+      return;
+    }
 
-    return (
-        <DialogWrapper onClose={onClose}>
-            <form onSubmit={handleSubmit}>
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '1rem'
-                }}>
-                    <h3 style={{ 
-                        margin: 0, 
-                        fontSize: '1.125rem', 
-                        fontWeight: 600,
-                        color: 'var(--text-primary)'
-                    }}>
-                        Edit bio
-                    </h3>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'var(--text-secondary)',
-                            cursor: 'pointer',
-                            padding: '0.25rem'
-                        }}
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
+    if (trimmedBio === currentBio) {
+      onClose();
+      return;
+    }
 
-                <div style={{ marginBottom: '0.75rem' }}>
-                    <textarea
-                        value={bio}
-                        onChange={(e) => {
-                            setBio(e.target.value);
-                            setError('');
-                        }}
-                        placeholder="Write a short bio..."
-                        maxLength={150}
-                        autoFocus
-                        rows={4}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            borderRadius: '8px',
-                            border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
-                            backgroundColor: 'var(--bg-secondary)',
-                            color: 'var(--text-primary)',
-                            fontSize: '16px',
-                            outline: 'none',
-                            resize: 'none',
-                            fontFamily: 'inherit'
-                        }}
-                    />
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginTop: '0.5rem'
-                    }}>
-                        <span style={{ 
-                            fontSize: '0.75rem', 
-                            color: bio.length > 150 ? '#ef4444' : 'var(--text-secondary)' 
-                        }}>
-                            {bio.length}/150
-                        </span>
-                        {error && (
-                            <span style={{ 
-                                color: '#ef4444', 
-                                fontSize: '0.75rem'
-                            }}>
-                                {error}
-                            </span>
-                        )}
-                    </div>
-                </div>
+    setIsLoading(true);
+    try {
+      const res = await api.post('/update-bio', { bio: trimmedBio });
+      if (res.success) {
+        onSuccess(res.bio || '');
+        onClose();
+      } else {
+        setError(res.error || 'Failed to update bio');
+      }
+    } catch {
+      setError('Failed to update bio');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
-                    <button type="button" onClick={onClose} className="btn btn-outline" style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}>
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="btn btn-primary"
-                        style={{
-                            flex: 1,
-                            padding: '0.6rem',
-                            fontSize: '0.85rem',
-                            opacity: isLoading ? 0.7 : 1
-                        }}
-                    >
-                        {isLoading ? 'Saving...' : 'Save'}
-                    </button>
-                </div>
-            </form>
-        </DialogWrapper>
-    );
+  return (
+    <DialogWrapper onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1rem',
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+            }}
+          >
+            Edit bio
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              padding: '0.25rem',
+            }}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div style={{ marginBottom: '0.75rem' }}>
+          <textarea
+            value={bio}
+            onChange={(e) => {
+              setBio(e.target.value);
+              setError('');
+            }}
+            placeholder="Write a short bio..."
+            maxLength={150}
+            autoFocus
+            rows={4}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '8px',
+              border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
+              backgroundColor: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              fontSize: '16px',
+              outline: 'none',
+              resize: 'none',
+              fontFamily: 'inherit',
+            }}
+          />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '0.5rem',
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.75rem',
+                color: bio.length > 150 ? '#ef4444' : 'var(--text-secondary)',
+              }}
+            >
+              {bio.length}/150
+            </span>
+            {error && (
+              <span
+                style={{
+                  color: '#ef4444',
+                  fontSize: '0.75rem',
+                }}
+              >
+                {error}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-outline"
+            style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn btn-primary"
+            style={{
+              flex: 1,
+              padding: '0.6rem',
+              fontSize: '0.85rem',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+          >
+            {isLoading ? 'Saving...' : 'Save'}
+          </button>
+        </div>
+      </form>
+    </DialogWrapper>
+  );
 };
 
 // Logout Confirmation Dialog
 const LogoutDialog: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
 }> = ({ isOpen, onClose, onConfirm }) => {
-    if (!isOpen) return null;
+  if (!isOpen) return null;
 
-    return (
-        <DialogWrapper onClose={onClose}>
-            <div style={{ textAlign: 'center' }}>
-                <div style={{
-                    width: '56px',
-                    height: '56px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 1rem'
-                }}>
-                    <AlertTriangle size={28} color="#ef4444" />
-                </div>
-                
-                <h3 style={{ 
-                    margin: '0 0 0.5rem', 
-                    fontSize: '1.125rem', 
-                    fontWeight: 600,
-                    color: 'var(--text-primary)'
-                }}>
-                    Log out?
-                </h3>
-                
-                <p style={{ 
-                    margin: '0 0 1.5rem', 
-                    fontSize: '0.875rem', 
-                    color: 'var(--text-secondary)' 
-                }}>
-                    Are you sure you want to log out of your account?
-                </p>
+  return (
+    <DialogWrapper onClose={onClose}>
+      <div style={{ textAlign: 'center' }}>
+        <div
+          style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem',
+          }}
+        >
+          <AlertTriangle size={28} color="#ef4444" />
+        </div>
 
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            flex: 1,
-                            padding: '0.75rem',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border)',
-                            backgroundColor: 'transparent',
-                            color: 'var(--text-primary)',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        style={{
-                            flex: 1,
-                            padding: '0.75rem',
-                            borderRadius: '8px',
-                            border: 'none',
-                            backgroundColor: '#ef4444',
-                            color: 'white',
-                            fontSize: '0.875rem',
-                            fontWeight: 500,
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Log out
-                    </button>
-                </div>
-            </div>
-        </DialogWrapper>
-    );
+        <h3
+          style={{
+            margin: '0 0 0.5rem',
+            fontSize: '1.125rem',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+          }}
+        >
+          Log out?
+        </h3>
+
+        <p
+          style={{
+            margin: '0 0 1.5rem',
+            fontSize: '0.875rem',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          Are you sure you want to log out of your account?
+        </p>
+
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={onClose}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border)',
+              backgroundColor: 'transparent',
+              color: 'var(--text-primary)',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{
+              flex: 1,
+              padding: '0.75rem',
+              borderRadius: '8px',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            Log out
+          </button>
+        </div>
+      </div>
+    </DialogWrapper>
+  );
 };
 
 // Dialog Wrapper Component
 const DialogWrapper: React.FC<{
-    children: React.ReactNode;
-    onClose: () => void;
+  children: React.ReactNode;
+  onClose: () => void;
 }> = ({ children, onClose }) => (
+  <div
+    onClick={(e) => {
+      if (e.target === e.currentTarget) onClose();
+    }}
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '1rem',
+      paddingTop: '15vh',
+      overflowY: 'auto',
+    }}
+  >
     <div
-        onClick={(e) => {
-            if (e.target === e.currentTarget) onClose();
-        }}
-        style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem',
-            paddingTop: '15vh',
-            overflowY: 'auto'
-        }}
+      className="card"
+      style={{
+        width: '100%',
+        maxWidth: '340px',
+        padding: '1.25rem',
+        animation: 'modalSlideIn 0.2s ease-out',
+      }}
     >
-        <div
-            className="card"
-            style={{
-                width: '100%',
-                maxWidth: '340px',
-                padding: '1.25rem',
-                animation: 'modalSlideIn 0.2s ease-out'
-            }}
-        >
-            <style>{`
+      <style>{`
                 @keyframes modalSlideIn {
                     from {
                         opacity: 0;
@@ -1644,358 +1793,387 @@ const DialogWrapper: React.FC<{
                     }
                 }
             `}</style>
-            {children}
-        </div>
+      {children}
     </div>
+  </div>
 );
 
 // Notifications Blocked Dialog
-const NotificationsBlockedDialog: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    if (!isOpen) return null;
-    
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    
-    let title: string;
-    let steps: string[];
-    
-    if (isIOS) {
-        if (isPWA) {
-            title = 'Reset Notification Permission';
-            steps = [
-                'Remove app from Home Screen (long press > Remove)',
-                'Open Safari and visit this site again',
-                'Tap Share > "Add to Home Screen"',
-                'Open app and tap "Enable" when prompted',
-                'Select "Allow" in the permission dialog'
-            ];
-        } else {
-            title = 'Enable on iOS';
-            steps = [
-                'Tap the Share button below',
-                'Select "Add to Home Screen"',
-                'Open the app from Home Screen',
-                'Tap Enable and allow notifications'
-            ];
-        }
-    } else if (isAndroid) {
-        if (isPWA) {
-            title = 'Enable on Android';
-            steps = [
-                'Open Settings > Apps',
-                'Tap "Growth Tracker"',
-                'Tap "Notifications"',
-                'Turn on notifications'
-            ];
-        } else {
-            title = 'Enable in Browser';
-            steps = [
-                'Tap ⋮ menu in browser',
-                'Go to Settings > Site settings',
-                'Tap "Notifications"',
-                'Allow for this site'
-            ];
-        }
+const NotificationsBlockedDialog: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
+  isOpen,
+  onClose,
+}) => {
+  if (!isOpen) return null;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = /Android/.test(navigator.userAgent);
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  let title: string;
+  let steps: string[];
+
+  if (isIOS) {
+    if (isPWA) {
+      title = 'Reset Notification Permission';
+      steps = [
+        'Remove app from Home Screen (long press > Remove)',
+        'Open Safari and visit this site again',
+        'Tap Share > "Add to Home Screen"',
+        'Open app and tap "Enable" when prompted',
+        'Select "Allow" in the permission dialog',
+      ];
     } else {
-        title = 'Enable Notifications';
-        steps = [
-            'Click lock icon in address bar',
-            'Find "Notifications"',
-            'Change to "Allow"',
-            'Refresh the page'
-        ];
+      title = 'Enable on iOS';
+      steps = [
+        'Tap the Share button below',
+        'Select "Add to Home Screen"',
+        'Open the app from Home Screen',
+        'Tap Enable and allow notifications',
+      ];
     }
-    
-    return createPortal(
-        <div 
-            onClick={onClose}
-            style={{
-                position: 'fixed',
-                inset: 0,
-                background: isDark 
-                    ? 'rgba(0, 0, 0, 0.7)' 
-                    : 'rgba(0, 0, 0, 0.4)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '1.5rem',
-                zIndex: 9999,
-                animation: 'fadeIn 0.2s ease',
-            }}
-        >
-            <style>{`
+  } else if (isAndroid) {
+    if (isPWA) {
+      title = 'Enable on Android';
+      steps = [
+        'Open Settings > Apps',
+        'Tap "Growth Tracker"',
+        'Tap "Notifications"',
+        'Turn on notifications',
+      ];
+    } else {
+      title = 'Enable in Browser';
+      steps = [
+        'Tap ⋮ menu in browser',
+        'Go to Settings > Site settings',
+        'Tap "Notifications"',
+        'Allow for this site',
+      ];
+    }
+  } else {
+    title = 'Enable Notifications';
+    steps = [
+      'Click lock icon in address bar',
+      'Find "Notifications"',
+      'Change to "Allow"',
+      'Refresh the page',
+    ];
+  }
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1.5rem',
+        zIndex: 9999,
+        animation: 'fadeIn 0.2s ease',
+      }}
+    >
+      <style>{`
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
             `}</style>
-            <div 
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                    background: isDark 
-                        ? 'rgba(30, 30, 35, 0.85)' 
-                        : 'rgba(255, 255, 255, 0.75)',
-                    backdropFilter: 'blur(40px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-                    borderRadius: '20px',
-                    border: isDark 
-                        ? '1px solid rgba(255, 255, 255, 0.1)' 
-                        : '1px solid rgba(255, 255, 255, 0.6)',
-                    boxShadow: isDark
-                        ? '0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
-                        : '0 25px 50px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-                    maxWidth: '320px',
-                    width: '100%',
-                    animation: 'slideUp 0.3s ease',
-                }}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: isDark ? 'rgba(30, 30, 35, 0.85)' : 'rgba(255, 255, 255, 0.75)',
+          backdropFilter: 'blur(40px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+          borderRadius: '20px',
+          border: isDark
+            ? '1px solid rgba(255, 255, 255, 0.1)'
+            : '1px solid rgba(255, 255, 255, 0.6)',
+          boxShadow: isDark
+            ? '0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)'
+            : '0 25px 50px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+          maxWidth: '320px',
+          width: '100%',
+          animation: 'slideUp 0.3s ease',
+        }}
+      >
+        {/* Header with icon */}
+        <div
+          style={{
+            padding: '1.5rem 1.5rem 0',
+            textAlign: 'center',
+          }}
+        >
+          <div
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              background: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1rem',
+              color: '#ef4444',
+            }}
+          >
+            <BellOff size={28} />
+          </div>
+          <h3
+            style={{
+              fontSize: '1.125rem',
+              fontWeight: 700,
+              color: isDark ? '#fff' : '#1a1a1a',
+              margin: 0,
+            }}
+          >
+            {title}
+          </h3>
+          <p
+            style={{
+              fontSize: '0.8125rem',
+              color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+              margin: '0.375rem 0 0',
+            }}
+          >
+            Follow these steps
+          </p>
+        </div>
+
+        {/* Steps */}
+        <div style={{ padding: '1.25rem 1.5rem' }}>
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.625rem 0',
+                borderBottom:
+                  index < steps.length - 1
+                    ? `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`
+                    : 'none',
+              }}
             >
-                {/* Header with icon */}
-                <div style={{
-                    padding: '1.5rem 1.5rem 0',
-                    textAlign: 'center',
-                }}>
-                    <div style={{
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '16px',
-                        background: isDark
-                            ? 'rgba(239, 68, 68, 0.2)'
-                            : 'rgba(239, 68, 68, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 1rem',
-                        color: '#ef4444',
-                    }}>
-                        <BellOff size={28} />
-                    </div>
-                    <h3 style={{
-                        fontSize: '1.125rem',
-                        fontWeight: 700,
-                        color: isDark ? '#fff' : '#1a1a1a',
-                        margin: 0,
-                    }}>
-                        {title}
-                    </h3>
-                    <p style={{
-                        fontSize: '0.8125rem',
-                        color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
-                        margin: '0.375rem 0 0',
-                    }}>
-                        Follow these steps
-                    </p>
-                </div>
-                
-                {/* Steps */}
-                <div style={{ padding: '1.25rem 1.5rem' }}>
-                    {steps.map((step, index) => (
-                        <div 
-                            key={index} 
-                            style={{
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: '0.75rem',
-                                padding: '0.625rem 0',
-                                borderBottom: index < steps.length - 1 
-                                    ? `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}` 
-                                    : 'none',
-                            }}
-                        >
-                            <span style={{
-                                minWidth: '22px',
-                                height: '22px',
-                                borderRadius: '50%',
-                                background: isDark 
-                                    ? 'rgba(255,255,255,0.1)' 
-                                    : 'rgba(0,0,0,0.06)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.6875rem',
-                                fontWeight: 600,
-                                color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)',
-                            }}>
-                                {index + 1}
-                            </span>
-                            <span style={{
-                                fontSize: '0.875rem',
-                                color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
-                                lineHeight: 1.4,
-                                paddingTop: '0.0625rem',
-                            }}>
-                                {step}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-                
-                {/* Button */}
-                <div style={{ padding: '0 1.5rem 1.5rem' }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            width: '100%',
-                            padding: '0.875rem',
-                            borderRadius: '12px',
-                            border: 'none',
-                            background: '#0095f6',
-                            color: 'white',
-                            fontSize: '0.9375rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            transition: 'transform 0.1s, opacity 0.1s',
-                        }}
-                        onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
-                        onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                    >
-                        Got it
-                    </button>
-                </div>
+              <span
+                style={{
+                  minWidth: '22px',
+                  height: '22px',
+                  borderRadius: '50%',
+                  background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.6875rem',
+                  fontWeight: 600,
+                  color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)',
+                }}
+              >
+                {index + 1}
+              </span>
+              <span
+                style={{
+                  fontSize: '0.875rem',
+                  color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)',
+                  lineHeight: 1.4,
+                  paddingTop: '0.0625rem',
+                }}
+              >
+                {step}
+              </span>
             </div>
-        </div>,
-        document.body
-    );
+          ))}
+        </div>
+
+        {/* Button */}
+        <div style={{ padding: '0 1.5rem 1.5rem' }}>
+          <button
+            onClick={onClose}
+            style={{
+              width: '100%',
+              padding: '0.875rem',
+              borderRadius: '12px',
+              border: 'none',
+              background: '#0095f6',
+              color: 'white',
+              fontSize: '0.9375rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'transform 0.1s, opacity 0.1s',
+            }}
+            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
 };
 
 // Push Notifications Section with toggle in header
-const PushNotificationsSection: React.FC<{ onToast: (message: string, type: 'success' | 'error') => void }> = ({ onToast }) => {
-    const { isSubscribed, isLoading, toggleSubscription, isSupported, permission } = usePushNotifications();
-    const [showBlockedDialog, setShowBlockedDialog] = useState(false);
-    
-    // Don't show if not supported
-    if (!isSupported) {
-        return null;
-    }
-    
-    // Show blocked message if permission denied
-    if (permission === 'denied') {
-        return (
-            <>
-                <NotificationsBlockedDialog 
-                    isOpen={showBlockedDialog} 
-                    onClose={() => setShowBlockedDialog(false)} 
-                />
-                <div 
-                    onClick={() => setShowBlockedDialog(true)}
-                    style={{
-                        padding: '0.75rem 1rem',
-                        borderBottom: '1px solid var(--border)',
-                        cursor: 'pointer',
-                    }}
-                >
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                    }}>
-                        <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '8px',
-                            backgroundColor: 'var(--icon-bg-muted)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--text-tertiary)'
-                        }}>
-                            <BellOff size={16} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ 
-                                fontSize: '0.875rem', 
-                                fontWeight: 500, 
-                                color: 'var(--text-primary)' 
-                            }}>
-                                Push Notifications
-                            </div>
-                            <div style={{ 
-                                fontSize: '0.75rem', 
-                                color: 'var(--text-tertiary)',
-                                marginTop: '0.125rem'
-                            }}>
-                                Blocked · Tap to learn how to enable
-                            </div>
-                        </div>
-                        <ChevronRight size={16} style={{ color: 'var(--text-tertiary)' }} />
-                    </div>
-                </div>
-            </>
-        );
-    }
-    
-    const handleToggle = async () => {
-        const success = await toggleSubscription();
-        if (success) {
-            onToast(isSubscribed ? 'Notifications disabled' : 'Notifications enabled', 'success');
-        }
-    };
-    
+const PushNotificationsSection: React.FC<{
+  onToast: (message: string, type: 'success' | 'error') => void;
+}> = ({ onToast }) => {
+  const { isSubscribed, isLoading, toggleSubscription, isSupported, permission } =
+    usePushNotifications();
+  const [showBlockedDialog, setShowBlockedDialog] = useState(false);
+
+  // Don't show if not supported
+  if (!isSupported) {
+    return null;
+  }
+
+  // Show blocked message if permission denied
+  if (permission === 'denied') {
     return (
-        <div style={{
+      <>
+        <NotificationsBlockedDialog
+          isOpen={showBlockedDialog}
+          onClose={() => setShowBlockedDialog(false)}
+        />
+        <div
+          onClick={() => setShowBlockedDialog(true)}
+          style={{
             padding: '0.75rem 1rem',
-            borderBottom: '1px solid var(--border)'
-        }}>
-            <div style={{
+            borderBottom: '1px solid var(--border)',
+            cursor: 'pointer',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--icon-bg-muted)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
-            }}>
-                <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    backgroundColor: 'var(--icon-bg-muted)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--text-secondary)'
-                }}>
-                    <Bell size={16} />
-                </div>
-                <div style={{ 
-                    flex: 1,
-                    fontSize: '0.875rem', 
-                    fontWeight: 500, 
-                    color: 'var(--text-primary)' 
-                }}>
-                    Push Notifications
-                </div>
-                <button
-                    onClick={handleToggle}
-                    disabled={isLoading}
-                    style={{
-                        width: '44px',
-                        height: '24px',
-                        borderRadius: '12px',
-                        border: 'none',
-                        backgroundColor: isSubscribed ? '#0095f6' : 'var(--border)',
-                        cursor: isLoading ? 'not-allowed' : 'pointer',
-                        position: 'relative',
-                        transition: 'background-color 0.2s',
-                        opacity: isLoading ? 0.6 : 1
-                    }}
-                >
-                    <div style={{
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '50%',
-                        backgroundColor: 'white',
-                        position: 'absolute',
-                        top: '3px',
-                        left: isSubscribed ? '23px' : '3px',
-                        transition: 'left 0.2s',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
-                    }} />
-                </button>
+                justifyContent: 'center',
+                color: 'var(--text-tertiary)',
+              }}
+            >
+              <BellOff size={16} />
             </div>
-            {isSubscribed && (
-                <div style={{ marginTop: '0.75rem' }}>
-                    <PushNotificationSettings onToast={onToast} />
-                </div>
-            )}
+            <div style={{ flex: 1 }}>
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                Push Notifications
+              </div>
+              <div
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--text-tertiary)',
+                  marginTop: '0.125rem',
+                }}
+              >
+                Blocked · Tap to learn how to enable
+              </div>
+            </div>
+            <ChevronRight size={16} style={{ color: 'var(--text-tertiary)' }} />
+          </div>
         </div>
+      </>
     );
+  }
+
+  const handleToggle = async () => {
+    const success = await toggleSubscription();
+    if (success) {
+      onToast(isSubscribed ? 'Notifications disabled' : 'Notifications enabled', 'success');
+    }
+  };
+
+  return (
+    <div
+      style={{
+        padding: '0.75rem 1rem',
+        borderBottom: '1px solid var(--border)',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+        }}
+      >
+        <div
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            backgroundColor: 'var(--icon-bg-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <Bell size={16} />
+        </div>
+        <div
+          style={{
+            flex: 1,
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            color: 'var(--text-primary)',
+          }}
+        >
+          Push Notifications
+        </div>
+        <button
+          onClick={handleToggle}
+          disabled={isLoading}
+          style={{
+            width: '44px',
+            height: '24px',
+            borderRadius: '12px',
+            border: 'none',
+            backgroundColor: isSubscribed ? '#0095f6' : 'var(--border)',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            position: 'relative',
+            transition: 'background-color 0.2s',
+            opacity: isLoading ? 0.6 : 1,
+          }}
+        >
+          <div
+            style={{
+              width: '18px',
+              height: '18px',
+              borderRadius: '50%',
+              backgroundColor: 'white',
+              position: 'absolute',
+              top: '3px',
+              left: isSubscribed ? '23px' : '3px',
+              transition: 'left 0.2s',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            }}
+          />
+        </button>
+      </div>
+      {isSubscribed && (
+        <div style={{ marginTop: '0.75rem' }}>
+          <PushNotificationSettings onToast={onToast} />
+        </div>
+      )}
+    </div>
+  );
 };

@@ -5,11 +5,12 @@
  * Uses design tokens for consistent styling.
  */
 
-import React from 'react';
 import type { ReactNode } from 'react';
-import styles from './EmptyState.module.css';
-import { Button } from '../Button';
+import React from 'react';
+
 import type { ButtonProps } from '../Button';
+import { Button } from '../Button';
+import styles from './EmptyState.module.css';
 
 export interface EmptyStateProps {
   /** Icon to display */
@@ -37,13 +38,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   size = 'md',
   className = '',
 }) => {
-  const classNames = [
-    styles.emptyState,
-    styles[size],
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const classNames = [styles.emptyState, styles[size], className].filter(Boolean).join(' ');
 
   return (
     <div className={classNames}>

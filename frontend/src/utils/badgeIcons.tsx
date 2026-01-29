@@ -1,20 +1,12 @@
 /**
  * Badge Icon Utilities
- * 
+ *
  * Shared icon mapping for badge components to ensure consistency.
  */
 
-import React from 'react';
-import {
-  Footprints,
-  Zap,
-  Flame,
-  Shield,
-  Gem,
-  Crown,
-  Star,
-} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { Crown, Flame, Footprints, Gem, Shield, Star, Zap } from 'lucide-react';
+import React from 'react';
 
 // Map badge icon names to Lucide components
 export const badgeIconComponents: Record<string, LucideIcon> = {

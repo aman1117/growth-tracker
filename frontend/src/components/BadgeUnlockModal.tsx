@@ -4,8 +4,9 @@
  * Celebration modal when a new badge is unlocked with confetti animation.
  */
 
-import React, { useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
+import React, { useCallback, useEffect } from 'react';
+
 import type { Badge } from '../types/api';
 import { getBadgeIconComponent } from '../utils/badgeIcons';
 import styles from './BadgeUnlockModal.module.css';
@@ -16,11 +17,7 @@ export interface BadgeUnlockModalProps {
   onClose: () => void;
 }
 
-export const BadgeUnlockModal: React.FC<BadgeUnlockModalProps> = ({
-  badges,
-  isOpen,
-  onClose,
-}) => {
+export const BadgeUnlockModal: React.FC<BadgeUnlockModalProps> = ({ badges, isOpen, onClose }) => {
   const fireConfetti = useCallback(() => {
     // Fire confetti from both sides (reduced for smoother performance)
     const count = 80;
@@ -123,9 +120,7 @@ export const BadgeUnlockModal: React.FC<BadgeUnlockModalProps> = ({
                 </div>
                 <div className={styles.badgeInfo}>
                   <span className={styles.badgeName}>{badge.name}</span>
-                  <span className={styles.badgeThreshold}>
-                    {badge.threshold} day streak
-                  </span>
+                  <span className={styles.badgeThreshold}>{badge.threshold} day streak</span>
                 </div>
               </div>
             );

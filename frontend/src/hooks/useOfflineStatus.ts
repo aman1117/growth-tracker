@@ -1,12 +1,12 @@
 /**
  * Offline Detection Hook
- * 
+ *
  * Detects online/offline status and works across all browsers including iOS Safari.
  * iOS Safari has limited service worker navigateFallback support, so we handle
  * offline detection at the app level.
  */
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export function useOfflineStatus() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);

@@ -5,7 +5,7 @@
  * Used by: FollowListModal, FollowRequestsModal
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export interface UseInfiniteScrollModalOptions<T> {
   isOpen: boolean;
@@ -74,7 +74,7 @@ export function useInfiniteScrollModal<T extends { id: number }>({
 
         setItems((prev) => (cursor ? [...prev, ...result.items] : result.items));
         setNextCursor(result.nextCursor);
-        
+
         if (result.totalCount !== undefined) {
           setTotalCount(result.totalCount);
         } else if (!cursor) {
@@ -83,7 +83,7 @@ export function useInfiniteScrollModal<T extends { id: number }>({
       } catch (err) {
         // Prevent state updates if component unmounted
         if (!isMountedRef.current) return;
-        
+
         const message = err instanceof Error ? err.message : 'Failed to load data';
         setError(message);
         console.error('Failed to fetch modal list data:', err);
@@ -139,9 +139,7 @@ export function useInfiniteScrollModal<T extends { id: number }>({
 
   // Update an item in the list
   const updateItem = useCallback((id: number, updates: Partial<T>) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
-    );
+    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
   }, []);
 
   // Refetch from the beginning

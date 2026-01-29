@@ -11,24 +11,24 @@
      ============================================================================ */
   --space-0: 0;
   --space-px: 1px;
-  --space-0-5: 0.125rem;  /* 2px */
-  --space-1: 0.25rem;     /* 4px */
-  --space-1-5: 0.375rem;  /* 6px */
-  --space-2: 0.5rem;      /* 8px */
-  --space-2-5: 0.625rem;  /* 10px */
-  --space-3: 0.75rem;     /* 12px */
-  --space-3-5: 0.875rem;  /* 14px */
-  --space-4: 1rem;        /* 16px */
-  --space-5: 1.25rem;     /* 20px */
-  --space-6: 1.5rem;      /* 24px */
-  --space-7: 1.75rem;     /* 28px */
-  --space-8: 2rem;        /* 32px */
-  --space-9: 2.25rem;     /* 36px */
-  --space-10: 2.5rem;     /* 40px */
-  --space-11: 2.75rem;    /* 44px */
-  --space-12: 3rem;       /* 48px */
-  --space-14: 3.5rem;     /* 56px */
-  --space-16: 4rem;       /* 64px */
+  --space-0-5: 0.125rem; /* 2px */
+  --space-1: 0.25rem; /* 4px */
+  --space-1-5: 0.375rem; /* 6px */
+  --space-2: 0.5rem; /* 8px */
+  --space-2-5: 0.625rem; /* 10px */
+  --space-3: 0.75rem; /* 12px */
+  --space-3-5: 0.875rem; /* 14px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-7: 1.75rem; /* 28px */
+  --space-8: 2rem; /* 32px */
+  --space-9: 2.25rem; /* 36px */
+  --space-10: 2.5rem; /* 40px */
+  --space-11: 2.75rem; /* 44px */
+  --space-12: 3rem; /* 48px */
+  --space-14: 3.5rem; /* 56px */
+  --space-16: 4rem; /* 64px */
 
   /* ============================================================================
      Border Radius Scale
@@ -46,16 +46,16 @@
      Typography Scale
      ============================================================================ */
   /* Font Sizes */
-  --text-2xs: 0.625rem;   /* 10px */
-  --text-xs: 0.75rem;     /* 12px */
-  --text-sm: 0.8125rem;   /* 13px */
-  --text-base: 0.875rem;  /* 14px */
-  --text-md: 1rem;        /* 16px */
-  --text-lg: 1.125rem;    /* 18px */
-  --text-xl: 1.25rem;     /* 20px */
-  --text-2xl: 1.5rem;     /* 24px */
-  --text-3xl: 1.875rem;   /* 30px */
-  --text-4xl: 2.25rem;    /* 36px */
+  --text-2xs: 0.625rem; /* 10px */
+  --text-xs: 0.75rem; /* 12px */
+  --text-sm: 0.8125rem; /* 13px */
+  --text-base: 0.875rem; /* 14px */
+  --text-md: 1rem; /* 16px */
+  --text-lg: 1.125rem; /* 18px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 1.875rem; /* 30px */
+  --text-4xl: 2.25rem; /* 36px */
 
   /* Line Heights */
   --leading-none: 1;
@@ -166,31 +166,31 @@
      Button Tokens
      ============================================================================ */
   /* Size: XS */
-  --btn-xs-height: 1.75rem;      /* 28px */
-  --btn-xs-padding-x: 0.5rem;    /* 8px */
+  --btn-xs-height: 1.75rem; /* 28px */
+  --btn-xs-padding-x: 0.5rem; /* 8px */
   --btn-xs-font-size: var(--text-xs);
-  --btn-xs-icon-size: 0.875rem;  /* 14px */
+  --btn-xs-icon-size: 0.875rem; /* 14px */
   --btn-xs-radius: var(--radius-md);
 
   /* Size: SM */
-  --btn-sm-height: 2rem;         /* 32px */
-  --btn-sm-padding-x: 0.75rem;   /* 12px */
+  --btn-sm-height: 2rem; /* 32px */
+  --btn-sm-padding-x: 0.75rem; /* 12px */
   --btn-sm-font-size: var(--text-xs);
-  --btn-sm-icon-size: 1rem;      /* 16px */
+  --btn-sm-icon-size: 1rem; /* 16px */
   --btn-sm-radius: var(--radius-md);
 
   /* Size: MD (default) */
-  --btn-md-height: 2.25rem;      /* 36px */
-  --btn-md-padding-x: 1rem;      /* 16px */
+  --btn-md-height: 2.25rem; /* 36px */
+  --btn-md-padding-x: 1rem; /* 16px */
   --btn-md-font-size: var(--text-base);
-  --btn-md-icon-size: 1.125rem;  /* 18px */
+  --btn-md-icon-size: 1.125rem; /* 18px */
   --btn-md-radius: var(--radius-md);
 
   /* Size: LG */
-  --btn-lg-height: 2.75rem;      /* 44px */
-  --btn-lg-padding-x: 1.5rem;    /* 24px */
+  --btn-lg-height: 2.75rem; /* 44px */
+  --btn-lg-padding-x: 1.5rem; /* 24px */
   --btn-lg-font-size: var(--text-md);
-  --btn-lg-icon-size: 1.25rem;   /* 20px */
+  --btn-lg-icon-size: 1.25rem; /* 20px */
   --btn-lg-radius: var(--radius-md);
 
   /* ============================================================================
@@ -225,9 +225,9 @@
   /* ============================================================================
      Input Tokens
      ============================================================================ */
-  --input-height-sm: 2rem;       /* 32px */
-  --input-height-md: 2.5rem;     /* 40px */
-  --input-height-lg: 3rem;       /* 48px */
+  --input-height-sm: 2rem; /* 32px */
+  --input-height-md: 2.5rem; /* 40px */
+  --input-height-lg: 3rem; /* 48px */
   --input-padding-x: var(--space-3);
   --input-radius: var(--radius-md);
 }

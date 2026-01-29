@@ -56,11 +56,7 @@ export const useToastStore = create<ToastState>((set) => ({
 /**
  * Convenience function to show a toast
  */
-export const showToast = (
-  message: string,
-  type: ToastType = 'info',
-  duration?: number
-) => {
+export const showToast = (message: string, type: ToastType = 'info', duration?: number) => {
   useToastStore.getState().addToast(message, type, duration);
 };
 

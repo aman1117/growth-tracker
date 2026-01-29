@@ -5,10 +5,11 @@
  * Clickable to open respective list modals.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useFollowStore, useFollowCounts } from '../../../store';
-import { FollowListModal } from '../FollowListModal';
+import React, { useEffect, useRef, useState } from 'react';
+
+import { useFollowCounts, useFollowStore } from '../../../store';
 import type { FollowCounts } from '../../../types/follow';
+import { FollowListModal } from '../FollowListModal';
 import styles from './FollowStats.module.css';
 
 interface FollowStatsProps {
@@ -28,7 +29,7 @@ export const FollowStats: React.FC<FollowStatsProps> = ({
 }) => {
   const { getCounts, setCounts } = useFollowStore();
   const cachedCounts = useFollowCounts(userId);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [activeModal, setActiveModal] = useState<'followers' | 'following' | null>(null);
   const hasFetchedRef = useRef(false);

@@ -14,7 +14,7 @@
   font-weight: var(--font-semibold);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: 
+  transition:
     background-color var(--transition-fast) var(--ease-default),
     border-color var(--transition-fast) var(--ease-default),
     color var(--transition-fast) var(--ease-default),
@@ -281,7 +281,7 @@
   .button {
     transition: none;
   }
-  
+
   .spinner {
     animation: none;
     border-top-color: transparent;

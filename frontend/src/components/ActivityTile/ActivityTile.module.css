@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  
+
   /* Glass base */
   background: var(--glass-surface-bg);
   backdrop-filter: blur(var(--glass-blur-md));
@@ -298,7 +298,8 @@
 
 /* Edit Mode Wobble Animation */
 @keyframes wobble {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(-1deg);
   }
   50% {
@@ -307,7 +308,8 @@
 }
 
 @keyframes wobbleAlt {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(1deg);
   }
   50% {

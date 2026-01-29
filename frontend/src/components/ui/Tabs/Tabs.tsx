@@ -5,7 +5,8 @@
  * Uses design tokens for consistent styling.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
 import styles from './Tabs.module.css';
 
 export interface Tab {
@@ -102,9 +103,7 @@ export const Tabs: React.FC<TabsProps> = ({
           </button>
         );
       })}
-      {variant === 'underline' && (
-        <div className={styles.indicator} style={indicatorStyle} />
-      )}
+      {variant === 'underline' && <div className={styles.indicator} style={indicatorStyle} />}
     </div>
   );
 };

@@ -1,13 +1,14 @@
 /**
  * Offline Banner Component
- * 
+ *
  * Shows a banner when the user is offline.
  * Shows green "Back online" message with fade animation when connection restored.
  * Works on all platforms including iOS Safari.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { WifiOff, Wifi, X } from 'lucide-react';
+import { Wifi, WifiOff, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+
 import { useOfflineStatus } from '../hooks/useOfflineStatus';
 
 type BannerState = 'hidden' | 'offline' | 'online' | 'fading';
@@ -28,7 +29,7 @@ export const OfflineBanner: React.FC = () => {
       // Coming back online (was previously offline)
       wasOfflineRef.current = false;
       setBannerState('online');
-      
+
       // Start fade after showing "Back online" for 1.5s
       const fadeTimer = setTimeout(() => {
         setBannerState('fading');
@@ -62,8 +63,8 @@ export const OfflineBanner: React.FC = () => {
   const isOnlineState = bannerState === 'online' || bannerState === 'fading';
   const backgroundColor = isOnlineState ? '#22c55e' : '#ef4444';
   const Icon = isOnlineState ? Wifi : WifiOff;
-  const message = isOnlineState 
-    ? "You're back online!" 
+  const message = isOnlineState
+    ? "You're back online!"
     : "You're offline. Some features may be unavailable.";
 
   return (

@@ -1,31 +1,32 @@
 /**
  * Activity Configuration
- * 
+ *
  * Centralized configuration for all activity types including icons, colors, and labels.
  * This eliminates duplication between Dashboard.tsx and AnalyticsPage.tsx.
  * Supports both predefined and custom activities.
  */
 
+import type { LucideIcon } from 'lucide-react';
 import {
-  Moon,
   BookOpen,
-  Utensils,
-  Users,
-  Sparkles,
+  Briefcase,
+  Coffee,
   Dumbbell,
   Film,
+  Gamepad2,
   Home,
-  Coffee,
+  Moon,
   Palette,
   Plane,
   ShoppingBag,
   Sofa,
-  Gamepad2,
-  Briefcase,
+  Sparkles,
+  Users,
+  Utensils,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-import type { ActivityName, PredefinedActivityName, CustomTile } from '../types';
-import { isCustomTile, getCustomTileId, CUSTOM_TILE_PREFIX } from '../types';
+
+import type { ActivityName, CustomTile, PredefinedActivityName } from '../types';
+import { CUSTOM_TILE_PREFIX, getCustomTileId, isCustomTile } from '../types';
 
 export interface ActivityConfig {
   icon: LucideIcon | string; // LucideIcon for predefined, string (icon name) for custom
@@ -94,8 +95,8 @@ export const getActivityConfig = (
   // Handle custom tiles
   if (isCustomTile(name)) {
     const customId = getCustomTileId(name);
-    const customTile = customTiles?.find(ct => ct.id === customId);
-    
+    const customTile = customTiles?.find((ct) => ct.id === customId);
+
     if (customTile) {
       return {
         icon: customTile.icon, // Icon name as string for dynamic loading
@@ -105,7 +106,7 @@ export const getActivityConfig = (
         iconName: customTile.icon, // Pass icon name for DynamicIcon
       };
     }
-    
+
     // Fallback for unknown custom tile
     return {
       icon: 'Sparkles',
@@ -115,7 +116,7 @@ export const getActivityConfig = (
       iconName: 'Sparkles',
     };
   }
-  
+
   // Handle predefined activities
   const predefinedConfig = ACTIVITY_CONFIG[name as PredefinedActivityName];
   if (predefinedConfig) {
@@ -125,7 +126,7 @@ export const getActivityConfig = (
       isCustom: false,
     };
   }
-  
+
   // Fallback for unknown activity
   return {
     icon: BookOpen,
@@ -145,16 +146,13 @@ export const createCustomActivityName = (customTileId: string): ActivityName => 
 /**
  * Get the display label for an activity name
  */
-export const getActivityLabel = (
-  name: ActivityName,
-  customTiles?: CustomTile[]
-): string => {
+export const getActivityLabel = (name: ActivityName, customTiles?: CustomTile[]): string => {
   if (isCustomTile(name)) {
     const customId = getCustomTileId(name);
-    const customTile = customTiles?.find(ct => ct.id === customId);
+    const customTile = customTiles?.find((ct) => ct.id === customId);
     return customTile?.name || 'Custom';
   }
-  
+
   return ACTIVITY_CONFIG[name as PredefinedActivityName]?.label || formatActivityName(name);
 };
 
@@ -167,7 +165,7 @@ export const formatActivityName = (name: string): string => {
   if (isCustomTile(name)) {
     return 'Custom';
   }
-  
+
   return name
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -179,7 +177,7 @@ export const formatActivityName = (name: string): string => {
  * For custom tiles, use DynamicIcon component
  */
 export const getActivityIcon = (name: PredefinedActivityName): LucideIcon => {
-  return ACTIVITY_CONFIG[name]?.icon as LucideIcon || BookOpen;
+  return (ACTIVITY_CONFIG[name]?.icon as LucideIcon) || BookOpen;
 };
 
 /**
@@ -194,14 +192,14 @@ export const getActivityColor = (
   if (colorOverrides?.[name]) {
     return colorOverrides[name];
   }
-  
+
   // Handle custom tiles
   if (isCustomTile(name)) {
     const customId = getCustomTileId(name);
-    const customTile = customTiles?.find(ct => ct.id === customId);
+    const customTile = customTiles?.find((ct) => ct.id === customId);
     return customTile?.color || '#64748b';
   }
-  
+
   // Predefined activity
   return ACTIVITY_CONFIG[name as PredefinedActivityName]?.color || '#64748b';
 };
@@ -209,15 +207,12 @@ export const getActivityColor = (
 /**
  * Get default color for an activity (ignoring overrides)
  */
-export const getDefaultActivityColor = (
-  name: ActivityName,
-  customTiles?: CustomTile[]
-): string => {
+export const getDefaultActivityColor = (name: ActivityName, customTiles?: CustomTile[]): string => {
   if (isCustomTile(name)) {
     const customId = getCustomTileId(name);
-    const customTile = customTiles?.find(ct => ct.id === customId);
+    const customTile = customTiles?.find((ct) => ct.id === customId);
     return customTile?.color || '#64748b';
   }
-  
+
   return DEFAULT_ACTIVITY_COLORS[name as PredefinedActivityName] || '#64748b';
 };

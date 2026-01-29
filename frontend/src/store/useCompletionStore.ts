@@ -6,8 +6,9 @@
  */
 
 import { create } from 'zustand';
-import { api } from '../services/api';
+
 import { API_ROUTES } from '../constants';
+import { api } from '../services/api';
 
 // ============================================================================
 // Types
@@ -38,11 +39,7 @@ interface CompletionState {
   ) => Promise<MonthCompletionData | null>;
 
   /** Get cached data for a month (returns null if not cached) */
-  getMonthData: (
-    username: string,
-    year: number,
-    month: number
-  ) => MonthCompletionData | null;
+  getMonthData: (username: string, year: number, month: number) => MonthCompletionData | null;
 
   /** Check if month data is currently loading */
   isMonthLoading: (username: string, year: number, month: number) => boolean;
@@ -136,12 +133,8 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
         throw new Error(res.error || 'Failed to fetch completion data');
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      console.error(
-        `[CompletionStore] Failed to fetch data for ${cacheKey}:`,
-        errorMessage
-      );
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`[CompletionStore] Failed to fetch data for ${cacheKey}:`, errorMessage);
 
       set((s) => ({
         loadingStates: { ...s.loadingStates, [cacheKey]: false },
@@ -197,9 +190,13 @@ export const useCompletionStore = create<CompletionState>((set, get) => ({
     const cacheKey = getCacheKey(username, year, month);
 
     set((s) => {
-      const { [cacheKey]: _, ...remainingData } = s.monthlyData;
-      const { [cacheKey]: __, ...remainingLoading } = s.loadingStates;
-      const { [cacheKey]: ___, ...remainingErrors } = s.errorStates;
+      // Extract and discard the cache entries being invalidated
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [cacheKey]: _removed1, ...remainingData } = s.monthlyData;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [cacheKey]: _removed2, ...remainingLoading } = s.loadingStates;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [cacheKey]: _removed3, ...remainingErrors } = s.errorStates;
 
       return {
         monthlyData: remainingData,

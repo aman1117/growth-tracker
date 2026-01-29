@@ -1,1 +1,1 @@
-export { MutualFollowers, default } from './MutualFollowers';
+export { default, MutualFollowers } from './MutualFollowers';

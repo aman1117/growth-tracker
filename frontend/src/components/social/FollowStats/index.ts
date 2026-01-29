@@ -1,1 +1,1 @@
-export { FollowStats, default } from './FollowStats';
+export { default, FollowStats } from './FollowStats';

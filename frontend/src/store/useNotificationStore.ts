@@ -6,16 +6,17 @@
  */
 
 import { create } from 'zustand';
-import { apiClient } from '../services/api';
+
 import { API_ROUTES } from '../constants';
+import { apiClient } from '../services/api';
 import type {
   Notification,
-  NotificationsResponse,
-  UnreadCountResponse,
   NotificationActionResponse,
-  WSConnectionStatus,
-  NotificationState,
   NotificationActions,
+  NotificationsResponse,
+  NotificationState,
+  UnreadCountResponse,
+  WSConnectionStatus,
 } from '../types';
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -43,7 +44,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   fetchNotifications: async (reset = false) => {
     const { isLoading, hasMore, page } = get();
-    
+
     if (isLoading || (!reset && !hasMore)) return;
 
     const targetPage = reset ? 1 : page;
@@ -61,11 +62,14 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       );
 
       set((state) => ({
-        notifications: reset 
-          ? filteredNotifications 
-          : [...state.notifications, ...filteredNotifications.filter(
-              (n) => !state.notifications.some((existing) => existing.id === n.id)
-            )],
+        notifications: reset
+          ? filteredNotifications
+          : [
+              ...state.notifications,
+              ...filteredNotifications.filter(
+                (n) => !state.notifications.some((existing) => existing.id === n.id)
+              ),
+            ],
         hasMore: response.has_more,
         page: targetPage + 1,
         isLoading: false,
@@ -93,10 +97,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   markAsRead: async (id: number) => {
     try {
-      await apiClient.patch<NotificationActionResponse>(
-        API_ROUTES.NOTIFICATION.MARK_READ(id),
-        {}
-      );
+      await apiClient.patch<NotificationActionResponse>(API_ROUTES.NOTIFICATION.MARK_READ(id), {});
 
       set((state) => {
         const notification = state.notifications.find((n) => n.id === id);
@@ -117,10 +118,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   markAllAsRead: async () => {
     try {
-      await apiClient.patch<NotificationActionResponse>(
-        API_ROUTES.NOTIFICATION.MARK_ALL_READ,
-        {}
-      );
+      await apiClient.patch<NotificationActionResponse>(API_ROUTES.NOTIFICATION.MARK_ALL_READ, {});
 
       set((state) => ({
         notifications: state.notifications.map((n) => ({
@@ -139,7 +137,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   startDeleting: (id: number) => {
     // Also add to permanent deleted set to prevent re-adding
     deletedNotificationIds.add(id);
-    
+
     set((state) => ({
       deletingIds: { ...state.deletingIds, [id]: true },
     }));
@@ -150,10 +148,11 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => {
       const notification = state.notifications.find((n) => n.id === id);
       const wasUnread = notification && !notification.read_at;
-      
+
       // Remove from deletingIds
-      const { [id]: _, ...remainingDeletingIds } = state.deletingIds;
-      
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [id]: _removed, ...remainingDeletingIds } = state.deletingIds;
+
       return {
         notifications: state.notifications.filter((n) => n.id !== id),
         unreadCount: wasUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
@@ -162,9 +161,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     });
 
     try {
-      await apiClient.delete<NotificationActionResponse>(
-        API_ROUTES.NOTIFICATION.DELETE(id)
-      );
+      await apiClient.delete<NotificationActionResponse>(API_ROUTES.NOTIFICATION.DELETE(id));
     } catch (error) {
       // If 404, notification was already deleted - that's fine
       const apiError = error as { status?: number };
@@ -185,7 +182,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     if (deletedNotificationIds.has(notification.id)) {
       return;
     }
-    
+
     set((state) => {
       // Also check if it already exists
       if (state.notifications.some((n) => n.id === notification.id)) {
@@ -209,7 +206,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       const newNotifications = notifications.filter(
         (n) => !existingIds.has(n.id) && !deletedNotificationIds.has(n.id)
       );
-      
+
       if (newNotifications.length === 0) return state;
 
       // Count unread among new notifications
@@ -239,29 +236,24 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 /**
  * Get notifications state only
  */
-export const useNotifications = () =>
-  useNotificationStore((state) => state.notifications);
+export const useNotifications = () => useNotificationStore((state) => state.notifications);
 
 /**
  * Get unread count only
  */
-export const useUnreadCount = () =>
-  useNotificationStore((state) => state.unreadCount);
+export const useUnreadCount = () => useNotificationStore((state) => state.unreadCount);
 
 /**
  * Get WebSocket connection status
  */
-export const useWSStatus = () =>
-  useNotificationStore((state) => state.wsStatus);
+export const useWSStatus = () => useNotificationStore((state) => state.wsStatus);
 
 /**
  * Get loading state
  */
-export const useNotificationsLoading = () =>
-  useNotificationStore((state) => state.isLoading);
+export const useNotificationsLoading = () => useNotificationStore((state) => state.isLoading);
 
 /**
  * Check if there are unread notifications
  */
-export const useHasUnread = () =>
-  useNotificationStore((state) => state.unreadCount > 0);
+export const useHasUnread = () => useNotificationStore((state) => state.unreadCount > 0);

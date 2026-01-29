@@ -35,7 +35,7 @@
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: 
+  transition:
     color var(--transition-fast) var(--ease-default),
     background-color var(--transition-fast) var(--ease-default),
     box-shadow var(--transition-fast) var(--ease-default);
@@ -140,7 +140,7 @@
   height: 2px;
   background: var(--accent);
   border-radius: var(--radius-full);
-  transition: 
+  transition:
     transform var(--transition-normal) var(--ease-default),
     width var(--transition-normal) var(--ease-default);
 }

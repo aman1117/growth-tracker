@@ -12,24 +12,24 @@
 export const SPACING = {
   0: '0',
   px: '1px',
-  0.5: '0.125rem',  // 2px
-  1: '0.25rem',     // 4px
-  1.5: '0.375rem',  // 6px
-  2: '0.5rem',      // 8px
-  2.5: '0.625rem',  // 10px
-  3: '0.75rem',     // 12px
-  3.5: '0.875rem',  // 14px
-  4: '1rem',        // 16px
-  5: '1.25rem',     // 20px
-  6: '1.5rem',      // 24px
-  7: '1.75rem',     // 28px
-  8: '2rem',        // 32px
-  9: '2.25rem',     // 36px
-  10: '2.5rem',     // 40px
-  11: '2.75rem',    // 44px
-  12: '3rem',       // 48px
-  14: '3.5rem',     // 56px
-  16: '4rem',       // 64px
+  0.5: '0.125rem', // 2px
+  1: '0.25rem', // 4px
+  1.5: '0.375rem', // 6px
+  2: '0.5rem', // 8px
+  2.5: '0.625rem', // 10px
+  3: '0.75rem', // 12px
+  3.5: '0.875rem', // 14px
+  4: '1rem', // 16px
+  5: '1.25rem', // 20px
+  6: '1.5rem', // 24px
+  7: '1.75rem', // 28px
+  8: '2rem', // 32px
+  9: '2.25rem', // 36px
+  10: '2.5rem', // 40px
+  11: '2.75rem', // 44px
+  12: '3rem', // 48px
+  14: '3.5rem', // 56px
+  16: '4rem', // 64px
 } as const;
 
 export type SpacingKey = keyof typeof SPACING;
@@ -56,16 +56,16 @@ export type RadiiKey = keyof typeof RADII;
 // ============================================================================
 
 export const FONT_SIZE = {
-  '2xs': '0.625rem',   // 10px
-  xs: '0.75rem',       // 12px
-  sm: '0.8125rem',     // 13px
-  base: '0.875rem',    // 14px
-  md: '1rem',          // 16px
-  lg: '1.125rem',      // 18px
-  xl: '1.25rem',       // 20px
-  '2xl': '1.5rem',     // 24px
-  '3xl': '1.875rem',   // 30px
-  '4xl': '2.25rem',    // 36px
+  '2xs': '0.625rem', // 10px
+  xs: '0.75rem', // 12px
+  sm: '0.8125rem', // 13px
+  base: '0.875rem', // 14px
+  md: '1rem', // 16px
+  lg: '1.125rem', // 18px
+  xl: '1.25rem', // 20px
+  '2xl': '1.5rem', // 24px
+  '3xl': '1.875rem', // 30px
+  '4xl': '2.25rem', // 36px
 } as const;
 
 export type FontSizeKey = keyof typeof FONT_SIZE;
@@ -221,31 +221,31 @@ export type SemanticColorKey = keyof typeof SEMANTIC_COLORS;
 
 export const BUTTON_SIZES = {
   xs: {
-    height: '1.75rem',      // 28px
-    paddingX: '0.5rem',     // 8px
-    fontSize: '0.75rem',    // 12px
-    iconSize: '0.875rem',   // 14px
+    height: '1.75rem', // 28px
+    paddingX: '0.5rem', // 8px
+    fontSize: '0.75rem', // 12px
+    iconSize: '0.875rem', // 14px
     radius: '8px',
   },
   sm: {
-    height: '2rem',         // 32px
-    paddingX: '0.75rem',    // 12px
-    fontSize: '0.75rem',    // 12px
-    iconSize: '1rem',       // 16px
+    height: '2rem', // 32px
+    paddingX: '0.75rem', // 12px
+    fontSize: '0.75rem', // 12px
+    iconSize: '1rem', // 16px
     radius: '8px',
   },
   md: {
-    height: '2.25rem',      // 36px
-    paddingX: '1rem',       // 16px
-    fontSize: '0.875rem',   // 14px
-    iconSize: '1.125rem',   // 18px
+    height: '2.25rem', // 36px
+    paddingX: '1rem', // 16px
+    fontSize: '0.875rem', // 14px
+    iconSize: '1.125rem', // 18px
     radius: '8px',
   },
   lg: {
-    height: '2.75rem',      // 44px
-    paddingX: '1.5rem',     // 24px
-    fontSize: '1rem',       // 16px
-    iconSize: '1.25rem',    // 20px
+    height: '2.75rem', // 44px
+    paddingX: '1.5rem', // 24px
+    fontSize: '1rem', // 16px
+    iconSize: '1.25rem', // 20px
     radius: '8px',
   },
 } as const;
@@ -338,14 +338,21 @@ export function cssVar(name: string, fallback?: string): string {
 // Component Variants
 // ============================================================================
 
-export const BUTTON_VARIANTS = ['primary', 'secondary', 'ghost', 'outline', 'danger', 'glass'] as const;
-export type ButtonVariant = typeof BUTTON_VARIANTS[number];
+export const BUTTON_VARIANTS = [
+  'primary',
+  'secondary',
+  'ghost',
+  'outline',
+  'danger',
+  'glass',
+] as const;
+export type ButtonVariant = (typeof BUTTON_VARIANTS)[number];
 
 export const CARD_VARIANTS = ['default', 'glass', 'elevated'] as const;
-export type CardVariant = typeof CARD_VARIANTS[number];
+export type CardVariant = (typeof CARD_VARIANTS)[number];
 
 export const INPUT_VARIANTS = ['default', 'glass', 'filled'] as const;
-export type InputVariant = typeof INPUT_VARIANTS[number];
+export type InputVariant = (typeof INPUT_VARIANTS)[number];
 
 // Export all tokens as a single object for convenience
 const tokens = {

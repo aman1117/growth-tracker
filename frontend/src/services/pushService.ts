@@ -8,16 +8,16 @@
  * - Preferences management
  */
 
-import { apiClient } from './api';
 import type {
-  VapidKeyResponse,
+  PreferencesResponse,
+  PushSubscriptionData,
   SubscribeRequest,
   SubscribeResponse,
   UnsubscribeResponse,
-  PreferencesResponse,
   UpdatePreferencesRequest,
-  PushSubscriptionData,
+  VapidKeyResponse,
 } from '../types/push';
+import { apiClient } from './api';
 
 // ============================================================================
 // Constants
@@ -42,9 +42,7 @@ let cachedVapidKey: string | null = null;
  */
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
@@ -65,10 +63,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  return window.btoa(binary)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+  return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 /**
@@ -115,11 +110,7 @@ class PushService {
    * Check if Web Push is supported in this browser
    */
   isSupported(): boolean {
-    return (
-      'serviceWorker' in navigator &&
-      'PushManager' in window &&
-      'Notification' in window
-    );
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   }
 
   /**
@@ -153,7 +144,7 @@ class PushService {
     }
 
     const response = await apiClient.get<VapidKeyResponse>(PUSH_ROUTES.VAPID_KEY);
-    
+
     if (!response.success || !response.publicKey) {
       throw new Error('Failed to fetch VAPID public key');
     }
@@ -258,10 +249,7 @@ class PushService {
       },
     };
 
-    const response = await apiClient.post<SubscribeResponse>(
-      PUSH_ROUTES.SUBSCRIBE,
-      request
-    );
+    const response = await apiClient.post<SubscribeResponse>(PUSH_ROUTES.SUBSCRIBE, request);
 
     return response;
   }
@@ -304,10 +292,7 @@ class PushService {
    * Update user's push preferences
    */
   async updatePreferences(updates: UpdatePreferencesRequest): Promise<PreferencesResponse> {
-    const response = await apiClient.put<PreferencesResponse>(
-      PUSH_ROUTES.PREFERENCES,
-      updates
-    );
+    const response = await apiClient.put<PreferencesResponse>(PUSH_ROUTES.PREFERENCES, updates);
     return response;
   }
 
@@ -316,7 +301,7 @@ class PushService {
    */
   async sendTestNotification(): Promise<void> {
     const registration = await this.getServiceWorkerRegistration();
-    
+
     await registration.showNotification('Test Notification', {
       body: 'Push notifications are working!',
       icon: '/pwa-192x192.png',

@@ -4,8 +4,9 @@
  * Reusable card container with glass morphism effect.
  */
 
-import React from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
+import React from 'react';
+
 import styles from './Card.module.css';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {

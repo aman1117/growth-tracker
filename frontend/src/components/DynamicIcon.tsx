@@ -1,86 +1,286 @@
 /**
  * DynamicIcon Component
- * 
+ *
  * Renders Lucide icons by name using a pre-imported icon map.
  * This approach is more reliable than dynamic imports with Vite.
  */
 
-import React, { memo } from 'react';
 import type { LucideProps } from 'lucide-react';
-import {
-    // Activities
-    Bike, Dumbbell, Music, Gamepad2, Palette, Camera, Headphones,
-    Guitar, Mic, Footprints, Mountain, Tent, Fish, Bird, Dog, Cat,
-    // Work
-    Briefcase, Laptop, Code, PenTool, Building, Monitor, Keyboard,
-    FileText, FolderOpen, Mail, Send, Phone, Video,
-    Calendar, Clock, Timer, Target, Flag, Award, Trophy,
-    // Lifestyle
-    Coffee, Wine, Utensils, ShoppingBag, ShoppingCart, Gift, Shirt,
-    Scissors, Gem, Crown, Star, Heart, Smile, Meh, Frown,
-    ThumbsUp, PartyPopper, Cake, Cookie, Pizza, Apple,
-    // Wellness
-    Moon, Sun, CloudSun, Sunrise, Brain, Eye, Ear,
-    Activity, Pill, Stethoscope, Thermometer, Droplet, Leaf, Flower,
-    TreePine, Sprout, Wind, Waves, Flame, Snowflake, Zap,
-    // Social
-    Users, UserPlus, MessageCircle, MessagesSquare, AtSign, Share2,
-    Link, Globe, MapPin, Navigation, Compass, Home, Building2,
-    Church, Landmark, School, GraduationCap, BookOpen, Library,
-    // Travel
-    Plane, Car, Train, Bus, Ship, Anchor, Map, Luggage,
-    Ticket, Hotel, Bed, Sofa, Armchair, Lamp, Tv, Radio,
-    Wifi, Battery, Plug, Power, Lightbulb,
-    // Default fallback
-    Sparkles,
-} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import {
+  Activity,
+  Anchor,
+  Apple,
+  Armchair,
+  AtSign,
+  Award,
+  Battery,
+  Bed,
+  // Activities
+  Bike,
+  Bird,
+  BookOpen,
+  Brain,
+  // Work
+  Briefcase,
+  Building,
+  Building2,
+  Bus,
+  Cake,
+  Calendar,
+  Camera,
+  Car,
+  Cat,
+  Church,
+  Clock,
+  CloudSun,
+  Code,
+  // Lifestyle
+  Coffee,
+  Compass,
+  Cookie,
+  Crown,
+  Dog,
+  Droplet,
+  Dumbbell,
+  Ear,
+  Eye,
+  FileText,
+  Fish,
+  Flag,
+  Flame,
+  Flower,
+  FolderOpen,
+  Footprints,
+  Frown,
+  Gamepad2,
+  Gem,
+  Gift,
+  Globe,
+  GraduationCap,
+  Guitar,
+  Headphones,
+  Heart,
+  Home,
+  Hotel,
+  Keyboard,
+  Lamp,
+  Landmark,
+  Laptop,
+  Leaf,
+  Library,
+  Lightbulb,
+  Link,
+  Luggage,
+  Mail,
+  Map,
+  MapPin,
+  Meh,
+  MessageCircle,
+  MessagesSquare,
+  Mic,
+  Monitor,
+  // Wellness
+  Moon,
+  Mountain,
+  Music,
+  Navigation,
+  Palette,
+  PartyPopper,
+  PenTool,
+  Phone,
+  Pill,
+  Pizza,
+  // Travel
+  Plane,
+  Plug,
+  Power,
+  Radio,
+  School,
+  Scissors,
+  Send,
+  Share2,
+  Ship,
+  Shirt,
+  ShoppingBag,
+  ShoppingCart,
+  Smile,
+  Snowflake,
+  Sofa,
+  // Default fallback
+  Sparkles,
+  Sprout,
+  Star,
+  Stethoscope,
+  Sun,
+  Sunrise,
+  Target,
+  Tent,
+  Thermometer,
+  ThumbsUp,
+  Ticket,
+  Timer,
+  Train,
+  TreePine,
+  Trophy,
+  Tv,
+  UserPlus,
+  // Social
+  Users,
+  Utensils,
+  Video,
+  Waves,
+  Wifi,
+  Wind,
+  Wine,
+  Zap,
+} from 'lucide-react';
+import React, { memo } from 'react';
 
 // Map of icon names to their components
 const ICON_MAP: Record<string, LucideIcon> = {
-    // Activities
-    Bike, Dumbbell, Music, Gamepad2, Palette, Camera, Headphones,
-    Guitar, Mic, Footprints, Mountain, Tent, Fish, Bird, Dog, Cat,
-    // Work
-    Briefcase, Laptop, Code, PenTool, Building, Monitor, Keyboard,
-    FileText, FolderOpen, Mail, Send, Phone, Video,
-    Calendar, Clock, Timer, Target, Flag, Award, Trophy,
-    // Lifestyle
-    Coffee, Wine, Utensils, ShoppingBag, ShoppingCart, Gift, Shirt,
-    Scissors, Gem, Crown, Star, Heart, Smile, Meh, Frown,
-    ThumbsUp, PartyPopper, Cake, Cookie, Pizza, Apple,
-    // Wellness
-    Moon, Sun, CloudSun, Sunrise, Brain, Eye, Ear,
-    Activity, Pill, Stethoscope, Thermometer, Droplet, Leaf, Flower,
-    TreePine, Sprout, Wind, Waves, Flame, Snowflake, Zap,
-    // Social
-    Users, UserPlus, MessageCircle, MessagesSquare, AtSign, Share2,
-    Link, Globe, MapPin, Navigation, Compass, Home, Building2,
-    Church, Landmark, School, GraduationCap, BookOpen, Library,
-    // Travel
-    Plane, Car, Train, Bus, Ship, Anchor, Map, Luggage,
-    Ticket, Hotel, Bed, Sofa, Armchair, Lamp, Tv, Radio,
-    Wifi, Battery, Plug, Power, Lightbulb,
-    // Fallback
-    Sparkles,
+  // Activities
+  Bike,
+  Dumbbell,
+  Music,
+  Gamepad2,
+  Palette,
+  Camera,
+  Headphones,
+  Guitar,
+  Mic,
+  Footprints,
+  Mountain,
+  Tent,
+  Fish,
+  Bird,
+  Dog,
+  Cat,
+  // Work
+  Briefcase,
+  Laptop,
+  Code,
+  PenTool,
+  Building,
+  Monitor,
+  Keyboard,
+  FileText,
+  FolderOpen,
+  Mail,
+  Send,
+  Phone,
+  Video,
+  Calendar,
+  Clock,
+  Timer,
+  Target,
+  Flag,
+  Award,
+  Trophy,
+  // Lifestyle
+  Coffee,
+  Wine,
+  Utensils,
+  ShoppingBag,
+  ShoppingCart,
+  Gift,
+  Shirt,
+  Scissors,
+  Gem,
+  Crown,
+  Star,
+  Heart,
+  Smile,
+  Meh,
+  Frown,
+  ThumbsUp,
+  PartyPopper,
+  Cake,
+  Cookie,
+  Pizza,
+  Apple,
+  // Wellness
+  Moon,
+  Sun,
+  CloudSun,
+  Sunrise,
+  Brain,
+  Eye,
+  Ear,
+  Activity,
+  Pill,
+  Stethoscope,
+  Thermometer,
+  Droplet,
+  Leaf,
+  Flower,
+  TreePine,
+  Sprout,
+  Wind,
+  Waves,
+  Flame,
+  Snowflake,
+  Zap,
+  // Social
+  Users,
+  UserPlus,
+  MessageCircle,
+  MessagesSquare,
+  AtSign,
+  Share2,
+  Link,
+  Globe,
+  MapPin,
+  Navigation,
+  Compass,
+  Home,
+  Building2,
+  Church,
+  Landmark,
+  School,
+  GraduationCap,
+  BookOpen,
+  Library,
+  // Travel
+  Plane,
+  Car,
+  Train,
+  Bus,
+  Ship,
+  Anchor,
+  Map,
+  Luggage,
+  Ticket,
+  Hotel,
+  Bed,
+  Sofa,
+  Armchair,
+  Lamp,
+  Tv,
+  Radio,
+  Wifi,
+  Battery,
+  Plug,
+  Power,
+  Lightbulb,
+  // Fallback
+  Sparkles,
 };
 
 interface DynamicIconProps extends Omit<LucideProps, 'ref'> {
-    name: string;
-    fallback?: LucideIcon;
+  name: string;
+  fallback?: LucideIcon;
 }
 
 /**
  * DynamicIcon renders a Lucide icon by name
  */
-export const DynamicIcon: React.FC<DynamicIconProps> = memo(({ 
-    name, 
-    fallback: FallbackIcon = Sparkles,
-    ...props 
-}) => {
+export const DynamicIcon: React.FC<DynamicIconProps> = memo(
+  ({ name, fallback: FallbackIcon = Sparkles, ...props }) => {
     const Icon = ICON_MAP[name] || FallbackIcon;
     return <Icon {...props} />;
-});
+  }
+);
 
 DynamicIcon.displayName = 'DynamicIcon';
 

@@ -10,9 +10,10 @@
  * - Swipe-to-dismiss gesture support
  */
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { AlertTriangle, Check, Info, X, Zap } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { Check, X, Info, AlertTriangle, Zap } from 'lucide-react';
+
 import styles from './SnapToast.module.css';
 
 export type SnapToastType = 'success' | 'error' | 'info' | 'warning' | 'neutral';
@@ -72,7 +73,7 @@ export const SnapToast: React.FC<SnapToastProps> = ({
   // Auto-dismiss timer
   useEffect(() => {
     if (duration <= 0) return;
-    
+
     const timer = setTimeout(() => {
       handleClose();
     }, duration);
@@ -94,38 +95,42 @@ export const SnapToast: React.FC<SnapToastProps> = ({
 
     // passive: false is required to call preventDefault on touchmove
     toast.addEventListener('touchmove', handleTouchMoveNative, { passive: false });
-    
+
     return () => {
       toast.removeEventListener('touchmove', handleTouchMoveNative);
     };
   }, [swipeable, isDragging]);
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!swipeable) return;
-    setIsDragging(true);
-    startY.current = e.touches[0].clientY;
-    startX.current = e.touches[0].clientX;
-  }, [swipeable]);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (!swipeable) return;
+      setIsDragging(true);
+      startY.current = e.touches[0].clientY;
+      startX.current = e.touches[0].clientX;
+    },
+    [swipeable]
+  );
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging || !swipeable) return;
-    
-    const currentY = e.touches[0].clientY;
-    const currentX = e.touches[0].clientX;
-    const diffY = position === 'top' 
-      ? startY.current - currentY 
-      : currentY - startY.current;
-    const diffX = Math.abs(currentX - startX.current);
-    
-    // Only allow vertical swipe (up for top position, down for bottom)
-    if (diffY > 0 && diffY > diffX) {
-      setDragOffset(Math.min(diffY, 100));
-    }
-  }, [isDragging, swipeable, position]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging || !swipeable) return;
+
+      const currentY = e.touches[0].clientY;
+      const currentX = e.touches[0].clientX;
+      const diffY = position === 'top' ? startY.current - currentY : currentY - startY.current;
+      const diffX = Math.abs(currentX - startX.current);
+
+      // Only allow vertical swipe (up for top position, down for bottom)
+      if (diffY > 0 && diffY > diffX) {
+        setDragOffset(Math.min(diffY, 100));
+      }
+    },
+    [isDragging, swipeable, position]
+  );
 
   const handleTouchEnd = useCallback(() => {
     if (!swipeable) return;
-    
+
     // Dismiss if dragged more than 30px (lowered threshold for easier dismiss)
     if (dragOffset > 30) {
       // Keep dragging state true so it continues from current position
@@ -141,18 +146,18 @@ export const SnapToast: React.FC<SnapToastProps> = ({
 
   // When swiping to dismiss, animate out from current drag position
   const isSwipeDismissing = isDragging && dragOffset > 30;
-  
+
   const toastStyle: React.CSSProperties = {
-    transform: isDragging 
+    transform: isDragging
       ? `translateX(-50%) translateY(${position === 'top' ? -dragOffset : dragOffset}px)`
       : undefined,
     opacity: isDragging ? Math.max(0.3, 1 - dragOffset / 100) : undefined,
     transition: isDragging ? 'none' : undefined,
     // Hide immediately when swipe dismissing
-    ...(isSwipeDismissing && { 
+    ...(isSwipeDismissing && {
       opacity: 0,
       transform: `translateX(-50%) translateY(${position === 'top' ? '-100px' : '100px'})`,
-      transition: 'all 0.15s ease-out'
+      transition: 'all 0.15s ease-out',
     }),
   };
 
@@ -174,22 +179,15 @@ export const SnapToast: React.FC<SnapToastProps> = ({
       aria-live="polite"
     >
       {/* Icon */}
-      {showIcon && (
-        <span className={styles.iconWrapper}>
-          {displayIcon}
-        </span>
-      )}
-      
+      {showIcon && <span className={styles.iconWrapper}>{displayIcon}</span>}
+
       {/* Message */}
       <span className={styles.message}>{message}</span>
-      
+
       {/* Progress bar */}
       {showProgress && duration > 0 && (
         <div className={styles.progressContainer}>
-          <div 
-            className={styles.progressBar} 
-            style={{ animationDuration: `${duration}ms` }}
-          />
+          <div className={styles.progressBar} style={{ animationDuration: `${duration}ms` }} />
         </div>
       )}
     </div>

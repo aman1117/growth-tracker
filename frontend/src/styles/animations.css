@@ -142,7 +142,8 @@
    ============================================================================ */
 
 @keyframes wobble {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(-1.5deg);
   }
   50% {
@@ -151,7 +152,8 @@
 }
 
 @keyframes wobbleAlt {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(1.5deg);
   }
   50% {
@@ -171,7 +173,8 @@
 
 /* Delete badge animation */
 @keyframes deleteBadgePulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -205,7 +208,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

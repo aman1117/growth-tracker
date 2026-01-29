@@ -4,8 +4,9 @@
  * Displays a single streak badge with earned/locked state.
  */
 
-import React from 'react';
 import { Lock } from 'lucide-react';
+import React, { useMemo } from 'react';
+
 import type { Badge } from '../../../types/api';
 import { getBadgeIconComponent } from '../../../utils/badgeIcons';
 import styles from './StreakBadge.module.css';
@@ -29,7 +30,7 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
   showTooltip = true,
   showName = false,
 }) => {
-  const IconComponent = getBadgeIconComponent(badge.icon);
+  const IconComponent = useMemo(() => getBadgeIconComponent(badge.icon), [badge.icon]);
   const iconSize = sizeMap[size];
 
   const formatDate = (dateStr: string) => {
@@ -49,9 +50,11 @@ export const StreakBadge: React.FC<StreakBadgeProps> = ({
     <div
       className={`${styles.badge} ${styles[size]} ${badge.earned ? styles.earned : styles.locked}`}
       title={showTooltip ? tooltipText : undefined}
-      style={{
-        '--badge-color': badge.color,
-      } as React.CSSProperties}
+      style={
+        {
+          '--badge-color': badge.color,
+        } as React.CSSProperties
+      }
     >
       <div className={styles.iconWrapper}>
         <IconComponent

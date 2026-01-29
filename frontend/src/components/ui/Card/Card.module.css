@@ -8,7 +8,7 @@
   background: var(--bg-primary);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default),
@@ -64,7 +64,7 @@
 
 .interactive:focus-visible {
   outline: none;
-  box-shadow: 
+  box-shadow:
     var(--shadow-elevated),
     0 0 0 var(--ring-width) var(--ring-color);
 }
@@ -80,7 +80,7 @@
   .card {
     transition: none;
   }
-  
+
   .interactive:hover {
     transform: none;
   }

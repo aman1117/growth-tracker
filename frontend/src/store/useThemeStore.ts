@@ -5,7 +5,8 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
 import { STORAGE_KEYS } from '../constants/storage';
 
 type ThemePreference = 'light' | 'dark' | 'system';
@@ -22,9 +23,7 @@ interface ThemeState {
 
 const getSystemTheme = (): ResolvedTheme => {
   if (typeof window !== 'undefined') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   return 'light';
 };
@@ -56,7 +55,7 @@ export const useThemeStore = create<ThemeState>()(
       toggleTheme: () => {
         const { theme, resolvedTheme } = get();
         let newTheme: ThemePreference;
-        
+
         if (theme === 'light') {
           newTheme = 'dark';
         } else if (theme === 'dark') {
@@ -68,7 +67,7 @@ export const useThemeStore = create<ThemeState>()(
 
         const newResolved = resolveTheme(newTheme);
         applyTheme(newResolved);
-        
+
         set({
           theme: newTheme,
           resolvedTheme: newResolved,
@@ -79,7 +78,7 @@ export const useThemeStore = create<ThemeState>()(
       setTheme: (theme) => {
         const newResolved = resolveTheme(theme);
         applyTheme(newResolved);
-        
+
         set({
           theme,
           resolvedTheme: newResolved,
@@ -91,7 +90,7 @@ export const useThemeStore = create<ThemeState>()(
         const { theme } = get();
         const newResolved = resolveTheme(theme);
         applyTheme(newResolved);
-        
+
         set({
           resolvedTheme: newResolved,
           isDark: newResolved === 'dark',

@@ -13,7 +13,7 @@
   position: relative;
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
   backdrop-filter: blur(var(--glass-blur-md));
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default),
@@ -33,7 +33,7 @@
   box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
   -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   backdrop-filter: blur(var(--glass-blur-sm));
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default),
@@ -46,7 +46,7 @@
   box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
   -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   backdrop-filter: blur(var(--glass-blur-sm));
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default),
@@ -68,8 +68,8 @@
 
 .glass-surface-interactive:focus-visible {
   outline: none;
-  box-shadow: 
-    var(--glass-surface-shadow), 
+  box-shadow:
+    var(--glass-surface-shadow),
     var(--glass-surface-glow),
     0 0 0 var(--ring-width) var(--ring-color);
 }
@@ -87,7 +87,7 @@
   box-shadow: var(--glass-panel-shadow), var(--glass-panel-glow);
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
   backdrop-filter: blur(var(--glass-blur-md));
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default);
@@ -99,7 +99,7 @@
   box-shadow: var(--shadow-floating), var(--glass-panel-glow);
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
   backdrop-filter: blur(var(--glass-blur-md));
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default);
@@ -118,7 +118,7 @@
   box-shadow: var(--glass-floating-shadow), var(--glass-floating-glow);
   -webkit-backdrop-filter: blur(var(--glass-blur-lg));
   backdrop-filter: blur(var(--glass-blur-lg));
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default),
@@ -132,7 +132,7 @@
   box-shadow: var(--glass-floating-shadow), var(--glass-floating-glow);
   -webkit-backdrop-filter: blur(var(--glass-blur-lg));
   backdrop-filter: blur(var(--glass-blur-lg));
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default),
@@ -164,7 +164,7 @@
   backdrop-filter: blur(var(--glass-blur-sm));
   color: var(--text-primary);
   font-weight: var(--font-semibold);
-  transition: 
+  transition:
     background-color var(--transition-fast) var(--ease-default),
     border-color var(--transition-fast) var(--ease-default),
     box-shadow var(--transition-fast) var(--ease-default),
@@ -185,8 +185,8 @@
 
 .glass-button:focus-visible {
   outline: none;
-  box-shadow: 
-    var(--shadow-sm), 
+  box-shadow:
+    var(--shadow-sm),
     var(--glass-surface-glow),
     0 0 0 var(--ring-width) var(--ring-color);
 }
@@ -206,7 +206,7 @@
   border: 1px solid var(--glass-surface-border);
   -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   backdrop-filter: blur(var(--glass-blur-sm));
-  transition: 
+  transition:
     background-color var(--transition-fast) var(--ease-default),
     border-color var(--transition-fast) var(--ease-default),
     box-shadow var(--transition-fast) var(--ease-default);
@@ -235,7 +235,7 @@
   box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
   -webkit-backdrop-filter: blur(var(--tile-glass-blur));
   backdrop-filter: blur(var(--tile-glass-blur));
-  transition: 
+  transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default),
@@ -266,7 +266,7 @@
   border-bottom: 1px solid var(--glass-surface-border);
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
   backdrop-filter: blur(var(--glass-blur-md));
-  transition: 
+  transition:
     background-color var(--transition-slow) var(--ease-default),
     border-color var(--transition-slow) var(--ease-default);
 }
@@ -279,7 +279,7 @@
   background: var(--modal-overlay);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
-  transition: 
+  transition:
     opacity var(--transition-normal) var(--ease-default),
     background-color var(--transition-normal) var(--ease-default);
 }

@@ -1,6 +1,6 @@
 /**
  * UI Constants
- * 
+ *
  * Centralized UI-related constants like animation durations,
  * debounce times, and other magic numbers.
  */

@@ -6,9 +6,19 @@
  * Supports clickable usernames and navigation to specific dates.
  */
 
+import {
+  AlertTriangle,
+  Flame,
+  Heart,
+  Megaphone,
+  Trophy,
+  UserCheck,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import React, { useCallback, useMemo } from 'react';
-import { Heart, Trophy, Flame, AlertTriangle, Megaphone, X, UserPlus, UserCheck } from 'lucide-react';
-import type { Notification, NotificationType, LikeMetadata } from '../../../types';
+
+import type { LikeMetadata, Notification, NotificationType } from '../../../types';
 import { formatNotificationTime } from '../../../types';
 import styles from './Notification.module.css';
 
@@ -76,7 +86,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       onMarkAsRead(notification.id);
     }
     onClick?.(notification);
-    
+
     // Delete the notification after clicking (for navigation actions)
     // Use a short delay to let the panel close first
     setTimeout(() => {
@@ -85,44 +95,56 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
     }, 50);
   }, [isDeleting, isUnread, notification, onMarkAsRead, onClick, onStartDeleting, onDelete]);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    // Don't trigger if clicking on the delete button or username link
-    if (
-      (e.target as HTMLElement).closest(`.${styles.deleteButton}`) ||
-      (e.target as HTMLElement).closest(`.${styles.usernameLink}`)
-    ) {
-      return;
-    }
-    handleItemAction();
-  }, [handleItemAction]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleItemAction();
-    }
-  }, [handleItemAction]);
-
-  const handleDelete = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (isDeleting) return;
-    
-    // Start animation, then remove after animation completes
-    onStartDeleting(notification.id);
-    setTimeout(() => onDelete(notification.id), DELETE_ANIMATION_DURATION);
-  }, [isDeleting, notification.id, onStartDeleting, onDelete]);
-
-  const handleUsernameClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (likeMetadata && onUsernameClick) {
-      // Mark as read when clicking username too
-      if (isUnread) {
-        onMarkAsRead(notification.id);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      // Don't trigger if clicking on the delete button or username link
+      if (
+        (e.target as HTMLElement).closest(`.${styles.deleteButton}`) ||
+        (e.target as HTMLElement).closest(`.${styles.usernameLink}`)
+      ) {
+        return;
       }
-      onUsernameClick(likeMetadata.liker_username);
-    }
-  }, [likeMetadata, onUsernameClick, isUnread, onMarkAsRead, notification.id]);
+      handleItemAction();
+    },
+    [handleItemAction]
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleItemAction();
+      }
+    },
+    [handleItemAction]
+  );
+
+  const handleDelete = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (isDeleting) return;
+
+      // Start animation, then remove after animation completes
+      onStartDeleting(notification.id);
+      setTimeout(() => onDelete(notification.id), DELETE_ANIMATION_DURATION);
+    },
+    [isDeleting, notification.id, onStartDeleting, onDelete]
+  );
+
+  const handleUsernameClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (likeMetadata && onUsernameClick) {
+        // Mark as read when clicking username too
+        if (isUnread) {
+          onMarkAsRead(notification.id);
+        }
+        onUsernameClick(likeMetadata.liker_username);
+      }
+    },
+    [likeMetadata, onUsernameClick, isUnread, onMarkAsRead, notification.id]
+  );
 
   // Render body with clickable username for like notifications
   const renderBody = () => {
@@ -131,11 +153,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       return (
         <>
           {parts[0]}
-          <button
-            className={styles.usernameLink}
-            onClick={handleUsernameClick}
-            type="button"
-          >
+          <button className={styles.usernameLink} onClick={handleUsernameClick} type="button">
             {likeMetadata.liker_username}
           </button>
           {parts.slice(1).join(likeMetadata.liker_username)}
@@ -150,7 +168,9 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
     isUnread && styles.itemUnread,
     isNew && styles.itemNew,
     isDeleting && styles.itemDeleting,
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div
@@ -161,16 +181,14 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       tabIndex={0}
     >
       <div className={styles.itemIcon}>{icon}</div>
-      
+
       <div className={styles.itemContent}>
         <p className={styles.itemBody}>
           <span className={styles.itemTitle}>{notification.title}</span>
           {' · '}
           {renderBody()}
         </p>
-        <span className={styles.itemTime}>
-          {formatNotificationTime(notification.created_at)}
-        </span>
+        <span className={styles.itemTime}>{formatNotificationTime(notification.created_at)}</span>
       </div>
 
       <button

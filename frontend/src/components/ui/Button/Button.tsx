@@ -5,8 +5,9 @@
  * Uses design tokens for consistent styling across the app.
  */
 
-import React from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import React from 'react';
+
 import styles from './Button.module.css';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' | 'glass';
@@ -58,18 +59,16 @@ export const Button: React.FC<ButtonProps> = ({
     loading ? styles.loading : '',
     iconOnly ? styles.iconOnly : '',
     hoverLabel ? styles.hasHoverLabel : '',
-    hoverVariant ? styles[`hover${hoverVariant.charAt(0).toUpperCase() + hoverVariant.slice(1)}`] : '',
+    hoverVariant
+      ? styles[`hover${hoverVariant.charAt(0).toUpperCase() + hoverVariant.slice(1)}`]
+      : '',
     className,
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
-    <button
-      className={classNames}
-      disabled={disabled || loading}
-      {...props}
-    >
+    <button className={classNames} disabled={disabled || loading} {...props}>
       {loading && <span className={styles.spinner} />}
       {!loading && icon && <span className={styles.icon}>{icon}</span>}
       {!iconOnly && (

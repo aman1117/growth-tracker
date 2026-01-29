@@ -5,11 +5,12 @@
  * Uses design tokens for consistent styling.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useFollowStore, useRelationship, useAuth } from '../../../store';
-import { Button } from '../../ui/Button';
+import React, { useCallback, useEffect, useState } from 'react';
+
+import { useAuth, useFollowStore, useRelationship } from '../../../store';
+import type { FollowButtonProps, RelationshipState } from '../../../types/follow';
 import type { ButtonSize } from '../../ui/Button';
-import type { RelationshipState, FollowButtonProps } from '../../../types/follow';
+import { Button } from '../../ui/Button';
 import styles from './FollowButton.module.css';
 
 // Map FollowButton sizes to Button sizes
@@ -21,6 +22,7 @@ const sizeMap: Record<'sm' | 'md' | 'lg', ButtonSize> = {
 
 export const FollowButton: React.FC<FollowButtonProps> = ({
   userId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   username: _username,
   isPrivate,
   initialState,
@@ -30,8 +32,15 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
 }) => {
   const { user } = useAuth();
   const cachedState = useRelationship(userId);
-  const { followUser, unfollowUser, cancelRequest, acceptRequest, declineRequest, setRelationship } = useFollowStore();
-  
+  const {
+    followUser,
+    unfollowUser,
+    cancelRequest,
+    acceptRequest,
+    declineRequest,
+    setRelationship,
+  } = useFollowStore();
+
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<'accept' | 'decline' | null>(null);
   const [localState, setLocalState] = useState<RelationshipState | null>(initialState || null);
@@ -45,11 +54,6 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
       setRelationship(userId, initialState);
     }
   }, [initialState, cachedState, userId, setRelationship]);
-
-  // Don't show button for own profile
-  if (user?.id === userId) {
-    return null;
-  }
 
   const handleClick = useCallback(async () => {
     if (isLoading) return;
@@ -126,6 +130,11 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   const buttonSize = sizeMap[size];
   const isDisabled = isLoading || actionLoading !== null;
 
+  // Don't show button for own profile
+  if (user?.id === userId) {
+    return null;
+  }
+
   // Show Follow/Following + Accept/Decline buttons when there's an incoming pending request
   if (currentState?.incoming_pending) {
     const alreadyFollowing = currentState?.following;
@@ -175,7 +184,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
         hoverVariant: 'danger' as const,
       };
     }
-    
+
     if (currentState?.following) {
       return {
         label: 'Following',

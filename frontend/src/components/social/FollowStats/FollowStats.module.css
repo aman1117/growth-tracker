@@ -18,7 +18,9 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .stat:hover:not(:disabled) {

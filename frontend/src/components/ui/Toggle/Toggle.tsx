@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+
 import styles from './Toggle.module.css';
 
 export interface ToggleProps {
@@ -37,7 +38,8 @@ export const Toggle: React.FC<ToggleProps> = ({
   id,
   className = '',
 }) => {
-  const toggleId = id || `toggle-${Math.random().toString(36).slice(2, 9)}`;
+  const generatedId = React.useId();
+  const toggleId = id || generatedId;
 
   const containerClasses = [
     styles.container,
@@ -48,12 +50,7 @@ export const Toggle: React.FC<ToggleProps> = ({
     .filter(Boolean)
     .join(' ');
 
-  const trackClasses = [
-    styles.track,
-    checked ? styles.checked : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const trackClasses = [styles.track, checked ? styles.checked : ''].filter(Boolean).join(' ');
 
   const handleClick = () => {
     if (!disabled) {

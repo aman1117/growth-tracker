@@ -1,1 +1,1 @@
-export { default as FollowListModal, default } from './FollowListModal';
+export { default, default as FollowListModal } from './FollowListModal';

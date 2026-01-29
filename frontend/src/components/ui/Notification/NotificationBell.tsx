@@ -5,8 +5,9 @@
  * Toggles the notification dropdown panel.
  */
 
-import React from 'react';
 import { Bell } from 'lucide-react';
+import React from 'react';
+
 import { useUnreadCount } from '../../../store';
 import styles from './Notification.module.css';
 
@@ -15,10 +16,7 @@ interface NotificationBellProps {
   isOpen: boolean;
 }
 
-export const NotificationBell: React.FC<NotificationBellProps> = ({
-  onClick,
-  isOpen,
-}) => {
+export const NotificationBell: React.FC<NotificationBellProps> = ({ onClick, isOpen }) => {
   const unreadCount = useUnreadCount();
 
   return (

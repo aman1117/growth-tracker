@@ -5,9 +5,10 @@
  * Provides a simple interface for components to interact with push notifications.
  */
 
-import { useEffect, useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
+
 import { usePushStore } from '../store/usePushStore';
-import type { UpdatePreferencesRequest, PushPreferences } from '../types/push';
+import type { PushPreferences, UpdatePreferencesRequest } from '../types/push';
 
 interface UsePushNotificationsReturn {
   // State
@@ -17,14 +18,14 @@ interface UsePushNotificationsReturn {
   isLoading: boolean;
   error: string | null;
   preferences: PushPreferences | null;
-  
+
   // Actions
   subscribe: () => Promise<boolean>;
   unsubscribe: () => Promise<boolean>;
   toggleSubscription: () => Promise<boolean>;
   updatePreferences: (updates: UpdatePreferencesRequest) => Promise<boolean>;
   clearError: () => void;
-  
+
   // Computed
   canSubscribe: boolean;
   showPermissionPrompt: boolean;
@@ -32,11 +33,11 @@ interface UsePushNotificationsReturn {
 
 /**
  * Hook for managing push notification subscriptions
- * 
+ *
  * @example
  * ```tsx
  * const { isSubscribed, toggleSubscription, canSubscribe } = usePushNotifications();
- * 
+ *
  * return (
  *   <button onClick={toggleSubscription} disabled={!canSubscribe}>
  *     {isSubscribed ? 'Disable' : 'Enable'} Notifications
@@ -50,25 +51,25 @@ export function usePushNotifications(): UsePushNotificationsReturn {
   // Initialize on mount and re-check on visibility change
   useEffect(() => {
     store.checkSupport();
-    
+
     // Fetch preferences if subscribed (only on initial mount)
     if (store.isSubscribed) {
       store.fetchPreferences();
     }
-    
+
     // Re-check permission when tab becomes visible (user might have changed browser settings)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         store.checkSupport();
       }
     };
-    
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const subscribe = useCallback(async () => {
@@ -87,9 +88,12 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     }
   }, [store]);
 
-  const updatePreferences = useCallback(async (updates: UpdatePreferencesRequest) => {
-    return store.updatePreferences(updates);
-  }, [store]);
+  const updatePreferences = useCallback(
+    async (updates: UpdatePreferencesRequest) => {
+      return store.updatePreferences(updates);
+    },
+    [store]
+  );
 
   const clearError = useCallback(() => {
     usePushStore.setState({ error: null });
@@ -97,9 +101,8 @@ export function usePushNotifications(): UsePushNotificationsReturn {
 
   // Computed values
   const canSubscribe = store.isSupported && store.permission !== 'denied';
-  const showPermissionPrompt = store.isSupported && 
-    store.permission === 'default' && 
-    !store.isSubscribed;
+  const showPermissionPrompt =
+    store.isSupported && store.permission === 'default' && !store.isSubscribed;
 
   return {
     // State
@@ -109,14 +112,14 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     isLoading: store.isLoading,
     error: store.error,
     preferences: store.preferences,
-    
+
     // Actions
     subscribe,
     unsubscribe,
     toggleSubscription,
     updatePreferences,
     clearError,
-    
+
     // Computed
     canSubscribe,
     showPermissionPrompt,

@@ -6,17 +6,18 @@
  */
 
 import { create } from 'zustand';
-import { api } from '../services/api';
+
 import { API_ROUTES } from '../constants';
+import { api } from '../services/api';
 import type {
-  RelationshipState,
-  FollowCounts,
   FollowActionResponse,
+  FollowCounts,
+  FollowCountsResponse,
   FollowListResponse,
   FollowRequestsResponse,
-  RelationshipLookupResponse,
-  FollowCountsResponse,
   MutualsResponse,
+  RelationshipLookupResponse,
+  RelationshipState,
 } from '../types/follow';
 
 // ============================================================================
@@ -26,19 +27,19 @@ import type {
 interface FollowState {
   // Cached relationship states (keyed by string-converted userId)
   relationships: Record<string, RelationshipState>;
-  
+
   // Cached follow counts (keyed by string-converted userId)
   counts: Record<string, FollowCounts>;
-  
+
   // Pending follow requests count for current user
   pendingRequestsCount: number;
-  
+
   // Loading states - per user to prevent race conditions
   loadingActions: Set<string>;
-  
+
   // Global loading indicator (true if any action in progress)
   isLoading: boolean;
-  
+
   // Actions
   followUser: (userId: number, isPrivate: boolean) => Promise<FollowActionResponse>;
   unfollowUser: (userId: number) => Promise<FollowActionResponse>;
@@ -46,7 +47,7 @@ interface FollowState {
   acceptRequest: (userId: number) => Promise<FollowActionResponse>;
   declineRequest: (userId: number) => Promise<FollowActionResponse>;
   removeFollower: (userId: number) => Promise<FollowActionResponse>;
-  
+
   // Data fetching
   getFollowers: (userId: number, cursor?: string, limit?: number) => Promise<FollowListResponse>;
   getFollowing: (userId: number, cursor?: string, limit?: number) => Promise<FollowListResponse>;
@@ -54,18 +55,18 @@ interface FollowState {
   getMutuals: (userId: number, cursor?: string, limit?: number) => Promise<MutualsResponse>;
   getCounts: (userId: number) => Promise<FollowCounts | null>;
   lookupRelationships: (userIds: number[]) => Promise<Record<string, RelationshipState>>;
-  
+
   // Cache management
   setRelationship: (userId: number, state: RelationshipState) => void;
   setCounts: (userId: number, counts: FollowCounts) => void;
   getRelationship: (userId: number) => RelationshipState | undefined;
   invalidateCache: (userId: number) => void;
   clearCache: () => void;
-  
+
   // Request count management
   setPendingRequestsCount: (count: number) => void;
   decrementPendingRequests: () => void;
-  
+
   // Loading state helpers
   isActionLoading: (userId: number, action: string) => boolean;
 }
@@ -88,7 +89,7 @@ const stateStringToRelationship = (
   existingState?: RelationshipState
 ): RelationshipState => {
   const base = existingState || defaultRelationshipState;
-  
+
   switch (state?.toUpperCase()) {
     case 'ACTIVE':
     case 'FOLLOWING':
@@ -152,25 +153,22 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       newLoadingActions.add(actionKey);
       return { loadingActions: newLoadingActions, isLoading: true };
     });
-    
+
     try {
-      const response = await api.post<FollowActionResponse>(
-        API_ROUTES.FOLLOW.FOLLOW_USER(userId)
-      );
+      const response = await api.post<FollowActionResponse>(API_ROUTES.FOLLOW.FOLLOW_USER(userId));
 
       if (response.success) {
         // Convert backend state to RelationshipState
-        const newState = response.new_state || stateStringToRelationship(
-          response.state,
-          get().getRelationship(userId)
-        );
+        const newState =
+          response.new_state ||
+          stateStringToRelationship(response.state, get().getRelationship(userId));
         get().setRelationship(userId, newState);
-        
+
         // Update counts if provided
         if (response.updated_counts) {
           get().setCounts(userId, response.updated_counts);
         }
-        
+
         // Return with computed new_state
         return { ...response, new_state: newState };
       }
@@ -200,7 +198,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       newLoadingActions.add(actionKey);
       return { loadingActions: newLoadingActions, isLoading: true };
     });
-    
+
     try {
       const response = await api.delete<FollowActionResponse>(
         API_ROUTES.FOLLOW.UNFOLLOW_USER(userId)
@@ -208,12 +206,11 @@ export const useFollowStore = create<FollowState>((set, get) => ({
 
       if (response.success) {
         // Convert backend state to RelationshipState
-        const newState = response.new_state || stateStringToRelationship(
-          response.state || 'REMOVED',
-          get().getRelationship(userId)
-        );
+        const newState =
+          response.new_state ||
+          stateStringToRelationship(response.state || 'REMOVED', get().getRelationship(userId));
         get().setRelationship(userId, newState);
-        
+
         if (response.updated_counts) {
           get().setCounts(userId, response.updated_counts);
         }
@@ -244,17 +241,16 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       newLoadingActions.add(actionKey);
       return { loadingActions: newLoadingActions, isLoading: true };
     });
-    
+
     try {
       const response = await api.post<FollowActionResponse>(
         API_ROUTES.FOLLOW.CANCEL_REQUEST(userId)
       );
 
       if (response.success) {
-        const newState = response.new_state || stateStringToRelationship(
-          response.state || 'REMOVED',
-          get().getRelationship(userId)
-        );
+        const newState =
+          response.new_state ||
+          stateStringToRelationship(response.state || 'REMOVED', get().getRelationship(userId));
         get().setRelationship(userId, newState);
       }
 
@@ -283,7 +279,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       newLoadingActions.add(actionKey);
       return { loadingActions: newLoadingActions, isLoading: true };
     });
-    
+
     try {
       const response = await api.post<FollowActionResponse>(
         API_ROUTES.FOLLOW.ACCEPT_REQUEST(userId)
@@ -327,7 +323,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       newLoadingActions.add(actionKey);
       return { loadingActions: newLoadingActions, isLoading: true };
     });
-    
+
     try {
       const response = await api.post<FollowActionResponse>(
         API_ROUTES.FOLLOW.DECLINE_REQUEST(userId)
@@ -369,7 +365,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       newLoadingActions.add(actionKey);
       return { loadingActions: newLoadingActions, isLoading: true };
     });
-    
+
     try {
       const response = await api.delete<FollowActionResponse>(
         API_ROUTES.FOLLOW.REMOVE_FOLLOWER(userId)
@@ -519,9 +515,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       const cached = get().counts[userId.toString()];
       if (cached) return cached;
 
-      const response = await api.get<FollowCountsResponse>(
-        API_ROUTES.FOLLOW.GET_COUNTS(userId)
-      );
+      const response = await api.get<FollowCountsResponse>(API_ROUTES.FOLLOW.GET_COUNTS(userId));
 
       if (response.success && response.counts) {
         // Map API response to frontend format
@@ -563,9 +557,8 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       if (response.success && response.relationships) {
         // Cache the results - convert string state to RelationshipState object
         Object.entries(response.relationships).forEach(([id, state]) => {
-          const relationshipState = typeof state === 'string' 
-            ? stateStringToRelationship(state)
-            : state;
+          const relationshipState =
+            typeof state === 'string' ? stateStringToRelationship(state) : state;
           get().setRelationship(parseInt(id, 10), relationshipState);
         });
 

@@ -7,12 +7,13 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+
 import { pushService } from '../services/pushService';
 import type {
-  PushState,
   PushActions,
   PushPermissionState,
   PushPreferences,
+  PushState,
   UpdatePreferencesRequest,
 } from '../types/push';
 
@@ -63,8 +64,8 @@ export const usePushStore = create<PushStore>()(
       checkSupport: () => {
         const isSupported = pushService.isSupported();
         const permissionState = pushService.getPermissionState();
-        
-        const permission: PushPermissionState = 
+
+        const permission: PushPermissionState =
           permissionState === 'unsupported' ? 'unsupported' : permissionState;
 
         set({ isSupported, permission });
@@ -83,7 +84,7 @@ export const usePushStore = create<PushStore>()(
 
       requestPermission: async () => {
         const { isSupported } = get();
-        
+
         if (!isSupported) {
           set({ error: 'Push notifications not supported' });
           return 'denied';
@@ -91,7 +92,7 @@ export const usePushStore = create<PushStore>()(
 
         try {
           const permission = await pushService.requestPermission();
-          set({ 
+          set({
             permission: permission as PushPermissionState,
             error: null,
           });
@@ -122,25 +123,25 @@ export const usePushStore = create<PushStore>()(
 
         try {
           const response = await pushService.subscribe();
-          
+
           if (response.success) {
-            set({ 
-              isSubscribed: true, 
+            set({
+              isSubscribed: true,
               isLoading: false,
               permission: 'granted',
             });
 
             // Fetch preferences after subscribing
             get().fetchPreferences();
-            
+
             return true;
           } else {
             throw new Error(response.message || 'Subscription failed');
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to subscribe';
-          set({ 
-            isLoading: false, 
+          set({
+            isLoading: false,
             error: message,
           });
           return false;
@@ -155,16 +156,16 @@ export const usePushStore = create<PushStore>()(
         try {
           await pushService.unsubscribe();
           preferencesFetchedFlag = false;
-          set({ 
-            isSubscribed: false, 
+          set({
+            isSubscribed: false,
             isLoading: false,
             preferences: null,
           });
           return true;
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to unsubscribe';
-          set({ 
-            isLoading: false, 
+          set({
+            isLoading: false,
             error: message,
           });
           return false;
@@ -178,12 +179,12 @@ export const usePushStore = create<PushStore>()(
         if (preferencesFetchedFlag && !force) {
           return;
         }
-        
+
         preferencesFetchedFlag = true;
-        
+
         try {
           const response = await pushService.getPreferences();
-          
+
           if (response.success && response.preferences) {
             set({ preferences: response.preferences });
           } else {
@@ -200,7 +201,7 @@ export const usePushStore = create<PushStore>()(
 
       updatePreferences: async (updates: UpdatePreferencesRequest) => {
         const { preferences } = get();
-        
+
         // Optimistic update
         if (preferences) {
           set({
@@ -217,7 +218,7 @@ export const usePushStore = create<PushStore>()(
 
         try {
           const response = await pushService.updatePreferences(updates);
-          
+
           if (response.success && response.preferences) {
             set({ preferences: response.preferences });
             return true;

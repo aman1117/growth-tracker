@@ -1,6 +1,6 @@
 /**
  * API Service
- * 
+ *
  * Professional API layer with TypeScript generics, centralized error handling,
  * and proper authentication management.
  */
@@ -91,11 +91,7 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new ApiError(
-        data.error || 'Request failed',
-        response.status,
-        data.error_code
-      );
+      throw new ApiError(data.error || 'Request failed', response.status, data.error_code);
     }
 
     return data as T;
@@ -111,33 +107,21 @@ class ApiClient {
   /**
    * HTTP POST request
    */
-  async post<T, B = unknown>(
-    endpoint: string,
-    body?: B,
-    options?: RequestOptions
-  ): Promise<T> {
+  async post<T, B = unknown>(endpoint: string, body?: B, options?: RequestOptions): Promise<T> {
     return this.request<T>('POST', endpoint, body, options);
   }
 
   /**
    * HTTP PUT request
    */
-  async put<T, B = unknown>(
-    endpoint: string,
-    body?: B,
-    options?: RequestOptions
-  ): Promise<T> {
+  async put<T, B = unknown>(endpoint: string, body?: B, options?: RequestOptions): Promise<T> {
     return this.request<T>('PUT', endpoint, body, options);
   }
 
   /**
    * HTTP PATCH request
    */
-  async patch<T, B = unknown>(
-    endpoint: string,
-    body?: B,
-    options?: RequestOptions
-  ): Promise<T> {
+  async patch<T, B = unknown>(endpoint: string, body?: B, options?: RequestOptions): Promise<T> {
     return this.request<T>('PATCH', endpoint, body, options);
   }
 
@@ -188,11 +172,7 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new ApiError(
-        data.error || 'Upload failed',
-        response.status,
-        data.error_code
-      );
+      throw new ApiError(data.error || 'Upload failed', response.status, data.error_code);
     }
 
     return data as T;
@@ -250,26 +230,26 @@ export const apiClient = new ApiClient(`${env.apiUrl}/api`);
 // Backwards-Compatible API Object
 // ============================================================================
 
+import type { WeekAnalyticsResponse } from '../types';
 import type {
   AuthResponse,
   GetActivitiesResponse,
   GetStreakResponse,
-  UserSearchResponse,
-  ProfileResponse,
-  PrivacyResponse,
-  UploadResponse,
-  LogActivityResponse,
-  LikesResponse,
   LikeActionResponse,
+  LikesResponse,
+  LogActivityResponse,
+  PrivacyResponse,
+  ProfileResponse,
+  UploadResponse,
+  UserSearchResponse,
 } from '../types/api';
-import type { WeekAnalyticsResponse } from '../types';
 
 /**
  * Backwards-compatible API object
- * 
+ *
  * This maintains the same interface as the original api object
  * while using the new ApiClient under the hood.
- * 
+ *
  * @deprecated Prefer using apiClient directly with typed methods
  */
 export const api = {
@@ -310,10 +290,7 @@ export const api = {
   /**
    * Get weekly analytics for a user
    */
-  async getWeekAnalytics(
-    username: string,
-    weekStart: string
-  ): Promise<WeekAnalyticsResponse> {
+  async getWeekAnalytics(username: string, weekStart: string): Promise<WeekAnalyticsResponse> {
     return apiClient.post<WeekAnalyticsResponse>(API_ROUTES.ANALYTICS.WEEK, {
       username,
       week_start: weekStart,
@@ -327,7 +304,7 @@ export const api = {
 
 /**
  * Type-safe API methods
- * 
+ *
  * Use these methods for new code - they provide full type safety
  * for both request and response types.
  */
@@ -363,7 +340,9 @@ export const userApi = {
   getProfile: () => apiClient.get<ProfileResponse>(API_ROUTES.USER.PROFILE),
 
   updateUsername: (username: string) =>
-    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_USERNAME, { username }),
+    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_USERNAME, {
+      username,
+    }),
 
   updateBio: (bio: string) =>
     apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_BIO, { bio }),

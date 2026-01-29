@@ -9,13 +9,14 @@
  * - Graceful degradation with REST polling fallback
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+
 import { env } from '../config/env';
-import { useNotificationStore, useToastStore, useFollowStore } from '../store';
-import { useOfflineStatus } from './useOfflineStatus';
 import { STORAGE_KEYS } from '../constants';
-import type { WSMessage, Notification, WSConnectedPayload } from '../types';
+import { useFollowStore, useNotificationStore, useToastStore } from '../store';
+import type { Notification, WSConnectedPayload, WSMessage } from '../types';
 import { isFollowMetadata } from '../types/notification';
+import { useOfflineStatus } from './useOfflineStatus';
 
 // Reconnection backoff delays (ms)
 const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 16000, 30000];
@@ -58,16 +59,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   const isOffline = useOfflineStatus();
 
-  const {
-    setWSStatus,
-    addNotification,
-    addPendingNotifications,
-    fetchUnreadCount,
-    wsStatus,
-  } = useNotificationStore();
+  const { setWSStatus, addNotification, addPendingNotifications, fetchUnreadCount, wsStatus } =
+    useNotificationStore();
 
   const { addToast } = useToastStore();
-  
+
   const { setRelationship } = useFollowStore();
 
   /**
@@ -89,10 +85,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     if (!enableFallbackPolling || pollIntervalRef.current) return;
 
     console.log('[WS] Starting fallback polling');
-    
+
     // Initial fetch
     fetchUnreadCount();
-    
+
     pollIntervalRef.current = setInterval(() => {
       fetchUnreadCount();
     }, FALLBACK_POLL_INTERVAL);
@@ -111,81 +107,97 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   /**
    * Handle incoming WebSocket messages
    */
-  const handleMessage = useCallback((event: MessageEvent) => {
-    try {
-      const message = JSON.parse(event.data) as WSMessage;
+  const handleMessage = useCallback(
+    (event: MessageEvent) => {
+      try {
+        const message = JSON.parse(event.data) as WSMessage;
 
-      switch (message.type) {
-        case WS_TYPES.CONNECTED: {
-          const payload = message.payload as WSConnectedPayload;
-          console.log('[WS] Connected:', payload.connection_id);
-          setWSStatus('connected');
-          stopFallbackPolling();
-          reconnectAttemptRef.current = 0;
-          break;
-        }
+        switch (message.type) {
+          case WS_TYPES.CONNECTED: {
+            const payload = message.payload as WSConnectedPayload;
+            console.log('[WS] Connected:', payload.connection_id);
+            setWSStatus('connected');
+            stopFallbackPolling();
+            reconnectAttemptRef.current = 0;
+            break;
+          }
 
-        case WS_TYPES.NOTIFICATION: {
-          const notification = message.payload as Notification;
-          console.log('[WS] New notification:', notification.id);
-          addNotification(notification);
-          // Show toast for new notification
-          addToast(notification.body || notification.title, 'info', 4000);
-          
-          // Update follow relationship state for follow_accepted notifications
-          if (notification.type === 'follow_accepted' && isFollowMetadata(notification.metadata)) {
-            const actorId = typeof notification.metadata.actor_id === 'string' 
-              ? parseInt(notification.metadata.actor_id, 10)
-              : notification.metadata.actor_id;
-            if (actorId) {
-              setRelationship(actorId, {
-                following: true,
-                followed_by: true,
-                pending: false,
-                incoming_pending: false,
-                is_mutual: true,
-              });
-              console.log('[WS] Updated relationship state for user:', actorId);
-              
-              // Dispatch event so Dashboard can refresh if viewing this profile
-              window.dispatchEvent(new CustomEvent('follow-accepted', { 
-                detail: { 
-                  actorId, 
-                  actorUsername: notification.metadata.actor_username 
-                } 
-              }));
+          case WS_TYPES.NOTIFICATION: {
+            const notification = message.payload as Notification;
+            console.log('[WS] New notification:', notification.id);
+            addNotification(notification);
+            // Show toast for new notification
+            addToast(notification.body || notification.title, 'info', 4000);
+
+            // Update follow relationship state for follow_accepted notifications
+            if (
+              notification.type === 'follow_accepted' &&
+              isFollowMetadata(notification.metadata)
+            ) {
+              const actorId =
+                typeof notification.metadata.actor_id === 'string'
+                  ? parseInt(notification.metadata.actor_id, 10)
+                  : notification.metadata.actor_id;
+              if (actorId) {
+                setRelationship(actorId, {
+                  following: true,
+                  followed_by: true,
+                  pending: false,
+                  incoming_pending: false,
+                  is_mutual: true,
+                });
+                console.log('[WS] Updated relationship state for user:', actorId);
+
+                // Dispatch event so Dashboard can refresh if viewing this profile
+                window.dispatchEvent(
+                  new CustomEvent('follow-accepted', {
+                    detail: {
+                      actorId,
+                      actorUsername: notification.metadata.actor_username,
+                    },
+                  })
+                );
+              }
             }
+            break;
           }
-          break;
-        }
 
-        case WS_TYPES.PENDING_DELIVERY: {
-          const pending = message.payload as Notification[];
-          console.log('[WS] Pending notifications:', pending.length);
-          addPendingNotifications(pending);
-          break;
-        }
-
-        case WS_TYPES.ERROR: {
-          console.error('[WS] Server error:', message.payload);
-          break;
-        }
-
-        case WS_TYPES.PING: {
-          // Send pong response
-          if (globalWs?.readyState === WebSocket.OPEN) {
-            globalWs.send(JSON.stringify({ type: WS_TYPES.PONG }));
+          case WS_TYPES.PENDING_DELIVERY: {
+            const pending = message.payload as Notification[];
+            console.log('[WS] Pending notifications:', pending.length);
+            addPendingNotifications(pending);
+            break;
           }
-          break;
-        }
 
-        default:
-          console.log('[WS] Unknown message type:', message.type);
+          case WS_TYPES.ERROR: {
+            console.error('[WS] Server error:', message.payload);
+            break;
+          }
+
+          case WS_TYPES.PING: {
+            // Send pong response
+            if (globalWs?.readyState === WebSocket.OPEN) {
+              globalWs.send(JSON.stringify({ type: WS_TYPES.PONG }));
+            }
+            break;
+          }
+
+          default:
+            console.log('[WS] Unknown message type:', message.type);
+        }
+      } catch (error) {
+        console.error('[WS] Failed to parse message:', error);
       }
-    } catch (error) {
-      console.error('[WS] Failed to parse message:', error);
-    }
-  }, [setWSStatus, addNotification, addPendingNotifications, stopFallbackPolling, addToast]);
+    },
+    [
+      setWSStatus,
+      addNotification,
+      addPendingNotifications,
+      stopFallbackPolling,
+      addToast,
+      setRelationship,
+    ]
+  );
 
   /**
    * Schedule reconnection with exponential backoff
@@ -220,7 +232,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     if (!enabled || isOffline) return;
 
     // Use global singleton - if already connected or connecting, just sync the ref
-    if (globalWs && (globalWs.readyState === WebSocket.OPEN || globalWs.readyState === WebSocket.CONNECTING)) {
+    if (
+      globalWs &&
+      (globalWs.readyState === WebSocket.OPEN || globalWs.readyState === WebSocket.CONNECTING)
+    ) {
       console.log('[WS] Using existing global connection');
       wsRef.current = globalWs;
       if (globalWs.readyState === WebSocket.OPEN) {
@@ -348,7 +363,15 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       // Only clean up local refs, not the global connection
       stopFallbackPolling();
     };
-  }, [enabled, isOffline, connect, setWSStatus, enableFallbackPolling, startFallbackPolling, stopFallbackPolling]);
+  }, [
+    enabled,
+    isOffline,
+    connect,
+    setWSStatus,
+    enableFallbackPolling,
+    startFallbackPolling,
+    stopFallbackPolling,
+  ]);
 
   // Reconnect when coming back online (only if not already connected)
   useEffect(() => {

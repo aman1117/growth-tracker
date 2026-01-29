@@ -5,9 +5,10 @@
  */
 
 import React from 'react';
-import { StreakBadge } from './ui/Badge';
+
 import type { Badge } from '../types/api';
 import styles from './BadgeShowcase.module.css';
+import { StreakBadge } from './ui/Badge';
 
 export interface BadgeShowcaseProps {
   badges: Badge[];

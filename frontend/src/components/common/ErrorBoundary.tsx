@@ -1,12 +1,12 @@
 /**
  * ErrorBoundary Component
- * 
+ *
  * Catches JavaScript errors anywhere in the child component tree,
  * logs those errors, and displays a fallback UI.
  */
 
+import type { ErrorInfo, ReactNode } from 'react';
 import React, { Component } from 'react';
-import type { ReactNode, ErrorInfo } from 'react';
 
 interface ErrorBoundaryProps {
   /** Child components to wrap */
@@ -24,7 +24,7 @@ interface ErrorBoundaryState {
 
 /**
  * Error Boundary component for catching and handling React errors
- * 
+ *
  * @example
  * ```tsx
  * <ErrorBoundary fallback={<ErrorPage />}>
@@ -84,19 +84,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             {this.state.error && (
               <details style={styles.details}>
                 <summary style={styles.summary}>Error details</summary>
-                <pre style={styles.errorText}>
-                  {this.state.error.message}
-                </pre>
+                <pre style={styles.errorText}>{this.state.error.message}</pre>
               </details>
             )}
             <div style={styles.actions}>
               <button onClick={this.handleRetry} style={styles.retryButton}>
                 Try Again
               </button>
-              <button
-                onClick={() => window.location.reload()}
-                style={styles.reloadButton}
-              >
+              <button onClick={() => window.location.reload()} style={styles.reloadButton}>
                 Reload Page
               </button>
             </div>
@@ -192,7 +187,7 @@ const styles: Record<string, React.CSSProperties> = {
 
 /**
  * Hook-style error boundary wrapper using Error Boundary
- * 
+ *
  * @example
  * ```tsx
  * const MyPage = withErrorBoundary(MyPageComponent, {
@@ -200,6 +195,7 @@ const styles: Record<string, React.CSSProperties> = {
  * });
  * ```
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function withErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   errorBoundaryProps?: Omit<ErrorBoundaryProps, 'children'>

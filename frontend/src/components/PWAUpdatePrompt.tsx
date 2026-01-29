@@ -1,13 +1,13 @@
 /**
  * PWAUpdatePrompt Component
- * 
+ *
  * Shows a toast/banner when a new version of the app is available.
  * User can choose to update immediately or dismiss.
  */
 
+import { RefreshCw, X } from 'lucide-react';
 import React from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { RefreshCw, X } from 'lucide-react';
 
 export const PWAUpdatePrompt: React.FC = () => {
   const {
@@ -17,9 +17,12 @@ export const PWAUpdatePrompt: React.FC = () => {
     onRegisteredSW(swUrl: string, r: ServiceWorkerRegistration | undefined) {
       // Check for updates every hour
       if (r) {
-        setInterval(() => {
-          r.update();
-        }, 60 * 60 * 1000);
+        setInterval(
+          () => {
+            r.update();
+          },
+          60 * 60 * 1000
+        );
       }
       console.log('SW registered:', swUrl);
     },
@@ -68,7 +71,7 @@ export const PWAUpdatePrompt: React.FC = () => {
           }
         }
       `}</style>
-      
+
       <div
         style={{
           display: 'inline-flex',

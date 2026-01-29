@@ -7,7 +7,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useFollowStore, useAuth } from '../../../store';
+
+import { useAuth, useFollowStore } from '../../../store';
 import type { FollowUser } from '../../../types/follow';
 import styles from './MutualFollowers.module.css';
 
@@ -19,13 +20,14 @@ interface MutualFollowersProps {
 
 export const MutualFollowers: React.FC<MutualFollowersProps> = ({
   userId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   username: _username,
   onShowAll,
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { getMutuals } = useFollowStore();
-  
+
   const [mutuals, setMutuals] = useState<FollowUser[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -86,11 +88,7 @@ export const MutualFollowers: React.FC<MutualFollowersProps> = ({
             onClick={(e) => handleUserClick(mutual.username, e)}
           >
             {mutual.profile_pic ? (
-              <img
-                src={mutual.profile_pic}
-                alt={mutual.username}
-                className={styles.avatar}
-              />
+              <img src={mutual.profile_pic} alt={mutual.username} className={styles.avatar} />
             ) : (
               <div className={styles.avatarPlaceholder}>
                 {mutual.username.charAt(0).toUpperCase()}
@@ -105,10 +103,7 @@ export const MutualFollowers: React.FC<MutualFollowersProps> = ({
         Followed by{' '}
         {displayUsers.map((user, index) => (
           <React.Fragment key={user.id}>
-            <span
-              className={styles.username}
-              onClick={(e) => handleUserClick(user.username, e)}
-            >
+            <span className={styles.username} onClick={(e) => handleUserClick(user.username, e)}>
               {user.username}
             </span>
             {index < displayUsers.length - 1 && ', '}
@@ -117,7 +112,9 @@ export const MutualFollowers: React.FC<MutualFollowersProps> = ({
         {othersCount > 0 && (
           <>
             {displayUsers.length > 0 && ' and '}
-            <span className={styles.others}>{othersCount} {othersCount === 1 ? 'other' : 'others'}</span>
+            <span className={styles.others}>
+              {othersCount} {othersCount === 1 ? 'other' : 'others'}
+            </span>
           </>
         )}
       </span>

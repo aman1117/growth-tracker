@@ -98,7 +98,7 @@
   max-height: 480px;
   display: flex;
   flex-direction: column;
-  
+
   /* Glassmorphism - uses theme variables */
   background: var(--bg-secondary);
   backdrop-filter: blur(var(--tile-glass-blur));
@@ -106,10 +106,10 @@
   border: 1px solid var(--glass-border);
   border-radius: 16px;
   box-shadow: var(--tile-glass-shadow);
-  
+
   overflow: hidden;
   z-index: 100;
-  
+
   /* Animation */
   animation: panelSlideIn 0.2s ease-out;
 }
@@ -235,7 +235,7 @@
   min-height: 200px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  
+
   /* Hide scrollbar but keep functionality */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
@@ -262,12 +262,24 @@
 }
 
 /* Staggered entrance animation */
-.item:nth-child(1) { animation-delay: 0ms; }
-.item:nth-child(2) { animation-delay: 30ms; }
-.item:nth-child(3) { animation-delay: 60ms; }
-.item:nth-child(4) { animation-delay: 90ms; }
-.item:nth-child(5) { animation-delay: 120ms; }
-.item:nth-child(n+6) { animation-delay: 150ms; }
+.item:nth-child(1) {
+  animation-delay: 0ms;
+}
+.item:nth-child(2) {
+  animation-delay: 30ms;
+}
+.item:nth-child(3) {
+  animation-delay: 60ms;
+}
+.item:nth-child(4) {
+  animation-delay: 90ms;
+}
+.item:nth-child(5) {
+  animation-delay: 120ms;
+}
+.item:nth-child(n + 6) {
+  animation-delay: 150ms;
+}
 
 @keyframes itemSlideIn {
   from {
@@ -391,7 +403,8 @@
 }
 
 @keyframes dotPulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     box-shadow: 0 0 0 0 var(--accent);
   }
@@ -549,7 +562,7 @@
   border-radius: 20px 20px 0 0;
   animation: panelSlideUp 0.3s ease-out;
   z-index: 99999 !important;
-  
+
   /* Uses theme variables for proper light/dark support */
   background: var(--bg-secondary) !important;
   backdrop-filter: blur(var(--tile-glass-blur)) !important;

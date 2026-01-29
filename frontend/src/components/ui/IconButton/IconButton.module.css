@@ -12,7 +12,7 @@
   cursor: pointer;
   border: none;
   outline: none;
-  transition: 
+  transition:
     background-color var(--transition-fast) var(--ease-default),
     color var(--transition-fast) var(--ease-default),
     transform var(--transition-fast) var(--ease-default),
@@ -141,7 +141,7 @@
   .iconButton {
     transition: none;
   }
-  
+
   .spinner {
     animation: none;
   }

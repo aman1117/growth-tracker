@@ -5,10 +5,11 @@
  * Clicking on a user navigates to their dashboard.
  */
 
+import { Heart, User as UserIcon, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, User as UserIcon, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
 import { likeApi } from '../../../services/api';
 import type { LikerDTO } from '../../../types/api';
 import { ProtectedImage } from '../ProtectedImage';
@@ -25,12 +26,7 @@ export interface LikersModalProps {
   onClose: () => void;
 }
 
-export const LikersModal: React.FC<LikersModalProps> = ({
-  username,
-  date,
-  isOpen,
-  onClose,
-}) => {
+export const LikersModal: React.FC<LikersModalProps> = ({ username, date, isOpen, onClose }) => {
   const navigate = useNavigate();
   const [likers, setLikers] = useState<LikerDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +100,7 @@ export const LikersModal: React.FC<LikersModalProps> = ({
           background-color: var(--hover-bg) !important;
         }
       `}</style>
-      
+
       <div
         className="card"
         style={{
@@ -131,11 +127,13 @@ export const LikersModal: React.FC<LikersModalProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Heart size={16} color="#ef4444" fill="#ef4444" />
-            <span style={{ 
-              fontWeight: 600, 
-              fontSize: '0.95rem',
-              color: 'var(--text-primary)'
-            }}>
+            <span
+              style={{
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                color: 'var(--text-primary)',
+              }}
+            >
               Likes
             </span>
           </div>
@@ -170,21 +168,25 @@ export const LikersModal: React.FC<LikersModalProps> = ({
           }}
         >
           {loading ? (
-            <div style={{ 
-              padding: '2rem', 
-              textAlign: 'center', 
-              color: 'var(--text-secondary)',
-              fontSize: '0.875rem'
-            }}>
+            <div
+              style={{
+                padding: '2rem',
+                textAlign: 'center',
+                color: 'var(--text-secondary)',
+                fontSize: '0.875rem',
+              }}
+            >
               Loading...
             </div>
           ) : likers.length === 0 ? (
-            <div style={{ 
-              padding: '2rem', 
-              textAlign: 'center', 
-              color: 'var(--text-secondary)',
-              fontSize: '0.875rem'
-            }}>
+            <div
+              style={{
+                padding: '2rem',
+                textAlign: 'center',
+                color: 'var(--text-secondary)',
+                fontSize: '0.875rem',
+              }}
+            >
               No likes yet
             </div>
           ) : (
@@ -200,24 +202,27 @@ export const LikersModal: React.FC<LikersModalProps> = ({
                   alignItems: 'center',
                   gap: '0.75rem',
                   transition: 'background-color 0.15s ease',
-                  borderBottom: index < likers.length - 1 ? '1px solid var(--tile-glass-border)' : 'none',
+                  borderBottom:
+                    index < likers.length - 1 ? '1px solid var(--tile-glass-border)' : 'none',
                 }}
               >
                 {/* Avatar */}
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--avatar-bg)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  flexShrink: 0,
-                }}>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--avatar-bg)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                  }}
+                >
                   {liker.profile_pic ? (
-                    <ProtectedImage 
-                      src={liker.profile_pic} 
+                    <ProtectedImage
+                      src={liker.profile_pic}
                       alt={liker.username}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
@@ -227,18 +232,20 @@ export const LikersModal: React.FC<LikersModalProps> = ({
                 </div>
 
                 {/* Username with Verified Badge */}
-                <span style={{ 
-                  fontSize: '0.875rem', 
-                  fontWeight: 500, 
-                  color: 'var(--text-primary)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                }}>
+                <span
+                  style={{
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: 'var(--text-primary)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                  }}
+                >
                   {liker.username}
                   {liker.is_verified && <VerifiedBadge size={14} />}
                 </span>

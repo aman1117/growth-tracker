@@ -1,6 +1,6 @@
 /**
  * Validation Constants
- * 
+ *
  * Centralized validation rules and limits used across the application.
  */
 

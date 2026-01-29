@@ -1,11 +1,11 @@
 export {
   Skeleton,
-  SkeletonText,
   SkeletonAvatar,
-  SkeletonCard,
-  type SkeletonProps,
-  type SkeletonTextProps,
   type SkeletonAvatarProps,
+  SkeletonCard,
   type SkeletonCardProps,
+  type SkeletonProps,
+  SkeletonText,
+  type SkeletonTextProps,
 } from './Skeleton';
 export { default } from './Skeleton';

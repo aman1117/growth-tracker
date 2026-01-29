@@ -5,12 +5,13 @@
  * Supports drag-and-drop, resizing, and edit mode.
  */
 
-import React, { Suspense, useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { X, Pencil } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { Pencil, X } from 'lucide-react';
+import React, { Suspense, useMemo } from 'react';
+
 import type { ActivityName } from '../../types';
 import { isCustomTile } from '../../types';
-import type { LucideIcon } from 'lucide-react';
 import { DynamicIcon } from '../DynamicIcon';
 import styles from './ActivityTile.module.css';
 
@@ -127,15 +128,15 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
     isSelected && styles.selected,
     isOtherSelected && !isSelected && styles.otherSelected,
     isDraggingProp && styles.dragging,
-    isEditMode && !isSelected && !isDraggingProp && (tileIndex % 2 === 0 ? styles.editing : styles.editingAlt),
+    isEditMode &&
+      !isSelected &&
+      !isDraggingProp &&
+      (tileIndex % 2 === 0 ? styles.editing : styles.editingAlt),
   ]
     .filter(Boolean)
     .join(' ');
 
-  const iconContainerClassName = [
-    styles.iconContainer,
-    isActive ? styles.active : styles.inactive,
-  ]
+  const iconContainerClassName = [styles.iconContainer, isActive ? styles.active : styles.inactive]
     .filter(Boolean)
     .join(' ');
 
@@ -147,10 +148,7 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
     .filter(Boolean)
     .join(' ');
 
-  const hoursClassName = [
-    styles.hours,
-    isActive ? styles.active : styles.inactive,
-  ]
+  const hoursClassName = [styles.hours, isActive ? styles.active : styles.inactive]
     .filter(Boolean)
     .join(' ');
 
@@ -214,11 +212,7 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
           <div className={iconContainerClassName}>
             {iconName ? (
               <Suspense
-                fallback={
-                  <div
-                    style={{ width: config.iconSize, height: config.iconSize }}
-                  />
-                }
+                fallback={<div style={{ width: config.iconSize, height: config.iconSize }} />}
               >
                 <DynamicIcon
                   name={iconName}

@@ -1,6 +1,6 @@
 /**
  * VerifiedBadge Component
- * 
+ *
  * Verified badge (blue checkmark) displayed next to verified users.
  */
 
@@ -17,15 +17,15 @@ export interface VerifiedBadgeProps {
 
 /**
  * A verified badge component that displays a blue checkmark.
- * 
+ *
  * @example
  * ```tsx
  * // Basic usage
  * <VerifiedBadge />
- * 
+ *
  * // With custom size
  * <VerifiedBadge size={20} />
- * 
+ *
  * // Next to a username
  * <span>@username <VerifiedBadge size={14} /></span>
  * ```

@@ -1,10 +1,10 @@
 /**
  * API Types
- * 
+ *
  * Type definitions for API requests and responses.
  */
 
-import type { Activity, WeekAnalyticsResponse, ActivityName } from './index';
+import type { Activity, ActivityName, WeekAnalyticsResponse } from './index';
 
 // ============================================================================
 // Base Response Types
@@ -77,7 +77,7 @@ export interface UserSearchResult {
   bio?: string;
 }
 
-export interface UserSearchResponse extends ApiResponse<UserSearchResult[]> {}
+export type UserSearchResponse = ApiResponse<UserSearchResult[]>;
 
 export interface ProfileResponse {
   success: boolean;
@@ -112,7 +112,7 @@ export interface GetActivitiesRequest {
   end_date: string;
 }
 
-export interface GetActivitiesResponse extends ApiResponse<Activity[]> {}
+export type GetActivitiesResponse = ApiResponse<Activity[]>;
 
 export interface LogActivityRequest {
   name: ActivityName;
@@ -142,7 +142,7 @@ export interface StreakData {
   longest_end?: string;
 }
 
-export interface GetStreakResponse extends ApiResponse<StreakData> {}
+export type GetStreakResponse = ApiResponse<StreakData>;
 
 // ============================================================================
 // Analytics Types
@@ -175,7 +175,7 @@ export interface TileConfig {
   sizes: Record<ActivityName, string>;
 }
 
-export interface GetTileConfigResponse extends ApiResponse<TileConfig> {}
+export type GetTileConfigResponse = ApiResponse<TileConfig>;
 
 export interface SaveTileConfigRequest {
   order: ActivityName[];
@@ -266,4 +266,3 @@ export interface GetBadgesByUsernameRequest {
 export interface StreakDataWithBadges extends StreakData {
   new_badges?: Badge[];
 }
-

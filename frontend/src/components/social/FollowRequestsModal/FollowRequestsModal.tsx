@@ -5,14 +5,15 @@
  * Uses shared styling for consistency with other follow modals.
  */
 
-import React, { useState, useCallback } from 'react';
-import { Loader2, AlertCircle, Bell } from 'lucide-react';
+import { AlertCircle, Bell, Loader2 } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal } from '../../ui/Modal';
-import { Avatar, VerifiedBadge } from '../../ui';
-import { useFollowStore } from '../../../store';
+
 import { useInfiniteScrollModal } from '../../../hooks/useInfiniteScrollModal';
-import type { FollowUser, FollowRequestsModalProps } from '../../../types/follow';
+import { useFollowStore } from '../../../store';
+import type { FollowRequestsModalProps, FollowUser } from '../../../types/follow';
+import { Avatar, VerifiedBadge } from '../../ui';
+import { Modal } from '../../ui/Modal';
 import styles from '../shared/ModalList.module.css';
 
 interface RequestCardProps {
@@ -35,13 +36,8 @@ const RequestCard: React.FC<RequestCardProps> = ({
 }) => {
   return (
     <div className={styles.card}>
-      <Avatar
-        src={user.profile_pic}
-        name={user.username}
-        size="sm"
-        className={styles.avatar}
-      />
-      
+      <Avatar src={user.profile_pic} name={user.username} size="sm" className={styles.avatar} />
+
       <div className={styles.userInfo} onClick={onUserClick} style={{ cursor: 'pointer' }}>
         <span className={styles.username}>
           {user.username}
@@ -52,18 +48,20 @@ const RequestCard: React.FC<RequestCardProps> = ({
       <div className={styles.actions}>
         <button
           className={styles.primaryButton}
-          onClick={(e) => { e.stopPropagation(); onAccept(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAccept();
+          }}
           disabled={isProcessing}
         >
-          {isProcessing ? (
-            <Loader2 className={styles.spinner} size={14} />
-          ) : (
-            'Accept'
-          )}
+          {isProcessing ? <Loader2 className={styles.spinner} size={14} /> : 'Accept'}
         </button>
         <button
           className={styles.secondaryButton}
-          onClick={(e) => { e.stopPropagation(); onDecline(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDecline();
+          }}
           disabled={isProcessing}
         >
           Decline
@@ -83,19 +81,22 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
 
   // Fetch function for the infinite scroll hook
-  const fetchRequests = useCallback(async (cursor?: string) => {
-    const response = await getIncomingRequests(cursor);
+  const fetchRequests = useCallback(
+    async (cursor?: string) => {
+      const response = await getIncomingRequests(cursor);
 
-    if (!response.success) {
-      throw new Error(response.error || 'Failed to load requests');
-    }
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to load requests');
+      }
 
-    return {
-      items: response.requests || [],
-      nextCursor: response.next_cursor,
-      totalCount: response.total_count,
-    };
-  }, [getIncomingRequests]);
+      return {
+        items: response.requests || [],
+        nextCursor: response.next_cursor,
+        totalCount: response.total_count,
+      };
+    },
+    [getIncomingRequests]
+  );
 
   // Use the shared infinite scroll hook
   const {
@@ -112,60 +113,64 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
   });
 
   // Handle accept request
-  const handleAccept = useCallback(async (userId: number) => {
-    setProcessingIds((prev) => new Set(prev).add(userId));
+  const handleAccept = useCallback(
+    async (userId: number) => {
+      setProcessingIds((prev) => new Set(prev).add(userId));
 
-    try {
-      const response = await acceptRequest(userId);
-      if (response.success) {
-        removeItem(userId);
-        onRequestHandled?.();
+      try {
+        const response = await acceptRequest(userId);
+        if (response.success) {
+          removeItem(userId);
+          onRequestHandled?.();
+        }
+      } catch (err) {
+        console.error('Failed to accept request:', err);
+      } finally {
+        setProcessingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
       }
-    } catch (err) {
-      console.error('Failed to accept request:', err);
-    } finally {
-      setProcessingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    }
-  }, [acceptRequest, removeItem, onRequestHandled]);
+    },
+    [acceptRequest, removeItem, onRequestHandled]
+  );
 
   // Handle decline request
-  const handleDecline = useCallback(async (userId: number) => {
-    setProcessingIds((prev) => new Set(prev).add(userId));
+  const handleDecline = useCallback(
+    async (userId: number) => {
+      setProcessingIds((prev) => new Set(prev).add(userId));
 
-    try {
-      const response = await declineRequest(userId);
-      if (response.success) {
-        removeItem(userId);
-        onRequestHandled?.();
+      try {
+        const response = await declineRequest(userId);
+        if (response.success) {
+          removeItem(userId);
+          onRequestHandled?.();
+        }
+      } catch (err) {
+        console.error('Failed to decline request:', err);
+      } finally {
+        setProcessingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(userId);
+          return next;
+        });
       }
-    } catch (err) {
-      console.error('Failed to decline request:', err);
-    } finally {
-      setProcessingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(userId);
-        return next;
-      });
-    }
-  }, [declineRequest, removeItem, onRequestHandled]);
+    },
+    [declineRequest, removeItem, onRequestHandled]
+  );
 
   // Navigate to user profile
-  const handleUserClick = useCallback((username: string) => {
-    onClose();
-    navigate(`/user/${username}`);
-  }, [onClose, navigate]);
+  const handleUserClick = useCallback(
+    (username: string) => {
+      onClose();
+      navigate(`/user/${username}`);
+    },
+    [onClose, navigate]
+  );
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Follow Requests"
-      maxWidth="360px"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Follow Requests" maxWidth="360px">
       <div className={styles.container}>
         <div className={styles.list}>
           {/* Loading state */}

@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+
 import styles from './Skeleton.module.css';
 
 export interface SkeletonProps {
@@ -86,10 +87,7 @@ export interface SkeletonAvatarProps {
   className?: string;
 }
 
-export const SkeletonAvatar: React.FC<SkeletonAvatarProps> = ({
-  size = 'md',
-  className = '',
-}) => {
+export const SkeletonAvatar: React.FC<SkeletonAvatarProps> = ({ size = 'md', className = '' }) => {
   const sizes = {
     sm: 32,
     md: 40,
@@ -97,14 +95,7 @@ export const SkeletonAvatar: React.FC<SkeletonAvatarProps> = ({
     xl: 64,
   };
 
-  return (
-    <Skeleton
-      width={sizes[size]}
-      height={sizes[size]}
-      radius="full"
-      className={className}
-    />
-  );
+  return <Skeleton width={sizes[size]} height={sizes[size]} radius="full" className={className} />;
 };
 
 export interface SkeletonCardProps {

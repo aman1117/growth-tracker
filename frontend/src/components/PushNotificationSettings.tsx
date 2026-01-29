@@ -7,9 +7,10 @@
  * - Set quiet hours
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { AlertCircle, Bell, BellOff, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Bell, BellOff, AlertCircle, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import type { NotificationType } from '../types/notification';
 
@@ -315,7 +316,10 @@ interface NotificationsBlockedGuideProps {
   onClose: () => void;
 }
 
-const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({ isOpen, onClose }) => {
+const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({
+  isOpen,
+  onClose,
+}) => {
   if (!isOpen) return null;
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -334,7 +338,7 @@ const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({ i
         'Open Safari and visit this site again',
         'Tap Share > "Add to Home Screen"',
         'Open app and tap "Enable" when prompted',
-        'Select "Allow" in the permission dialog'
+        'Select "Allow" in the permission dialog',
       ];
     } else {
       title = 'Enable on iOS';
@@ -342,7 +346,7 @@ const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({ i
         'Tap the Share button below',
         'Select "Add to Home Screen"',
         'Open the app from Home Screen',
-        'Tap Enable and allow notifications'
+        'Tap Enable and allow notifications',
       ];
     }
   } else if (isAndroid) {
@@ -353,7 +357,7 @@ const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({ i
         'Find and tap "Growth Tracker"',
         'Tap "Notifications"',
         'Turn on "Allow notifications"',
-        'Return to the app'
+        'Return to the app',
       ];
     } else {
       title = 'Enable in Browser';
@@ -361,7 +365,7 @@ const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({ i
         'Tap ⋮ (three dots) menu',
         'Go to Settings > Site settings',
         'Tap "Notifications"',
-        'Find and allow this site'
+        'Find and allow this site',
       ];
     }
   } else {
@@ -371,7 +375,7 @@ const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({ i
       'Click the lock 🔒 icon in the address bar',
       'Find "Notifications" in the dropdown',
       'Change from "Block" to "Allow"',
-      'Refresh the page'
+      'Refresh the page',
     ];
   }
 
@@ -394,18 +398,14 @@ const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({ i
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: isDark
-            ? 'rgba(30, 30, 35, 0.9)'
-            : 'rgba(255, 255, 255, 0.85)',
+          background: isDark ? 'rgba(30, 30, 35, 0.9)' : 'rgba(255, 255, 255, 0.85)',
           backdropFilter: 'blur(40px) saturate(180%)',
           WebkitBackdropFilter: 'blur(40px) saturate(180%)',
           borderRadius: '20px',
           border: isDark
             ? '1px solid rgba(255, 255, 255, 0.1)'
             : '1px solid rgba(255, 255, 255, 0.6)',
-          boxShadow: isDark
-            ? '0 25px 50px rgba(0, 0, 0, 0.5)'
-            : '0 25px 50px rgba(0, 0, 0, 0.15)',
+          boxShadow: isDark ? '0 25px 50px rgba(0, 0, 0, 0.5)' : '0 25px 50px rgba(0, 0, 0, 0.15)',
           maxWidth: '320px',
           width: '100%',
         }}
@@ -417,9 +417,7 @@ const NotificationsBlockedGuide: React.FC<NotificationsBlockedGuideProps> = ({ i
               width: '56px',
               height: '56px',
               borderRadius: '16px',
-              background: isDark
-                ? 'rgba(239, 68, 68, 0.2)'
-                : 'rgba(239, 68, 68, 0.1)',
+              background: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -540,14 +538,14 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
 
   const [localQuietStart, setLocalQuietStart] = useState('22:00');
   const [localQuietEnd, setLocalQuietEnd] = useState('08:00');
-  
+
   // Accordion state
   const [typesExpanded, setTypesExpanded] = useState(false);
   const [quietExpanded, setQuietExpanded] = useState(false);
-  
+
   // Blocked guide modal state
   const [showBlockedGuide, setShowBlockedGuide] = useState(false);
-  
+
   // Debounce timer for quiet hours time changes
   const quietTimeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -576,7 +574,7 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
       if (quietTimeDebounceRef.current) {
         clearTimeout(quietTimeDebounceRef.current);
       }
-      
+
       quietTimeDebounceRef.current = setTimeout(async () => {
         if (preferences?.quiet_hours_enabled) {
           const success = await updatePreferences({
@@ -596,9 +594,7 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
     return (
       <div style={styles.errorBanner}>
         <AlertCircle size={16} style={styles.errorIcon} />
-        <span style={styles.errorText}>
-          Push notifications not supported in this browser.
-        </span>
+        <span style={styles.errorText}>Push notifications not supported in this browser.</span>
       </div>
     );
   }
@@ -607,11 +603,11 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
   if (permission === 'denied') {
     return (
       <>
-        <NotificationsBlockedGuide 
-          isOpen={showBlockedGuide} 
-          onClose={() => setShowBlockedGuide(false)} 
+        <NotificationsBlockedGuide
+          isOpen={showBlockedGuide}
+          onClose={() => setShowBlockedGuide(false)}
         />
-        <div 
+        <div
           onClick={() => setShowBlockedGuide(true)}
           style={{
             display: 'flex',
@@ -625,32 +621,38 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
             transition: 'background 0.15s ease',
           }}
         >
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '10px',
-            background: 'var(--error-bg, rgba(239, 68, 68, 0.15))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--error-color, #ef4444)',
-            flexShrink: 0,
-          }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'var(--error-bg, rgba(239, 68, 68, 0.15))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--error-color, #ef4444)',
+              flexShrink: 0,
+            }}
+          >
             <BellOff size={18} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ 
-              fontSize: '0.875rem', 
-              fontWeight: 600, 
-              color: 'var(--text-primary)',
-              marginBottom: '0.125rem',
-            }}>
+            <div
+              style={{
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: 'var(--text-primary)',
+                marginBottom: '0.125rem',
+              }}
+            >
               Notifications Blocked
             </div>
-            <div style={{ 
-              fontSize: '0.75rem', 
-              color: 'var(--text-tertiary)',
-            }}>
+            <div
+              style={{
+                fontSize: '0.75rem',
+                color: 'var(--text-tertiary)',
+              }}
+            >
               Tap to learn how to enable
             </div>
           </div>
@@ -670,8 +672,15 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
             <span style={styles.errorText}>{error}</span>
           </div>
         )}
-        
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+          }}
+        >
           <p style={{ ...styles.rowDescription, margin: 0, flex: 1 }}>
             Get notified about likes, badges, and streaks
           </p>
@@ -734,7 +743,7 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
   const handleQuietTimeChange = (field: 'start' | 'end', value: string) => {
     const newStart = field === 'start' ? value : localQuietStart;
     const newEnd = field === 'end' ? value : localQuietEnd;
-    
+
     if (field === 'start') {
       setLocalQuietStart(value);
     } else {
@@ -750,8 +759,8 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
     (config) => preferences?.preferences?.[config.type] ?? true
   ).length;
   const typesSummary = `${enabledTypesCount}/${NOTIFICATION_TYPES.length} enabled`;
-  const quietSummary = preferences?.quiet_hours_enabled 
-    ? `${localQuietStart} – ${localQuietEnd}` 
+  const quietSummary = preferences?.quiet_hours_enabled
+    ? `${localQuietStart} – ${localQuietEnd}`
     : 'Off';
 
   return (
@@ -774,13 +783,13 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
             <span>Types</span>
             <span style={styles.accordionSummary}>{typesSummary}</span>
           </div>
-          <ChevronDown 
-            size={14} 
-            style={{ 
+          <ChevronDown
+            size={14}
+            style={{
               color: 'var(--text-tertiary)',
               transition: 'transform 0.2s',
-              transform: typesExpanded ? 'rotate(180deg)' : 'rotate(0deg)' 
-            }} 
+              transform: typesExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
           />
         </button>
         {typesExpanded && (
@@ -813,13 +822,13 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
             <span>Quiet Hours</span>
             <span style={styles.accordionSummary}>{quietSummary}</span>
           </div>
-          <ChevronDown 
-            size={14} 
-            style={{ 
+          <ChevronDown
+            size={14}
+            style={{
               color: 'var(--text-tertiary)',
               transition: 'transform 0.2s',
-              transform: quietExpanded ? 'rotate(180deg)' : 'rotate(0deg)' 
-            }} 
+              transform: quietExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
           />
         </button>
         {quietExpanded && (
@@ -833,14 +842,23 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
               />
             </div>
             {preferences?.quiet_hours_enabled && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '0.375rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  paddingTop: '0.375rem',
+                }}
+              >
                 <select
                   value={localQuietStart}
                   onChange={(e) => handleQuietTimeChange('start', e.target.value)}
                   style={styles.timeSelect}
                 >
                   {TIME_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
                 </select>
                 <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>to</span>
@@ -850,7 +868,9 @@ export const PushNotificationSettings: React.FC<PushNotificationSettingsProps> =
                   style={styles.timeSelect}
                 >
                   {TIME_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
                 </select>
               </div>

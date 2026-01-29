@@ -6,7 +6,8 @@
  */
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
 import { STORAGE_KEYS } from '../constants/storage';
 
 export interface User {
@@ -24,7 +25,13 @@ interface AuthState {
   isLoading: boolean;
 
   // Actions - matching original AuthContext API
-  login: (token: string, username: string, userId: number, profilePic?: string | null, bio?: string | null) => void;
+  login: (
+    token: string,
+    username: string,
+    userId: number,
+    profilePic?: string | null,
+    bio?: string | null
+  ) => void;
   logout: () => void;
   updateUsername: (newUsername: string) => void;
   updateProfilePic: (url: string | null) => void;

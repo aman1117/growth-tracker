@@ -1,1 +1,1 @@
-export { FollowRequestsModal, default } from './FollowRequestsModal';
+export { default, FollowRequestsModal } from './FollowRequestsModal';

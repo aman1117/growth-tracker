@@ -6,11 +6,12 @@
  * Works with both light and dark themes.
  */
 
-import React, { useState, useEffect } from 'react';
-import { Mail, X, RefreshCw, CheckCircle } from 'lucide-react';
-import { useAuth } from '../store';
-import { api } from '../services/api';
+import { CheckCircle, Mail, RefreshCw, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+
 import { API_ROUTES } from '../constants/routes';
+import { api } from '../services/api';
+import { useAuth } from '../store';
 
 type BannerState = 'visible' | 'resending' | 'sent' | 'dismissed' | 'hidden';
 
@@ -33,7 +34,7 @@ export const EmailVerificationBanner: React.FC = () => {
   useEffect(() => {
     if (cooldownRemaining > 0) {
       const timer = setTimeout(() => {
-        setCooldownRemaining(prev => prev - 1);
+        setCooldownRemaining((prev) => prev - 1);
       }, 1000);
       return () => clearTimeout(timer);
     } else if (bannerState === 'sent') {
@@ -124,7 +125,7 @@ export const EmailVerificationBanner: React.FC = () => {
         fontSize: '13px',
         fontWeight: 500,
         zIndex: 9998,
-        fontFamily: "var(--font-sans)",
+        fontFamily: 'var(--font-sans)',
         color: isSent ? '#ffffff' : 'var(--text-primary)',
         boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
         transition: 'all 0.3s ease',
@@ -154,10 +155,12 @@ export const EmailVerificationBanner: React.FC = () => {
       </div>
 
       {/* Message */}
-      <span style={{ 
-        flex: 1,
-        minWidth: 0,
-      }}>
+      <span
+        style={{
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
         {isSent ? (
           'Verification email sent! Check your inbox.'
         ) : errorMessage ? (
@@ -214,8 +217,8 @@ export const EmailVerificationBanner: React.FC = () => {
           {cooldownRemaining > 0
             ? `Resend (${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60).toString().padStart(2, '0')})`
             : isResending
-            ? 'Sending...'
-            : 'Resend'}
+              ? 'Sending...'
+              : 'Resend'}
         </button>
       )}
 

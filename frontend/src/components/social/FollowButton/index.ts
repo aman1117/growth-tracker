@@ -1,1 +1,1 @@
-export { FollowButton, default } from './FollowButton';
+export { default, FollowButton } from './FollowButton';

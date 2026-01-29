@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+
 import styles from './LoadingSpinner.module.css';
 
 export type SpinnerSize = 'sm' | 'md' | 'lg';
@@ -23,12 +24,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   center = false,
   className = '',
 }) => {
-  const classNames = [
-    styles.spinner,
-    styles[size],
-    center ? styles.center : '',
-    className,
-  ]
+  const classNames = [styles.spinner, styles[size], center ? styles.center : '', className]
     .filter(Boolean)
     .join(' ');
 

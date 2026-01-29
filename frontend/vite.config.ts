@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -37,12 +37,12 @@ export default defineConfig({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
               cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
+                statuses: [0, 200],
+              },
+            },
           },
           {
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
@@ -51,12 +51,12 @@ export default defineConfig({
               cacheName: 'gstatic-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
               cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
+                statuses: [0, 200],
+              },
+            },
           },
           {
             // Azure Blob Storage - Profile pictures
@@ -66,12 +66,12 @@ export default defineConfig({
               cacheName: 'profile-images-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
               },
               cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
+                statuses: [0, 200],
+              },
+            },
           },
           {
             // Backend API - GET requests (cacheable for offline)
@@ -81,20 +81,20 @@ export default defineConfig({
               cacheName: 'api-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
               },
               cacheableResponse: {
-                statuses: [0, 200]
+                statuses: [0, 200],
               },
-              networkTimeoutSeconds: 10
-            }
+              networkTimeoutSeconds: 10,
+            },
           },
           {
             // Backend API - Mutations (never cache)
             urlPattern: /\/api\/(create-.*|update-.*|change-.*|delete-.*|auth\/.*)$/i,
             handler: 'NetworkOnly',
-          }
-        ]
+          },
+        ],
       },
       manifest: {
         name: 'Growth Tracker',
@@ -111,26 +111,26 @@ export default defineConfig({
             src: '/pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any',
           },
           {
             src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any',
           },
           {
             src: '/pwa-maskable-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'maskable'
+            purpose: 'maskable',
           },
           {
             src: '/pwa-maskable-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable'
-          }
+            purpose: 'maskable',
+          },
         ],
         screenshots: [
           {
@@ -138,45 +138,45 @@ export default defineConfig({
             sizes: '1080x1920',
             type: 'image/jpeg',
             form_factor: 'narrow',
-            label: 'Dashboard - Track your daily activities'
+            label: 'Dashboard - Track your daily activities',
           },
           {
             src: '/screenshots/analytics.jpg',
             sizes: '1080x1920',
             type: 'image/jpeg',
             form_factor: 'narrow',
-            label: 'Analytics - Monitor activities'
+            label: 'Analytics - Monitor activities',
           },
           {
             src: '/screenshots/settings.jpg',
             sizes: '1080x1920',
             type: 'image/jpeg',
             form_factor: 'narrow',
-            label: 'Settings - Customize your experience'
+            label: 'Settings - Customize your experience',
           },
           {
             src: '/screenshots/notifications.jpg',
             sizes: '1080x1920',
             type: 'image/jpeg',
             form_factor: 'narrow',
-            label: 'Notifications - Stay updated'
+            label: 'Notifications - Stay updated',
           },
           {
             src: '/screenshots/edit-tiles-homescreen.jpg',
             sizes: '1080x1920',
             type: 'image/jpeg',
             form_factor: 'narrow',
-            label: 'Edit Tiles - Customize your home screen'
+            label: 'Edit Tiles - Customize your home screen',
           },
           {
             src: '/screenshots/edit-tiles-dialog.jpg',
             sizes: '1080x1920',
             type: 'image/jpeg',
             form_factor: 'narrow',
-            label: 'Edit Tiles - Customize your activity'
-          }
-        ]
-      }
-    })
+            label: 'Edit Tiles - Customize your activity',
+          },
+        ],
+      },
+    }),
   ],
-})
+});

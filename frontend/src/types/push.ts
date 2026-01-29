@@ -21,10 +21,10 @@ export interface PushSubscriptionData {
 
 export interface PushPreferences {
   push_enabled: boolean;
-  preferences: Record<string, boolean>;  // Simple boolean map
+  preferences: Record<string, boolean>; // Simple boolean map
   quiet_hours_enabled: boolean;
   quiet_start: string | null; // HH:MM format
-  quiet_end: string | null;   // HH:MM format
+  quiet_end: string | null; // HH:MM format
   timezone: string;
 }
 
@@ -48,7 +48,7 @@ export interface UnsubscribeRequest {
 
 export interface UpdatePreferencesRequest {
   push_enabled?: boolean;
-  preferences?: Record<string, boolean>;  // Simple boolean map, e.g., { like_received: true }
+  preferences?: Record<string, boolean>; // Simple boolean map, e.g., { like_received: true }
   quiet_hours_enabled?: boolean;
   quiet_start?: string;
   quiet_end?: string;

@@ -4,13 +4,14 @@
  * Clean Instagram-style user row for follow lists.
  */
 
+import { Loader2 } from 'lucide-react';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
-import { Avatar, VerifiedBadge } from '../../ui';
-import { FollowButton } from '../FollowButton';
+
 import { useAuth } from '../../../store';
 import type { UserCardProps } from '../../../types/follow';
+import { Avatar, VerifiedBadge } from '../../ui';
+import { FollowButton } from '../FollowButton';
 import styles from './UserCard.module.css';
 
 export const UserCard: React.FC<UserCardProps> = ({
@@ -23,7 +24,7 @@ export const UserCard: React.FC<UserCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  
+
   const isOwnProfile = currentUser?.id === user.id;
 
   const handleUserClick = () => {
@@ -38,21 +39,14 @@ export const UserCard: React.FC<UserCardProps> = ({
 
   return (
     <div className={styles.card} onClick={handleUserClick}>
-      <Avatar
-        src={user.profile_pic}
-        name={user.username}
-        size="md"
-        className={styles.avatar}
-      />
-      
+      <Avatar src={user.profile_pic} name={user.username} size="md" className={styles.avatar} />
+
       <div className={styles.userInfo}>
         <span className={styles.username}>
           {user.username}
           {user.is_verified && <VerifiedBadge size={12} />}
         </span>
-        {user.display_name && (
-          <span className={styles.displayName}>{user.display_name}</span>
-        )}
+        {user.display_name && <span className={styles.displayName}>{user.display_name}</span>}
       </div>
 
       <div className={styles.actions} onClick={(e) => e.stopPropagation()}>
@@ -69,7 +63,7 @@ export const UserCard: React.FC<UserCardProps> = ({
                 size="sm"
               />
             )}
-            
+
             {showRemoveButton && (
               <button
                 className={styles.removeButton}

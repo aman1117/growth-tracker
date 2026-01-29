@@ -60,7 +60,13 @@ export interface DayCompletedMetadata {
   completed_date: string;
 }
 
-export type NotificationMetadata = LikeMetadata | BadgeMetadata | StreakMetadata | FollowMetadata | DayCompletedMetadata | Record<string, unknown>;
+export type NotificationMetadata =
+  | LikeMetadata
+  | BadgeMetadata
+  | StreakMetadata
+  | FollowMetadata
+  | DayCompletedMetadata
+  | Record<string, unknown>;
 
 // ==================== API Response Types ====================
 
@@ -122,18 +128,18 @@ export interface NotificationActions {
   // Data fetching
   fetchNotifications: (reset?: boolean) => Promise<void>;
   fetchUnreadCount: () => Promise<void>;
-  
+
   // Actions
   markAsRead: (id: number) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   startDeleting: (id: number) => void;
   deleteNotification: (id: number) => Promise<void>;
-  
+
   // WebSocket
   setWSStatus: (status: WSConnectionStatus) => void;
   addNotification: (notification: Notification) => void;
   addPendingNotifications: (notifications: Notification[]) => void;
-  
+
   // State management
   clearError: () => void;
   reset: () => void;
@@ -158,14 +164,18 @@ export function isBadgeMetadata(metadata: NotificationMetadata | null): metadata
 /**
  * Type guard to check if metadata is StreakMetadata
  */
-export function isStreakMetadata(metadata: NotificationMetadata | null): metadata is StreakMetadata {
+export function isStreakMetadata(
+  metadata: NotificationMetadata | null
+): metadata is StreakMetadata {
   return metadata !== null && 'activity_type' in metadata && 'streak_count' in metadata;
 }
 
 /**
  * Type guard to check if metadata is FollowMetadata
  */
-export function isFollowMetadata(metadata: NotificationMetadata | null): metadata is FollowMetadata {
+export function isFollowMetadata(
+  metadata: NotificationMetadata | null
+): metadata is FollowMetadata {
   return metadata !== null && 'actor_id' in metadata && 'actor_username' in metadata;
 }
 
@@ -184,7 +194,7 @@ export function formatNotificationTime(dateString: string): string {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  
+
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
@@ -195,17 +205,17 @@ export function formatNotificationTime(dateString: string): string {
 export function formatLastLogged(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
-  
+
   // Normalize to start of day for date comparison
   const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
+
   const diffMs = today.getTime() - dateDay.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) return 'today';
   if (diffDays === 1) return 'yesterday';
   if (diffDays <= 7) return `${diffDays} days ago`;
-  
+
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }

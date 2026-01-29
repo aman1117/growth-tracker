@@ -1,6 +1,6 @@
 /**
  * Follow System Types
- * 
+ *
  * Type definitions for the social follow/relationship system.
  */
 

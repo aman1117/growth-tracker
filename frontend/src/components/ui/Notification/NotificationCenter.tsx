@@ -5,13 +5,14 @@
  * Manages WebSocket connection and notification state.
  */
 
-import React, { useState, useCallback } from 'react';
-import { NotificationBell } from './NotificationBell';
-import { NotificationPanel } from './NotificationPanel';
+import React, { useCallback, useState } from 'react';
+
 import { useWebSocket } from '../../../hooks';
 import { useIsAuthenticated } from '../../../store';
 import type { Notification } from '../../../types';
 import styles from './Notification.module.css';
+import { NotificationBell } from './NotificationBell';
+import { NotificationPanel } from './NotificationPanel';
 
 interface NotificationCenterProps {
   /** Callback when a notification is clicked */

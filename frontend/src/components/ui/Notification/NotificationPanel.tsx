@@ -10,13 +10,14 @@
  * - Connection status indicator
  */
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Check, RefreshCw, X } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+
 import { useNotificationStore } from '../../../store';
-import { NotificationItem } from './NotificationItem';
 import type { Notification } from '../../../types';
 import styles from './Notification.module.css';
+import { NotificationItem } from './NotificationItem';
 
 interface NotificationPanelProps {
   isOpen: boolean;
@@ -121,10 +122,10 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   };
 
   // Check if mobile (SSR-safe)
-  const [isMobile, setIsMobile] = useState(() => 
+  const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth <= 640 : false
   );
-  
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 640);
     window.addEventListener('resize', checkMobile);
@@ -137,23 +138,28 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
     styles.panel,
     isMobile && styles.panelMobile,
     isClosing && styles.panelClosing,
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const panelContent = (
     <>
       {/* Mobile overlay backdrop */}
-      {isMobile && <div className={`${styles.mobileOverlay} ${isClosing ? styles.mobileOverlayClosing : ''}`} onClick={onClose} />}
-      
+      {isMobile && (
+        <div
+          className={`${styles.mobileOverlay} ${isClosing ? styles.mobileOverlayClosing : ''}`}
+          onClick={onClose}
+        />
+      )}
+
       <div ref={panelRef} className={panelClasses}>
         {/* Header */}
         <div className={styles.panelHeader}>
           <h3 className={styles.panelTitle}>
             Notifications
-            {unreadCount > 0 && (
-              <span className={styles.unreadBadge}>{unreadCount}</span>
-            )}
+            {unreadCount > 0 && <span className={styles.unreadBadge}>{unreadCount}</span>}
           </h3>
-        
+
           <div className={styles.headerActions}>
             {/* Refresh Button */}
             <button
@@ -178,11 +184,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
 
             {/* Close button for mobile */}
             {isMobile && (
-              <button
-                className={styles.headerButton}
-                onClick={onClose}
-                title="Close"
-              >
+              <button className={styles.headerButton} onClick={onClose} title="Close">
                 <X size={14} />
               </button>
             )}
@@ -190,11 +192,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
         </div>
 
         {/* Notification List */}
-        <div
-          ref={listRef}
-          className={styles.panelList}
-          onScroll={handleScroll}
-        >
+        <div ref={listRef} className={styles.panelList} onScroll={handleScroll}>
           {isLoading && notifications.length === 0 ? (
             <div className={styles.initialLoading}>
               <RefreshCw size={20} className={styles.spinning} />
@@ -230,9 +228,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
               )}
 
               {!hasMore && notifications.length > 0 && (
-                <div className={styles.endOfList}>
-                  That's all your notifications
-                </div>
+                <div className={styles.endOfList}>That's all your notifications</div>
               )}
             </>
           )}

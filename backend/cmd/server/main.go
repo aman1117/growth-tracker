@@ -42,6 +42,7 @@ import (
 	"github.com/aman1117/backend/internal/database"
 	"github.com/aman1117/backend/internal/logger"
 	"github.com/aman1117/backend/internal/middleware"
+	"github.com/aman1117/backend/internal/observability"
 	"github.com/aman1117/backend/internal/services"
 	"github.com/aman1117/backend/pkg/redis"
 	"github.com/gofiber/fiber/v2"
@@ -141,6 +142,10 @@ func main() {
 		ExposeHeaders:    "*",
 		AllowCredentials: false,
 	}))
+
+	// Register pprof endpoints (after CORS, before routes)
+	// Controlled by PPROF_ENABLED env var; token protection via PPROF_TOKEN
+	observability.RegisterPprof(app, cfg.Pprof)
 
 	// Setup routes
 	c.Router.Setup(app)

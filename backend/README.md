@@ -258,6 +258,57 @@ All configuration is done via environment variables:
 
 See `.env.example` for full configuration options.
 
+## 🔧 Runtime Profiling (pprof)
+
+The backend includes optional pprof endpoints for runtime profiling, useful for debugging performance issues in production.
+
+### Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PPROF_ENABLED` | `true` | Enable/disable pprof endpoints. Set to `false` to fully disable (routes return 404). |
+| `PPROF_PREFIX` | `/debug/pprof` | URL prefix for pprof endpoints. |
+| `PPROF_TOKEN` | (empty) | Optional auth token. If set, requests must include `Authorization: Bearer <token>` or `X-PPROF-Token: <token>` header. |
+
+### Usage Examples
+
+**Browser (when no token set):**
+```
+https://<container-app-url>/debug/pprof/
+```
+
+**With token protection:**
+```bash
+# Using curl with Authorization header
+curl -H "Authorization: Bearer YOUR_TOKEN" https://<container-app-url>/debug/pprof/
+
+# Using curl with X-PPROF-Token header
+curl -H "X-PPROF-Token: YOUR_TOKEN" https://<container-app-url>/debug/pprof/heap
+```
+
+**Using go tool pprof:**
+```bash
+# CPU profile (30 second sample)
+go tool pprof -http=:8080 "https://<container-app-url>/debug/pprof/profile?seconds=30"
+
+# Heap profile
+go tool pprof -http=:8080 https://<container-app-url>/debug/pprof/heap
+
+# Goroutine profile
+go tool pprof -http=:8080 https://<container-app-url>/debug/pprof/goroutine
+
+# With token (set in URL or use -http_header flag if supported)
+go tool pprof -http=:8080 -http_header "Authorization: Bearer YOUR_TOKEN" \
+  "https://<container-app-url>/debug/pprof/profile?seconds=30"
+```
+
+### Security Notes
+
+- **pprof can be CPU/memory intensive** - profile endpoints sample the runtime and may impact performance.
+- **Rate limited** - endpoints are limited to 1 request per 10 seconds per IP to prevent abuse.
+- **Recommend setting PPROF_TOKEN** in production to prevent unauthorized access.
+- **Disable if not needed** - set `PPROF_ENABLED=false` to completely remove the endpoints.
+
 ## 🏛️ Design Principles
 
 ### Clean Architecture

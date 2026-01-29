@@ -46,6 +46,9 @@ type Config struct {
 	// Axiom logging configuration
 	Axiom AxiomConfig
 
+	// Runtime profiling (pprof) configuration
+	Pprof PprofConfig
+
 	// Environment (development, production)
 	Env string
 }
@@ -137,6 +140,13 @@ type AxiomConfig struct {
 	APIToken string
 }
 
+// PprofConfig holds runtime profiling configuration
+type PprofConfig struct {
+	Enabled bool   // Whether pprof endpoints are enabled
+	Prefix  string // URL prefix for pprof endpoints (default: /debug/pprof)
+	Token   string // Optional auth token; if set, requests must include it
+}
+
 // Global application config instance
 var AppConfig *Config
 
@@ -220,6 +230,12 @@ func Load() (*Config, error) {
 			Dataset:  os.Getenv("AXIOM_DATASET"),
 			APIToken: os.Getenv("AXIOM_API_TOKEN"),
 		},
+
+		Pprof: PprofConfig{
+			Enabled: getBoolFromEnv("PPROF_ENABLED", true),
+			Prefix:  getEnvWithDefault("PPROF_PREFIX", "/debug/pprof"),
+			Token:   os.Getenv("PPROF_TOKEN"),
+		},
 	}
 
 	AppConfig = config
@@ -294,4 +310,20 @@ func getDurationMinutesFromEnv(key string, defaultMinutes int) time.Duration {
 		}
 	}
 	return time.Duration(defaultMinutes) * time.Minute
+}
+
+func getBoolFromEnv(key string, defaultValue bool) bool {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	// Accept common boolean representations
+	switch value {
+	case "true", "1", "yes", "on":
+		return true
+	case "false", "0", "no", "off":
+		return false
+	default:
+		return defaultValue
+	}
 }

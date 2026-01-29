@@ -187,3 +187,25 @@ export function formatNotificationTime(dateString: string): string {
   
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
+
+/**
+ * Format "last logged" time - relative for ≤7 days, absolute for older
+ * Designed for displaying last activity date (date-only, not datetime)
+ */
+export function formatLastLogged(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  
+  // Normalize to start of day for date comparison
+  const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  const diffMs = today.getTime() - dateDay.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays <= 7) return `${diffDays} days ago`;
+  
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}

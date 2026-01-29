@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { useAuth, useFollowStore } from '../store';
 import { api, ApiError } from '../services/api';
-import { ACTIVITY_NAMES, isCustomTile, MAX_CUSTOM_TILES } from '../types';
+import { ACTIVITY_NAMES, isCustomTile, MAX_CUSTOM_TILES, formatLastLogged } from '../types';
 import type { ActivityName, Activity, CustomTile, PredefinedActivityName } from '../types';
 import type { Badge } from '../types/api';
 import { STORAGE_KEYS, getActivityConfig, createCustomActivityName } from '../constants';
@@ -35,7 +35,7 @@ import { APP_ROUTES } from '../constants/routes';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { playActivitySound, playCompletionSound } from '../utils/sounds';
 import { renderBadgeIcon } from '../utils/badgeIcons';
-import { Lock, X, BarChart3, Plus, EyeOff, GripVertical, Undo2, Settings2 } from 'lucide-react';
+import { Lock, X, BarChart3, Plus, EyeOff, GripVertical, Undo2, Settings2, Clock } from 'lucide-react';
 
 const STORAGE_KEY = STORAGE_KEYS.TILE_ORDER;
 const SIZE_STORAGE_KEY = STORAGE_KEYS.TILE_SIZES;
@@ -245,6 +245,7 @@ export const Dashboard: React.FC = () => {
     const [targetIsVerified, setTargetIsVerified] = useState<boolean>(false);
     const [targetUserId, setTargetUserId] = useState<number | null>(null);
     const [targetIsPrivate, setTargetIsPrivate] = useState<boolean>(false);
+    const [targetLastLoggedAt, setTargetLastLoggedAt] = useState<string | null>(null);
     const [showTargetFullscreenPic, setShowTargetFullscreenPic] = useState(false);
 
     // Tile animation state for day transitions
@@ -448,6 +449,7 @@ export const Dashboard: React.FC = () => {
                 setTargetIsVerified(false);
                 setTargetUserId(null);
                 setTargetIsPrivate(false);
+                setTargetLastLoggedAt(null);
                 
                 try {
                     const res = await api.post('/users', { username: targetUsername });
@@ -466,6 +468,16 @@ export const Dashboard: React.FC = () => {
                             // Lookup relationship state to get pending status
                             if (exactMatch.id) {
                                 await lookupRelationships([exactMatch.id]);
+                                
+                                // Fetch full profile to get last_logged_at (privacy-aware)
+                                try {
+                                    const profileRes = await api.get(`/users/${exactMatch.id}/profile`);
+                                    if (profileRes.success && profileRes.last_logged_at) {
+                                        setTargetLastLoggedAt(profileRes.last_logged_at);
+                                    }
+                                } catch {
+                                    // Silently fail - last_logged_at is optional
+                                }
                             }
                         }
                     }
@@ -1036,6 +1048,20 @@ export const Dashboard: React.FC = () => {
                                 wordBreak: 'break-word'
                             }}>
                                 {targetBio}
+                            </span>
+                        )}
+                        {/* Last logged - only shown when available (privacy-aware from backend) */}
+                        {targetLastLoggedAt && (
+                            <span style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '12px',
+                                color: 'var(--text-primary)',
+                                marginTop: '2px'
+                            }}>
+                                <Clock size={12} />
+                                Last logged {formatLastLogged(targetLastLoggedAt)}
                             </span>
                         )}
                         {/* Mutual Followers - "Followed by X, Y and N others" */}

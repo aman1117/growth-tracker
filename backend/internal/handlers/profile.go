@@ -18,14 +18,16 @@ type ProfileHandler struct {
 	profileSvc *services.ProfileService
 	authSvc    *services.AuthService
 	followSvc  *services.FollowService
+	streakSvc  *services.StreakService
 }
 
 // NewProfileHandler creates a new ProfileHandler
-func NewProfileHandler(profileSvc *services.ProfileService, authSvc *services.AuthService, followSvc *services.FollowService) *ProfileHandler {
+func NewProfileHandler(profileSvc *services.ProfileService, authSvc *services.AuthService, followSvc *services.FollowService, streakSvc *services.StreakService) *ProfileHandler {
 	return &ProfileHandler{
 		profileSvc: profileSvc,
 		authSvc:    authSvc,
 		followSvc:  followSvc,
+		streakSvc:  streakSvc,
 	}
 }
 
@@ -238,11 +240,20 @@ func (h *ProfileHandler) GetUserProfile(c *fiber.Ctx) error {
 		RelationshipState: relationshipState,
 	}
 
-	// Only show bio if public or viewer follows the user
-	if !user.IsPrivate {
+	// Determine if viewer can see private info (own profile, public profile, or following)
+	canViewPrivateInfo := viewerID == uint(targetID) || !user.IsPrivate || relationshipState == "FOLLOWING"
+
+	// Only show bio if viewer can see private info
+	if canViewPrivateInfo {
 		resp.Bio = user.Bio
-	} else if h.followSvc != nil && relationshipState == "FOLLOWING" {
-		resp.Bio = user.Bio
+	}
+
+	// Only show last_logged_at if viewer can see private info and streak exists
+	if canViewPrivateInfo && h.streakSvc != nil {
+		streak, err := h.streakSvc.GetLatestStreak(uint(targetID))
+		if err == nil && streak != nil {
+			resp.LastLoggedAt = &streak.ActivityDate
+		}
 	}
 
 	return response.JSON(c, resp)

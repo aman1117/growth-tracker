@@ -105,7 +105,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 
 	// Initialize handlers
 	c.AuthHandler = handlers.NewAuthHandler(c.AuthService, c.TokenService, c.ProfileService, c.EmailService)
-	c.ProfileHandler = handlers.NewProfileHandler(c.ProfileService, c.AuthService, c.FollowService)
+	c.ProfileHandler = handlers.NewProfileHandler(c.ProfileService, c.AuthService, c.FollowService, c.StreakService)
 	c.ActivityHandler = handlers.NewActivityHandler(c.ActivityService, c.AuthService, c.ProfileService)
 	c.StreakHandler = handlers.NewStreakHandler(c.StreakService, c.AuthService, c.ProfileService, c.BadgeService)
 	c.AnalyticsHandler = handlers.NewAnalyticsHandler(c.AnalyticsService, c.AuthService, c.ProfileService)

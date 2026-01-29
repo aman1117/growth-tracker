@@ -1,6 +1,10 @@
 package dto
 
-import "github.com/aman1117/backend/pkg/models"
+import (
+	"time"
+
+	"github.com/aman1117/backend/pkg/models"
+)
 
 // ==================== Generic Response DTOs ====================
 
@@ -78,16 +82,17 @@ type ProfileResponse struct {
 // PublicProfileResponse represents another user's profile
 // @Description Public profile information for viewing another user
 type PublicProfileResponse struct {
-	Success           bool    `json:"success" example:"true"`
-	ID                uint    `json:"id" example:"1"`
-	Username          string  `json:"username" example:"john_doe"`
-	ProfilePic        *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
-	Bio               *string `json:"bio,omitempty" example:"Software developer"` // Hidden for private accounts
-	IsPrivate         bool    `json:"is_private" example:"false"`
-	IsVerified        bool    `json:"is_verified" example:"false"`
-	FollowersCount    int64   `json:"followers_count" example:"150"`
-	FollowingCount    int64   `json:"following_count" example:"75"`
-	RelationshipState string  `json:"relationship_state" example:"FOLLOWING"` // FOLLOWING, REQUESTED, NONE
+	Success           bool       `json:"success" example:"true"`
+	ID                uint       `json:"id" example:"1"`
+	Username          string     `json:"username" example:"john_doe"`
+	ProfilePic        *string    `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	Bio               *string    `json:"bio,omitempty" example:"Software developer"` // Hidden for private accounts
+	IsPrivate         bool       `json:"is_private" example:"false"`
+	IsVerified        bool       `json:"is_verified" example:"false"`
+	FollowersCount    int64      `json:"followers_count" example:"150"`
+	FollowingCount    int64      `json:"following_count" example:"75"`
+	RelationshipState string     `json:"relationship_state" example:"FOLLOWING"`                  // FOLLOWING, REQUESTED, NONE
+	LastLoggedAt      *time.Time `json:"last_logged_at,omitempty" example:"2026-01-29T00:00:00Z"` // Hidden for private accounts unless following
 }
 
 // UsernameUpdateResponse represents the username update response

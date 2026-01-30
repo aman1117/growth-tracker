@@ -200,7 +200,7 @@ func (r *UserRepository) AutocompleteUsers(query string, limit int) ([]Autocompl
 	// Query explanation:
 	// - CASE 1: Exact match (score 100)
 	// - CASE 2: Prefix match (score 50 + similarity bonus)
-	// - CASE 3: Trigram similarity > 0.2 (score = similarity * 30)
+	// - CASE 3: Trigram similarity > 0.15 (score = similarity * 30)
 	// - ORDER BY: score DESC, followers_count DESC, username ASC
 	// - LEFT JOIN follow_counters to get follower count (default 0 if not found)
 	// Note: $1 is the original query (for exact match and similarity), $3 is escaped (for LIKE)
@@ -215,7 +215,7 @@ func (r *UserRepository) AutocompleteUsers(query string, limit int) ([]Autocompl
 			CASE 
 				WHEN lower(u.username) = lower($1) THEN 100.0
 				WHEN lower(u.username) LIKE lower($3) || '%' ESCAPE '\' THEN 50.0 + (similarity(u.username, $1) * 30.0)
-				WHEN similarity(u.username, $1) > 0.2 THEN similarity(u.username, $1) * 30.0
+				WHEN similarity(u.username, $1) > 0.15 THEN similarity(u.username, $1) * 30.0
 				ELSE 0.0
 			END as score
 		FROM users u
@@ -223,7 +223,7 @@ func (r *UserRepository) AutocompleteUsers(query string, limit int) ([]Autocompl
 		WHERE 
 			lower(u.username) = lower($1)
 			OR lower(u.username) LIKE lower($3) || '%' ESCAPE '\'
-			OR similarity(u.username, $1) > 0.2
+			OR similarity(u.username, $1) > 0.15
 		ORDER BY 
 			score DESC,
 			followers_count DESC,

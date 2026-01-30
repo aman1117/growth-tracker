@@ -36,7 +36,26 @@ type PushPublisher struct {
 	sender *azservicebus.Sender
 	config *config.Config
 	mu     sync.RWMutex
+
+	// Async queue for non-blocking publishes
+	queue     chan *pushJob
+	batchSize int
+	batchWait time.Duration
+	wg        sync.WaitGroup
+	closed    bool
 }
+
+// pushJob represents an async publish request
+type pushJob struct {
+	msg *azservicebus.Message
+	ctx context.Context
+}
+
+const (
+	defaultQueueSize = 1000                   // Buffer up to 1000 messages
+	defaultBatchSize = 50                     // Send up to 50 messages per batch
+	defaultBatchWait = 100 * time.Millisecond // Max wait before sending partial batch
+)
 
 var (
 	pushPublisher     *PushPublisher
@@ -64,7 +83,16 @@ func NewPushPublisher(cfg *config.Config) (*PushPublisher, error) {
 		return &PushPublisher{config: cfg}, nil
 	}
 
-	client, err := azservicebus.NewClientFromConnectionString(cfg.AzureServiceBus.ConnectionString, nil)
+	// Configure client with retry options to handle transient failures
+	clientOpts := &azservicebus.ClientOptions{
+		RetryOptions: azservicebus.RetryOptions{
+			MaxRetries:    3,
+			RetryDelay:    time.Second,
+			MaxRetryDelay: 30 * time.Second,
+		},
+	}
+
+	client, err := azservicebus.NewClientFromConnectionString(cfg.AzureServiceBus.ConnectionString, clientOpts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Service Bus client: %w", err)
 	}
@@ -79,20 +107,196 @@ func NewPushPublisher(cfg *config.Config) (*PushPublisher, error) {
 		"queue", cfg.AzureServiceBus.QueueName,
 	)
 
-	return &PushPublisher{
-		client: client,
-		sender: sender,
-		config: cfg,
-	}, nil
+	p := &PushPublisher{
+		client:    client,
+		sender:    sender,
+		config:    cfg,
+		queue:     make(chan *pushJob, defaultQueueSize),
+		batchSize: defaultBatchSize,
+		batchWait: defaultBatchWait,
+	}
+
+	// Warm up the connection immediately (TLS handshake happens here, not on first message)
+	go p.warmupConnection()
+
+	// Start background worker for async publishing
+	p.wg.Add(1)
+	go p.worker()
+
+	return p, nil
+}
+
+// warmupConnection sends a probe to establish the AMQP/TLS connection early
+func (p *PushPublisher) warmupConnection() {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Create an empty batch just to trigger connection establishment
+	// This forces the TLS handshake to happen at startup, not on first notification
+	batch, err := p.sender.NewMessageBatch(ctx, nil)
+	if err != nil {
+		logger.Sugar.Warnw("Failed to warm up Service Bus connection",
+			"error", err,
+		)
+		return
+	}
+	_ = batch // Just discard it, we only wanted to trigger the connection
+
+	logger.Sugar.Infow("Service Bus connection warmed up")
 }
 
 // IsAvailable returns true if the push publisher is properly configured
 func (p *PushPublisher) IsAvailable() bool {
-	return p != nil && p.sender != nil
+	if p == nil {
+		return false
+	}
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.sender != nil && !p.closed
+}
+
+// QueueStats returns the current queue depth for monitoring
+func (p *PushPublisher) QueueStats() (pending int, capacity int) {
+	if p == nil || p.queue == nil {
+		return 0, 0
+	}
+	return len(p.queue), cap(p.queue)
+}
+
+// worker processes the async queue and sends messages in batches
+func (p *PushPublisher) worker() {
+	defer p.wg.Done()
+
+	batch := make([]*azservicebus.Message, 0, p.batchSize)
+	timer := time.NewTimer(p.batchWait)
+	defer timer.Stop()
+
+	flush := func() {
+		if len(batch) == 0 {
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		p.mu.RLock()
+		sender := p.sender
+		p.mu.RUnlock()
+
+		if sender == nil {
+			logger.Sugar.Warnw("Sender not available, dropping batch",
+				"count", len(batch),
+			)
+			batch = batch[:0]
+			return
+		}
+
+		// Use batch send for efficiency
+		msgBatch, err := sender.NewMessageBatch(ctx, nil)
+		if err != nil {
+			logger.Sugar.Errorw("Failed to create message batch",
+				"error", err,
+			)
+			batch = batch[:0]
+			return
+		}
+
+		sent := 0
+		for _, msg := range batch {
+			if err := msgBatch.AddMessage(msg, nil); err != nil {
+				// Batch full, send what we have and retry this message
+				if err := sender.SendMessageBatch(ctx, msgBatch, nil); err != nil {
+					logger.Sugar.Errorw("Failed to send message batch",
+						"error", err,
+						"count", sent,
+					)
+				} else {
+					logger.Sugar.Debugw("Sent push notification batch",
+						"count", sent,
+					)
+				}
+
+				// Create new batch for remaining messages
+				msgBatch, err = sender.NewMessageBatch(ctx, nil)
+				if err != nil {
+					logger.Sugar.Errorw("Failed to create new message batch",
+						"error", err,
+					)
+					break
+				}
+				sent = 0
+
+				// Retry adding this message
+				if err := msgBatch.AddMessage(msg, nil); err != nil {
+					logger.Sugar.Warnw("Message too large for batch, sending individually",
+						"error", err,
+					)
+					_ = sender.SendMessage(ctx, msg, nil)
+				}
+			}
+			sent++
+		}
+
+		// Send remaining messages in batch
+		if msgBatch.NumMessages() > 0 {
+			if err := sender.SendMessageBatch(ctx, msgBatch, nil); err != nil {
+				logger.Sugar.Errorw("Failed to send final message batch",
+					"error", err,
+					"count", msgBatch.NumMessages(),
+				)
+			} else {
+				logger.Sugar.Debugw("Sent push notification batch",
+					"count", msgBatch.NumMessages(),
+				)
+			}
+		}
+
+		batch = batch[:0]
+	}
+
+	for {
+		select {
+		case job, ok := <-p.queue:
+			if !ok {
+				// Channel closed, flush remaining and exit
+				flush()
+				return
+			}
+
+			batch = append(batch, job.msg)
+
+			// Flush if batch is full
+			if len(batch) >= p.batchSize {
+				flush()
+				timer.Reset(p.batchWait)
+			}
+
+		case <-timer.C:
+			// Flush partial batch on timeout
+			flush()
+			timer.Reset(p.batchWait)
+		}
+	}
 }
 
 // Close closes the Service Bus connection
 func (p *PushPublisher) Close(ctx context.Context) error {
+	p.mu.Lock()
+	if p.closed {
+		p.mu.Unlock()
+		return nil
+	}
+	p.closed = true
+
+	// Close the queue to stop the worker
+	if p.queue != nil {
+		close(p.queue)
+	}
+	p.mu.Unlock()
+
+	// Wait for worker to finish processing remaining messages
+	p.wg.Wait()
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -113,7 +317,8 @@ func (p *PushPublisher) Close(ctx context.Context) error {
 	return nil
 }
 
-// PublishPushNotification publishes a push notification message to Service Bus
+// PublishPushNotification publishes a push notification message to Service Bus asynchronously.
+// This method is non-blocking - it queues the message for background processing.
 func (p *PushPublisher) PublishPushNotification(
 	ctx context.Context,
 	userID uint,
@@ -187,30 +392,23 @@ func (p *PushPublisher) PublishPushNotification(
 		},
 	}
 
-	// Send to Service Bus
-	p.mu.RLock()
-	sender := p.sender
-	p.mu.RUnlock()
-
-	if sender == nil {
-		return fmt.Errorf("sender not available")
-	}
-
-	if err := sender.SendMessage(ctx, sbMessage, nil); err != nil {
-		logger.Sugar.Errorw("Failed to send push message to Service Bus",
+	// Queue for async processing (non-blocking)
+	select {
+	case p.queue <- &pushJob{msg: sbMessage, ctx: ctx}:
+		logger.Sugar.Debugw("Push message queued",
+			"message_id", msg.MessageID,
 			"user_id", userID,
 			"type", notificationType,
-			"error", err,
 		)
-		return fmt.Errorf("failed to send push message: %w", err)
+	default:
+		// Queue is full, log warning but don't block the caller
+		logger.Sugar.Warnw("Push notification queue full, message dropped",
+			"user_id", userID,
+			"type", notificationType,
+			"queue_size", len(p.queue),
+		)
+		return fmt.Errorf("push notification queue full")
 	}
-
-	logger.Sugar.Infow("Push message published to Service Bus",
-		"message_id", msg.MessageID,
-		"user_id", userID,
-		"type", notificationType,
-		"dedupe_key", dedupeKey,
-	)
 
 	return nil
 }

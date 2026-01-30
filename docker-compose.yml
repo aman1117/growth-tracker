@@ -115,6 +115,7 @@ services:
       ENV: development
       PORT: 8000
       FRONTEND_BASE_URL: http://localhost:5173
+      PPROF_ENABLED: true
       
       # Azure Storage - Azurite emulator
       AZURE_STORAGE_ACCOUNT_NAME: devstoreaccount1

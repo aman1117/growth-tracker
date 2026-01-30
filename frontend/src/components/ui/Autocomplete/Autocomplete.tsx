@@ -17,7 +17,7 @@ import React, {
 } from 'react';
 
 import { useDebounce } from '../../../hooks/useDebounce';
-import type { AutocompleteSuggestion } from '../../../types/autocomplete';
+import type { AutocompleteSuggestion } from '../../../types';
 import { Avatar } from '../Avatar';
 import { VerifiedBadge } from '../VerifiedBadge';
 import styles from './Autocomplete.module.css';

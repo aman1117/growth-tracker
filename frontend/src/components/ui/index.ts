@@ -6,6 +6,7 @@
  */
 
 // Layout & Structure
+export { Autocomplete, type AutocompleteProps } from './Autocomplete';
 export { Avatar, type AvatarProps, type AvatarSize } from './Avatar';
 export { Card, type CardProps } from './Card';
 export { Modal, type ModalProps, type ModalSize } from './Modal';

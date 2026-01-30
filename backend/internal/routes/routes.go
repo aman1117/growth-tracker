@@ -85,6 +85,7 @@ func (r *Router) Setup(app *fiber.App) {
 	passwordRateLimiter := middleware.PasswordResetRateLimiter()
 	apiRateLimiter := middleware.APIRateLimiter()
 	uploadRateLimiter := middleware.UploadRateLimiter()
+	autocompleteRateLimiter := middleware.AutocompleteRateLimiter()
 
 	// API group - all routes under /api prefix
 	api := app.Group("/api")
@@ -110,6 +111,9 @@ func (r *Router) Setup(app *fiber.App) {
 
 	// User Search
 	api.Post("/users", authMiddleware, apiRateLimiter, r.profileHandler.SearchUsers)
+
+	// User Autocomplete (lenient rate limit for rapid typing)
+	api.Get("/autocomplete/users", authMiddleware, autocompleteRateLimiter, r.profileHandler.AutocompleteUsers)
 
 	// Activities
 	api.Post("/create-activity", authMiddleware, apiRateLimiter, r.activityHandler.CreateActivity)

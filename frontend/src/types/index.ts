@@ -13,6 +13,9 @@ export * from './push';
 // Re-export follow types
 export * from './follow';
 
+// Re-export autocomplete types
+export * from './autocomplete';
+
 export interface AuthResponse {
   success: boolean;
   access_token?: string;

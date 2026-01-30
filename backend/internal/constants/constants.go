@@ -210,6 +210,10 @@ const (
 	// Follow endpoints - prevent spam
 	RateLimitFollowWindow      = 1 * time.Minute
 	RateLimitFollowMaxRequests = 120 // 120 follow actions per minute (configurable)
+
+	// Autocomplete endpoints - lenient limits for rapid typing
+	RateLimitAutocompleteWindow      = 1 * time.Minute
+	RateLimitAutocompleteMaxRequests = 60 // 60 requests per minute (1 per second average)
 )
 
 // Follow system constants
@@ -239,10 +243,11 @@ const (
 
 // Rate limiting messages
 const (
-	MsgRateLimitAuth     = "Too many attempts. Please wait a minute before trying again."
-	MsgRateLimitPassword = "Too many password reset requests. Please try again later."
-	MsgRateLimitAPI      = "Too many requests. Please slow down."
-	MsgRateLimitUpload   = "Too many uploads. Please wait a minute."
+	MsgRateLimitAuth         = "Too many attempts. Please wait a minute before trying again."
+	MsgRateLimitPassword     = "Too many password reset requests. Please try again later."
+	MsgRateLimitAPI          = "Too many requests. Please slow down."
+	MsgRateLimitUpload       = "Too many uploads. Please wait a minute."
+	MsgRateLimitAutocomplete = "Too many search requests. Please slow down."
 )
 
 // Allowed file extensions for profile pictures

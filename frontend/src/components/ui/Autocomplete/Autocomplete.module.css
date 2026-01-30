@@ -1,0 +1,273 @@
+/**
+ * Autocomplete Styles
+ *
+ * Mobile-first glassmorphism design with touch-friendly targets.
+ */
+
+.container {
+  position: relative;
+  width: 100%;
+}
+
+/* ============================================================================
+   Input Wrapper
+   ============================================================================ */
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.searchIcon {
+  color: var(--text-secondary);
+  margin-left: var(--space-3);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: var(--space-3) var(--space-3);
+  font-size: 16px; /* Prevents iOS auto-zoom on focus */
+  color: var(--text-primary);
+  width: 100%;
+  min-height: 44px; /* Touch-friendly minimum height */
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.loadingIcon {
+  color: var(--accent);
+  margin-right: var(--space-3);
+  flex-shrink: 0;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-right: var(--space-2);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--hover-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.clearButton:hover {
+  background: var(--glass-active-bg);
+  color: var(--text-primary);
+}
+
+.clearButton:active {
+  transform: scale(0.95);
+}
+
+/* ============================================================================
+   Dropdown
+   ============================================================================ */
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: var(--space-2) 0;
+  list-style: none;
+  z-index: var(--z-dropdown);
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  /* Glassmorphism styling */
+  background: var(--glass-floating-bg);
+  border: 1px solid var(--glass-floating-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-floating-shadow), var(--glass-floating-glow);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  backdrop-filter: blur(var(--glass-blur-md));
+
+  /* Smooth entrance animation */
+  animation: dropdownEnter 0.15s ease-out;
+}
+
+@keyframes dropdownEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   Suggestion Item
+   ============================================================================ */
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-3);
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  min-height: 48px; /* Touch-friendly minimum height */
+  touch-action: manipulation;
+}
+
+.suggestion:hover,
+.suggestion.active {
+  background-color: var(--glass-hover-bg);
+}
+
+.suggestion:active {
+  background-color: var(--glass-active-bg);
+}
+
+.avatar {
+  flex-shrink: 0;
+}
+
+.suggestionInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.suggestionText {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Username span wrapper - no gap between text fragments */
+.suggestionText > span:first-child {
+  display: inline;
+}
+
+.username {
+  display: inline;
+}
+
+.highlight {
+  font-weight: var(--font-bold);
+  display: inline;
+}
+
+.followerCount {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.2;
+}
+
+/* ============================================================================
+   No Results / Error States
+   ============================================================================ */
+
+.noResults {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+
+  /* Same styling as dropdown */
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  background: var(--glass-floating-bg);
+  border: 1px solid var(--glass-floating-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-floating-shadow);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  backdrop-filter: blur(var(--glass-blur-md));
+  z-index: var(--z-dropdown);
+
+  animation: dropdownEnter 0.15s ease-out;
+}
+
+.error {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--error);
+  background: var(--color-like-bg);
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================================
+   Mobile Optimizations
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .dropdown {
+    max-height: 280px;
+  }
+
+  .suggestion {
+    padding: var(--space-3);
+  }
+}
+
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
+
+.dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-full);
+}
+
+.dropdown::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

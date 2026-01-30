@@ -231,6 +231,7 @@ export const apiClient = new ApiClient(`${env.apiUrl}/api`);
 // ============================================================================
 
 import type { WeekAnalyticsResponse } from '../types';
+import type { AutocompleteResponse } from '../types/autocomplete';
 import type {
   AuthResponse,
   GetActivitiesResponse,
@@ -336,6 +337,18 @@ export const authApi = {
 export const userApi = {
   search: (username: string) =>
     apiClient.post<UserSearchResponse>(API_ROUTES.USER.SEARCH, { username }),
+
+  /**
+   * Autocomplete user search with fuzzy matching
+   * @param query Search query (1-80 chars)
+   * @param limit Max results (1-20, default 12)
+   * @param signal AbortController signal for cancellation
+   */
+  autocomplete: (query: string, limit: number = 12, signal?: AbortSignal) =>
+    apiClient.get<AutocompleteResponse>(
+      `${API_ROUTES.USER.AUTOCOMPLETE}?q=${encodeURIComponent(query)}&limit=${limit}`,
+      { signal }
+    ),
 
   getProfile: () => apiClient.get<ProfileResponse>(API_ROUTES.USER.PROFILE),
 

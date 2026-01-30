@@ -3,6 +3,7 @@ package repository
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/aman1117/backend/pkg/models"
@@ -163,6 +164,78 @@ func (r *UserRepository) SearchByUsername(query string) ([]models.User, error) {
 	var users []models.User
 	result := r.db.Where("username ILIKE ?", "%"+query+"%").Find(&users)
 	return users, result.Error
+}
+
+// AutocompleteResult represents a user with their autocomplete score and follower count
+type AutocompleteResult struct {
+	ID             uint    `json:"id"`
+	Username       string  `json:"username"`
+	ProfilePic     *string `json:"profile_pic"`
+	IsVerified     bool    `json:"is_verified"`
+	IsPrivate      bool    `json:"is_private"`
+	FollowersCount int64   `json:"followers_count"`
+	Score          float64 `json:"score"`
+}
+
+// AutocompleteUsers performs ranked autocomplete search on usernames
+// Ranking: exact match > prefix match > trigram similarity, then by followers_count DESC, username ASC
+// Uses pg_trgm extension for fuzzy matching
+func (r *UserRepository) AutocompleteUsers(query string, limit int) ([]AutocompleteResult, error) {
+	if limit <= 0 {
+		limit = 12
+	}
+	if limit > 20 {
+		limit = 20
+	}
+
+	// Escape LIKE special characters (%, _, \) to prevent wildcard injection
+	escapedQuery := strings.NewReplacer(
+		`\`, `\\`,
+		`%`, `\%`,
+		`_`, `\_`,
+	).Replace(query)
+
+	var results []AutocompleteResult
+
+	// Query explanation:
+	// - CASE 1: Exact match (score 100)
+	// - CASE 2: Prefix match (score 50 + similarity bonus)
+	// - CASE 3: Trigram similarity > 0.2 (score = similarity * 30)
+	// - ORDER BY: score DESC, followers_count DESC, username ASC
+	// - LEFT JOIN follow_counters to get follower count (default 0 if not found)
+	// Note: $1 is the original query (for exact match and similarity), $3 is escaped (for LIKE)
+	err := r.db.Raw(`
+		SELECT 
+			u.id,
+			u.username,
+			u.profile_pic,
+			u.is_verified,
+			u.is_private,
+			COALESCE(fc.followers_count, 0) as followers_count,
+			CASE 
+				WHEN lower(u.username) = lower($1) THEN 100.0
+				WHEN lower(u.username) LIKE lower($3) || '%' ESCAPE '\' THEN 50.0 + (similarity(u.username, $1) * 30.0)
+				WHEN similarity(u.username, $1) > 0.2 THEN similarity(u.username, $1) * 30.0
+				ELSE 0.0
+			END as score
+		FROM users u
+		LEFT JOIN follow_counters fc ON fc.user_id = u.id
+		WHERE 
+			lower(u.username) = lower($1)
+			OR lower(u.username) LIKE lower($3) || '%' ESCAPE '\'
+			OR similarity(u.username, $1) > 0.2
+		ORDER BY 
+			score DESC,
+			followers_count DESC,
+			u.username ASC
+		LIMIT $2
+	`, query, limit, escapedQuery).Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 // GetAll returns all users

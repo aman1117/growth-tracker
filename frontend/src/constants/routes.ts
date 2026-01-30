@@ -27,6 +27,7 @@ export const API_ROUTES = {
   // ============================================================================
   USER: {
     SEARCH: '/users',
+    AUTOCOMPLETE: '/autocomplete/users',
     PROFILE: '/profile',
     UPDATE_USERNAME: '/update-username',
     UPDATE_BIO: '/update-bio',

@@ -120,6 +120,22 @@ func FollowRateLimiter() fiber.Handler {
 	})
 }
 
+// AutocompleteRateLimiter returns a lenient rate limiter for autocomplete endpoints
+// Lenient: 60 requests per minute per user (supports rapid typing)
+func AutocompleteRateLimiter() fiber.Handler {
+	return NewRateLimiter(RateLimitConfig{
+		Max:        constants.RateLimitAutocompleteMaxRequests,
+		Expiration: constants.RateLimitAutocompleteWindow,
+		Message:    constants.MsgRateLimitAutocomplete,
+		KeyFunc: func(c *fiber.Ctx) string {
+			if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
+				return fmt.Sprintf("autocomplete:%d", userID)
+			}
+			return c.IP()
+		},
+	})
+}
+
 // ==================== Request Logging ====================
 
 // RequestLogger logs all incoming HTTP requests with timing and trace_id

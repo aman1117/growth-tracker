@@ -8,7 +8,6 @@ import {
   Coffee,
   Flame,
   Lock,
-  Search,
   TrendingDown,
   TrendingUp,
   Trophy,
@@ -20,7 +19,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { getActivityConfig, STORAGE_KEYS } from '../constants';
 import { APP_ROUTES } from '../constants/routes';
-import { api, ApiError } from '../services/api';
+import { api, ApiError, userApi } from '../services/api';
 import { useAuth } from '../store';
 import type {
   ActivityName,
@@ -29,17 +28,10 @@ import type {
   DayAnalytics,
   WeekAnalyticsResponse,
 } from '../types';
+import type { AutocompleteSuggestion } from '../types/autocomplete';
 import { DynamicIcon } from './DynamicIcon';
-import { ProtectedImage, VerifiedBadge } from './ui';
-
-interface SearchResult {
-  id: number;
-  username: string;
-  email: string;
-  profile_pic?: string;
-  is_private: boolean;
-  is_verified?: boolean;
-}
+import { VerifiedBadge } from './ui';
+import { Autocomplete } from './ui/Autocomplete';
 
 // Get Monday of the week for a given date
 const getWeekStart = (date: Date): Date => {
@@ -94,10 +86,6 @@ export const AnalyticsPage: React.FC = () => {
 
   // User selector state
   const [showUserSelector, setShowUserSelector] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const userSelectorRef = useRef<HTMLDivElement>(null);
 
   // Target username and verification status
@@ -192,36 +180,22 @@ export const AnalyticsPage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Focus search input when user selector opens
-  useEffect(() => {
-    if (showUserSelector && searchInputRef.current) {
-      setTimeout(() => searchInputRef.current?.focus(), 100);
-    }
-  }, [showUserSelector]);
-
-  // Debounced user search
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
+  // Autocomplete fetch function
+  const fetchSuggestions = useCallback(
+    async (query: string, signal: AbortSignal): Promise<AutocompleteSuggestion[]> => {
       try {
-        const res = await api.post('/users', { username: searchQuery });
-        if (res.success) {
-          setSearchResults(res.data);
+        const response = await userApi.autocomplete(query, 12, signal);
+        return response.suggestions || [];
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw error;
         }
-      } catch (err) {
-        console.error('Search failed:', err);
-      } finally {
-        setIsSearching(false);
+        console.error('Autocomplete failed:', error);
+        return [];
       }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    },
+    []
+  );
 
   const fetchAnalytics = useCallback(async () => {
     if (!targetUsername) return;
@@ -330,10 +304,13 @@ export const AnalyticsPage: React.FC = () => {
 
   const handleUserSelect = (username: string) => {
     setShowUserSelector(false);
-    setSearchQuery('');
     // Replace instead of push to avoid polluting history stack
     // Back button will go to where user was before analytics, not between user switches
     navigate(APP_ROUTES.USER_ANALYTICS(username), { replace: true });
+  };
+
+  const handleAutocompleteSelect = (suggestion: AutocompleteSuggestion) => {
+    handleUserSelect(suggestion.text);
   };
 
   const toggleSortOrder = () => {
@@ -500,276 +477,58 @@ export const AnalyticsPage: React.FC = () => {
 
         {/* User Selector */}
         <div ref={userSelectorRef} style={{ position: 'relative', marginBottom: '1rem' }}>
-          <button
-            onClick={() => setShowUserSelector(!showUserSelector)}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              background: 'var(--tile-glass-bg)',
-              backdropFilter: 'blur(var(--tile-glass-blur))',
-              WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
-              border: '1px solid var(--tile-glass-border)',
-              boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
-              borderRadius: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Users size={18} color="var(--text-secondary)" />
-              <span
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '2px',
-                  color: 'var(--text-primary)',
-                  fontWeight: 500,
-                  fontSize: '0.95rem',
-                }}
-              >
-                {targetUsername}
-                {targetIsVerified && <VerifiedBadge size={14} />}
-              </span>
-            </div>
-            <ChevronDown
-              size={16}
-              color="var(--text-secondary)"
-              style={{
-                transition: 'transform 0.2s ease',
-                transform: showUserSelector ? 'rotate(180deg)' : 'rotate(0deg)',
-              }}
+          {showUserSelector ? (
+            /* Autocomplete Search Mode */
+            <Autocomplete
+              placeholder="Search users..."
+              onSelect={handleAutocompleteSelect}
+              fetchSuggestions={fetchSuggestions}
+              minChars={1}
+              debounceMs={150}
+              autoFocus
+              onBlur={() => setShowUserSelector(false)}
             />
-          </button>
-
-          {showUserSelector && (
-            <div
+          ) : (
+            /* Current Selection Display */
+            <button
+              onClick={() => setShowUserSelector(true)}
               style={{
-                position: 'absolute',
-                top: 'calc(100% + 4px)',
-                left: 0,
-                right: 0,
+                width: '100%',
+                padding: '0.75rem 1rem',
                 background: 'var(--tile-glass-bg)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
+                backdropFilter: 'blur(var(--tile-glass-blur))',
+                WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
                 border: '1px solid var(--tile-glass-border)',
-                borderRadius: '20px',
-                boxShadow: 'var(--tile-glass-shadow-active)',
-                zIndex: 100,
-                overflow: 'hidden',
-                animation: 'dropdownSlide 0.2s ease-out',
+                boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
+                borderRadius: 'var(--radius-full)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
-              {/* Search Input */}
-              <div
-                style={{ padding: '0.75rem', borderBottom: '1px solid var(--tile-glass-border)' }}
-              >
-                <div
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Users size={18} color="var(--text-secondary)" />
+                <span
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.5rem 0.75rem',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    border: '1px solid var(--tile-glass-border)',
+                    gap: '2px',
+                    color: 'var(--text-primary)',
+                    fontWeight: 500,
+                    fontSize: '0.95rem',
                   }}
                 >
-                  <Search size={14} color="var(--text-secondary)" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Search users..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    style={{
-                      flex: 1,
-                      border: 'none',
-                      background: 'transparent',
-                      outline: 'none',
-                      fontSize: '16px',
-                      color: 'var(--text-primary)',
-                    }}
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        display: 'flex',
-                      }}
-                    >
-                      <X size={14} color="var(--text-secondary)" />
-                    </button>
-                  )}
-                </div>
+                  {targetUsername}
+                  {targetIsVerified && <VerifiedBadge size={14} />}
+                </span>
               </div>
-
-              {/* Current User Option */}
-              {user && (
-                <div
-                  onClick={() => handleUserSelect(user.username)}
-                  style={{
-                    padding: '0.75rem 1rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.15s',
-                    borderBottom: searchResults.length > 0 ? '1px solid var(--border)' : 'none',
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')
-                  }
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                >
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--accent)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '0.875rem',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {user.profilePic ? (
-                      <ProtectedImage
-                        src={user.profilePic}
-                        alt={user.username}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      user.username.charAt(0).toUpperCase()
-                    )}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.9rem' }}
-                    >
-                      {user.username}
-                    </div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
-                      Your profile
-                    </div>
-                  </div>
-                  {targetUsername === user.username && <Check size={16} color="var(--accent)" />}
-                </div>
-              )}
-
-              {/* Search Results */}
-              <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                {isSearching ? (
-                  <div style={{ padding: '1rem', textAlign: 'center' }}>
-                    <div
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        border: '2px solid var(--text-secondary)',
-                        borderTopColor: 'var(--accent)',
-                        borderRadius: '50%',
-                        animation: 'spin 0.8s linear infinite',
-                        margin: '0 auto',
-                      }}
-                    />
-                  </div>
-                ) : (
-                  searchResults
-                    .filter((r) => r.username !== user?.username)
-                    .map((result) => (
-                      <div
-                        key={result.id}
-                        onClick={() => handleUserSelect(result.username)}
-                        style={{
-                          padding: '0.75rem 1rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.75rem',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.15s',
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor = 'transparent')
-                        }
-                      >
-                        <div
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            backgroundColor: 'var(--avatar-bg)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {result.profile_pic ? (
-                            <ProtectedImage
-                              src={result.profile_pic}
-                              alt={result.username}
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                          ) : (
-                            <span
-                              style={{
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                color: 'var(--text-secondary)',
-                              }}
-                            >
-                              {result.username.charAt(0).toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              color: 'var(--text-primary)',
-                              fontWeight: 500,
-                              fontSize: '0.9rem',
-                            }}
-                          >
-                            {result.username}
-                            {result.is_verified && <VerifiedBadge size={12} />}
-                          </div>
-                        </div>
-                        {targetUsername === result.username && (
-                          <Check size={16} color="var(--accent)" />
-                        )}
-                      </div>
-                    ))
-                )}
-                {searchQuery && !isSearching && searchResults.length === 0 && (
-                  <div
-                    style={{
-                      padding: '1rem',
-                      textAlign: 'center',
-                      color: 'var(--text-secondary)',
-                      fontSize: '0.875rem',
-                    }}
-                  >
-                    No users found
-                  </div>
-                )}
-              </div>
-            </div>
+              <ChevronDown
+                size={16}
+                color="var(--text-secondary)"
+              />
+            </button>
           )}
         </div>
 

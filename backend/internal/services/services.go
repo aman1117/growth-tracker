@@ -154,6 +154,12 @@ func (s *ProfileService) SearchUsers(query string) ([]models.User, error) {
 	return s.userRepo.SearchByUsername(query)
 }
 
+// AutocompleteUsers performs ranked autocomplete search on usernames
+// Returns results sorted by: exact match > prefix match > trigram similarity, then by followers count
+func (s *ProfileService) AutocompleteUsers(query string, limit int) ([]repository.AutocompleteResult, error) {
+	return s.userRepo.AutocompleteUsers(query, limit)
+}
+
 // CanViewProfile checks if the current user can view another user's profile
 func (s *ProfileService) CanViewProfile(targetUser *models.User, currentUserID uint) bool {
 	if targetUser == nil {

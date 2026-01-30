@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/aman1117/backend/internal/constants"
 	"github.com/aman1117/backend/internal/dto"
@@ -10,7 +13,9 @@ import (
 	"github.com/aman1117/backend/internal/services"
 	"github.com/aman1117/backend/internal/validator"
 	"github.com/aman1117/backend/pkg/models"
+	"github.com/aman1117/backend/pkg/redis"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // ProfileHandler handles profile-related requests
@@ -309,6 +314,118 @@ func (h *ProfileHandler) SearchUsers(c *fiber.Ctx) error {
 
 	logger.LogWithContext(traceID, currentUserID).Debugw("User search completed", "query", req.Username, "found", len(users))
 	return response.Data(c, sanitizeUsersWithFollowing(users, followingSet))
+}
+
+// AutocompleteUsers handles user autocomplete requests
+// @Summary Autocomplete users
+// @Description Search for users by username prefix with fuzzy matching, ranked by relevance and popularity
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param q query string true "Search query (1-80 chars)" minLength(1) maxLength(80)
+// @Param limit query int false "Max results (1-20, default 12)" minimum(1) maximum(20) default(12)
+// @Success 200 {object} dto.AutocompleteResponse "Autocomplete suggestions"
+// @Failure 400 {object} dto.ErrorResponse "Invalid request"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 500 {object} dto.ErrorResponse "Server error"
+// @Router /autocomplete/users [get]
+func (h *ProfileHandler) AutocompleteUsers(c *fiber.Ctx) error {
+	start := time.Now()
+	userID := getUserID(c)
+	traceID := getTraceID(c)
+	requestID := uuid.New().String()
+
+	log := logger.LogWithContext(traceID, userID)
+
+	// Parse and validate query parameter
+	query := strings.TrimSpace(c.Query("q"))
+	if query == "" {
+		return response.BadRequest(c, "Query parameter 'q' is required", constants.ErrCodeMissingFields)
+	}
+
+	// Enforce query length limits
+	if len(query) > 80 {
+		query = query[:80]
+	}
+
+	// Parse limit parameter
+	limit := 12
+	if limitStr := c.Query("limit"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil {
+			if parsedLimit >= 1 && parsedLimit <= 20 {
+				limit = parsedLimit
+			}
+		}
+	}
+
+	// Normalize query for cache key (lowercase)
+	cacheKey := strings.ToLower(query)
+
+	// Try to get from cache
+	if cached, err := redis.GetAutocompleteCache(c.Context(), cacheKey); err == nil && cached != "" {
+		var cachedResponse dto.AutocompleteResponse
+		if err := json.Unmarshal([]byte(cached), &cachedResponse); err == nil {
+			// Update requestID for this request (cache hit)
+			cachedResponse.RequestID = requestID
+			log.Debugw("Autocomplete cache hit",
+				"query", query,
+				"request_id", requestID,
+				"results", len(cachedResponse.Suggestions),
+				"duration_ms", time.Since(start).Milliseconds(),
+			)
+			return response.JSON(c, cachedResponse)
+		}
+	}
+
+	// Cache miss - query database
+	results, err := h.profileSvc.AutocompleteUsers(query, limit)
+	if err != nil {
+		log.Errorw("Autocomplete query failed",
+			"query", query,
+			"request_id", requestID,
+			"error", err,
+		)
+		return response.InternalError(c, "Failed to search users", constants.ErrCodeFetchFailed)
+	}
+
+	// Convert to DTO
+	suggestions := make([]dto.AutocompleteSuggestion, 0, len(results))
+	for _, r := range results {
+		suggestions = append(suggestions, dto.AutocompleteSuggestion{
+			Text:  r.Username,
+			Kind:  "user",
+			Score: r.Score,
+			Meta: dto.AutocompleteSuggestionMeta{
+				ProfilePic:     r.ProfilePic,
+				IsVerified:     r.IsVerified,
+				FollowersCount: r.FollowersCount,
+			},
+		})
+	}
+
+	resp := dto.AutocompleteResponse{
+		Query:       query,
+		RequestID:   requestID,
+		Suggestions: suggestions,
+	}
+
+	// Cache the response (without requestID, we'll add it on cache hit)
+	cacheResp := resp
+	cacheResp.RequestID = "" // Don't cache the request ID
+	if cacheData, err := json.Marshal(cacheResp); err == nil {
+		_ = redis.SetAutocompleteCache(c.Context(), cacheKey, string(cacheData))
+	}
+
+	duration := time.Since(start)
+	log.Infow("Autocomplete completed",
+		"query", query,
+		"request_id", requestID,
+		"results", len(suggestions),
+		"duration_ms", duration.Milliseconds(),
+	)
+
+	return response.JSON(c, resp)
 }
 
 // sanitizeUsersWithFollowing converts users to DTOs, including bio for public profiles

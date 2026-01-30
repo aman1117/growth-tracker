@@ -305,3 +305,53 @@ func CheckVerifyResendCooldown(ctx context.Context, userID uint) (bool, error) {
 
 	return true, nil // In cooldown
 }
+
+// ==================== Autocomplete Cache Functions ====================
+
+const (
+	// AutocompleteCachePrefix is the key prefix for autocomplete results
+	AutocompleteCachePrefix = "autocomplete:users:"
+	// AutocompleteCacheTTL is the cache duration for autocomplete results
+	AutocompleteCacheTTL = 60 * time.Second
+)
+
+// AutocompleteCacheKey generates the Redis key for autocomplete cache
+// Normalizes the query to lowercase and trims whitespace
+func AutocompleteCacheKey(query string) string {
+	return AutocompleteCachePrefix + query
+}
+
+// GetAutocompleteCache retrieves cached autocomplete results from Redis
+// Returns empty string on cache miss (not an error)
+func GetAutocompleteCache(ctx context.Context, query string) (string, error) {
+	if client == nil {
+		return "", nil // Redis not available, skip cache
+	}
+
+	key := AutocompleteCacheKey(query)
+	value, err := client.Get(ctx, key).Result()
+	if err == goredis.Nil {
+		// Cache miss - normal, not an error
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to get autocomplete cache: %w", err)
+	}
+
+	return value, nil
+}
+
+// SetAutocompleteCache stores autocomplete results in Redis cache
+// Silently fails if Redis is not available (cache is optional)
+func SetAutocompleteCache(ctx context.Context, query string, data string) error {
+	if client == nil {
+		return nil // Redis not available, skip cache
+	}
+
+	key := AutocompleteCacheKey(query)
+	if err := client.Set(ctx, key, data, AutocompleteCacheTTL).Err(); err != nil {
+		return fmt.Errorf("failed to set autocomplete cache: %w", err)
+	}
+
+	return nil
+}

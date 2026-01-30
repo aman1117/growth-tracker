@@ -1597,9 +1597,9 @@ const DayBar: React.FC<{
                   });
                 });
 
-                return segments.map((seg) => (
+                return segments.map((seg, idx) => (
                   <div
-                    key={seg.name}
+                    key={`${seg.name}-${idx}`}
                     style={{
                       flex: seg.hours,
                       backgroundColor: seg.color,

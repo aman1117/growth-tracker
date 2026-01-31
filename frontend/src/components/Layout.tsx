@@ -51,6 +51,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     );
   };
 
+  // Type guard for photo uploaded metadata
+  const isPhotoUploadedMetadata = (
+    metadata: unknown
+  ): metadata is { uploader_username: string; photo_date: string } => {
+    return (
+      typeof metadata === 'object' &&
+      metadata !== null &&
+      'uploader_username' in metadata &&
+      'photo_date' in metadata
+    );
+  };
+
   // Handle notification card click - navigate based on notification type
   const handleNotificationClick = useCallback(
     (notification: Notification) => {
@@ -66,6 +78,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         // Navigate to the completed user's profile with the date
         navigate(
           `${APP_ROUTES.USER_PROFILE(notification.metadata.completed_username)}?date=${notification.metadata.completed_date}`
+        );
+      } else if (
+        notification.type === 'photo_uploaded' &&
+        isPhotoUploadedMetadata(notification.metadata)
+      ) {
+        // Navigate to the uploader's profile with the photo date
+        navigate(
+          `${APP_ROUTES.USER_PROFILE(notification.metadata.uploader_username)}?date=${notification.metadata.photo_date}`
         );
       } else if (
         (notification.type === 'new_follower' ||

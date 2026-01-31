@@ -9,7 +9,13 @@
 /* Overlay - adapts to theme */
 .story-viewer-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
   z-index: 1000;
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(20px);
@@ -19,6 +25,9 @@
   justify-content: center;
   animation: storyViewerFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  /* Ensure it covers notch/safe areas */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  box-sizing: border-box;
 }
 
 :root[data-theme="dark"] .story-viewer-overlay {
@@ -44,6 +53,13 @@
   flex-direction: column;
   animation: storyContainerZoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
+  /* Allow clicks to pass through to overlay for closing */
+  pointer-events: none;
+}
+
+/* Re-enable pointer events for interactive children */
+.story-viewer-container > * {
+  pointer-events: auto;
 }
 
 @keyframes storyContainerZoom {
@@ -220,6 +236,8 @@
   overflow: hidden;
   padding: 0; /* Remove padding to allow full-width swipe */
   width: 100%;
+  /* Allow clicks to pass through to overlay */
+  pointer-events: none;
 }
 
 .story-viewer-track {
@@ -231,6 +249,8 @@
   top: 0;
   left: 0;
   will-change: transform;
+  /* Pass through clicks in empty areas */
+  pointer-events: none;
 }
 
 .story-viewer-slide {
@@ -244,7 +264,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  /* Default to hidden or centered, but we handle via JS transform or left/right classes */
+  /* Pass through clicks in empty areas */
+  pointer-events: none;
 }
 
 /* Positioning for the 3 slots */
@@ -270,6 +291,12 @@
   will-change: transform, opacity;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* Only the image itself captures clicks */
+  pointer-events: auto;
+}
+
+.story-viewer-image-error {
+  pointer-events: auto;
 }
 
 /* Remove old slide animations as we use track movement */
@@ -339,6 +366,8 @@
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 5;
   -webkit-tap-highlight-color: transparent;
+  /* Re-enable pointer events */
+  pointer-events: auto;
 }
 
 :root[data-theme="dark"] .story-viewer-nav {

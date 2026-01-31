@@ -404,7 +404,14 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const activityInfo = getActivityInfo(currentPhoto);
 
   return (
-    <div className="story-viewer-overlay" onClick={handleClose}>
+    <div 
+      className="story-viewer-overlay" 
+      onClick={handleClose}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
       <div className="story-viewer-container">
         {/* Header */}
         <div className="story-viewer-header" onClick={e => e.stopPropagation()}>
@@ -447,10 +454,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         <div 
           ref={containerRef}
           className="story-viewer-content"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
         >
           {/* Navigation arrows */}
           {currentIndex > 0 && (

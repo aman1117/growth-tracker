@@ -100,6 +100,13 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
               alt={`${displayLabel} activity`}
               className="story-circle-image"
               loading="lazy"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              style={{
+                WebkitUserSelect: 'none',
+                userSelect: 'none',
+                WebkitTouchCallout: 'none',
+              }}
             />
           ) : showAddButton ? (
             <div className="story-circle-add" style={{ backgroundColor: `${color}20` }}>

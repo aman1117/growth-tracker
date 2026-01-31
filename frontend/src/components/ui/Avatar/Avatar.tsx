@@ -54,7 +54,19 @@ export const Avatar: React.FC<AvatarProps> = ({
   return (
     <div className={classNames} onClick={onClick}>
       {showImage ? (
-        <img src={src} alt={name} className={styles.image} onError={() => setImageError(true)} />
+        <img
+          src={src}
+          alt={name}
+          className={styles.image}
+          onError={() => setImageError(true)}
+          draggable={false}
+          onContextMenu={(e) => e.preventDefault()}
+          style={{
+            WebkitUserSelect: 'none',
+            userSelect: 'none',
+            WebkitTouchCallout: 'none',
+          }}
+        />
       ) : (
         <span className={styles.initials}>{getInitials(name)}</span>
       )}

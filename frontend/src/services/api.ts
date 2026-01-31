@@ -457,3 +457,117 @@ export const likeApi = {
   getLikes: (username: string, date: string) =>
     apiClient.post<LikesResponse>(API_ROUTES.LIKE.GET_LIKES, { username, date }),
 };
+
+// ============================================================================
+// Activity Photo (Stories) API
+// ============================================================================
+
+import type {
+  UploadPhotoResponse,
+  GetPhotosResponse,
+  GetFollowingStoriesResponse,
+  GetPhotoViewersResponse,
+} from '../types/story';
+
+export const activityPhotoApi = {
+  /**
+   * Upload a photo for an activity on a specific date
+   * @param file - Image file (will be compressed client-side)
+   * @param activityName - Activity name (e.g., 'sleep', 'custom:uuid')
+   * @param photoDate - Date in YYYY-MM-DD format
+   * @param customTileMetadata - Optional custom tile metadata (icon, color, label)
+   */
+  uploadPhoto: async (
+    file: File, 
+    activityName: string, 
+    photoDate: string,
+    customTileMetadata?: { icon?: string; color?: string; label?: string }
+  ): Promise<UploadPhotoResponse> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('activity_name', activityName);
+    formData.append('photo_date', photoDate);
+    
+    // Add custom tile metadata if provided
+    if (customTileMetadata?.icon) {
+      formData.append('activity_icon', customTileMetadata.icon);
+    }
+    if (customTileMetadata?.color) {
+      formData.append('activity_color', customTileMetadata.color);
+    }
+    if (customTileMetadata?.label) {
+      formData.append('activity_label', customTileMetadata.label);
+    }
+
+    const token = localStorage.getItem('access_token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${apiClient['baseUrl']}${API_ROUTES.ACTIVITY_PHOTO.UPLOAD}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new ApiError(data.error || 'Upload failed', response.status, data.error_code);
+    }
+
+    return data as UploadPhotoResponse;
+  },
+
+  /**
+   * Delete an activity photo
+   * @param photoId - Photo ID to delete
+   */
+  deletePhoto: (photoId: number) =>
+    apiClient.delete<{ success: boolean; message?: string; error?: string }>(
+      API_ROUTES.ACTIVITY_PHOTO.DELETE(photoId)
+    ),
+
+  /**
+   * Get photos for a user on a specific date
+   * @param userId - User ID
+   * @param date - Date in YYYY-MM-DD format
+   */
+  getPhotos: (userId: number, date: string) =>
+    apiClient.get<GetPhotosResponse>(
+      `${API_ROUTES.ACTIVITY_PHOTO.GET}?user_id=${userId}&date=${date}`
+    ),
+
+  /**
+   * Get stories from followed users for a specific date
+   * @param date - Date in YYYY-MM-DD format
+   * @param limit - Max users to return (default 20)
+   */
+  getFollowingStories: (date: string, limit: number = 20) =>
+    apiClient.get<GetFollowingStoriesResponse>(
+      `${API_ROUTES.ACTIVITY_PHOTO.GET_FOLLOWING}?date=${date}&limit=${limit}`
+    ),
+
+  /**
+   * Record that the current user viewed a photo
+   * @param photoId - Photo ID
+   */
+  recordView: (photoId: number) =>
+    apiClient.post<{ success: boolean }>(
+      API_ROUTES.ACTIVITY_PHOTO.RECORD_VIEW(photoId),
+      {}
+    ),
+
+  /**
+   * Get viewers of a photo (owner only)
+   * @param photoId - Photo ID
+   * @param limit - Max results (default 20)
+   * @param offset - Offset for pagination
+   */
+  getPhotoViewers: (photoId: number, limit: number = 20, offset: number = 0) =>
+    apiClient.get<GetPhotoViewersResponse>(
+      `${API_ROUTES.ACTIVITY_PHOTO.GET_VIEWERS(photoId)}?limit=${limit}&offset=${offset}`
+    ),
+};
+

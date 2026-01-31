@@ -244,10 +244,13 @@ func (w *Worker) processMessage(ctx context.Context, msg *azservicebus.ReceivedM
 		return
 	}
 
-	if !pref.IsTypeEnabled(pushMsg.NotificationType) {
-		log.Infow("Push skipped", "reason", "disabled_by_preference")
-		w.sbReceiver.CompleteMessage(ctx, msg, nil)
-		return
+	// Skip preference check for photo_uploaded notifications (always send story notifications)
+	if pushMsg.NotificationType != string(models.NotifTypePhotoUploaded) {
+		if !pref.IsTypeEnabled(pushMsg.NotificationType) {
+			log.Infow("Push skipped", "reason", "disabled_by_preference")
+			w.sbReceiver.CompleteMessage(ctx, msg, nil)
+			return
+		}
 	}
 
 	// 2. Check quiet hours

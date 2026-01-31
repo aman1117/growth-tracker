@@ -1,0 +1,236 @@
+/**
+ * StoryCircle Styles
+ *
+ * Instagram-like story circle styling with gradient ring effects.
+ * Professional animations inspired by Apple/Instagram/Google.
+ */
+
+/* Container for circle + label */
+.story-circle-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  animation: storyCircleEntrance 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+/* Staggered entrance animation */
+.story-circle-container:nth-child(1) { animation-delay: 0ms; }
+.story-circle-container:nth-child(2) { animation-delay: 40ms; }
+.story-circle-container:nth-child(3) { animation-delay: 80ms; }
+.story-circle-container:nth-child(4) { animation-delay: 120ms; }
+.story-circle-container:nth-child(5) { animation-delay: 160ms; }
+.story-circle-container:nth-child(6) { animation-delay: 200ms; }
+.story-circle-container:nth-child(7) { animation-delay: 240ms; }
+.story-circle-container:nth-child(8) { animation-delay: 280ms; }
+
+@keyframes storyCircleEntrance {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Size variants */
+.story-circle-small .story-circle {
+  width: 52px;
+  height: 52px;
+}
+
+.story-circle-medium .story-circle {
+  width: 64px;
+  height: 64px;
+}
+
+.story-circle-large .story-circle {
+  width: 76px;
+  height: 76px;
+}
+
+/* Main circle button */
+.story-circle {
+  position: relative;
+  border-radius: 50%;
+  padding: 2.5px; /* Ring thickness */
+  border: none;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              opacity 0.2s ease,
+              box-shadow 0.3s ease;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-circle:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+
+.story-circle:active:not(:disabled) {
+  transform: scale(0.92);
+  transition: transform 0.1s ease;
+}
+
+.story-circle:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.story-circle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Ring styles */
+.story-ring-unseen {
+  background: #f59e0b; /* Amber color */
+  animation: ringPulse 2s ease-in-out infinite;
+}
+
+.story-ring-viewed {
+  background: var(--border);
+}
+
+.story-ring-empty {
+  background: var(--border);
+}
+
+/* Subtle pulse for unseen stories */
+@keyframes ringPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+  }
+}
+
+/* Inner content container - with gap between ring and image */
+.story-circle-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Gap between ring and image - equal to ring thickness */
+  padding: 2.5px;
+  box-sizing: border-box;
+}
+
+/* Photo thumbnail */
+.story-circle-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Add button placeholder */
+.story-circle-add {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px dashed var(--border);
+}
+
+/* Empty placeholder (no upload available) */
+.story-circle-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* Avatar placeholder for users without profile pic */
+.story-circle-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-tertiary, var(--bg-secondary));
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Activity icon badge */
+.story-circle-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Activity name label */
+.story-circle-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+  opacity: 0;
+  animation: labelFadeIn 0.3s ease forwards;
+  animation-delay: 0.2s;
+}
+
+@keyframes labelFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Uploading state */
+.story-circle-uploading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Loading spinner */
+.story-circle-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: story-spin 0.8s linear infinite;
+}
+
+@keyframes story-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .story-circle-inner {
+  background: var(--bg-secondary);
+}
+
+[data-theme='dark'] .story-circle-badge {
+  border-color: var(--bg-secondary);
+}

@@ -63,22 +63,22 @@ export const DEFAULT_ACTIVITY_COLORS: Record<PredefinedActivityName, string> = {
  * Contains icon component, color, and display label for each activity.
  */
 export const ACTIVITY_CONFIG: Record<PredefinedActivityName, ActivityConfig> = {
-  sleep: { icon: Moon, color: '#6366f1', label: 'Sleep' }, // Indigo
-  study: { icon: BookOpen, color: '#3b82f6', label: 'Study' }, // Blue
-  book_reading: { icon: BookOpen, color: '#0ea5e9', label: 'Reading' }, // Sky
-  eating: { icon: Utensils, color: '#f59e0b', label: 'Eating' }, // Amber
-  friends: { icon: Users, color: '#ec4899', label: 'Friends' }, // Pink
-  grooming: { icon: Sparkles, color: '#8b5cf6', label: 'Grooming' }, // Violet
-  workout: { icon: Dumbbell, color: '#ef4444', label: 'Workout' }, // Red
-  reels: { icon: Film, color: '#f43f5e', label: 'Reels' }, // Rose
-  family: { icon: Home, color: '#10b981', label: 'Family' }, // Emerald
-  idle: { icon: Coffee, color: '#64748b', label: 'Idle' }, // Slate
-  creative: { icon: Palette, color: '#d946ef', label: 'Creative' }, // Fuchsia
-  travelling: { icon: Plane, color: '#06b6d4', label: 'Travelling' }, // Cyan
-  errand: { icon: ShoppingBag, color: '#f97316', label: 'Errand' }, // Orange
-  rest: { icon: Sofa, color: '#84cc16', label: 'Rest' }, // Lime
-  entertainment: { icon: Gamepad2, color: '#a855f7', label: 'Entertainment' }, // Purple
-  office: { icon: Briefcase, color: '#0f766e', label: 'Office' }, // Teal
+  sleep: { icon: Moon, color: '#6366f1', label: 'Sleep', iconName: 'Moon' }, // Indigo
+  study: { icon: BookOpen, color: '#3b82f6', label: 'Study', iconName: 'BookOpen' }, // Blue
+  book_reading: { icon: BookOpen, color: '#0ea5e9', label: 'Reading', iconName: 'BookOpen' }, // Sky
+  eating: { icon: Utensils, color: '#f59e0b', label: 'Eating', iconName: 'Utensils' }, // Amber
+  friends: { icon: Users, color: '#ec4899', label: 'Friends', iconName: 'Users' }, // Pink
+  grooming: { icon: Sparkles, color: '#8b5cf6', label: 'Grooming', iconName: 'Sparkles' }, // Violet
+  workout: { icon: Dumbbell, color: '#ef4444', label: 'Workout', iconName: 'Dumbbell' }, // Red
+  reels: { icon: Film, color: '#f43f5e', label: 'Reels', iconName: 'Film' }, // Rose
+  family: { icon: Home, color: '#10b981', label: 'Family', iconName: 'Home' }, // Emerald
+  idle: { icon: Coffee, color: '#64748b', label: 'Idle', iconName: 'Coffee' }, // Slate
+  creative: { icon: Palette, color: '#d946ef', label: 'Creative', iconName: 'Palette' }, // Fuchsia
+  travelling: { icon: Plane, color: '#06b6d4', label: 'Travelling', iconName: 'Plane' }, // Cyan
+  errand: { icon: ShoppingBag, color: '#f97316', label: 'Errand', iconName: 'ShoppingBag' }, // Orange
+  rest: { icon: Sofa, color: '#84cc16', label: 'Rest', iconName: 'Sofa' }, // Lime
+  entertainment: { icon: Gamepad2, color: '#a855f7', label: 'Entertainment', iconName: 'Gamepad2' }, // Purple
+  office: { icon: Briefcase, color: '#0f766e', label: 'Office', iconName: 'Briefcase' }, // Teal
 };
 
 /**

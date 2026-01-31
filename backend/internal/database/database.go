@@ -79,6 +79,8 @@ func AutoMigrate() error {
 		&models.FollowEdgeByFollowee{},
 		&models.FollowCounter{},
 		&models.CronJobLog{},
+		&models.ActivityPhoto{},
+		&models.StoryView{},
 	)
 }
 

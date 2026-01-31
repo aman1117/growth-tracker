@@ -27,6 +27,7 @@ type Router struct {
 	notificationWSHandler *handlers.NotificationWSHandler
 	pushHandler           *handlers.PushHandler
 	followHandler         *handlers.FollowHandler
+	activityPhotoHandler  *handlers.ActivityPhotoHandler
 	tokenSvc              *handlers.TokenService
 }
 
@@ -47,6 +48,7 @@ func NewRouter(
 	notificationWSHandler *handlers.NotificationWSHandler,
 	pushHandler *handlers.PushHandler,
 	followHandler *handlers.FollowHandler,
+	activityPhotoHandler *handlers.ActivityPhotoHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
@@ -65,6 +67,7 @@ func NewRouter(
 		notificationWSHandler: notificationWSHandler,
 		pushHandler:           pushHandler,
 		followHandler:         followHandler,
+		activityPhotoHandler:  activityPhotoHandler,
 		tokenSvc:              tokenSvc,
 	}
 }
@@ -202,6 +205,22 @@ func (r *Router) Setup(app *fiber.App) {
 
 	// Relationship lookup (batch) - no rate limit, read-only and needed frequently for UI
 	api.Post("/relationships/lookup", authMiddleware, r.followHandler.LookupRelationships)
+
+	// ==================== Activity Photos (Stories) ====================
+	if r.activityPhotoHandler != nil {
+		// Upload photo (with upload-specific rate limiting)
+		api.Post("/activity-photo", authMiddleware, uploadRateLimiter, r.activityPhotoHandler.UploadPhoto)
+		// Delete photo
+		api.Delete("/activity-photo/:id", authMiddleware, apiRateLimiter, r.activityPhotoHandler.DeletePhoto)
+		// Get photos for a user on a date
+		api.Get("/activity-photos", authMiddleware, apiRateLimiter, r.activityPhotoHandler.GetPhotos)
+		// Get stories from followed users
+		api.Get("/activity-photos/following", authMiddleware, apiRateLimiter, r.activityPhotoHandler.GetFollowingStories)
+		// Record photo view
+		api.Post("/activity-photo/:id/view", authMiddleware, apiRateLimiter, r.activityPhotoHandler.RecordView)
+		// Get photo viewers (owner only)
+		api.Get("/activity-photo/:id/viewers", authMiddleware, apiRateLimiter, r.activityPhotoHandler.GetPhotoViewers)
+	}
 
 	// ==================== WebSocket ====================
 	// WebSocket route for real-time notifications

@@ -33,7 +33,7 @@ import { createCustomActivityName, getActivityConfig, STORAGE_KEYS } from '../co
 import { APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
 import { useAuth, useCompletionStore, useFollowStore } from '../store';
-import type { Activity, ActivityName, CustomTile, PredefinedActivityName } from '../types';
+import type { Activity, ActivityName, ActivityPhoto, CustomTile, PredefinedActivityName } from '../types';
 import { ACTIVITY_NAMES, formatLastLogged, isCustomTile, MAX_CUSTOM_TILES } from '../types';
 import type { Badge } from '../types/api';
 import { renderBadgeIcon } from '../utils/badgeIcons';
@@ -46,6 +46,7 @@ import { CreateCustomTileModal } from './CreateCustomTileModal';
 import { DaySummaryCard } from './DaySummaryCard';
 import { HiddenTilesPanel } from './HiddenTilesPanel';
 import { FollowButton, FollowStats, MutualFollowers } from './social';
+import { StoryCirclesRow, StoryViewer } from './story';
 import { ProtectedImage, SnapToast, VerifiedBadge } from './ui';
 
 const STORAGE_KEY = STORAGE_KEYS.TILE_ORDER;
@@ -243,6 +244,28 @@ export const Dashboard: React.FC = () => {
   // Badge unlock modal state
   const [newBadges, setNewBadges] = useState<Badge[]>([]);
   const [showBadgeUnlockModal, setShowBadgeUnlockModal] = useState(false);
+
+  // Story viewer state
+  const [storyViewerState, setStoryViewerState] = useState<{
+    isOpen: boolean;
+    photos: ActivityPhoto[];
+    startIndex: number;
+    ownerUsername: string;
+    ownerProfilePic?: string;
+    isOwnStory: boolean;
+    handlers?: {
+      onPhotoDeleted: (photoId: number) => void;
+      onPhotosViewed: (photoIds: number[]) => void;
+    };
+  }>({
+    isOpen: false,
+    photos: [],
+    startIndex: 0,
+    ownerUsername: '',
+    ownerProfilePic: undefined,
+    isOwnStory: false,
+    handlers: undefined,
+  });
 
   // DEV: Test confetti by running in console: window.dispatchEvent(new CustomEvent('test-badge-unlock'))
   useEffect(() => {
@@ -543,6 +566,13 @@ export const Dashboard: React.FC = () => {
     };
     fetchTargetUserProfile();
   }, [isReadOnly, targetUsername, lookupRelationships]);
+
+  // Set targetUserId for own profile (needed for story circles)
+  useEffect(() => {
+    if (!isReadOnly && user?.id) {
+      setTargetUserId(user.id);
+    }
+  }, [isReadOnly, user?.id]);
 
   // Fetch tile config from backend - always fetch
   useEffect(() => {
@@ -1226,6 +1256,31 @@ export const Dashboard: React.FC = () => {
             }}
           />
         </div>
+      )}
+
+      {/* Story Circles Row */}
+      {!isEditMode && targetUserId && (
+        <StoryCirclesRow
+          currentDate={currentDate}
+          targetUserId={targetUserId}
+          targetUsername={targetUsername || ''}
+          isOwnProfile={!isReadOnly}
+          activities={tileOrder}
+          customTiles={customTiles}
+          colorOverrides={tileColors}
+          isEditMode={isEditMode}
+          onPhotoClick={(photos, startIndex, ownerUsername, ownerProfilePic, isOwn, handlers) => {
+            setStoryViewerState({
+              isOpen: true,
+              photos,
+              startIndex,
+              ownerUsername,
+              ownerProfilePic,
+              isOwnStory: isOwn || false,
+              handlers,
+            });
+          }}
+        />
       )}
 
       {/* Edit Mode Bar - sticky at top when in edit mode */}
@@ -2098,6 +2153,35 @@ export const Dashboard: React.FC = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Story Viewer Modal */}
+      {storyViewerState.isOpen && (
+        <StoryViewer
+          isOpen={storyViewerState.isOpen}
+          photos={storyViewerState.photos}
+          startIndex={storyViewerState.startIndex}
+          ownerUsername={storyViewerState.ownerUsername}
+          ownerProfilePic={storyViewerState.ownerProfilePic}
+          isOwnStory={storyViewerState.isOwnStory}
+          onClose={() => setStoryViewerState({
+            isOpen: false,
+            photos: [],
+            startIndex: 0,
+            ownerUsername: '',
+            ownerProfilePic: undefined,
+            isOwnStory: false,
+            handlers: undefined,
+          })}
+          onPhotoDeleted={(photoId) => {
+            // Call the handler to update StoryCirclesRow state
+            storyViewerState.handlers?.onPhotoDeleted(photoId);
+          }}
+          onPhotosViewed={(photoIds) => {
+            // Call the handler to mark stories as viewed in StoryCirclesRow
+            storyViewerState.handlers?.onPhotosViewed(photoIds);
+          }}
+        />
       )}
     </div>
   );

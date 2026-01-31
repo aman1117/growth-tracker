@@ -1,0 +1,593 @@
+/**
+ * StoryViewer Styles
+ *
+ * Fullscreen dark overlay for viewing story photos.
+ * Professional animations inspired by Apple/Instagram/Google.
+ */
+
+/* Overlay */
+.story-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: storyViewerFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes storyViewerFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Container */
+.story-viewer-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  animation: storyContainerZoom 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes storyContainerZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Header */
+.story-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), transparent);
+  animation: headerSlideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s backwards;
+}
+
+@keyframes headerSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.story-viewer-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Make avatar initials brighter in dark story viewer */
+.story-viewer-user [class*="avatar"] {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.story-viewer-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.story-viewer-user-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.story-viewer-username {
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.story-viewer-activity-dot {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.7rem;
+}
+
+.story-viewer-activity-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.story-viewer-activity {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.story-viewer-date {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+}
+
+.story-viewer-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.story-viewer-btn {
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-viewer-btn:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(1.1);
+}
+
+.story-viewer-btn:active {
+  transform: scale(0.95);
+}
+
+.story-viewer-delete-btn {
+  color: #ff6b6b;
+}
+
+/* Content */
+.story-viewer-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 0 16px;
+}
+
+.story-viewer-image-container {
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.story-viewer-image {
+  max-width: 100%;
+  max-height: calc(100vh - 140px);
+  object-fit: contain;
+  border-radius: 12px;
+  will-change: transform, opacity;
+}
+
+/* Image transition for navigation */
+.story-viewer-image.slide-left {
+  animation: slideLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.story-viewer-image.slide-right {
+  animation: slideRight 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Image error state */
+.story-viewer-image-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 48px;
+  text-align: center;
+}
+
+.story-viewer-image-error svg {
+  opacity: 0.5;
+}
+
+.story-viewer-image-error span {
+  font-size: 0.9rem;
+}
+
+/* Navigation arrows */
+.story-viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-viewer-nav:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.story-viewer-nav:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.story-viewer-nav-prev {
+  left: 16px;
+}
+
+.story-viewer-nav-next {
+  right: 16px;
+}
+
+/* Progress dots */
+.story-viewer-progress {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  position: absolute;
+  bottom: 80px;
+  left: 0;
+  right: 0;
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.2s backwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.story-viewer-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.story-viewer-dot.active {
+  background: white;
+  transform: scale(1.3);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.story-viewer-dot:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(1.15);
+}
+
+/* Footer (Seen by) */
+.story-viewer-footer {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s backwards;
+}
+
+.story-viewer-footer:hover {
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Delete confirmation dialog */
+.story-viewer-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  animation: dialogOverlayIn 0.2s ease;
+}
+
+@keyframes dialogOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.story-viewer-dialog {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: dialogScaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes dialogScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.story-viewer-dialog h3 {
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.story-viewer-dialog p {
+  margin: 0 0 20px 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.story-viewer-dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.story-viewer-dialog-btn {
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-viewer-dialog-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.story-viewer-dialog-cancel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.story-viewer-dialog-cancel:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-1px);
+}
+
+.story-viewer-dialog-cancel:active {
+  transform: translateY(0);
+}
+
+.story-viewer-dialog-delete {
+  background: linear-gradient(135deg, #ff6b6b 0%, #dc3545 100%);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.story-viewer-dialog-delete:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+.story-viewer-dialog-delete:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Viewers panel */
+.story-viewer-viewers-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1100;
+  animation: viewersOverlayIn 0.25s ease;
+}
+
+@keyframes viewersOverlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.story-viewer-viewers-panel {
+  background: var(--bg-primary);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  animation: viewersPanelSlideUp 0.2s ease-out;
+}
+
+@keyframes viewersPanelSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.story-viewer-viewers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.story-viewer-viewers-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.story-viewer-viewers-header button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.story-viewer-viewers-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.story-viewer-viewers-loading,
+.story-viewer-viewers-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.story-viewer-viewer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  animation: viewerItemSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.story-viewer-viewer-item:nth-child(1) { animation-delay: 0ms; }
+.story-viewer-viewer-item:nth-child(2) { animation-delay: 30ms; }
+.story-viewer-viewer-item:nth-child(3) { animation-delay: 60ms; }
+.story-viewer-viewer-item:nth-child(4) { animation-delay: 90ms; }
+.story-viewer-viewer-item:nth-child(5) { animation-delay: 120ms; }
+.story-viewer-viewer-item:nth-child(6) { animation-delay: 150ms; }
+.story-viewer-viewer-item:nth-child(7) { animation-delay: 180ms; }
+.story-viewer-viewer-item:nth-child(8) { animation-delay: 210ms; }
+
+@keyframes viewerItemSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.story-viewer-viewer-name {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .story-viewer-nav {
+    width: 36px;
+    height: 36px;
+  }
+
+  .story-viewer-nav-prev {
+    left: 8px;
+  }
+
+  .story-viewer-nav-next {
+    right: 8px;
+  }
+}

@@ -1,0 +1,496 @@
+/**
+ * StoryCirclesRow Styles
+ *
+ * Horizontal scrollable container for story circles with glassmorphism.
+ * Professional animations inspired by Apple/Instagram/Google.
+ */
+
+.story-row-container {
+  margin: 12px 0 16px 0;
+  padding: 12px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  animation: rowFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes rowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.story-row-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 12px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.story-row-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.story-row-section {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.story-row-separator {
+  width: 1px;
+  background: var(--border);
+  margin: 8px 8px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+/* Skeleton loaders - matching activity tile skeletons */
+.story-row-skeletons {
+  display: flex;
+  gap: 12px;
+}
+
+.story-circle-skeleton {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--tile-glass-bg);
+  backdrop-filter: blur(var(--tile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
+  border: 1px solid var(--tile-glass-border);
+  box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.story-circle-skeleton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+  border-radius: 50%;
+}
+
+:root[data-theme="dark"] .story-circle-skeleton::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Error state */
+.story-row-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.story-row-retry {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--accent);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.story-row-retry:hover {
+  background: var(--bg-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .story-row-container {
+    margin: 8px -8px 12px -8px;
+    border-radius: 0;
+  }
+
+  .story-row-scroll {
+    padding: 4px 8px;
+  }
+
+  .story-row-section {
+    gap: 8px;
+  }
+}
+
+/* =====================================================
+   ADD STORY CIRCLE - Instagram style "Your Story" button
+   ===================================================== */
+
+.story-add-circle-wrapper {
+  position: relative;
+  width: 68px;
+  height: 68px;
+}
+
+.story-add-circle {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  overflow: visible;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-add-circle-clickable {
+  cursor: pointer;
+}
+
+.story-add-circle-no-photos {
+  cursor: default;
+}
+
+.story-add-circle-clickable:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+
+.story-add-circle-clickable:active:not(:disabled) {
+  transform: scale(0.92);
+  transition: transform 0.1s ease;
+}
+
+.story-add-circle:disabled {
+  opacity: 0.7;
+}
+
+.story-add-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure Avatar component fills the container properly */
+.story-add-avatar .avatar {
+  width: 68px !important;
+  height: 68px !important;
+  min-width: 68px;
+  min-height: 68px;
+  font-size: 1.5rem;
+}
+
+/* Plus badge - positioned at bottom right like Instagram */
+.story-add-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2.5px solid var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 2px 8px rgba(var(--accent-rgb, 59, 130, 246), 0.4);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              box-shadow 0.3s ease;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.story-add-badge:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb, 59, 130, 246), 0.5);
+}
+
+.story-add-badge:active {
+  transform: scale(0.95);
+}
+
+.story-add-badge:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.story-add-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spinSmooth 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes spinSmooth {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Uploading state */
+.story-circle-uploading .story-add-avatar {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* =====================================================
+   ACTIVITY PICKER MODAL - Glassmorphism bottom sheet
+   ===================================================== */
+
+.story-activity-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: pickerOverlayIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: none;
+}
+
+@keyframes pickerOverlayIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Activity picker - Light theme as base (no data-theme attribute means light) */
+.story-activity-picker {
+  width: 100%;
+  max-height: 70vh;
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: none;
+  /* Slide-up animation like notification panel */
+  animation: pickerSlideUp 0.2s ease-out;
+}
+
+@keyframes pickerSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Dark theme override */
+:root[data-theme="dark"] .story-activity-picker {
+  background: #1a1a1a;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+}
+
+.story-activity-picker-header {
+  position: relative;
+  padding: 20px 20px 12px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  text-align: center;
+  background: inherit;
+}
+
+:root[data-theme="dark"] .story-activity-picker-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.story-activity-picker-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+:root[data-theme="dark"] .story-activity-picker-header h3 {
+  color: #ffffff;
+}
+
+.story-activity-picker-header p {
+  margin: 4px 0 0 0;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme="dark"] .story-activity-picker-header p {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.story-activity-picker-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-activity-picker-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a1a1a;
+  transform: scale(1.1);
+}
+
+.story-activity-picker-close:active {
+  transform: scale(0.95);
+}
+
+:root[data-theme="dark"] .story-activity-picker-close {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+:root[data-theme="dark"] .story-activity-picker-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.story-activity-picker-list {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  background: inherit;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.story-activity-picker-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  border: none;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root[data-theme="dark"] .story-activity-picker-item {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.story-activity-picker-item:hover {
+  background: rgba(0, 0, 0, 0.06);
+  transform: scale(1.02);
+}
+
+:root[data-theme="dark"] .story-activity-picker-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.story-activity-picker-item:active {
+  transform: scale(0.98);
+}
+
+.story-activity-picker-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.story-activity-picker-label {
+  font-size: 0.75rem;
+  color: #1a1a1a;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.2;
+  max-width: 100%;
+}
+
+:root[data-theme="dark"] .story-activity-picker-label {
+  color: #ffffff;
+}
+
+/* Desktop adjustments */
+@media (min-width: 768px) {
+  .story-activity-picker {
+    max-width: 480px;
+    border-radius: 20px;
+    margin-bottom: 40px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  :root[data-theme="dark"] .story-activity-picker {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .story-activity-picker-overlay {
+    align-items: center;
+  }
+}
+
+/* Small screen adjustments */
+@media (max-width: 360px) {
+  .story-activity-picker-list {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+}

@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 // Migration script to enable pg_trgm extension and create autocomplete indexes.
 // Run with: go run migrations/add_autocomplete_indexes.go
 //

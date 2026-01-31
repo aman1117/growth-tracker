@@ -8,6 +8,7 @@
 
 import {
   AlertTriangle,
+  Camera,
   Flame,
   Heart,
   Megaphone,
@@ -45,6 +46,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   new_follower: <UserPlus size={16} className={styles.iconFollow} />,
   follow_request: <UserPlus size={16} className={styles.iconFollow} />,
   follow_accepted: <UserCheck size={16} className={styles.iconFollow} />,
+  photo_uploaded: <Camera size={16} className={styles.iconPhoto} />,
 };
 
 /**

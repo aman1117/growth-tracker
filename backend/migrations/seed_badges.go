@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 // Migration script to seed badges for existing users based on their longest streak.
 // Run with: go run migrations/seed_badges.go
 //

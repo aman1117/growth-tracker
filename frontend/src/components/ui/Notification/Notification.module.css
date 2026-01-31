@@ -345,6 +345,10 @@
   color: var(--color-follow);
 }
 
+.iconPhoto {
+  color: #a855f7; /* Purple for photo notifications */
+}
+
 /* Content */
 .itemContent {
   flex: 1;

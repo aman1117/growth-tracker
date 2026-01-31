@@ -15,7 +15,8 @@ export type NotificationType =
   | 'system_announcement'
   | 'new_follower'
   | 'follow_request'
-  | 'follow_accepted';
+  | 'follow_accepted'
+  | 'photo_uploaded';
 
 export interface Notification {
   id: number;
@@ -60,12 +61,21 @@ export interface DayCompletedMetadata {
   completed_date: string;
 }
 
+export interface PhotoUploadedMetadata {
+  uploader_id: number;
+  uploader_username: string;
+  uploader_avatar?: string;
+  photo_count: number;
+  photo_date: string;
+}
+
 export type NotificationMetadata =
   | LikeMetadata
   | BadgeMetadata
   | StreakMetadata
   | FollowMetadata
   | DayCompletedMetadata
+  | PhotoUploadedMetadata
   | Record<string, unknown>;
 
 // ==================== API Response Types ====================

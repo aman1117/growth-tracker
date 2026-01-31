@@ -616,5 +616,34 @@ func (s *TileConfigService) SaveConfig(userID uint, config models.JSONB) error {
 		return validationErr
 	}
 
+	// Check for tile renames (not allowed due to activity photos)
+	existingConfig, err := s.tileRepo.FindByUserID(userID)
+	if err == nil && existingConfig != nil {
+		existingData, err := existingConfig.GetConfigData()
+		if err == nil && existingData != nil {
+			newTC := &models.TileConfig{Config: config}
+			newData, err := newTC.GetConfigData()
+			if err == nil && newData != nil {
+				// Build map of existing custom tiles by ID
+				existingTiles := make(map[string]string) // ID -> Name
+				for _, tile := range existingData.CustomTiles {
+					existingTiles[tile.ID] = tile.Name
+				}
+
+				// Check if any tile was renamed
+				for _, newTile := range newData.CustomTiles {
+					if oldName, exists := existingTiles[newTile.ID]; exists {
+						if oldName != newTile.Name {
+							return &TileConfigValidationError{
+								Message: "Tile renaming is not supported",
+								Code:    constants.ErrCodeInvalidTileConfig,
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return s.tileRepo.Save(userID, config)
 }

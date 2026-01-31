@@ -16,30 +16,32 @@ type Container struct {
 	Config *config.Config
 
 	// Repositories
-	UserRepo         *repository.UserRepository
-	ActivityRepo     *repository.ActivityRepository
-	StreakRepo       *repository.StreakRepository
-	TileConfigRepo   *repository.TileConfigRepository
-	LikeRepo         *repository.LikeRepository
-	BadgeRepo        *repository.BadgeRepository
-	NotificationRepo *repository.NotificationRepository
-	PushRepo         *repository.PushRepository
-	FollowRepo       *repository.FollowRepository
-	CronJobLogRepo   *repository.CronJobLogRepository
+	UserRepo          *repository.UserRepository
+	ActivityRepo      *repository.ActivityRepository
+	StreakRepo        *repository.StreakRepository
+	TileConfigRepo    *repository.TileConfigRepository
+	LikeRepo          *repository.LikeRepository
+	BadgeRepo         *repository.BadgeRepository
+	NotificationRepo  *repository.NotificationRepository
+	PushRepo          *repository.PushRepository
+	FollowRepo        *repository.FollowRepository
+	CronJobLogRepo    *repository.CronJobLogRepository
+	ActivityPhotoRepo *repository.ActivityPhotoRepository
 
 	// Services
-	AuthService         *services.AuthService
-	ProfileService      *services.ProfileService
-	ActivityService     *services.ActivityService
-	StreakService       *services.StreakService
-	AnalyticsService    *services.AnalyticsService
-	TileConfigService   *services.TileConfigService
-	EmailService        *services.EmailService
-	CronService         *services.CronService
-	BlobService         *services.BlobService
-	BadgeService        *services.BadgeService
-	NotificationService *services.NotificationService
-	FollowService       *services.FollowService
+	AuthService          *services.AuthService
+	ProfileService       *services.ProfileService
+	ActivityService      *services.ActivityService
+	StreakService        *services.StreakService
+	AnalyticsService     *services.AnalyticsService
+	TileConfigService    *services.TileConfigService
+	EmailService         *services.EmailService
+	CronService          *services.CronService
+	BlobService          *services.BlobService
+	BadgeService         *services.BadgeService
+	NotificationService  *services.NotificationService
+	FollowService        *services.FollowService
+	ActivityPhotoService *services.ActivityPhotoService
 
 	// Handlers
 	TokenService          *handlers.TokenService
@@ -58,6 +60,7 @@ type Container struct {
 	NotificationWSHandler *handlers.NotificationWSHandler
 	PushHandler           *handlers.PushHandler
 	FollowHandler         *handlers.FollowHandler
+	ActivityPhotoHandler  *handlers.ActivityPhotoHandler
 
 	// Router
 	Router *routes.Router
@@ -78,6 +81,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.PushRepo = repository.NewPushRepository(db)
 	c.FollowRepo = repository.NewFollowRepository(db)
 	c.CronJobLogRepo = repository.NewCronJobLogRepository(db)
+	c.ActivityPhotoRepo = repository.NewActivityPhotoRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -90,6 +94,20 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.BlobService = services.NewBlobService(c.UserRepo, &cfg.AzureStorage)
 	c.BadgeService = services.NewBadgeService(c.BadgeRepo, c.UserRepo)
 	c.FollowService = services.NewFollowService(c.FollowRepo, c.UserRepo, &cfg.Follow)
+
+	// Initialize activity photo service (optional - requires blob storage)
+	if cfg.AzureStorage.ConnectionString != "" {
+		photoSvc, err := services.NewActivityPhotoService(
+			c.ActivityPhotoRepo,
+			c.UserRepo,
+			c.FollowRepo,
+			c.NotificationService,
+			&cfg.AzureStorage,
+		)
+		if err == nil {
+			c.ActivityPhotoService = photoSvc
+		}
+	}
 
 	// Initialize email service (optional - uses SMTP fallback for local dev)
 	emailSvc, err := services.NewEmailService(&cfg.Email, cfg.Server.FrontendURL)
@@ -127,6 +145,11 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		}
 	}
 
+	// Initialize activity photo handler (optional - requires photo service)
+	if c.ActivityPhotoService != nil {
+		c.ActivityPhotoHandler = handlers.NewActivityPhotoHandler(c.ActivityPhotoService, c.AuthService, c.ProfileService)
+	}
+
 	// Initialize router
 	c.Router = routes.NewRouter(
 		c.AuthHandler,
@@ -144,6 +167,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.NotificationWSHandler,
 		c.PushHandler,
 		c.FollowHandler,
+		c.ActivityPhotoHandler,
 		c.TokenService,
 	)
 

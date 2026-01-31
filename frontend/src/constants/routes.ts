@@ -142,6 +142,24 @@ export const API_ROUTES = {
     /** GET - Get follow counts for a user */
     GET_COUNTS: (userId: number) => `/users/${userId}/follow-counts`,
   },
+
+  // ============================================================================
+  // Activity Photos (Stories)
+  // ============================================================================
+  ACTIVITY_PHOTO: {
+    /** POST - Upload activity photo */
+    UPLOAD: '/activity-photo',
+    /** DELETE - Delete activity photo */
+    DELETE: (id: number) => `/activity-photo/${id}`,
+    /** GET - Get photos for a user on a date */
+    GET: '/activity-photos',
+    /** GET - Get stories from followed users */
+    GET_FOLLOWING: '/activity-photos/following',
+    /** POST - Record photo view */
+    RECORD_VIEW: (id: number) => `/activity-photo/${id}/view`,
+    /** GET - Get photo viewers */
+    GET_VIEWERS: (id: number) => `/activity-photo/${id}/viewers`,
+  },
 } as const;
 
 /**

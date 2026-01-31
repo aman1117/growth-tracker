@@ -486,6 +486,9 @@ func (s *ActivityPhotoService) sendPhotoNotification(ctx context.Context, pendin
 		body = fmt.Sprintf("%s shared %d new photos", pending.uploaderUsername, pending.photoCount)
 	}
 
+	// Deep link to uploader's profile with date
+	deepLink := fmt.Sprintf("/user/%s?date=%s", pending.uploaderUsername, pending.photoDate)
+
 	// Send notification to each follower
 	for _, followerID := range followerIDs {
 		notif := &models.Notification{
@@ -508,6 +511,38 @@ func (s *ActivityPhotoService) sendPhotoNotification(ctx context.Context, pendin
 				"uploader_id", pending.uploaderID,
 				"error", err,
 			)
+			continue
+		}
+
+		// Publish push notification (bypasses push preferences for story notifications)
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			pushDedupeKey := fmt.Sprintf("photo_uploaded:%d:%d:%s", followerID, pending.uploaderID, pending.photoDate)
+			ttlSeconds := 14400 // 4 hours
+
+			data := notif.Metadata
+			if data == nil {
+				data = make(map[string]interface{})
+			}
+			data["notification_id"] = notif.ID
+
+			if err := publisher.PublishPushNotification(
+				ctx,
+				followerID,
+				notif.Type,
+				notif.Title,
+				notif.Body,
+				pushDedupeKey,
+				deepLink,
+				data,
+				ttlSeconds,
+			); err != nil {
+				logger.Sugar.Warnw("Failed to publish push notification for photo upload",
+					"notif_id", notif.ID,
+					"follower_id", followerID,
+					"error", err,
+				)
+				// Non-fatal, in-app notification is still delivered
+			}
 		}
 	}
 

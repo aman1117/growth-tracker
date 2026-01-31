@@ -449,7 +449,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           {currentIndex > 0 && (
             <button
               className="story-viewer-nav story-viewer-nav-prev"
-              onClick={goPrev}
+              onClick={(e) => {
+                e.stopPropagation();
+                goPrev();
+              }}
               aria-label="Previous photo"
             >
               <ChevronLeft size={32} />
@@ -491,7 +494,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           {currentIndex < localPhotos.length - 1 && (
             <button
               className="story-viewer-nav story-viewer-nav-next"
-              onClick={goNext}
+              onClick={(e) => {
+                e.stopPropagation();
+                goNext();
+              }}
               aria-label="Next photo"
             >
               <ChevronRight size={32} />

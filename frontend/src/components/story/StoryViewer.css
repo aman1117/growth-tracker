@@ -234,40 +234,25 @@
   max-height: calc(100vh - 140px);
   object-fit: contain;
   border-radius: 12px;
-  will-change: transform, opacity;
-  transform-origin: center center;
+  will-change: opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-/* Image transition for navigation - Instagram style */
-.story-viewer-image.slide-left {
-  animation: slideInFromRight 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
+/* Image transition - Clean crossfade inspired by Apple Photos
+ * Simple, elegant fade transition that feels premium
+ */
+.story-viewer-image.slide-left,
 .story-viewer-image.slide-right {
-  animation: slideInFromLeft 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation: imageFadeIn 0.25s ease-out;
 }
 
-/* Next image: slides in from the right side */
-@keyframes slideInFromRight {
+@keyframes imageFadeIn {
   0% {
     opacity: 0;
-    transform: translateX(100%);
   }
   100% {
     opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Previous image: slides in from the left side */
-@keyframes slideInFromLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-100%);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
   }
 }
 

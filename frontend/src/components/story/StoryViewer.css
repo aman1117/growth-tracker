@@ -9,7 +9,13 @@
 /* Overlay - adapts to theme */
 .story-viewer-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
   z-index: 1000;
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(20px);
@@ -448,7 +454,7 @@
 /* Footer (Seen by) */
 .story-viewer-footer {
   position: absolute;
-  bottom: 16px;
+  bottom: 0;
   left: 0;
   right: 0;
   display: flex;
@@ -456,6 +462,7 @@
   justify-content: center;
   gap: 8px;
   padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(to top, rgba(255, 255, 255, 0.8), transparent);
   color: var(--text-secondary);
   font-size: 0.85rem;
@@ -482,7 +489,13 @@
 /* Delete confirmation dialog - Consistent with Modal component */
 .story-viewer-dialog-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   background: var(--modal-overlay);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -592,7 +605,13 @@
 /* Viewers panel - Inspired by Notification panel glassmorphism */
 .story-viewer-viewers-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
   background: var(--modal-overlay);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -601,6 +620,8 @@
   justify-content: center;
   z-index: 1100;
   animation: viewersOverlayIn 0.2s var(--ease-default);
+  /* Ensure it covers everything including safe areas */
+  overflow: hidden;
 }
 
 @keyframes viewersOverlayIn {
@@ -627,6 +648,8 @@
   display: flex;
   flex-direction: column;
   animation: viewersPanelSlideUp 0.2s ease-out;
+  /* Account for safe area on devices with home indicator */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @keyframes viewersPanelSlideUp {

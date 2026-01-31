@@ -442,8 +442,14 @@ func (s *ActivityPhotoService) scheduleNotification(ctx context.Context, uploade
 		photoCount:       1,
 	}
 
+	// IMPORTANT: Use background context for the timer callback, not the request context.
+	// The request context will be cancelled when the HTTP request completes,
+	// but the timer fires 5 minutes later, so we need a fresh context.
 	pending.timer = time.AfterFunc(notificationDebounceWindow, func() {
-		s.sendPhotoNotification(ctx, pending)
+		// Create a fresh context with timeout for the notification sending
+		sendCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		s.sendPhotoNotification(sendCtx, pending)
 	})
 
 	s.pendingNotifications[key] = pending

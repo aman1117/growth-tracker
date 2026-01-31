@@ -55,6 +55,8 @@ export interface StoryCirclesRowProps {
       onPhotosViewed: (photoIds: number[]) => void;
     }
   ) => void;
+  /** Callback when target user's photos are fetched (for profile avatar click handling) */
+  onTargetUserPhotos?: (photos: ActivityPhoto[]) => void;
 }
 
 interface AvailableActivity {
@@ -67,13 +69,14 @@ interface AvailableActivity {
 export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   currentDate,
   targetUserId,
-  targetUsername,
+  targetUsername: _targetUsername, // eslint-disable-line @typescript-eslint/no-unused-vars
   isOwnProfile,
   activities,
   customTiles,
   colorOverrides,
   isEditMode,
   onPhotoClick,
+  onTargetUserPhotos,
 }) => {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -115,7 +118,12 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
       // Fetch own photos (or target user's if viewing someone else)
       const photosResponse = await activityPhotoApi.getPhotos(targetUserId, dateStr);
       if (photosResponse.success) {
-        setOwnPhotos(photosResponse.photos || []);
+        const photos = photosResponse.photos || [];
+        setOwnPhotos(photos);
+        // Notify parent about target user's photos (for profile avatar click handling)
+        if (!isOwnProfile && onTargetUserPhotos) {
+          onTargetUserPhotos(photos);
+        }
       }
 
       // Fetch following stories only on own profile
@@ -131,7 +139,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [user?.id, targetUserId, dateStr, isOwnProfile]);
+  }, [user?.id, targetUserId, dateStr, isOwnProfile, onTargetUserPhotos]);
 
   useEffect(() => {
     fetchPhotos();
@@ -332,6 +340,10 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   // Don't render in edit mode
   if (isEditMode) return null;
 
+  // Don't render the card when viewing other user's profile (stories accessed via profile avatar)
+  // Note: Photos are still fetched to notify parent via onTargetUserPhotos callback
+  if (!isOwnProfile) return null;
+
   // Don't render if date is too old and no content
   if (!isDateWithinUploadWindow(currentDate) && ownPhotos.length === 0 && followingStories.length === 0) {
     return null;
@@ -450,36 +462,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
               </>
             )}
 
-            {/* Viewing someone else's profile - show their photos with their avatar */}
-            {!isOwnProfile && hasOwnPhotos && (
-              <div className="story-circle-container story-circle-medium">
-                <button
-                  className="story-circle story-ring-viewed"
-                  onClick={() => {
-                    // Sort by created_at
-                    const sortedPhotos = [...ownPhotos].sort((a, b) => 
-                      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-                    );
-                    onPhotoClick(
-                      sortedPhotos, 
-                      0, 
-                      targetUsername, 
-                      undefined, 
-                      false,
-                      { onPhotoDeleted: handlePhotoDeleted, onPhotosViewed: () => {} }
-                    );
-                  }}
-                  aria-label={`View ${targetUsername}'s story`}
-                >
-                  <div className="story-circle-inner">
-                    <div className="story-circle-avatar-placeholder">
-                      {targetUsername.charAt(0).toUpperCase()}
-                    </div>
-                  </div>
-                </button>
-                <span className="story-circle-label">{targetUsername}</span>
-              </div>
-            )}
+            {/* Note: When viewing someone else's profile, their stories are opened via the profile avatar click in Dashboard */}
           </>
         )}
       </div>

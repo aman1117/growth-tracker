@@ -245,6 +245,9 @@ export const Dashboard: React.FC = () => {
   const [newBadges, setNewBadges] = useState<Badge[]>([]);
   const [showBadgeUnlockModal, setShowBadgeUnlockModal] = useState(false);
 
+  // Target user's photos for story viewing (when viewing another user's profile)
+  const [targetUserPhotos, setTargetUserPhotos] = useState<ActivityPhoto[]>([]);
+
   // Story viewer state
   const [storyViewerState, setStoryViewerState] = useState<{
     isOpen: boolean;
@@ -476,6 +479,13 @@ export const Dashboard: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDate, targetUsername, isReadOnly]);
 
+  // Reset target user photos when date changes (for other user's profile)
+  useEffect(() => {
+    if (isReadOnly) {
+      setTargetUserPhotos([]);
+    }
+  }, [currentDate, isReadOnly]);
+
   useEffect(() => {
     fetchActivities();
   }, [fetchActivities]);
@@ -528,6 +538,7 @@ export const Dashboard: React.FC = () => {
         setTargetUserId(null);
         setTargetIsPrivate(false);
         setTargetLastLoggedAt(null);
+        setTargetUserPhotos([]); // Reset target user's photos
 
         try {
           const res = await api.post('/users', { username: targetUsername });
@@ -1089,7 +1100,32 @@ export const Dashboard: React.FC = () => {
             }}
           >
             <div
-              onClick={() => targetProfilePic && setShowTargetFullscreenPic(true)}
+              onClick={() => {
+                // Don't show stories for private accounts
+                const hasStories = !isPrivateAccount && targetUserPhotos.length > 0;
+                // If user has stories, open story viewer; otherwise show fullscreen profile pic
+                if (hasStories) {
+                  const sortedPhotos = [...targetUserPhotos].sort((a, b) => 
+                    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                  );
+                  setStoryViewerState({
+                    isOpen: true,
+                    photos: sortedPhotos,
+                    startIndex: 0,
+                    ownerUsername: targetUsername || '',
+                    ownerProfilePic: targetProfilePic || undefined,
+                    isOwnStory: false,
+                    handlers: {
+                      onPhotoDeleted: (photoId) => {
+                        setTargetUserPhotos(prev => prev.filter(p => p.id !== photoId));
+                      },
+                      onPhotosViewed: () => {},
+                    },
+                  });
+                } else if (targetProfilePic) {
+                  setShowTargetFullscreenPic(true);
+                }
+              }}
               style={{
                 width: '72px',
                 height: '72px',
@@ -1104,8 +1140,11 @@ export const Dashboard: React.FC = () => {
                 textTransform: 'uppercase',
                 overflow: 'hidden',
                 flexShrink: 0,
-                cursor: targetProfilePic ? 'zoom-in' : 'default',
-                border: '2px solid var(--border)',
+                cursor: (!isPrivateAccount && targetUserPhotos.length > 0) || targetProfilePic ? 'pointer' : 'default',
+                // Use consistent 3px border, only color changes for story indicator
+                border: (!isPrivateAccount && targetUserPhotos.length > 0)
+                  ? '3px solid #0095f6'  // Story ring indicator
+                  : '3px solid var(--border)',
               }}
             >
               {targetProfilePic ? (
@@ -1259,7 +1298,7 @@ export const Dashboard: React.FC = () => {
       )}
 
       {/* Story Circles Row */}
-      {!isEditMode && targetUserId && (
+      {!isEditMode && targetUserId && !isPrivateAccount && (
         <StoryCirclesRow
           currentDate={currentDate}
           targetUserId={targetUserId}
@@ -1280,6 +1319,7 @@ export const Dashboard: React.FC = () => {
               handlers,
             });
           }}
+          onTargetUserPhotos={isReadOnly ? setTargetUserPhotos : undefined}
         />
       )}
 

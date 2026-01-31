@@ -398,9 +398,9 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
   return (
     <div className="story-viewer-overlay" onClick={handleClose}>
-      <div className="story-viewer-container" onClick={e => e.stopPropagation()}>
+      <div className="story-viewer-container">
         {/* Header */}
-        <div className="story-viewer-header">
+        <div className="story-viewer-header" onClick={e => e.stopPropagation()}>
           <div className="story-viewer-user">
             <Avatar src={ownerProfilePic} name={ownerUsername} size="sm" />
             <div className="story-viewer-user-info">
@@ -458,6 +458,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
           <div 
             className={`story-viewer-image-container ${isSwiping ? 'swiping' : ''}`}
+            onClick={e => e.stopPropagation()}
             style={{
               transform: isSwiping ? `translateX(${swipeOffset}px)` : undefined,
               transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -500,7 +501,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
         {/* Progress dots */}
         {localPhotos.length > 1 && (
-          <div className="story-viewer-progress">
+          <div className="story-viewer-progress" onClick={e => e.stopPropagation()}>
             {localPhotos.map((_, idx) => (
               <button
                 key={idx}
@@ -516,7 +517,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         {isOwnStory && (
           <button
             className="story-viewer-footer"
-            onClick={() => setShowViewers(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowViewers(true);
+            }}
           >
             <Eye size={16} />
             <span>Seen by {viewersTotal > 0 ? viewersTotal : '—'}</span>

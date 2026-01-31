@@ -247,6 +247,8 @@ export const Dashboard: React.FC = () => {
 
   // Target user's photos for story viewing (when viewing another user's profile)
   const [targetUserPhotos, setTargetUserPhotos] = useState<ActivityPhoto[]>([]);
+  // Track which user's photos are currently loaded (prevents blue ring flash when switching profiles)
+  const [targetUserPhotosOwnerId, setTargetUserPhotosOwnerId] = useState<number | null>(null);
 
   // Story viewer state
   const [storyViewerState, setStoryViewerState] = useState<{
@@ -532,6 +534,7 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     if (isReadOnly) {
       setTargetUserPhotos([]);
+      setTargetUserPhotosOwnerId(null);
     }
   }, [isReadOnly, targetUsername]);
 
@@ -592,6 +595,7 @@ export const Dashboard: React.FC = () => {
       // Reset any stale target user state from viewing other profiles
       // This prevents showing other user's photos when clicking "Your Story"
       setTargetUserPhotos([]);
+      setTargetUserPhotosOwnerId(null);
       setTargetUserId(user.id);
     }
   }, [isReadOnly, user?.id]);
@@ -1112,8 +1116,8 @@ export const Dashboard: React.FC = () => {
           >
             <div
               onClick={() => {
-                // Don't show stories for private accounts
-                const hasStories = !isPrivateAccount && targetUserPhotos.length > 0;
+                // Don't show stories for private accounts or if photos are stale
+                const hasStories = !isPrivateAccount && targetUserPhotos.length > 0 && targetUserPhotosOwnerId === targetUserId;
                 // If user has stories, open story viewer; otherwise show fullscreen profile pic
                 if (hasStories) {
                   const sortedPhotos = [...targetUserPhotos].sort((a, b) => 
@@ -1151,9 +1155,10 @@ export const Dashboard: React.FC = () => {
                 textTransform: 'uppercase',
                 overflow: 'hidden',
                 flexShrink: 0,
-                cursor: (!isPrivateAccount && targetUserPhotos.length > 0) || targetProfilePic ? 'pointer' : 'default',
+                cursor: (!isPrivateAccount && targetUserPhotos.length > 0 && targetUserPhotosOwnerId === targetUserId) || targetProfilePic ? 'pointer' : 'default',
                 // Use consistent 3px border, only color changes for story indicator
-                border: (!isPrivateAccount && targetUserPhotos.length > 0)
+                // Only show blue ring if photos are confirmed to be for the current user
+                border: (!isPrivateAccount && targetUserPhotos.length > 0 && targetUserPhotosOwnerId === targetUserId)
                   ? '3px solid #0095f6'  // Story ring indicator
                   : '3px solid var(--border)',
               }}
@@ -1330,7 +1335,10 @@ export const Dashboard: React.FC = () => {
               handlers,
             });
           }}
-          onTargetUserPhotos={isReadOnly ? setTargetUserPhotos : undefined}
+          onTargetUserPhotos={isReadOnly ? (photos) => {
+            setTargetUserPhotos(photos);
+            setTargetUserPhotosOwnerId(targetUserId);
+          } : undefined}
         />
       )}
 

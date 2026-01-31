@@ -56,8 +56,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const [loadingViewers, setLoadingViewers] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [imageError, setImageError] = useState(false);
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const viewedPhotosRef = React.useRef<Set<number>>(new Set());
   // Track local photos list (for proper navigation after deletion)
   const [localPhotos, setLocalPhotos] = useState<ActivityPhoto[]>(photos);
@@ -65,8 +64,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   // Swipe gesture state
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const currentPhoto = localPhotos[currentIndex];
 
@@ -84,25 +85,18 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       setShowViewers(false);
       setShowDeleteConfirm(false);
       setViewersTotal(0);
-      setImageError(false);
+      setFailedImages(new Set());
       setToastMessage(null);
       setLocalPhotos(photos);
       viewedPhotosRef.current = new Set();
       // Reset swipe state
       setSwipeOffset(0);
       setIsSwiping(false);
+      setIsAnimating(false);
       touchStartRef.current = null;
     }
     prevIsOpenRef.current = isOpen;
   }, [isOpen, startIndex, photos]);
-
-  // Reset image error when photo changes
-  useEffect(() => {
-    setImageError(false);
-    // Clear slide direction after animation completes
-    const timer = setTimeout(() => setSlideDirection(null), 350);
-    return () => clearTimeout(timer);
-  }, [currentPhoto?.id]);
 
   // Fetch viewer count on load for own stories (not full list, just count)
   useEffect(() => {
@@ -165,11 +159,52 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     }
   }, [showViewers, fetchViewers, isOwnStory]);
 
+  // Helper helper to handle navigation with animation
+  const animateTo = useCallback((direction: 'next' | 'prev' | 'stay') => {
+    if (!containerRef.current) return;
+    const width = containerRef.current.clientWidth;
+    
+    setIsSwiping(false);
+    setIsAnimating(true);
+    
+    let targetOffset = 0;
+    if (direction === 'next') targetOffset = -width;
+    if (direction === 'prev') targetOffset = width;
+    
+    setSwipeOffset(targetOffset);
+    
+    // After animation, update index and reset
+    setTimeout(() => {
+      if (direction === 'next') {
+        setCurrentIndex(prev => Math.min(prev + 1, localPhotos.length - 1));
+      } else if (direction === 'prev') {
+        setCurrentIndex(prev => Math.max(prev - 1, 0));
+      }
+      setIsAnimating(false);
+      setSwipeOffset(0);
+    }, 300); // Match CSS duration
+  }, [localPhotos.length]);
+
+  // Navigate
+  const goNext = useCallback(() => {
+    if (currentIndex < localPhotos.length - 1 && !isAnimating) {
+      animateTo('next');
+    }
+  }, [currentIndex, localPhotos.length, isAnimating, animateTo]);
+
+  const goPrev = useCallback(() => {
+    if (currentIndex > 0 && !isAnimating) {
+      animateTo('prev');
+    }
+  }, [currentIndex, isAnimating, animateTo]);
+
   // Keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isAnimating) return; // Ignore keys during animation
+      
       switch (e.key) {
         case 'Escape':
           if (showDeleteConfirm) {
@@ -181,28 +216,22 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           }
           break;
         case 'ArrowLeft':
-          if (currentIndex > 0) {
-            setSlideDirection('right');
-            setCurrentIndex(prev => prev - 1);
-          }
+          goPrev();
           break;
         case 'ArrowRight':
-          if (currentIndex < photos.length - 1) {
-            setSlideDirection('left');
-            setCurrentIndex(prev => prev + 1);
-          }
+          goNext();
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, currentIndex, photos.length, showDeleteConfirm, showViewers, handleClose]);
+  }, [isOpen, showDeleteConfirm, showViewers, handleClose, goNext, goPrev, isAnimating]);
 
   // Touch/Swipe gesture handlers
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Don't track swipes if modals are open
-    if (showDeleteConfirm || showViewers) return;
+    // Don't track swipes if modals are open or already animating
+    if (showDeleteConfirm || showViewers || isAnimating) return;
     
     const touch = e.touches[0];
     touchStartRef.current = {
@@ -212,10 +241,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     };
     setIsSwiping(false);
     setSwipeOffset(0);
-  }, [showDeleteConfirm, showViewers]);
+  }, [showDeleteConfirm, showViewers, isAnimating]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
+    if (!touchStartRef.current || isAnimating) return;
     
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
@@ -235,48 +264,41 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       
       // Apply rubber-band resistance at edges
       if ((offset < 0 && !canGoLeft) || (offset > 0 && !canGoRight)) {
-        // Rubber band effect: reduce movement by 70%
+        // Rubber band effect: reduce movement logic
         offset = offset * 0.3;
       }
       
-      // Clamp offset to reasonable bounds
-      const maxOffset = window.innerWidth * 0.6;
-      offset = Math.max(-maxOffset, Math.min(maxOffset, offset));
-      
       setSwipeOffset(offset);
     }
-  }, [currentIndex, localPhotos.length]);
+  }, [currentIndex, localPhotos.length, isAnimating]);
 
   const handleTouchEnd = useCallback(() => {
-    if (!touchStartRef.current) return;
+    if (!touchStartRef.current || isAnimating) return;
     
-    const swipeThreshold = 50; // Minimum distance to trigger navigation
-    const velocityThreshold = 0.3; // Minimum velocity (px/ms) for quick swipes
-    
-    const endTime = Date.now();
-    const duration = endTime - touchStartRef.current.time;
-    const velocity = Math.abs(swipeOffset) / duration;
-    
-    // Determine if swipe is strong enough
-    const isStrongSwipe = Math.abs(swipeOffset) > swipeThreshold || velocity > velocityThreshold;
-    
-    if (isSwiping && isStrongSwipe) {
-      if (swipeOffset < 0 && currentIndex < localPhotos.length - 1) {
-        // Swipe left -> go to next
-        setSlideDirection('left');
-        setCurrentIndex(prev => prev + 1);
-      } else if (swipeOffset > 0 && currentIndex > 0) {
-        // Swipe right -> go to previous
-        setSlideDirection('right');
-        setCurrentIndex(prev => prev - 1);
-      }
+    if (isSwiping) {
+        const threshold = (containerRef.current?.clientWidth || window.innerWidth) * 0.25; // 25% width threshold
+        const velocityThreshold = 0.5; // px/ms
+        
+        const endTime = Date.now();
+        const duration = endTime - touchStartRef.current.time;
+        const velocity = Math.abs(swipeOffset) / duration;
+        
+        let direction: 'next' | 'prev' | 'stay' = 'stay';
+
+        if (Math.abs(swipeOffset) > threshold || velocity > velocityThreshold) {
+            if (swipeOffset < 0 && currentIndex < localPhotos.length - 1) {
+                direction = 'next';
+            } else if (swipeOffset > 0 && currentIndex > 0) {
+                direction = 'prev';
+            }
+        }
+        
+        animateTo(direction);
     }
     
-    // Reset state
+    // Reset touch ref
     touchStartRef.current = null;
-    setIsSwiping(false);
-    setSwipeOffset(0);
-  }, [swipeOffset, isSwiping, currentIndex, localPhotos.length]);
+  }, [swipeOffset, isSwiping, currentIndex, localPhotos.length, isAnimating, animateTo]);
 
   // Handle browser back
   useEffect(() => {
@@ -329,21 +351,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     }
     
     setShowDeleteConfirm(false);
-  };
-
-  // Navigate
-  const goNext = () => {
-    if (currentIndex < localPhotos.length - 1) {
-      setSlideDirection('left');
-      setCurrentIndex(prev => prev + 1);
-    }
-  };
-
-  const goPrev = () => {
-    if (currentIndex > 0) {
-      setSlideDirection('right');
-      setCurrentIndex(prev => prev - 1);
-    }
   };
 
   // Early return if not open
@@ -460,35 +467,47 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           )}
 
           <div 
-            className={`story-viewer-image-container ${isSwiping ? 'swiping' : ''}`}
+            ref={trackRef}
+            className={`story-viewer-track ${isAnimating ? 'animating' : isSwiping ? 'swiping' : ''}`}
             onClick={e => e.stopPropagation()}
             style={{
-              transform: isSwiping ? `translateX(${swipeOffset}px)` : undefined,
-              transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              transform: `translateX(${swipeOffset}px)`,
             }}
           >
-            {imageError ? (
-              <div className="story-viewer-image-error">
-                <AlertCircle size={48} />
-                <span>Failed to load photo</span>
-              </div>
-            ) : (
-              <img
-                key={currentPhoto.id}
-                src={currentPhoto.photo_url}
-                alt={`${ownerUsername}'s ${currentPhoto.activity_name} activity`}
-                className={`story-viewer-image ${slideDirection && !isSwiping ? `slide-${slideDirection}` : ''}`}
-                onError={() => setImageError(true)}
-                style={{
-                  WebkitUserSelect: 'none',
-                  userSelect: 'none',
-                  pointerEvents: 'none',
-                  WebkitTouchCallout: 'none',
-                }}
-                draggable={false}
-                onContextMenu={(e) => e.preventDefault()}
-              />
-            )}
+            {/* Render Previous, Current, Next */}
+            {[currentIndex - 1, currentIndex, currentIndex + 1].map((idx, offset) => {
+              const photo = localPhotos[idx];
+              if (!photo) return null;
+              
+              const position = offset === 0 ? 'prev' : offset === 1 ? 'current' : 'next';
+              const isError = failedImages.has(photo.id);
+
+              return (
+                <div key={`${photo.id}-${position}`} className={`story-viewer-slide ${position}`}>
+                  {isError ? (
+                    <div className="story-viewer-image-error">
+                      <AlertCircle size={48} />
+                      <span>Failed to load photo</span>
+                    </div>
+                  ) : (
+                    <img
+                      src={photo.photo_url}
+                      alt={`${ownerUsername}'s ${photo.activity_name} activity`}
+                      className="story-viewer-image"
+                      onError={() => setFailedImages(prev => new Set(prev).add(photo.id))}
+                      style={{
+                        WebkitUserSelect: 'none',
+                        userSelect: 'none',
+                        pointerEvents: 'none',
+                        WebkitTouchCallout: 'none',
+                      }}
+                      draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {currentIndex < localPhotos.length - 1 && (

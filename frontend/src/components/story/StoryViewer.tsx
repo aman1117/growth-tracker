@@ -76,6 +76,21 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     setLocalPhotos(photos);
   }, [photos]);
 
+  // Lock body scroll when viewer is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      const originalTouchAction = document.body.style.touchAction;
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+      
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.touchAction = originalTouchAction;
+      };
+    }
+  }, [isOpen]);
+
   // Reset state when opening (but not on every photos change)
   const prevIsOpenRef = useRef(false);
   useEffect(() => {

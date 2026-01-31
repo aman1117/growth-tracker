@@ -156,14 +156,14 @@
 
 .story-add-circle-wrapper {
   position: relative;
-  width: 68px;
-  height: 68px;
+  width: 64px;
+  height: 64px;
 }
 
 .story-add-circle {
   position: relative;
-  width: 68px;
-  height: 68px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   border: none;
   padding: 0;
@@ -195,8 +195,8 @@
 }
 
 .story-add-avatar {
-  width: 68px;
-  height: 68px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
@@ -206,11 +206,11 @@
 
 /* Ensure Avatar component fills the container properly */
 .story-add-avatar .avatar {
-  width: 68px !important;
-  height: 68px !important;
-  min-width: 68px;
-  min-height: 68px;
-  font-size: 1.5rem;
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px;
+  min-height: 64px;
+  font-size: 1.4rem;
 }
 
 /* Plus badge - positioned at bottom right like Instagram */

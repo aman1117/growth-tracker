@@ -8,9 +8,16 @@
 .story-row-container {
   margin: 12px 0 16px 0;
   padding: 12px 0;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   animation: rowFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Match DaySummaryCard glassmorphism */
+  background: var(--tile-glass-bg);
+  backdrop-filter: blur(var(--tile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
+  border: 1px solid var(--tile-glass-border);
+  box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
 }
 
 @keyframes rowFadeIn {
@@ -130,8 +137,8 @@
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .story-row-container {
-    margin: 8px -8px 12px -8px;
-    border-radius: 0;
+    margin: 8px 0 12px 0;
+    border-radius: 20px;
   }
 
   .story-row-scroll {

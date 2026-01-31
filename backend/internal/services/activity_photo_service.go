@@ -396,7 +396,7 @@ func (s *ActivityPhotoService) CanViewStories(ctx context.Context, viewerID, tar
 
 // ==================== Debounced Notifications ====================
 
-const notificationDebounceWindow = 5 * time.Minute
+const notificationDebounceWindow = 30 * time.Second
 
 // scheduleNotification schedules a debounced notification for photo uploads
 func (s *ActivityPhotoService) scheduleNotification(ctx context.Context, uploaderID uint, photoDate string) {

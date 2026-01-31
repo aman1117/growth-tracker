@@ -527,6 +527,14 @@ export const Dashboard: React.FC = () => {
   // Get lookupRelationships from follow store
   const { lookupRelationships } = useFollowStore();
 
+  // Reset target user photos immediately when switching profiles to prevent blue ring flash
+  // This runs synchronously before the async profile fetch
+  useEffect(() => {
+    if (isReadOnly) {
+      setTargetUserPhotos([]);
+    }
+  }, [isReadOnly, targetUsername]);
+
   // Fetch target user's profile pic and bio when viewing another user's dashboard
   useEffect(() => {
     const fetchTargetUserProfile = async () => {
@@ -538,7 +546,6 @@ export const Dashboard: React.FC = () => {
         setTargetUserId(null);
         setTargetIsPrivate(false);
         setTargetLastLoggedAt(null);
-        setTargetUserPhotos([]); // Reset target user's photos
 
         try {
           const res = await api.post('/users', { username: targetUsername });

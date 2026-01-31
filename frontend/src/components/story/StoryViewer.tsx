@@ -55,7 +55,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const [viewersTotal, setViewersTotal] = useState(0);
   const [loadingViewers, setLoadingViewers] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
@@ -207,43 +206,40 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     };
   }, [isOpen, handleClose]);
 
-  // Delete photo
+  // Delete photo - closes immediately and deletes in background
   const handleDelete = async () => {
-    if (!currentPhoto || deleting) return;
+    if (!currentPhoto) return;
 
-    setDeleting(true);
+    const photoIdToDelete = currentPhoto.id;
+    const newPhotos = localPhotos.filter(p => p.id !== photoIdToDelete);
+    
+    // Close immediately if no more photos, otherwise navigate
+    if (newPhotos.length === 0) {
+      // Close viewer immediately, delete happens in background
+      handleClose();
+    } else {
+      // Update local state first for instant feedback
+      setLocalPhotos(newPhotos);
+      if (currentIndex >= newPhotos.length) {
+        setCurrentIndex(newPhotos.length - 1);
+      }
+    }
+    
+    // Notify parent to update its state (for toast display)
+    onPhotoDeleted?.(photoIdToDelete);
+    
+    // Delete in background
     try {
-      const response = await activityPhotoApi.deletePhoto(currentPhoto.id);
-      if (response.success) {
-        // Show success toast
-        setToastMessage('Photo deleted');
-        
-        // Notify parent to update its state
-        onPhotoDeleted?.(currentPhoto.id);
-        
-        // Update local photos list
-        const newPhotos = localPhotos.filter(p => p.id !== currentPhoto.id);
-        setLocalPhotos(newPhotos);
-        
-        // Navigate appropriately or close
-        if (newPhotos.length === 0) {
-          // No more photos, close after toast has time to display
-          setTimeout(() => handleClose(), 1500);
-        } else if (currentIndex >= newPhotos.length) {
-          // Was on last photo, go to previous
-          setCurrentIndex(newPhotos.length - 1);
-        }
-        // If not last photo, stay on same index (which now shows next photo)
-      } else {
-        setToastMessage('Failed to delete photo');
+      const response = await activityPhotoApi.deletePhoto(photoIdToDelete);
+      if (!response.success) {
+        console.error('Delete failed:', response.error);
+        // Could add back the photo here if needed, but usually not critical
       }
     } catch (err) {
       console.error('Delete failed:', err);
-      setToastMessage('Failed to delete photo');
-    } finally {
-      setDeleting(false);
-      setShowDeleteConfirm(false);
     }
+    
+    setShowDeleteConfirm(false);
   };
 
   // Navigate
@@ -289,18 +285,18 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
   // Get activity display info (label, icon, color)
   const getActivityInfo = (photo: ActivityPhoto): { label: string; icon?: string; color: string } => {
-    if (photo.activity_label || photo.activity_icon || photo.activity_color) {
-      // Custom tile - use stored metadata
+    const isCustom = photo.activity_name.startsWith('custom:');
+    
+    // For custom tiles, prioritize stored metadata
+    if (isCustom) {
       return {
-        label: photo.activity_label || 'Activity',
+        label: photo.activity_label || photo.activity_name.replace('custom:', ''),
         icon: photo.activity_icon,
         color: photo.activity_color || '#666',
       };
     }
-    const isCustom = photo.activity_name.startsWith('custom:');
-    if (isCustom) {
-      return { label: 'Activity', icon: undefined, color: '#666' };
-    }
+    
+    // For standard activities, use config
     const config = getActivityConfig(photo.activity_name as ActivityName);
     return {
       label: config?.label || photo.activity_name,
@@ -441,9 +437,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
                 <button
                   className="story-viewer-dialog-btn story-viewer-dialog-delete"
                   onClick={handleDelete}
-                  disabled={deleting}
                 >
-                  {deleting ? 'Deleting...' : 'Delete'}
+                  Delete
                 </button>
               </div>
             </div>

@@ -469,7 +469,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           <div 
             ref={trackRef}
             className={`story-viewer-track ${isAnimating ? 'animating' : isSwiping ? 'swiping' : ''}`}
-            onClick={e => e.stopPropagation()}
             style={{
               transform: `translateX(${swipeOffset}px)`,
             }}

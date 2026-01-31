@@ -579,8 +579,12 @@ export const Dashboard: React.FC = () => {
   }, [isReadOnly, targetUsername, lookupRelationships]);
 
   // Set targetUserId for own profile (needed for story circles)
+  // Also reset target user state when navigating back to own profile to prevent stale data
   useEffect(() => {
     if (!isReadOnly && user?.id) {
+      // Reset any stale target user state from viewing other profiles
+      // This prevents showing other user's photos when clicking "Your Story"
+      setTargetUserPhotos([]);
       setTargetUserId(user.id);
     }
   }, [isReadOnly, user?.id]);

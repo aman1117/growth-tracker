@@ -95,6 +95,13 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const dateStr = formatDateForAPI(currentDate);
   const canUpload = isOwnProfile && isDateWithinUploadWindow(currentDate);
 
+  // Reset photos when switching between own profile and other users' profiles
+  // This prevents stale data from being shown
+  useEffect(() => {
+    setOwnPhotos([]);
+    setFollowingStories([]);
+  }, [isOwnProfile, targetUserId]);
+
   // Lock body scroll when activity picker is open
   useEffect(() => {
     if (showActivityPicker || showSourcePicker) {
@@ -111,12 +118,17 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const fetchPhotos = useCallback(async () => {
     if (!user?.id) return;
     
+    // Safety check: when viewing own profile, ensure we're fetching the logged-in user's photos
+    // This prevents a race condition where targetUserId might be stale from viewing another user
+    const userIdToFetch = isOwnProfile ? user.id : targetUserId;
+    if (!userIdToFetch) return;
+    
     setLoading(true);
     setError(null);
     
     try {
       // Fetch own photos (or target user's if viewing someone else)
-      const photosResponse = await activityPhotoApi.getPhotos(targetUserId, dateStr);
+      const photosResponse = await activityPhotoApi.getPhotos(userIdToFetch, dateStr);
       if (photosResponse.success) {
         const photos = photosResponse.photos || [];
         setOwnPhotos(photos);

@@ -535,7 +535,13 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
         {/* Delete confirmation dialog */}
         {showDeleteConfirm && (
-          <div className="story-viewer-dialog-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div 
+            className="story-viewer-dialog-overlay" 
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent closing the main viewer
+              setShowDeleteConfirm(false);
+            }}
+          >
             <div className="story-viewer-dialog" onClick={e => e.stopPropagation()}>
               <h3>Delete Photo?</h3>
               <p>This photo will be permanently deleted.</p>
@@ -559,7 +565,13 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
         {/* Viewers list panel */}
         {showViewers && (
-          <div className="story-viewer-viewers-overlay" onClick={() => setShowViewers(false)}>
+          <div 
+            className="story-viewer-viewers-overlay" 
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent closing the main viewer
+              setShowViewers(false);
+            }}
+          >
             <div className="story-viewer-viewers-panel" onClick={e => e.stopPropagation()}>
               <div className="story-viewer-viewers-header">
                 <h3>Seen by {viewersTotal}</h3>

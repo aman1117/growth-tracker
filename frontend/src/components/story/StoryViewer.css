@@ -225,6 +225,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  position: relative;
 }
 
 .story-viewer-image {
@@ -233,37 +235,57 @@
   object-fit: contain;
   border-radius: 12px;
   will-change: transform, opacity;
+  transform-origin: center center;
 }
 
-/* Image transition for navigation */
+/* Image transition for navigation - Instagram style */
 .story-viewer-image.slide-left {
-  animation: slideLeft 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInFromRight 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .story-viewer-image.slide-right {
-  animation: slideRight 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInFromLeft 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-@keyframes slideLeft {
-  from {
+/* Next image: slides in from the right side */
+@keyframes slideInFromRight {
+  0% {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(100%);
   }
-  to {
+  100% {
     opacity: 1;
     transform: translateX(0);
   }
 }
 
-@keyframes slideRight {
-  from {
+/* Previous image: slides in from the left side */
+@keyframes slideInFromLeft {
+  0% {
     opacity: 0;
-    transform: translateX(-30px);
+    transform: translateX(-100%);
   }
-  to {
+  100% {
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+/* Swipe gesture styles */
+.story-viewer-image-container.swiping {
+  will-change: transform;
+}
+
+.story-viewer-image-container.swiping .story-viewer-image {
+  /* Disable slide animations during active swipe */
+  animation: none !important;
+}
+
+/* Touch feedback - slight scale on active swipe */
+.story-viewer-content {
+  touch-action: pan-y pinch-zoom;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Image error state */

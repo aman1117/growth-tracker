@@ -62,6 +62,12 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   // Track local photos list (for proper navigation after deletion)
   const [localPhotos, setLocalPhotos] = useState<ActivityPhoto[]>(photos);
 
+  // Swipe gesture state
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const currentPhoto = localPhotos[currentIndex];
 
   // Sync local photos with props when photos change
@@ -82,6 +88,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       setToastMessage(null);
       setLocalPhotos(photos);
       viewedPhotosRef.current = new Set();
+      // Reset swipe state
+      setSwipeOffset(0);
+      setIsSwiping(false);
+      touchStartRef.current = null;
     }
     prevIsOpenRef.current = isOpen;
   }, [isOpen, startIndex, photos]);
@@ -188,6 +198,85 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, currentIndex, photos.length, showDeleteConfirm, showViewers, handleClose]);
+
+  // Touch/Swipe gesture handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // Don't track swipes if modals are open
+    if (showDeleteConfirm || showViewers) return;
+    
+    const touch = e.touches[0];
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now(),
+    };
+    setIsSwiping(false);
+    setSwipeOffset(0);
+  }, [showDeleteConfirm, showViewers]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    
+    // Determine if this is a horizontal swipe (more horizontal than vertical)
+    const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+    
+    // Only track horizontal swipes after initial threshold
+    if (Math.abs(deltaX) > 10 && isHorizontalSwipe) {
+      setIsSwiping(true);
+      
+      // Calculate bounded offset with resistance at edges
+      let offset = deltaX;
+      const canGoLeft = currentIndex < localPhotos.length - 1;
+      const canGoRight = currentIndex > 0;
+      
+      // Apply rubber-band resistance at edges
+      if ((offset < 0 && !canGoLeft) || (offset > 0 && !canGoRight)) {
+        // Rubber band effect: reduce movement by 70%
+        offset = offset * 0.3;
+      }
+      
+      // Clamp offset to reasonable bounds
+      const maxOffset = window.innerWidth * 0.6;
+      offset = Math.max(-maxOffset, Math.min(maxOffset, offset));
+      
+      setSwipeOffset(offset);
+    }
+  }, [currentIndex, localPhotos.length]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!touchStartRef.current) return;
+    
+    const swipeThreshold = 50; // Minimum distance to trigger navigation
+    const velocityThreshold = 0.3; // Minimum velocity (px/ms) for quick swipes
+    
+    const endTime = Date.now();
+    const duration = endTime - touchStartRef.current.time;
+    const velocity = Math.abs(swipeOffset) / duration;
+    
+    // Determine if swipe is strong enough
+    const isStrongSwipe = Math.abs(swipeOffset) > swipeThreshold || velocity > velocityThreshold;
+    
+    if (isSwiping && isStrongSwipe) {
+      if (swipeOffset < 0 && currentIndex < localPhotos.length - 1) {
+        // Swipe left -> go to next
+        setSlideDirection('left');
+        setCurrentIndex(prev => prev + 1);
+      } else if (swipeOffset > 0 && currentIndex > 0) {
+        // Swipe right -> go to previous
+        setSlideDirection('right');
+        setCurrentIndex(prev => prev - 1);
+      }
+    }
+    
+    // Reset state
+    touchStartRef.current = null;
+    setIsSwiping(false);
+    setSwipeOffset(0);
+  }, [swipeOffset, isSwiping, currentIndex, localPhotos.length]);
 
   // Handle browser back
   useEffect(() => {
@@ -348,7 +437,14 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         </div>
 
         {/* Main image */}
-        <div className="story-viewer-content">
+        <div 
+          ref={containerRef}
+          className="story-viewer-content"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+        >
           {/* Navigation arrows */}
           {currentIndex > 0 && (
             <button
@@ -360,7 +456,13 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
             </button>
           )}
 
-          <div className="story-viewer-image-container">
+          <div 
+            className={`story-viewer-image-container ${isSwiping ? 'swiping' : ''}`}
+            style={{
+              transform: isSwiping ? `translateX(${swipeOffset}px)` : undefined,
+              transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
+          >
             {imageError ? (
               <div className="story-viewer-image-error">
                 <AlertCircle size={48} />
@@ -371,7 +473,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
                 key={currentPhoto.id}
                 src={currentPhoto.photo_url}
                 alt={`${ownerUsername}'s ${currentPhoto.activity_name} activity`}
-                className={`story-viewer-image ${slideDirection ? `slide-${slideDirection}` : ''}`}
+                className={`story-viewer-image ${slideDirection && !isSwiping ? `slide-${slideDirection}` : ''}`}
                 onError={() => setImageError(true)}
                 style={{
                   WebkitUserSelect: 'none',

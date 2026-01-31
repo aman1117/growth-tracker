@@ -5,7 +5,7 @@
  * Instagram-style layout: Add Story button, friends' stories, then own story at the end.
  */
 
-import { Camera, Plus, X } from 'lucide-react';
+import { Camera, Image, Plus, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -77,6 +77,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
 }) => {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   
   const [ownPhotos, setOwnPhotos] = useState<ActivityPhoto[]>([]);
   const [followingStories, setFollowingStories] = useState<UserStoryGroup[]>([]);
@@ -85,6 +86,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showActivityPicker, setShowActivityPicker] = useState(false);
+  const [showSourcePicker, setShowSourcePicker] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
 
   const dateStr = formatDateForAPI(currentDate);
@@ -92,7 +94,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
 
   // Lock body scroll when activity picker is open
   useEffect(() => {
-    if (showActivityPicker) {
+    if (showActivityPicker || showSourcePicker) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -100,7 +102,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showActivityPicker]);
+  }, [showActivityPicker, showSourcePicker]);
 
   // Fetch photos
   const fetchPhotos = useCallback(async () => {
@@ -167,18 +169,23 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
     const file = event.target.files?.[0];
     const activityToUpload = selectedActivity;
     
-    // Reset input
+    // Reset both inputs
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = '';
     }
 
     if (!file || !activityToUpload) {
       setSelectedActivity(null);
+      setShowSourcePicker(false);
       return;
     }
 
     setUploadingActivity(activityToUpload);
     setShowActivityPicker(false);
+    setShowSourcePicker(false);
 
     // Validate
     if (!isValidImageType(file)) {
@@ -230,11 +237,29 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
     }
   };
 
-  // Handle activity selection from picker
+  // Handle activity selection from picker - show source picker
   const handleActivitySelect = (activityName: string) => {
     setSelectedActivity(activityName);
-    // Trigger file input after a small delay to ensure state is set
+    setShowActivityPicker(false);
+    setShowSourcePicker(true);
+  };
+
+  // Handle selecting camera as source
+  const handleCameraSelect = () => {
+    setShowSourcePicker(false);
     setTimeout(() => fileInputRef.current?.click(), 100);
+  };
+
+  // Handle selecting gallery as source
+  const handleGallerySelect = () => {
+    setShowSourcePicker(false);
+    setTimeout(() => galleryInputRef.current?.click(), 100);
+  };
+
+  // Handle closing source picker
+  const handleSourcePickerClose = () => {
+    setShowSourcePicker(false);
+    setSelectedActivity(null);
   };
 
   // Handle clicking "Add Story" button
@@ -322,12 +347,22 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
 
   return (
     <div className="story-row-container glass-surface">
-      {/* Hidden file input */}
+      {/* Hidden file input for camera */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp"
         capture="environment"
+        onChange={handleFileSelect}
+        style={{ display: 'none' }}
+        aria-hidden="true"
+      />
+      
+      {/* Hidden file input for gallery (no capture attribute) */}
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
         onChange={handleFileSelect}
         style={{ display: 'none' }}
         aria-hidden="true"
@@ -455,8 +490,10 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
         <div className="story-activity-picker-overlay" onClick={() => setShowActivityPicker(false)}>
           <div className="story-activity-picker" onClick={e => e.stopPropagation()}>
             <div className="story-activity-picker-header">
-              <h3>Add Story</h3>
-              <p>Select an activity</p>
+              <div>
+                <h3>Add Story</h3>
+                <p>Select an activity</p>
+              </div>
               <button 
                 className="story-activity-picker-close"
                 onClick={() => setShowActivityPicker(false)}
@@ -477,14 +514,53 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
                     style={{ backgroundColor: activity.color }}
                   >
                     {activity.icon ? (
-                      <DynamicIcon name={activity.icon} size={20} color="white" />
+                      <DynamicIcon name={activity.icon} size={18} color="white" />
                     ) : (
-                      <Camera size={20} color="white" />
+                      <Camera size={18} color="white" />
                     )}
                   </div>
                   <span className="story-activity-picker-label">{activity.displayLabel}</span>
                 </button>
               ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Source Picker Modal - Camera or Gallery */}
+      {showSourcePicker && createPortal(
+        <div className="story-activity-picker-overlay" onClick={handleSourcePickerClose}>
+          <div className="story-source-picker" onClick={e => e.stopPropagation()}>
+            <div className="story-source-picker-header">
+              <h3>Add Photo</h3>
+              <button 
+                className="story-activity-picker-close"
+                onClick={handleSourcePickerClose}
+                aria-label="Close"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="story-source-picker-options">
+              <button
+                className="story-source-picker-option"
+                onClick={handleCameraSelect}
+              >
+                <div className="story-source-picker-icon">
+                  <Camera size={24} />
+                </div>
+                <span>Take Photo</span>
+              </button>
+              <button
+                className="story-source-picker-option"
+                onClick={handleGallerySelect}
+              >
+                <div className="story-source-picker-icon">
+                  <Image size={24} />
+                </div>
+                <span>Choose from Gallery</span>
+              </button>
             </div>
           </div>
         </div>,

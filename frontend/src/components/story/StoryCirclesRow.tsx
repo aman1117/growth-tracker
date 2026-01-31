@@ -5,6 +5,8 @@
  * Instagram-style layout: Add Story button, friends' stories, then own story at the end.
  */
 
+import './StoryCirclesRow.css';
+
 import { Camera, Image, Plus, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -21,10 +23,8 @@ import {
   isValidImageSize,
   isValidImageType,
 } from '../../utils/image-utils';
-import { Avatar, SnapToast } from '../ui';
 import { DynamicIcon } from '../DynamicIcon';
-
-import './StoryCirclesRow.css';
+import { Avatar, SnapToast } from '../ui';
 
 export interface StoryCirclesRowProps {
   /** Current date being viewed */

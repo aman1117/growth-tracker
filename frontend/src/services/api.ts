@@ -231,7 +231,6 @@ export const apiClient = new ApiClient(`${env.apiUrl}/api`);
 // ============================================================================
 
 import type { WeekAnalyticsResponse } from '../types';
-import type { AutocompleteResponse } from '../types/autocomplete';
 import type {
   AuthResponse,
   GetActivitiesResponse,
@@ -244,6 +243,7 @@ import type {
   UploadResponse,
   UserSearchResponse,
 } from '../types/api';
+import type { AutocompleteResponse } from '../types/autocomplete';
 
 /**
  * Backwards-compatible API object
@@ -463,10 +463,10 @@ export const likeApi = {
 // ============================================================================
 
 import type {
-  UploadPhotoResponse,
-  GetPhotosResponse,
   GetFollowingStoriesResponse,
+  GetPhotosResponse,
   GetPhotoViewersResponse,
+  UploadPhotoResponse,
 } from '../types/story';
 
 export const activityPhotoApi = {

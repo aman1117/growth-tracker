@@ -6,13 +6,13 @@
  * Shows "+" icon for uploadable activities without photos.
  */
 
+import './StoryCircle.css';
+
 import { Camera, Plus } from 'lucide-react';
 import React from 'react';
 
 import type { ActivityPhoto } from '../../types/story';
 import { DynamicIcon } from '../DynamicIcon';
-
-import './StoryCircle.css';
 
 export interface StoryCircleProps {
   /** Activity name (e.g., 'sleep', 'custom:uuid') */

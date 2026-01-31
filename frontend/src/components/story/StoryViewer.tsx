@@ -5,6 +5,8 @@
  * Supports navigation, deletion (own photos), and "seen by" viewer list.
  */
 
+import './StoryViewer.css';
+
 import { AlertCircle, ChevronLeft, ChevronRight, Eye, Trash2, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -14,8 +16,6 @@ import type { ActivityName } from '../../types';
 import type { ActivityPhoto, PhotoViewer } from '../../types/story';
 import { DynamicIcon } from '../DynamicIcon';
 import { Avatar, SnapToast } from '../ui';
-
-import './StoryViewer.css';
 
 export interface StoryViewerProps {
   /** Whether the viewer is open */
@@ -110,7 +110,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     }).catch(err => {
       console.error('Failed to fetch viewer count:', err);
     });
-  }, [isOpen, isOwnStory, currentPhoto?.id]);
+  }, [isOpen, isOwnStory, currentPhoto]);
 
   // Record view when photo changes (only for non-own photos)
   useEffect(() => {
@@ -124,7 +124,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       // Fail silently - view recording is not critical
       console.error('Failed to record view:', err);
     });
-  }, [currentPhoto?.id, isOwnStory]);
+  }, [currentPhoto, isOwnStory]);
 
   // Notify parent when closing about all viewed photos (for marking stories as seen)
   const handleClose = useCallback(() => {

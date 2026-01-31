@@ -75,15 +75,6 @@ export interface GetPhotoViewersResponse {
   error?: string;
 }
 
-// Notification metadata for photo_uploaded
-export interface PhotoUploadedMetadata {
-  uploader_id: number;
-  uploader_username: string;
-  uploader_avatar?: string;
-  photo_count: number;
-  photo_date: string;
-}
-
 // Story viewer navigation state
 export interface StoryViewerState {
   isOpen: boolean;

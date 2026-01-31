@@ -52,7 +52,7 @@ export interface StoryCirclesRowProps {
     isOwn?: boolean,
     handlers?: {
       onPhotoDeleted: (photoId: number) => void;
-      onPhotosViewed: (photoIds: number[], userId: number) => void;
+      onPhotosViewed: (photoIds: number[]) => void;
     }
   ) => void;
 }
@@ -279,7 +279,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
       'Your Story',
       user?.profilePic || undefined, 
       true,
-      { onPhotoDeleted: handlePhotoDeleted, onPhotosViewed: handlePhotosViewed }
+      { onPhotoDeleted: handlePhotoDeleted, onPhotosViewed: () => {} }
     );
   };
 
@@ -431,7 +431,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
                       targetUsername, 
                       undefined, 
                       false,
-                      { onPhotoDeleted: handlePhotoDeleted, onPhotosViewed: handlePhotosViewed }
+                      { onPhotoDeleted: handlePhotoDeleted, onPhotosViewed: () => {} }
                     );
                   }}
                   aria-label={`View ${targetUsername}'s story`}

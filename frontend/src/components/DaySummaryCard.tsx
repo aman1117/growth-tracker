@@ -19,6 +19,8 @@ interface DaySummaryCardProps {
   loading?: boolean;
   onNewBadges?: (badges: Badge[]) => void;
   onBadgesLoaded?: (badges: Badge[]) => void;
+  /** Called when the calendar picker opens/closes */
+  onCalendarOpenChange?: (isOpen: boolean) => void;
 }
 
 interface StreakData {
@@ -38,6 +40,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
   loading = false,
   onNewBadges,
   onBadgesLoaded,
+  onCalendarOpenChange,
 }) => {
   const [streak, setStreak] = useState<StreakData>({ current: 0, longest: 0 });
   const [streakLoading, setStreakLoading] = useState(true);
@@ -51,6 +54,11 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
 
   // Completion store for heat map
   const { fetchMonthData, getMonthData } = useCompletionStore();
+
+  // Notify parent when calendar open state changes (for pull-to-refresh disable)
+  useEffect(() => {
+    onCalendarOpenChange?.(isCalendarOpen);
+  }, [isCalendarOpen, onCalendarOpenChange]);
 
   const formatDateForApi = (date: Date) => {
     const year = date.getFullYear();

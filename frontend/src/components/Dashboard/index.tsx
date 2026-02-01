@@ -202,6 +202,7 @@ export const Dashboard: React.FC = () => {
   const [showCustomTileModal, setShowCustomTileModal] = useState(false);
   const [editingCustomTile, setEditingCustomTile] = useState<CustomTile | undefined>(undefined);
   const [showHiddenTilesPanel, setShowHiddenTilesPanel] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   // Hide confirmation dialog state
   const [hideConfirm, setHideConfirm] = useState<{
@@ -528,8 +529,18 @@ export const Dashboard: React.FC = () => {
     }
   }, [fetchActivities, fetchMonthData, targetUsername, currentYear, currentMonth]);
 
-  // Disable pull-to-refresh during drag-and-drop or edit mode
-  const isPullToRefreshDisabled = !!activeDragId || isEditMode;
+  // Disable pull-to-refresh during drag-and-drop, edit mode, or any overlay/modal
+  const isPullToRefreshDisabled =
+    !!activeDragId ||
+    isEditMode ||
+    storyViewerState.isOpen ||
+    isModalOpen ||
+    showBadgeUnlockModal ||
+    showCustomTileModal ||
+    showHiddenTilesPanel ||
+    showTargetFullscreenPic ||
+    isCalendarOpen ||
+    !!hideConfirm;
 
   // ============================================================================
   // Render
@@ -584,6 +595,7 @@ export const Dashboard: React.FC = () => {
               setNewBadges(badges);
               setShowBadgeUnlockModal(true);
             }}
+            onCalendarOpenChange={setIsCalendarOpen}
           />
         </div>
       )}

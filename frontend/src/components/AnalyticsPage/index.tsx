@@ -1,3 +1,10 @@
+/**
+ * AnalyticsPage Component
+ *
+ * Displays weekly analytics with charts, activity breakdown, and streak stats.
+ * Supports viewing own analytics or another user's (if not private).
+ */
+
 import {
   ArrowLeft,
   ArrowUpDown,
@@ -5,7 +12,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Coffee,
   Flame,
   Lock,
   TrendingDown,
@@ -14,26 +20,20 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { getActivityConfig, STORAGE_KEYS } from '../constants';
-import { APP_ROUTES } from '../constants/routes';
-import { api, ApiError, userApi } from '../services/api';
-import { useAuth } from '../store';
-import type {
-  ActivityName,
-  ActivitySummary,
-  CustomTile,
-  DayAnalytics,
-  WeekAnalyticsResponse,
-} from '../types';
-import type { AutocompleteSuggestion } from '../types/autocomplete';
-import { DynamicIcon } from './DynamicIcon';
-import { VerifiedBadge } from './ui';
-import { Autocomplete } from './ui/Autocomplete';
+import { getActivityConfig, STORAGE_KEYS } from '../../constants';
+import { APP_ROUTES } from '../../constants/routes';
+import { api, ApiError, userApi } from '../../services/api';
+import { useAuth } from '../../store';
+import type { ActivityName, CustomTile, WeekAnalyticsResponse } from '../../types';
+import type { AutocompleteSuggestion } from '../../types/autocomplete';
+import { VerifiedBadge } from '../ui';
+import { Autocomplete } from '../ui/Autocomplete';
+import { ActivityRow, DayBar } from './components';
 
-// Get Monday of the week for a given date
+// Utility functions
 const getWeekStart = (date: Date): Date => {
   const d = new Date(date);
   const day = d.getDay();
@@ -65,6 +65,100 @@ const formatWeekRange = (weekStart: Date): string => {
   }
   return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
 };
+
+// CSS Styles
+const ANALYTICS_STYLES = `
+  @keyframes slideInFromRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOutToRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes barGrow {
+    from { height: 0; }
+    to { height: var(--target-height); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes dropdownSlide {
+    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .stat-card {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  .glass-card {
+    background: var(--tile-glass-bg) !important;
+    backdrop-filter: blur(var(--tile-glass-blur)) !important;
+    -webkit-backdrop-filter: blur(var(--tile-glass-blur)) !important;
+    border: 1px solid var(--tile-glass-border) !important;
+    box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow) !important;
+    border-radius: 20px !important;
+  }
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--tile-glass-shadow-active), var(--tile-glass-inner-glow) !important;
+  }
+  .bar-segment {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .bar-segment:hover {
+    opacity: 0.85;
+    transform: scaleX(1.02);
+  }
+  .activity-row {
+    transition: background-color 0.2s ease, transform 0.15s ease;
+  }
+  .activity-row:hover {
+    background-color: var(--bg-secondary);
+    transform: translateX(4px);
+  }
+  .skeleton {
+    background: var(--tile-glass-bg);
+    backdrop-filter: blur(var(--tile-glass-blur));
+    -webkit-backdrop-filter: blur(var(--tile-glass-blur));
+    border: 1px solid var(--tile-glass-border);
+    box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .skeleton::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+`;
 
 export const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -99,7 +193,6 @@ export const AnalyticsPage: React.FC = () => {
   // Load custom tiles and colors based on target user
   useEffect(() => {
     const loadTileConfig = async () => {
-      // Determine if viewing own profile or someone else's
       const isViewingOwn = targetUsername === user?.username;
 
       if (isViewingOwn) {
@@ -149,12 +242,10 @@ export const AnalyticsPage: React.FC = () => {
               setTileColors({});
             }
           } else {
-            // No config for this user
             setCustomTiles([]);
             setTileColors({});
           }
         } catch {
-          // Failed to load other user's config
           setCustomTiles([]);
           setTileColors({});
         }
@@ -230,7 +321,6 @@ export const AnalyticsPage: React.FC = () => {
         setAnalytics(null);
       }
     } catch (err) {
-      // Check if it's a private account error
       if (err instanceof ApiError && err.errorCode === 'ACCOUNT_PRIVATE') {
         setIsPrivateAccount(true);
         setAnalytics(null);
@@ -252,7 +342,6 @@ export const AnalyticsPage: React.FC = () => {
     const fetchTargetUserVerification = async () => {
       if (!targetUsername) return;
 
-      // Always fetch from API to get accurate verification status
       try {
         const res = await api.post('/users', { username: targetUsername });
         if (res.success && res.data && res.data.length > 0) {
@@ -293,7 +382,6 @@ export const AnalyticsPage: React.FC = () => {
   const handleBack = () => {
     setIsExiting(true);
     setTimeout(() => {
-      // Safe navigation: use history if available, otherwise go home
       if (window.history.length > 2 && window.history.state?.idx > 0) {
         navigate(-1);
       } else {
@@ -304,8 +392,6 @@ export const AnalyticsPage: React.FC = () => {
 
   const handleUserSelect = (username: string) => {
     setShowUserSelector(false);
-    // Replace instead of push to avoid polluting history stack
-    // Back button will go to where user was before analytics, not between user switches
     navigate(APP_ROUTES.USER_ANALYTICS(username), { replace: true });
   };
 
@@ -328,100 +414,25 @@ export const AnalyticsPage: React.FC = () => {
     return null;
   }
 
+  // Calculate average for the chart
+  const calculateAverage = () => {
+    if (!analytics) return 0;
+    if (activityFilter.length === 0) {
+      return analytics.daily_breakdown.reduce((sum, d) => sum + d.total_hours, 0) / 7;
+    }
+    return (
+      analytics.daily_breakdown.reduce((sum, d) => {
+        const filteredHours = d.activities
+          .filter((a) => activityFilter.includes(a.name))
+          .reduce((h, a) => h + a.hours, 0);
+        return sum + filteredHours;
+      }, 0) / 7
+    );
+  };
+
   return (
     <>
-      <style>{`
-                @keyframes slideInFromRight {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes slideOutToRight {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
-                }
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes countUp {
-                    from { opacity: 0; transform: scale(0.8); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-                @keyframes barGrow {
-                    from { height: 0; }
-                    to { height: var(--target-height); }
-                }
-                @keyframes shimmer {
-                    0% { background-position: -200% 0; }
-                    100% { background-position: 200% 0; }
-                }
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.5; }
-                }
-                @keyframes dropdownSlide {
-                    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-                    to { opacity: 1; transform: translateY(0) scale(1); }
-                }
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-                .stat-card {
-                    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-                }
-                .stat-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                }
-                .glass-card {
-                    background: var(--tile-glass-bg) !important;
-                    backdrop-filter: blur(var(--tile-glass-blur)) !important;
-                    -webkit-backdrop-filter: blur(var(--tile-glass-blur)) !important;
-                    border: 1px solid var(--tile-glass-border) !important;
-                    box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow) !important;
-                    border-radius: 20px !important;
-                }
-                .glass-card:hover {
-                    transform: translateY(-2px);
-                    box-shadow: var(--tile-glass-shadow-active), var(--tile-glass-inner-glow) !important;
-                }
-                .bar-segment {
-                    transition: opacity 0.2s ease, transform 0.2s ease;
-                }
-                .bar-segment:hover {
-                    opacity: 0.85;
-                    transform: scaleX(1.02);
-                }
-                .activity-row {
-                    transition: background-color 0.2s ease, transform 0.15s ease;
-                }
-                .activity-row:hover {
-                    background-color: var(--bg-secondary);
-                    transform: translateX(4px);
-                }
-                .skeleton {
-                    background: var(--tile-glass-bg);
-                    backdrop-filter: blur(var(--tile-glass-blur));
-                    -webkit-backdrop-filter: blur(var(--tile-glass-blur));
-                    border: 1px solid var(--tile-glass-border);
-                    box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
-                    border-radius: 20px;
-                    position: relative;
-                    overflow: hidden;
-                }
-                .skeleton::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-                    background-size: 200% 100%;
-                    animation: shimmer 2s ease-in-out infinite;
-                }
-            `}</style>
+      <style>{ANALYTICS_STYLES}</style>
 
       <div
         className="container"
@@ -478,7 +489,6 @@ export const AnalyticsPage: React.FC = () => {
         {/* User Selector */}
         <div ref={userSelectorRef} style={{ position: 'relative', marginBottom: '1rem' }}>
           {showUserSelector ? (
-            /* Autocomplete Search Mode */
             <Autocomplete
               placeholder="Search users..."
               onSelect={handleAutocompleteSelect}
@@ -489,7 +499,6 @@ export const AnalyticsPage: React.FC = () => {
               onBlur={() => setShowUserSelector(false)}
             />
           ) : (
-            /* Current Selection Display */
             <button
               onClick={() => setShowUserSelector(true)}
               style={{
@@ -524,10 +533,7 @@ export const AnalyticsPage: React.FC = () => {
                   {targetIsVerified && <VerifiedBadge size={14} />}
                 </span>
               </div>
-              <ChevronDown
-                size={16}
-                color="var(--text-secondary)"
-              />
+              <ChevronDown size={16} color="var(--text-secondary)" />
             </button>
           )}
         </div>
@@ -774,11 +780,8 @@ export const AnalyticsPage: React.FC = () => {
         {loading ? (
           // Skeleton Loaders
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {/* Stats Skeleton */}
             <div className="skeleton" style={{ height: '70px' }} />
-            {/* Chart Skeleton */}
             <div className="skeleton" style={{ height: '240px' }} />
-            {/* Activity List Skeleton */}
             <div className="skeleton" style={{ height: '200px' }} />
           </div>
         ) : analytics ? (
@@ -896,7 +899,6 @@ export const AnalyticsPage: React.FC = () => {
                         All Activities
                         {activityFilter.length === 0 && <Check size={12} />}
                       </div>
-                      {/* Clear selection option when activities are selected */}
                       {activityFilter.length > 0 && (
                         <div
                           onClick={() => {
@@ -990,26 +992,13 @@ export const AnalyticsPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Chart Area */}
               {(() => {
-                // Calculate average based on filter
-                let avgHours: number;
-                if (activityFilter.length === 0) {
-                  avgHours =
-                    analytics.daily_breakdown.reduce((sum, d) => sum + d.total_hours, 0) / 7;
-                } else {
-                  avgHours =
-                    analytics.daily_breakdown.reduce((sum, d) => {
-                      const filteredHours = d.activities
-                        .filter((a) => activityFilter.includes(a.name))
-                        .reduce((h, a) => h + a.hours, 0);
-                      return sum + filteredHours;
-                    }, 0) / 7;
-                }
-                // Bar area is 140px, labels below take ~30px, chart height is 180px with 24px paddingTop
-                // Position from bottom: bar area starts at ~30px from bottom
-                const barAreaBottom = 30; // space for day labels and hours labels
+                const avgHours = calculateAverage();
+                const barAreaBottom = 30;
                 const barAreaHeight = 140;
                 const avgLinePosition = barAreaBottom + (avgHours / 24) * barAreaHeight;
+
                 return (
                   <div
                     style={{
@@ -1258,258 +1247,6 @@ export const AnalyticsPage: React.FC = () => {
         )}
       </div>
     </>
-  );
-};
-
-// Day Bar Component
-const DayBar: React.FC<{
-  day: DayAnalytics;
-  animate: boolean;
-  delay: number;
-  activityFilter?: string[];
-  customTiles?: CustomTile[];
-  tileColors?: Record<string, string>;
-}> = ({ day, animate, delay, activityFilter = [], customTiles = [], tileColors = {} }) => {
-  const maxHeight = 140;
-
-  // Helper to get config for an activity
-  const getConfig = (name: string) =>
-    getActivityConfig(name as ActivityName, customTiles, tileColors);
-
-  // Calculate hours based on filter (empty array = all activities)
-  let displayHours = day.total_hours;
-  let filteredActivities = day.activities;
-
-  if (activityFilter.length > 0) {
-    // Filter to only selected activities
-    filteredActivities = day.activities.filter((a) => activityFilter.includes(a.name));
-    displayHours = filteredActivities.reduce((sum, a) => sum + a.hours, 0);
-  }
-
-  const barHeight = Math.min((displayHours / 24) * maxHeight, maxHeight);
-
-  // Get top 3 activities and others (for stacked view) - from filtered activities
-  const topActivities = filteredActivities.slice(0, 3);
-  const othersHours = filteredActivities.slice(3).reduce((sum, a) => sum + a.hours, 0);
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        flex: 1,
-        maxWidth: '36px',
-      }}
-    >
-      {/* Bar */}
-      <div
-        style={{
-          width: '100%',
-          height: `${maxHeight}px`,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end',
-          position: 'relative',
-        }}
-      >
-        {displayHours > 0 ? (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: animate ? `${barHeight}px` : '0px',
-              transition: `height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s`,
-              overflow: 'hidden',
-            }}
-          >
-            {activityFilter.length === 1 ? (
-              // Single activity filter - show single color bar
-              <div
-                style={{
-                  flex: 1,
-                  backgroundColor: getConfig(activityFilter[0]).color || '#64748b',
-                  minHeight: '2px',
-                }}
-                title={`${getConfig(activityFilter[0]).label}: ${displayHours.toFixed(1)}h`}
-              />
-            ) : (
-              // Multiple/all activities - stacked segments
-              (() => {
-                const segments: { name: string; hours: number; color: string }[] = [];
-
-                // Others segment goes first (top)
-                if (othersHours > 0) {
-                  segments.push({
-                    name: 'Others',
-                    hours: othersHours,
-                    color: 'var(--text-tertiary)',
-                  });
-                }
-
-                // Top activities in reverse order (so highest hours appears lower in the bar)
-                [...topActivities].reverse().forEach((activity) => {
-                  segments.push({
-                    name: activity.name,
-                    hours: activity.hours,
-                    color: getConfig(activity.name).color || '#64748b',
-                  });
-                });
-
-                return segments.map((seg, idx) => (
-                  <div
-                    key={`${seg.name}-${idx}`}
-                    style={{
-                      flex: seg.hours,
-                      backgroundColor: seg.color,
-                      minHeight: '2px',
-                    }}
-                    title={`${seg.name === 'Others' ? 'Others' : getConfig(seg.name).label}: ${seg.hours.toFixed(1)}h`}
-                  />
-                ));
-              })()
-            )}
-          </div>
-        ) : (
-          <div
-            style={{
-              height: '4px',
-              backgroundColor: 'var(--bg-secondary)',
-              borderRadius: '2px',
-            }}
-          />
-        )}
-      </div>
-
-      {/* Day label */}
-      <span
-        style={{
-          fontSize: '0.7rem',
-          color: 'var(--text-secondary)',
-          marginTop: '0.5rem',
-          fontWeight: 500,
-        }}
-      >
-        {day.day_name}
-      </span>
-
-      {/* Hours label */}
-      <span
-        style={{
-          fontSize: '0.6rem',
-          color: 'var(--text-tertiary)',
-          marginTop: '0.125rem',
-        }}
-      >
-        {displayHours > 0 ? `${displayHours.toFixed(1)}h` : '-'}
-      </span>
-    </div>
-  );
-};
-
-// Activity Row Component
-const ActivityRow: React.FC<{
-  activity: ActivitySummary;
-  maxHours: number;
-  delay: number;
-  animate: boolean;
-  customTiles?: CustomTile[];
-  tileColors?: Record<string, string>;
-}> = ({ activity, maxHours, delay, animate, customTiles = [], tileColors = {} }) => {
-  const actConfig = getActivityConfig(activity.name as ActivityName, customTiles, tileColors);
-  const Icon = actConfig.icon || Coffee;
-  const color = actConfig.color || '#64748b';
-  const label = actConfig.label || activity.name;
-  const iconName = actConfig.iconName; // For custom tiles
-  const percentage = maxHours > 0 ? (activity.total_hours / maxHours) * 100 : 0;
-
-  return (
-    <div
-      className="activity-row"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.4rem 0.25rem',
-        borderRadius: '6px',
-        cursor: 'default',
-        animation: animate ? `fadeInUp 0.3s ease-out ${delay}s forwards` : 'none',
-        opacity: animate ? 1 : 0,
-      }}
-    >
-      {/* Icon */}
-      <div
-        style={{
-          width: '28px',
-          height: '28px',
-          borderRadius: '6px',
-          backgroundColor: `${color}20`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        {iconName ? (
-          <Suspense fallback={<div style={{ width: 14, height: 14 }} />}>
-            <DynamicIcon name={iconName} size={14} color={color} />
-          </Suspense>
-        ) : (
-          <Icon size={14} color={color} />
-        )}
-      </div>
-
-      {/* Info */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '0.25rem',
-          }}
-        >
-          <span
-            style={{
-              fontSize: '0.8rem',
-              fontWeight: 500,
-              color: 'var(--text-primary)',
-            }}
-          >
-            {label}
-          </span>
-          <span
-            style={{
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-            }}
-          >
-            {activity.total_hours.toFixed(1)}h
-          </span>
-        </div>
-
-        {/* Progress bar */}
-        <div
-          style={{
-            height: '6px',
-            backgroundColor: 'var(--bg-secondary)',
-            borderRadius: '3px',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              height: '100%',
-              width: animate ? `${percentage}%` : '0%',
-              backgroundColor: color,
-              borderRadius: '3px',
-              transition: `width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s`,
-            }}
-          />
-        </div>
-      </div>
-    </div>
   );
 };
 

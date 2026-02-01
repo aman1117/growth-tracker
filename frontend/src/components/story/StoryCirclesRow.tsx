@@ -82,6 +82,13 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   
+  // Use ref to store callback to avoid infinite re-fetch loops
+  // when the callback is recreated on parent re-renders
+  const onTargetUserPhotosRef = useRef(onTargetUserPhotos);
+  useEffect(() => {
+    onTargetUserPhotosRef.current = onTargetUserPhotos;
+  }, [onTargetUserPhotos]);
+  
   const [ownPhotos, setOwnPhotos] = useState<ActivityPhoto[]>([]);
   const [followingStories, setFollowingStories] = useState<UserStoryGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,8 +140,8 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
         const photos = photosResponse.photos || [];
         setOwnPhotos(photos);
         // Notify parent about target user's photos (for profile avatar click handling)
-        if (!isOwnProfile && onTargetUserPhotos) {
-          onTargetUserPhotos(photos);
+        if (!isOwnProfile && onTargetUserPhotosRef.current) {
+          onTargetUserPhotosRef.current(photos);
         }
       }
 
@@ -151,7 +158,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [user?.id, targetUserId, dateStr, isOwnProfile, onTargetUserPhotos]);
+  }, [user?.id, targetUserId, dateStr, isOwnProfile]);
 
   useEffect(() => {
     fetchPhotos();

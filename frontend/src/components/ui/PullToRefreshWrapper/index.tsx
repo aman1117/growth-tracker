@@ -119,8 +119,11 @@ export const PullToRefreshWrapper: React.FC<PullToRefreshWrapperProps> = ({
   }, [isActive]);
 
   // Inline style for content (not during settle animation)
+  // IMPORTANT: Only apply transform and will-change when actively pulling/refreshing
+  // to avoid creating a new containing block that breaks position:fixed children
   const contentStyle = isSettling ? undefined : {
     transform: contentTransform > 0 ? `translateY(${contentTransform}px)` : undefined,
+    willChange: isActive ? 'transform' : undefined,
   };
 
   return (

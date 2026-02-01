@@ -10,5 +10,5 @@
 }
 
 .content {
-  will-change: transform;
+  /* will-change applied dynamically via inline style only when pulling */
 }

@@ -392,6 +392,50 @@ func (r *CronJobLogRepository) Create(log *models.CronJobLog) error {
 	return r.db.Create(log).Error
 }
 
+// TryClaimJob atomically attempts to claim a job for execution using INSERT ... ON CONFLICT DO NOTHING.
+// Returns (jobLog, true) if this instance successfully claimed the job.
+// Returns (existingLog, false) if another instance already claimed it.
+// This prevents race conditions in multi-replica environments.
+func (r *CronJobLogRepository) TryClaimJob(jobName string, jobDate time.Time, instanceID string) (*models.CronJobLog, bool, error) {
+	log := &models.CronJobLog{
+		JobName:    jobName,
+		JobDate:    jobDate,
+		StartedAt:  time.Now(),
+		Status:     models.CronJobStatusRunning,
+		InstanceID: instanceID,
+	}
+
+	// Use raw SQL with ON CONFLICT DO NOTHING for atomic claim
+	// This ensures only one replica can insert the row
+	result := r.db.Exec(`
+		INSERT INTO cron_job_logs (job_name, job_date, started_at, status, instance_id, users_count)
+		VALUES (?, ?, ?, ?, ?, 0)
+		ON CONFLICT (job_name, job_date) DO NOTHING
+	`, jobName, jobDate, log.StartedAt, log.Status, instanceID)
+
+	if result.Error != nil {
+		return nil, false, result.Error
+	}
+
+	// If no rows affected, another replica already claimed this job
+	if result.RowsAffected == 0 {
+		// Fetch the existing log to return info about who claimed it
+		var existingLog models.CronJobLog
+		if err := r.db.Where("job_name = ? AND job_date = ?", jobName, jobDate).First(&existingLog).Error; err != nil {
+			return nil, false, err
+		}
+		return &existingLog, false, nil
+	}
+
+	// Successfully claimed - fetch the created record to get the ID
+	var createdLog models.CronJobLog
+	if err := r.db.Where("job_name = ? AND job_date = ?", jobName, jobDate).First(&createdLog).Error; err != nil {
+		return nil, false, err
+	}
+
+	return &createdLog, true, nil
+}
+
 // Update updates an existing cron job log entry
 func (r *CronJobLogRepository) Update(log *models.CronJobLog) error {
 	return r.db.Save(log).Error

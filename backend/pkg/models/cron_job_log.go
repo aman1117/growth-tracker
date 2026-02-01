@@ -3,11 +3,12 @@ package models
 import "time"
 
 // CronJobLog records each execution of a cron job for auditing and debugging
+// The unique constraint on (job_name, job_date) ensures only one replica can claim each job per day.
 type CronJobLog struct {
 	ID uint `gorm:"primaryKey"`
 
-	JobName     string    `gorm:"not null;size:100;index:idx_cron_job_date"`  // e.g., "daily_streak", "streak_reminder", "notification_cleanup"
-	JobDate     time.Time `gorm:"type:date;not null;index:idx_cron_job_date"` // The date the job was processing for
+	JobName     string    `gorm:"not null;size:100;uniqueIndex:idx_cron_job_unique,priority:1"` // e.g., "daily_streak", "streak_reminder"
+	JobDate     time.Time `gorm:"type:date;not null;uniqueIndex:idx_cron_job_unique,priority:2"` // The date the job was processing for
 	StartedAt   time.Time `gorm:"not null"`                                   // When the job started
 	CompletedAt time.Time `gorm:""`                                           // When the job completed (null if failed/running)
 	Status      string    `gorm:"not null;size:20;default:'running'"`         // running, completed, failed

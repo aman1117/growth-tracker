@@ -306,7 +306,8 @@ func NewCronService(
 	}
 }
 
-// RunDailyJob runs the daily streak processing job
+// RunDailyJob runs the daily streak processing job.
+// Uses atomic job claiming to prevent duplicate execution in multi-replica environments.
 func (s *CronService) RunDailyJob(ctx context.Context) error {
 	// Compute today's date in IST
 	loc, _ := time.LoadLocation(constants.TimezoneIST)
@@ -319,32 +320,26 @@ func (s *CronService) RunDailyJob(ctx context.Context) error {
 		loc,
 	)
 
-	// Check if job already ran successfully today (idempotency)
+	// Atomically try to claim this job - only one replica will succeed
+	var jobLog *models.CronJobLog
 	if s.cronJobLogRepo != nil {
-		existingLog, err := s.cronJobLogRepo.FindByJobNameAndDate(models.CronJobDailyStreak, todayIST)
+		claimedLog, claimed, err := s.cronJobLogRepo.TryClaimJob(models.CronJobDailyStreak, todayIST, s.instanceID)
 		if err != nil {
-			logger.Sugar.Warnw("Failed to check existing cron job log", "error", err)
-		}
-		if existingLog != nil {
-			logger.Sugar.Infow("Daily streak job already completed for today, skipping",
+			logger.Sugar.Warnw("Failed to claim daily streak job", "error", err)
+			// Continue without job logging - better to risk duplicate than skip entirely
+		} else if !claimed {
+			logger.Sugar.Infow("Daily streak job already claimed by another instance, skipping",
 				"job_date", todayIST.Format(constants.DateFormat),
-				"completed_by", existingLog.InstanceID,
+				"claimed_by", claimedLog.InstanceID,
+				"claimed_at", claimedLog.StartedAt,
 			)
 			return nil
-		}
-	}
-
-	// Create job log entry
-	jobLog := &models.CronJobLog{
-		JobName:    models.CronJobDailyStreak,
-		JobDate:    todayIST,
-		StartedAt:  time.Now(),
-		Status:     models.CronJobStatusRunning,
-		InstanceID: s.instanceID,
-	}
-	if s.cronJobLogRepo != nil {
-		if err := s.cronJobLogRepo.Create(jobLog); err != nil {
-			logger.Sugar.Warnw("Failed to create cron job log", "error", err)
+		} else {
+			jobLog = claimedLog
+			logger.Sugar.Infow("Successfully claimed daily streak job",
+				"job_date", todayIST.Format(constants.DateFormat),
+				"instance_id", s.instanceID,
+			)
 		}
 	}
 
@@ -388,6 +383,7 @@ func (s *CronService) updateJobLog(log *models.CronJobLog, status string, usersC
 
 // SendStreakReminders sends push and in-app notifications to users who haven't logged today.
 // Runs at 10 PM IST to remind users while they still have time to log.
+// Uses atomic job claiming to prevent duplicate execution in multi-replica environments.
 func (s *CronService) SendStreakReminders(ctx context.Context) error {
 	if s.notifSvc == nil {
 		return fmt.Errorf("notification service not configured")
@@ -398,22 +394,50 @@ func (s *CronService) SendStreakReminders(ctx context.Context) error {
 		return fmt.Errorf("failed to load timezone: %v", err)
 	}
 
-	today := time.Now().In(loc).Format(constants.DateFormat)
+	nowIST := time.Now().In(loc)
+	todayIST := time.Date(nowIST.Year(), nowIST.Month(), nowIST.Day(), 0, 0, 0, 0, loc)
+	today := nowIST.Format(constants.DateFormat)
+
+	// Atomically try to claim this job - only one replica will succeed
+	var jobLog *models.CronJobLog
+	if s.cronJobLogRepo != nil {
+		claimedLog, claimed, err := s.cronJobLogRepo.TryClaimJob(models.CronJobStreakReminder, todayIST, s.instanceID)
+		if err != nil {
+			logger.Sugar.Warnw("Failed to claim streak reminder job", "error", err)
+			// Continue without job logging - better to risk duplicate than skip entirely
+		} else if !claimed {
+			logger.Sugar.Infow("Streak reminder job already claimed by another instance, skipping",
+				"job_date", today,
+				"claimed_by", claimedLog.InstanceID,
+				"claimed_at", claimedLog.StartedAt,
+			)
+			return nil
+		} else {
+			jobLog = claimedLog
+			logger.Sugar.Infow("Successfully claimed streak reminder job",
+				"job_date", today,
+				"instance_id", s.instanceID,
+			)
+		}
+	}
 
 	// Find users who haven't logged today (streak = 0 for today)
 	userIDs, err := s.streakRepo.FindUsersMissedStreak(today)
 	if err != nil {
+		s.updateJobLog(jobLog, models.CronJobStatusFailed, 0, err.Error())
 		return fmt.Errorf("failed to find users who missed streak: %w", err)
 	}
 
 	if len(userIDs) == 0 {
 		logger.Sugar.Info("All users have logged today")
+		s.updateJobLog(jobLog, models.CronJobStatusCompleted, 0, "")
 		return nil
 	}
 
 	logger.Sugar.Infow("Sending streak reminders",
 		"user_count", len(userIDs),
 		"date", today,
+		"instance_id", s.instanceID,
 	)
 
 	// Send notifications to each user
@@ -433,8 +457,10 @@ func (s *CronService) SendStreakReminders(ctx context.Context) error {
 	logger.Sugar.Infow("Streak reminders completed",
 		"success", successCount,
 		"failed", failCount,
+		"instance_id", s.instanceID,
 	)
 
+	s.updateJobLog(jobLog, models.CronJobStatusCompleted, successCount, "")
 	return nil
 }
 

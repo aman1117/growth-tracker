@@ -1,0 +1,38 @@
+/**
+ * PullToRefreshIndicator Styles
+ * Twitter-style minimal spinner
+ */
+
+.container {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  color: var(--text-primary);
+}
+
+.spinner {
+  /* No background, no border - just the icon */
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: none;
+  }
+}

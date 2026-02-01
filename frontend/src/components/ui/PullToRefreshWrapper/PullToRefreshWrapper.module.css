@@ -1,0 +1,14 @@
+/**
+ * PullToRefreshWrapper Styles
+ */
+
+.wrapper {
+  position: relative;
+  min-height: 100%;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y pinch-zoom;
+}
+
+.content {
+  will-change: transform;
+}

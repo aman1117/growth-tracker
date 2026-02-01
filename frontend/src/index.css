@@ -142,6 +142,8 @@
 html {
   touch-action: manipulation;
   -ms-touch-action: manipulation;
+  /* Disable browser's native pull-to-refresh to use our custom one */
+  overscroll-behavior-y: contain;
 }
 
 body {
@@ -158,6 +160,8 @@ body {
   -moz-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Disable browser's native pull-to-refresh */
+  overscroll-behavior-y: contain;
 }
 
 button {

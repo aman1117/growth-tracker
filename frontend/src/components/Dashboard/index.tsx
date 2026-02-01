@@ -24,7 +24,7 @@ import { CreateCustomTileModal } from '../CreateCustomTileModal';
 import { DaySummaryCard } from '../DaySummaryCard';
 import { HiddenTilesPanel } from '../HiddenTilesPanel';
 import { StoryCirclesRow, StoryViewer } from '../story';
-import { SnapToast } from '../ui';
+import { PullToRefreshWrapper, SnapToast } from '../ui';
 
 import {
   EditModeToolbar,
@@ -186,6 +186,12 @@ export const Dashboard: React.FC = () => {
   } = useDragAndDrop({
     setTileOrder,
   });
+
+  // ============================================================================
+  // Refresh State (for pull-to-refresh)
+  // ============================================================================
+  
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // ============================================================================
   // Modal State
@@ -503,11 +509,37 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  // Pull-to-refresh handler - refreshes all dashboard data
+  const handlePullToRefresh = useCallback(async () => {
+    try {
+      // Refresh all data sources in parallel
+      await Promise.all([
+        // 1. Activities and likes
+        fetchActivities(),
+        // 2. Heat map / calendar data
+        targetUsername ? fetchMonthData(targetUsername, currentYear, currentMonth) : Promise.resolve(),
+      ]);
+      
+      // 3. Increment refreshKey to force StoryCirclesRow to re-fetch photos/stories
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error('[Dashboard] Pull-to-refresh failed:', error);
+      setToast({ message: 'Failed to refresh. Please try again.', type: 'error' });
+    }
+  }, [fetchActivities, fetchMonthData, targetUsername, currentYear, currentMonth]);
+
+  // Disable pull-to-refresh during drag-and-drop or edit mode
+  const isPullToRefreshDisabled = !!activeDragId || isEditMode;
+
   // ============================================================================
   // Render
   // ============================================================================
 
   return (
+    <PullToRefreshWrapper
+      onRefresh={handlePullToRefresh}
+      disabled={isPullToRefreshDisabled}
+    >
     <div className="container" style={{ paddingBottom: '2rem' }}>
       {/* User Profile Header (when viewing other's profile) */}
       {isReadOnly && (
@@ -559,6 +591,7 @@ export const Dashboard: React.FC = () => {
       {/* Story Circles Row */}
       {!isEditMode && targetUserId && !isPrivateAccount && (
         <StoryCirclesRow
+          key={`stories-${refreshKey}`}
           currentDate={currentDate}
           targetUserId={targetUserId}
           targetUsername={targetUsername || ''}
@@ -740,5 +773,6 @@ export const Dashboard: React.FC = () => {
         />
       )}
     </div>
+    </PullToRefreshWrapper>
   );
 };

@@ -244,14 +244,18 @@ func (w *Worker) processMessage(ctx context.Context, msg *azservicebus.ReceivedM
 		return
 	}
 
-	// Skip preference check for photo_uploaded notifications (always send story notifications)
-	if pushMsg.NotificationType != string(models.NotifTypePhotoUploaded) {
-		if !pref.IsTypeEnabled(pushMsg.NotificationType) {
-			log.Infow("Push skipped", "reason", "disabled_by_preference")
-			w.sbReceiver.CompleteMessage(ctx, msg, nil)
-			return
-		}
-	}
+	// NOTE: Per-notification-type preferences are intentionally disabled.
+	// We want to send all push notifications to everyone who has push enabled.
+	// The IsTypeEnabled check below is commented out but kept for future use
+	// when we want to respect individual notification type preferences.
+	//
+	// if pushMsg.NotificationType != string(models.NotifTypePhotoUploaded) {
+	// 	if !pref.IsTypeEnabled(pushMsg.NotificationType) {
+	// 		log.Infow("Push skipped", "reason", "disabled_by_preference")
+	// 		w.sbReceiver.CompleteMessage(ctx, msg, nil)
+	// 		return
+	// 	}
+	// }
 
 	// 2. Check quiet hours
 	if pref.IsInQuietHours(time.Now()) {

@@ -9,6 +9,7 @@
 
 export type NotificationType =
   | 'like_received'
+  | 'story_liked'
   | 'badge_unlocked'
   | 'streak_milestone'
   | 'streak_at_risk'
@@ -69,8 +70,17 @@ export interface PhotoUploadedMetadata {
   photo_date: string;
 }
 
+export interface StoryLikedMetadata {
+  liker_id: number;
+  liker_username: string;
+  liker_avatar?: string;
+  photo_id: number;
+  photo_date: string;
+}
+
 export type NotificationMetadata =
   | LikeMetadata
+  | StoryLikedMetadata
   | BadgeMetadata
   | StreakMetadata
   | FollowMetadata

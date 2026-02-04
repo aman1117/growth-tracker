@@ -72,6 +72,40 @@ type UserStoryGroup struct {
 	HasUnseen  bool                   `json:"has_unseen"`
 }
 
+// StoryLike tracks who has liked a story photo.
+// Used for "liked by" feature, similar to StoryView.
+type StoryLike struct {
+	ID      uint          `gorm:"primaryKey" json:"id"`
+	LikerID uint          `gorm:"not null;uniqueIndex:idx_story_like_unique,priority:1;index:idx_story_like_liker" json:"liker_id"`
+	Liker   User          `gorm:"foreignKey:LikerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
+	PhotoID uint          `gorm:"not null;uniqueIndex:idx_story_like_unique,priority:2;index:idx_story_like_photo" json:"photo_id"`
+	Photo   ActivityPhoto `gorm:"foreignKey:PhotoID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
+	LikedAt time.Time     `gorm:"not null;default:now();autoCreateTime" json:"liked_at"`
+}
+
+// TableName specifies the table name for StoryLike
+func (StoryLike) TableName() string {
+	return "story_likes"
+}
+
+// PhotoLiker represents a user who liked a photo (for API responses)
+type PhotoLiker struct {
+	UserID     uint      `json:"user_id"`
+	Username   string    `json:"username"`
+	ProfilePic *string   `json:"profile_pic,omitempty"`
+	LikedAt    time.Time `json:"liked_at"`
+}
+
+// PhotoInteraction represents a combined view/like entry (for API responses)
+type PhotoInteraction struct {
+	UserID          uint      `json:"user_id"`
+	Username        string    `json:"username"`
+	ProfilePic      *string   `json:"profile_pic,omitempty"`
+	InteractionType string    `json:"interaction_type"` // "view", "like", or "both"
+	ViewedAt        time.Time `json:"viewed_at,omitempty"`
+	LikedAt         time.Time `json:"liked_at,omitempty"`
+}
+
 // PhotoUploadedMetadata holds data for photo_uploaded notifications
 type PhotoUploadedMetadata struct {
 	UploaderID       uint   `json:"uploader_id"`
@@ -79,6 +113,26 @@ type PhotoUploadedMetadata struct {
 	UploaderAvatar   string `json:"uploader_avatar,omitempty"`
 	PhotoCount       int    `json:"photo_count"`
 	PhotoDate        string `json:"photo_date"`
+}
+
+// StoryLikedMetadata holds data for story_liked notifications
+type StoryLikedMetadata struct {
+	LikerID       uint   `json:"liker_id"`
+	LikerUsername string `json:"liker_username"`
+	LikerAvatar   string `json:"liker_avatar,omitempty"`
+	PhotoID       uint   `json:"photo_id"`
+	PhotoDate     string `json:"photo_date"`
+}
+
+// ToMap converts StoryLikedMetadata to NotificationMetadata
+func (m StoryLikedMetadata) ToMap() NotificationMetadata {
+	return NotificationMetadata{
+		"liker_id":       m.LikerID,
+		"liker_username": m.LikerUsername,
+		"liker_avatar":   m.LikerAvatar,
+		"photo_id":       m.PhotoID,
+		"photo_date":     m.PhotoDate,
+	}
 }
 
 // ToMap converts PhotoUploadedMetadata to NotificationMetadata

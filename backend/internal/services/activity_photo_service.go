@@ -17,7 +17,10 @@ import (
 	"github.com/aman1117/backend/internal/logger"
 	"github.com/aman1117/backend/internal/repository"
 	"github.com/aman1117/backend/pkg/models"
+	"github.com/aman1117/backend/pkg/redis"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // IST timezone location
@@ -392,6 +395,323 @@ func (s *ActivityPhotoService) CanViewStories(ctx context.Context, viewerID, tar
 	}
 
 	return isFollowing, nil
+}
+
+// ==================== Story Likes ====================
+
+// LikePhoto likes a photo (also records view) and sends notification to owner
+// Follows the same idempotency pattern as LikeDay - check first, return early if already liked
+func (s *ActivityPhotoService) LikePhoto(ctx context.Context, likerID, photoID uint) error {
+	// Get the photo
+	photo, err := s.repo.GetByID(photoID)
+	if err != nil {
+		return fmt.Errorf("failed to get photo: %w", err)
+	}
+	if photo == nil {
+		return fmt.Errorf("photo not found")
+	}
+
+	// Cannot like own photo
+	if photo.UserID == likerID {
+		return fmt.Errorf("cannot like own photo")
+	}
+
+	// Check if liker follows the photo owner
+	canView, err := s.CanViewStories(ctx, likerID, photo.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to check permissions: %w", err)
+	}
+	if !canView {
+		return fmt.Errorf("must follow user to like their photos")
+	}
+
+	// Check if already liked - return early if so (no notification, no cache update)
+	alreadyLiked, err := s.repo.HasLikedPhoto(likerID, photoID)
+	if err != nil {
+		logger.Sugar.Warnw("Failed to check existing like", "error", err, "photo_id", photoID, "liker_id", likerID)
+	}
+
+	if alreadyLiked {
+		logger.Sugar.Infow("Photo already liked, returning early",
+			"photo_id", photoID,
+			"liker_id", likerID,
+		)
+		return nil // Already liked - idempotent, no error
+	}
+
+	// Create the like (handles duplicate gracefully at DB level too)
+	if err := s.repo.LikePhoto(likerID, photoID); err != nil {
+		return fmt.Errorf("failed to like photo: %w", err)
+	}
+
+	// Also record a view (liking counts as viewing)
+	if err := s.repo.RecordView(likerID, photoID); err != nil {
+		logger.Sugar.Warnw("Failed to record view on like", "error", err, "photo_id", photoID, "liker_id", likerID)
+	}
+
+	// Update cache
+	redis.IncrementStoryLikeCount(ctx, photoID)
+	redis.SetStoryLikedByUser(ctx, photoID, likerID, true)
+
+	// Send notification to photo owner (async)
+	go s.sendLikeNotification(ctx, likerID, photo)
+
+	logger.Sugar.Infow("Photo liked",
+		"photo_id", photoID,
+		"liker_id", likerID,
+		"owner_id", photo.UserID,
+	)
+
+	return nil
+}
+
+// UnlikePhoto removes a like from a photo
+func (s *ActivityPhotoService) UnlikePhoto(ctx context.Context, likerID, photoID uint) error {
+	// Get the photo
+	photo, err := s.repo.GetByID(photoID)
+	if err != nil {
+		return fmt.Errorf("failed to get photo: %w", err)
+	}
+	if photo == nil {
+		return fmt.Errorf("photo not found")
+	}
+
+	// Remove the like
+	if err := s.repo.UnlikePhoto(likerID, photoID); err != nil {
+		return fmt.Errorf("failed to unlike photo: %w", err)
+	}
+
+	// Update cache
+	redis.DecrementStoryLikeCount(ctx, photoID)
+	redis.SetStoryLikedByUser(ctx, photoID, likerID, false)
+
+	logger.Sugar.Infow("Photo unliked",
+		"photo_id", photoID,
+		"liker_id", likerID,
+	)
+
+	return nil
+}
+
+// HasLikedPhoto checks if a user has liked a photo
+func (s *ActivityPhotoService) HasLikedPhoto(ctx context.Context, likerID, photoID uint) (bool, error) {
+	// Check cache first
+	liked, found, err := redis.GetStoryLikedByUser(ctx, photoID, likerID)
+	if err != nil {
+		logger.Sugar.Warnw("Failed to get liked status from cache", "error", err)
+	}
+	if found {
+		return liked, nil
+	}
+
+	// Cache miss - check DB
+	liked, err = s.repo.HasLikedPhoto(likerID, photoID)
+	if err != nil {
+		return false, err
+	}
+
+	// Update cache
+	redis.SetStoryLikedByUser(ctx, photoID, likerID, liked)
+
+	return liked, nil
+}
+
+// GetPhotoLikeCount returns the like count for a photo
+func (s *ActivityPhotoService) GetPhotoLikeCount(ctx context.Context, photoID uint) (int64, error) {
+	// Check cache first
+	count, err := redis.GetStoryLikeCount(ctx, photoID)
+	if err != nil {
+		logger.Sugar.Warnw("Failed to get like count from cache", "error", err)
+	}
+	if count >= 0 {
+		return count, nil
+	}
+
+	// Cache miss - get from DB
+	count, err = s.repo.GetPhotoLikeCount(photoID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Update cache
+	redis.SetStoryLikeCount(ctx, photoID, count)
+
+	return count, nil
+}
+
+// GetPhotoLikers retrieves likers of a photo (owner only)
+func (s *ActivityPhotoService) GetPhotoLikers(ctx context.Context, photoID, ownerID uint, limit, offset int) ([]models.PhotoLiker, int64, error) {
+	// Verify ownership
+	photo, err := s.repo.GetByID(photoID)
+	if err != nil {
+		return nil, 0, err
+	}
+	if photo == nil {
+		return nil, 0, fmt.Errorf("photo not found")
+	}
+	if photo.UserID != ownerID {
+		return nil, 0, fmt.Errorf("not authorized to view photo likers")
+	}
+
+	return s.repo.GetPhotoLikers(photoID, limit, offset)
+}
+
+// GetPhotoInteractions retrieves combined viewers and likers (owner only)
+func (s *ActivityPhotoService) GetPhotoInteractions(ctx context.Context, photoID, ownerID uint, limit, offset int) ([]models.PhotoInteraction, int64, error) {
+	// Verify ownership
+	photo, err := s.repo.GetByID(photoID)
+	if err != nil {
+		return nil, 0, err
+	}
+	if photo == nil {
+		return nil, 0, fmt.Errorf("photo not found")
+	}
+	if photo.UserID != ownerID {
+		return nil, 0, fmt.Errorf("not authorized to view photo interactions")
+	}
+
+	return s.repo.GetPhotoInteractions(photoID, limit, offset)
+}
+
+// sendLikeNotification sends push notification to photo owner when someone likes their photo
+// Uses NotificationDedupe table to ensure "only once ever" delivery per (recipient, liker, photo) combination.
+// Safe for unlike/re-like scenarios - user will only receive one notification ever per photo+liker pair.
+func (s *ActivityPhotoService) sendLikeNotification(ctx context.Context, likerID uint, photo *models.ActivityPhoto) {
+	// Create fresh context for background operation
+	sendCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Get liker info
+	liker, err := s.userRepo.FindByID(likerID)
+	if err != nil || liker == nil {
+		logger.Sugar.Warnw("Failed to get liker for notification", "liker_id", likerID, "error", err)
+		return
+	}
+
+	var likerAvatar string
+	if liker.ProfilePic != nil {
+		likerAvatar = *liker.ProfilePic
+	}
+
+	// Build entity key for dedupe: "photoID"
+	entityKey := fmt.Sprintf("%d", photo.ID)
+	photoDateStr := photo.PhotoDate.Format(constants.DateFormat)
+
+	// Use transaction to ensure atomicity of dedupe check + notification create
+	db := s.repo.GetDB()
+	var notif *models.Notification
+
+	txErr := db.WithContext(sendCtx).Transaction(func(tx *gorm.DB) error {
+		// 1. Try to insert dedupe record with ON CONFLICT DO NOTHING
+		dedupe := &models.NotificationDedupe{
+			UserID:     photo.UserID,
+			ActorID:    likerID,
+			Type:       models.NotifTypeStoryLiked,
+			EntityType: "story_like",
+			EntityKey:  entityKey,
+		}
+
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(dedupe)
+		if result.Error != nil {
+			logger.Sugar.Errorw("Failed to create story like dedupe record",
+				"user_id", photo.UserID,
+				"actor_id", likerID,
+				"entity_key", entityKey,
+				"error", result.Error,
+			)
+			return result.Error
+		}
+
+		// 2. If dedupe record already existed (conflict), skip notification
+		if result.RowsAffected == 0 {
+			logger.Sugar.Debugw("Skipping duplicate story like notification",
+				"user_id", photo.UserID,
+				"actor_id", likerID,
+				"entity_key", entityKey,
+			)
+			return nil
+		}
+
+		// 3. Create the notification
+		body := fmt.Sprintf("%s liked your story", liker.Username)
+		notif = &models.Notification{
+			UserID: photo.UserID,
+			Type:   models.NotifTypeStoryLiked,
+			Title:  "New Like!",
+			Body:   body,
+			Metadata: models.StoryLikedMetadata{
+				LikerID:       likerID,
+				LikerUsername: liker.Username,
+				LikerAvatar:   likerAvatar,
+				PhotoID:       photo.ID,
+				PhotoDate:     photoDateStr,
+			}.ToMap(),
+		}
+
+		if err := tx.Create(notif).Error; err != nil {
+			logger.Sugar.Errorw("Failed to create story like notification in transaction",
+				"user_id", photo.UserID,
+				"type", notif.Type,
+				"error", err,
+			)
+			return err
+		}
+
+		logger.Sugar.Infow("Story like notification created",
+			"id", notif.ID,
+			"photo_id", photo.ID,
+			"liker_id", likerID,
+			"owner_id", photo.UserID,
+		)
+
+		return nil
+	})
+
+	if txErr != nil {
+		logger.Sugar.Warnw("Transaction failed for story like notification",
+			"photo_id", photo.ID,
+			"liker_id", likerID,
+			"owner_id", photo.UserID,
+			"error", txErr,
+		)
+		return
+	}
+
+	// If notif is nil, dedupe record already existed (no notification created)
+	if notif == nil {
+		return
+	}
+
+	// Publish push notification (outside transaction)
+	if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+		pushDedupeKey := fmt.Sprintf("story_liked:%d:%d:%d", photo.UserID, likerID, photo.ID)
+		ttlSeconds := 14400 // 4 hours
+		deepLink := fmt.Sprintf("/user/%s?date=%s", liker.Username, photoDateStr)
+
+		data := notif.Metadata
+		if data == nil {
+			data = make(map[string]interface{})
+		}
+		data["notification_id"] = notif.ID
+
+		if err := publisher.PublishPushNotification(
+			sendCtx,
+			photo.UserID,
+			notif.Type,
+			notif.Title,
+			notif.Body,
+			pushDedupeKey,
+			deepLink,
+			data,
+			ttlSeconds,
+		); err != nil {
+			logger.Sugar.Warnw("Failed to publish push notification for story like",
+				"notif_id", notif.ID,
+				"owner_id", photo.UserID,
+				"error", err,
+			)
+		}
+	}
 }
 
 // ==================== Debounced Notifications ====================

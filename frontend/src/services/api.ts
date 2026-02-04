@@ -466,6 +466,8 @@ import type {
   GetFollowingStoriesResponse,
   GetPhotosResponse,
   GetPhotoViewersResponse,
+  GetPhotoLikeStatusResponse,
+  GetPhotoInteractionsResponse,
   UploadPhotoResponse,
 } from '../types/story';
 
@@ -568,6 +570,45 @@ export const activityPhotoApi = {
   getPhotoViewers: (photoId: number, limit: number = 20, offset: number = 0) =>
     apiClient.get<GetPhotoViewersResponse>(
       `${API_ROUTES.ACTIVITY_PHOTO.GET_VIEWERS(photoId)}?limit=${limit}&offset=${offset}`
+    ),
+
+  /**
+   * Like a photo
+   * @param photoId - Photo ID
+   */
+  likePhoto: (photoId: number) =>
+    apiClient.post<{ success: boolean }>(
+      API_ROUTES.ACTIVITY_PHOTO.LIKE(photoId),
+      {}
+    ),
+
+  /**
+   * Unlike a photo
+   * @param photoId - Photo ID
+   */
+  unlikePhoto: (photoId: number) =>
+    apiClient.delete<{ success: boolean }>(
+      API_ROUTES.ACTIVITY_PHOTO.UNLIKE(photoId)
+    ),
+
+  /**
+   * Get like status for a photo (liked + count)
+   * @param photoId - Photo ID
+   */
+  getLikeStatus: (photoId: number) =>
+    apiClient.get<GetPhotoLikeStatusResponse>(
+      API_ROUTES.ACTIVITY_PHOTO.GET_LIKE_STATUS(photoId)
+    ),
+
+  /**
+   * Get combined interactions (views + likes) for a photo (owner only)
+   * @param photoId - Photo ID
+   * @param limit - Max results (default 20)
+   * @param offset - Offset for pagination
+   */
+  getPhotoInteractions: (photoId: number, limit: number = 20, offset: number = 0) =>
+    apiClient.get<GetPhotoInteractionsResponse>(
+      `${API_ROUTES.ACTIVITY_PHOTO.GET_INTERACTIONS(photoId)}?limit=${limit}&offset=${offset}`
     ),
 };
 

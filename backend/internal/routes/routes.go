@@ -220,6 +220,13 @@ func (r *Router) Setup(app *fiber.App) {
 		api.Post("/activity-photo/:id/view", authMiddleware, apiRateLimiter, r.activityPhotoHandler.RecordView)
 		// Get photo viewers (owner only)
 		api.Get("/activity-photo/:id/viewers", authMiddleware, apiRateLimiter, r.activityPhotoHandler.GetPhotoViewers)
+		// Like/unlike photo
+		api.Post("/activity-photo/:id/like", authMiddleware, apiRateLimiter, r.activityPhotoHandler.LikePhoto)
+		api.Delete("/activity-photo/:id/like", authMiddleware, apiRateLimiter, r.activityPhotoHandler.UnlikePhoto)
+		// Get like status (liked + count)
+		api.Get("/activity-photo/:id/like-status", authMiddleware, apiRateLimiter, r.activityPhotoHandler.GetPhotoLikeStatus)
+		// Get combined interactions (views + likes) for owner
+		api.Get("/activity-photo/:id/interactions", authMiddleware, apiRateLimiter, r.activityPhotoHandler.GetPhotoInteractions)
 	}
 
 	// ==================== WebSocket ====================

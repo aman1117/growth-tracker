@@ -39,6 +39,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     );
   };
 
+  // Type guard for story liked metadata
+  const isStoryLikedMetadata = (
+    metadata: unknown
+  ): metadata is { liker_username: string; photo_date: string } => {
+    return (
+      typeof metadata === 'object' &&
+      metadata !== null &&
+      'liker_username' in metadata &&
+      'photo_date' in metadata
+    );
+  };
+
   // Type guard for day completed metadata
   const isDayCompletedMetadata = (
     metadata: unknown
@@ -71,6 +83,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       if (notification.type === 'like_received' && isLikeMetadata(notification.metadata)) {
         // Navigate to home with the liked date as a query parameter
         navigate(`${APP_ROUTES.HOME}?date=${notification.metadata.liked_date}`);
+      } else if (
+        notification.type === 'story_liked' &&
+        isStoryLikedMetadata(notification.metadata)
+      ) {
+        // Navigate to home with the photo date to see own story that was liked
+        navigate(`${APP_ROUTES.HOME}?date=${notification.metadata.photo_date}`);
       } else if (
         notification.type === 'streak_milestone' &&
         isDayCompletedMetadata(notification.metadata)

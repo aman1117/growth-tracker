@@ -65,6 +65,13 @@ const (
 	LikesCacheTTL    = 4 * time.Hour
 )
 
+// Story likes cache constants
+const (
+	StoryLikeCountCachePrefix = "story_like_cnt:" // Cache for like counts: story_like_cnt:{photoID}
+	StoryLikedByCachePrefix   = "story_liked_by:" // Cache for user liked status: story_liked_by:{photoID}:{userID}
+	StoryLikeCacheTTL         = 5 * time.Minute   // Short TTL for like counts
+)
+
 // Notification constants
 const (
 	// Redis keys

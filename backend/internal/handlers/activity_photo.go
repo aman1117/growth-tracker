@@ -356,3 +356,186 @@ func (h *ActivityPhotoHandler) GetPhotoViewers(c *fiber.Ctx) error {
 		"total":   total,
 	})
 }
+
+// LikePhoto handles liking a photo
+// @Summary Like a photo
+// @Description Like a story photo (also records view)
+// @Tags Activity Photos
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Photo ID"
+// @Success 200 {object} map[string]interface{} "Photo liked"
+// @Failure 400 {object} dto.ErrorResponse "Cannot like own photo"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 403 {object} dto.ErrorResponse "Must follow user"
+// @Failure 404 {object} dto.ErrorResponse "Photo not found"
+// @Router /activity-photo/{id}/like [post]
+func (h *ActivityPhotoHandler) LikePhoto(c *fiber.Ctx) error {
+	userID := getUserID(c)
+	traceID := getTraceID(c)
+
+	// Parse photo ID
+	photoIDStr := c.Params("id")
+	photoID, err := strconv.ParseUint(photoIDStr, 10, 32)
+	if err != nil {
+		return response.BadRequest(c, "Invalid photo ID", constants.ErrCodeInvalidRequest)
+	}
+
+	err = h.photoSvc.LikePhoto(c.Context(), userID, uint(photoID))
+	if err != nil {
+		if err.Error() == "photo not found" {
+			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+		}
+		if err.Error() == "cannot like own photo" {
+			return response.BadRequest(c, "Cannot like your own photo", constants.ErrCodeInvalidRequest)
+		}
+		if err.Error() == "must follow user to like their photos" {
+			return response.Forbidden(c, "You must follow this user to like their photos", constants.ErrCodeNotAuthorized)
+		}
+		logger.LogWithContext(traceID, userID).Errorw("Failed to like photo", "error", err, "photo_id", photoID)
+		return response.InternalError(c, "Failed to like photo", constants.ErrCodeServerError)
+	}
+
+	logger.LogWithContext(traceID, userID).Infow("Photo liked", "photo_id", photoID)
+	return response.JSON(c, fiber.Map{
+		"success": true,
+	})
+}
+
+// UnlikePhoto handles unliking a photo
+// @Summary Unlike a photo
+// @Description Remove like from a story photo
+// @Tags Activity Photos
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Photo ID"
+// @Success 200 {object} map[string]interface{} "Photo unliked"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 404 {object} dto.ErrorResponse "Photo not found"
+// @Router /activity-photo/{id}/like [delete]
+func (h *ActivityPhotoHandler) UnlikePhoto(c *fiber.Ctx) error {
+	userID := getUserID(c)
+	traceID := getTraceID(c)
+
+	// Parse photo ID
+	photoIDStr := c.Params("id")
+	photoID, err := strconv.ParseUint(photoIDStr, 10, 32)
+	if err != nil {
+		return response.BadRequest(c, "Invalid photo ID", constants.ErrCodeInvalidRequest)
+	}
+
+	err = h.photoSvc.UnlikePhoto(c.Context(), userID, uint(photoID))
+	if err != nil {
+		if err.Error() == "photo not found" {
+			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+		}
+		logger.LogWithContext(traceID, userID).Errorw("Failed to unlike photo", "error", err, "photo_id", photoID)
+		return response.InternalError(c, "Failed to unlike photo", constants.ErrCodeServerError)
+	}
+
+	logger.LogWithContext(traceID, userID).Infow("Photo unliked", "photo_id", photoID)
+	return response.JSON(c, fiber.Map{
+		"success": true,
+	})
+}
+
+// GetPhotoInteractions retrieves combined viewers and likers of a photo
+// @Summary Get photo interactions
+// @Description Get combined list of viewers and likers with interaction type (owner only)
+// @Tags Activity Photos
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Photo ID"
+// @Param limit query int false "Max results (default 20)"
+// @Param offset query int false "Offset for pagination"
+// @Success 200 {object} map[string]interface{} "Interactions list"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 403 {object} dto.ErrorResponse "Not photo owner"
+// @Failure 404 {object} dto.ErrorResponse "Photo not found"
+// @Router /activity-photo/{id}/interactions [get]
+func (h *ActivityPhotoHandler) GetPhotoInteractions(c *fiber.Ctx) error {
+	userID := getUserID(c)
+	traceID := getTraceID(c)
+
+	// Parse photo ID
+	photoIDStr := c.Params("id")
+	photoID, err := strconv.ParseUint(photoIDStr, 10, 32)
+	if err != nil {
+		return response.BadRequest(c, "Invalid photo ID", constants.ErrCodeInvalidRequest)
+	}
+
+	limit := 20
+	if limitStr := c.Query("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 && parsed <= 100 {
+			limit = parsed
+		}
+	}
+
+	offset := 0
+	if offsetStr := c.Query("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	interactions, total, err := h.photoSvc.GetPhotoInteractions(c.Context(), uint(photoID), userID, limit, offset)
+	if err != nil {
+		if err.Error() == "photo not found" {
+			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+		}
+		if err.Error() == "not authorized to view photo interactions" {
+			return response.Forbidden(c, "Only the photo owner can view interactions", constants.ErrCodeNotAuthorized)
+		}
+		logger.LogWithContext(traceID, userID).Errorw("Failed to get photo interactions", "error", err)
+		return response.InternalError(c, "Failed to get interactions", constants.ErrCodeFetchFailed)
+	}
+
+	return response.JSON(c, fiber.Map{
+		"success":      true,
+		"interactions": interactions,
+		"total":        total,
+	})
+}
+
+// GetPhotoLikeStatus retrieves like status and count for a photo
+// @Summary Get photo like status
+// @Description Get whether current user has liked a photo and total like count
+// @Tags Activity Photos
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Photo ID"
+// @Success 200 {object} map[string]interface{} "Like status"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 404 {object} dto.ErrorResponse "Photo not found"
+// @Router /activity-photo/{id}/like-status [get]
+func (h *ActivityPhotoHandler) GetPhotoLikeStatus(c *fiber.Ctx) error {
+	userID := getUserID(c)
+	traceID := getTraceID(c)
+
+	// Parse photo ID
+	photoIDStr := c.Params("id")
+	photoID, err := strconv.ParseUint(photoIDStr, 10, 32)
+	if err != nil {
+		return response.BadRequest(c, "Invalid photo ID", constants.ErrCodeInvalidRequest)
+	}
+
+	// Check if user has liked
+	liked, err := h.photoSvc.HasLikedPhoto(c.Context(), userID, uint(photoID))
+	if err != nil {
+		logger.LogWithContext(traceID, userID).Errorw("Failed to get like status", "error", err, "photo_id", photoID)
+		return response.InternalError(c, "Failed to get like status", constants.ErrCodeFetchFailed)
+	}
+
+	// Get like count
+	likeCount, err := h.photoSvc.GetPhotoLikeCount(c.Context(), uint(photoID))
+	if err != nil {
+		logger.LogWithContext(traceID, userID).Errorw("Failed to get like count", "error", err, "photo_id", photoID)
+		return response.InternalError(c, "Failed to get like count", constants.ErrCodeFetchFailed)
+	}
+
+	return response.JSON(c, fiber.Map{
+		"success":    true,
+		"liked":      liked,
+		"like_count": likeCount,
+	})
+}

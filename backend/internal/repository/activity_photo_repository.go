@@ -3,6 +3,7 @@ package repository
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/aman1117/backend/pkg/models"
@@ -259,4 +260,127 @@ func (r *ActivityPhotoRepository) GetViewedPhotoIDs(viewerID uint, photoIDs []ui
 		Where("viewer_id = ? AND photo_id IN ?", viewerID, photoIDs).
 		Scan(&viewedIDs).Error
 	return viewedIDs, err
+}
+
+// ==================== Story Likes ====================
+
+// LikePhoto records that a user liked a photo (upsert, handles duplicate gracefully)
+func (r *ActivityPhotoRepository) LikePhoto(likerID, photoID uint) error {
+	like := &models.StoryLike{
+		LikerID: likerID,
+		PhotoID: photoID,
+	}
+	err := r.db.Create(like).Error
+	if err != nil {
+		// Check if it's a duplicate key error - not an error, already liked
+		if strings.Contains(err.Error(), "23505") || strings.Contains(err.Error(), "duplicate") {
+			return nil // Already liked, not an error
+		}
+		return err
+	}
+	return nil
+}
+
+// UnlikePhoto removes a user's like from a photo
+func (r *ActivityPhotoRepository) UnlikePhoto(likerID, photoID uint) error {
+	return r.db.Where("liker_id = ? AND photo_id = ?", likerID, photoID).
+		Delete(&models.StoryLike{}).Error
+}
+
+// HasLikedPhoto checks if a user has liked a photo
+func (r *ActivityPhotoRepository) HasLikedPhoto(likerID, photoID uint) (bool, error) {
+	var count int64
+	err := r.db.Model(&models.StoryLike{}).
+		Where("liker_id = ? AND photo_id = ?", likerID, photoID).
+		Count(&count).Error
+	return count > 0, err
+}
+
+// GetPhotoLikers retrieves all likers of a photo with their user info
+func (r *ActivityPhotoRepository) GetPhotoLikers(photoID uint, limit, offset int) ([]models.PhotoLiker, int64, error) {
+	var likers []models.PhotoLiker
+	err := r.db.Raw(`
+		SELECT 
+			u.id as user_id, 
+			u.username, 
+			u.profile_pic,
+			sl.liked_at
+		FROM story_likes sl
+		INNER JOIN users u ON sl.liker_id = u.id
+		WHERE sl.photo_id = ?
+		ORDER BY sl.liked_at DESC
+		LIMIT ? OFFSET ?
+	`, photoID, limit, offset).Scan(&likers).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var total int64
+	r.db.Model(&models.StoryLike{}).Where("photo_id = ?", photoID).Count(&total)
+
+	return likers, total, nil
+}
+
+// GetPhotoLikeCount returns the number of likes for a photo
+func (r *ActivityPhotoRepository) GetPhotoLikeCount(photoID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&models.StoryLike{}).Where("photo_id = ?", photoID).Count(&count).Error
+	return count, err
+}
+
+// GetLikedPhotoIDs returns IDs of photos that a user has liked
+func (r *ActivityPhotoRepository) GetLikedPhotoIDs(likerID uint, photoIDs []uint) ([]uint, error) {
+	if len(photoIDs) == 0 {
+		return []uint{}, nil
+	}
+	var likedIDs []uint
+	err := r.db.Model(&models.StoryLike{}).
+		Select("photo_id").
+		Where("liker_id = ? AND photo_id IN ?", likerID, photoIDs).
+		Scan(&likedIDs).Error
+	return likedIDs, err
+}
+
+// GetPhotoInteractions retrieves combined viewers and likers of a photo (for owner-only modal)
+func (r *ActivityPhotoRepository) GetPhotoInteractions(photoID uint, limit, offset int) ([]models.PhotoInteraction, int64, error) {
+	var interactions []models.PhotoInteraction
+
+	// Use a FULL OUTER JOIN equivalent to combine views and likes
+	err := r.db.Raw(`
+		SELECT 
+			COALESCE(v.user_id, l.user_id) as user_id,
+			u.username,
+			u.profile_pic,
+			CASE 
+				WHEN v.user_id IS NOT NULL AND l.user_id IS NOT NULL THEN 'both'
+				WHEN l.user_id IS NOT NULL THEN 'like'
+				ELSE 'view'
+			END as interaction_type,
+			v.viewed_at,
+			l.liked_at
+		FROM (
+			SELECT viewer_id as user_id, viewed_at FROM story_views WHERE photo_id = ?
+		) v
+		FULL OUTER JOIN (
+			SELECT liker_id as user_id, liked_at FROM story_likes WHERE photo_id = ?
+		) l ON v.user_id = l.user_id
+		INNER JOIN users u ON u.id = COALESCE(v.user_id, l.user_id)
+		ORDER BY COALESCE(l.liked_at, v.viewed_at) DESC
+		LIMIT ? OFFSET ?
+	`, photoID, photoID, limit, offset).Scan(&interactions).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Count total unique users who interacted
+	var total int64
+	r.db.Raw(`
+		SELECT COUNT(DISTINCT user_id) FROM (
+			SELECT viewer_id as user_id FROM story_views WHERE photo_id = ?
+			UNION
+			SELECT liker_id as user_id FROM story_likes WHERE photo_id = ?
+		) combined
+	`, photoID, photoID).Scan(&total)
+
+	return interactions, total, nil
 }

@@ -21,6 +21,7 @@ const (
 	NotifTypeFollowAccepted  NotificationType = "follow_accepted"
 	NotifTypeNewFollower     NotificationType = "new_follower"
 	NotifTypePhotoUploaded   NotificationType = "photo_uploaded"
+	NotifTypeStoryLiked      NotificationType = "story_liked"
 )
 
 // NotificationMetadata is a flexible JSON field for notification-specific data

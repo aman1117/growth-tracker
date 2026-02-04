@@ -159,6 +159,14 @@ export const API_ROUTES = {
     RECORD_VIEW: (id: number) => `/activity-photo/${id}/view`,
     /** GET - Get photo viewers */
     GET_VIEWERS: (id: number) => `/activity-photo/${id}/viewers`,
+    /** POST - Like a photo */
+    LIKE: (id: number) => `/activity-photo/${id}/like`,
+    /** DELETE - Unlike a photo */
+    UNLIKE: (id: number) => `/activity-photo/${id}/like`,
+    /** GET - Get like status (liked + count) */
+    GET_LIKE_STATUS: (id: number) => `/activity-photo/${id}/like-status`,
+    /** GET - Get combined interactions (views + likes) */
+    GET_INTERACTIONS: (id: number) => `/activity-photo/${id}/interactions`,
   },
 } as const;
 

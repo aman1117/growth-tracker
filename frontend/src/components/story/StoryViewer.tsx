@@ -2,18 +2,18 @@
  * StoryViewer Component
  *
  * Fullscreen modal for viewing story photos.
- * Supports navigation, deletion (own photos), and "seen by" viewer list.
+ * Supports navigation, deletion (own photos), likes, and "seen by" / "liked by" combined list.
  */
 
 import './StoryViewer.css';
 
-import { AlertCircle, ChevronLeft, ChevronRight, Eye, Trash2, X } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight, Eye, Heart, Trash2, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getActivityConfig } from '../../constants';
 import { activityPhotoApi } from '../../services/api';
 import type { ActivityName } from '../../types';
-import type { ActivityPhoto, PhotoViewer } from '../../types/story';
+import type { ActivityPhoto, PhotoInteraction } from '../../types/story';
 import { DynamicIcon } from '../DynamicIcon';
 import { Avatar, SnapToast } from '../ui';
 
@@ -53,16 +53,22 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   onProfileClick,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
-  const [showViewers, setShowViewers] = useState(false);
-  const [viewers, setViewers] = useState<PhotoViewer[]>([]);
-  const [viewersTotal, setViewersTotal] = useState(0);
-  const [loadingViewers, setLoadingViewers] = useState(false);
+  const [showInteractions, setShowInteractions] = useState(false);
+  const [interactions, setInteractions] = useState<PhotoInteraction[]>([]);
+  const [interactionsTotal, setInteractionsTotal] = useState(0);
+  const [loadingInteractions, setLoadingInteractions] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
   const viewedPhotosRef = React.useRef<Set<number>>(new Set());
   // Track local photos list (for proper navigation after deletion)
   const [localPhotos, setLocalPhotos] = useState<ActivityPhoto[]>(photos);
+
+  // Like state
+  const [likeStatus, setLikeStatus] = useState<Map<number, { liked: boolean; count: number }>>(new Map());
+  const [likePending, setLikePending] = useState(false);
+  const [showLikeAnimation, setShowLikeAnimation] = useState(false);
+  const lastTapRef = useRef<number>(0);
 
   // Swipe gesture state
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -100,13 +106,15 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     // Only reset when first opening, not when photos change while open
     if (isOpen && !prevIsOpenRef.current) {
       setCurrentIndex(startIndex);
-      setShowViewers(false);
+      setShowInteractions(false);
       setShowDeleteConfirm(false);
-      setViewersTotal(0);
+      setInteractionsTotal(0);
       setFailedImages(new Set());
       setToastMessage(null);
       setLocalPhotos(photos);
       viewedPhotosRef.current = new Set();
+      setLikeStatus(new Map());
+      setShowLikeAnimation(false);
       // Reset swipe state
       setSwipeOffset(0);
       setIsSwiping(false);
@@ -116,19 +124,38 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     prevIsOpenRef.current = isOpen;
   }, [isOpen, startIndex, photos]);
 
-  // Fetch viewer count on load for own stories (not full list, just count)
+  // Fetch interactions count on load for own stories
   useEffect(() => {
     if (!isOpen || !isOwnStory || !currentPhoto) return;
     
-    // Fetch viewer count for current photo
-    activityPhotoApi.getPhotoViewers(currentPhoto.id).then(response => {
+    // Fetch interaction count for current photo
+    activityPhotoApi.getPhotoInteractions(currentPhoto.id).then(response => {
       if (response.success) {
-        setViewersTotal(response.total || 0);
+        setInteractionsTotal(response.total || 0);
       }
     }).catch(err => {
-      console.error('Failed to fetch viewer count:', err);
+      console.error('Failed to fetch interactions count:', err);
     });
   }, [isOpen, isOwnStory, currentPhoto]);
+
+  // Fetch like status when photo changes (for non-own photos)
+  useEffect(() => {
+    if (!currentPhoto || isOwnStory) return;
+    
+    // Check if we already have status for this photo
+    if (likeStatus.has(currentPhoto.id)) return;
+    
+    activityPhotoApi.getLikeStatus(currentPhoto.id).then(response => {
+      if (response.success) {
+        setLikeStatus(prev => new Map(prev).set(currentPhoto.id, {
+          liked: response.liked,
+          count: response.like_count
+        }));
+      }
+    }).catch(err => {
+      console.error('Failed to fetch like status:', err);
+    });
+  }, [currentPhoto, isOwnStory, likeStatus]);
 
   // Record view when photo changes (only for non-own photos)
   useEffect(() => {
@@ -153,29 +180,92 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     onClose();
   }, [isOwnStory, onClose, onPhotosViewed]);
 
-  // Fetch viewers when showing viewer list
-  const fetchViewers = useCallback(async () => {
+  // Fetch interactions when showing the modal
+  const fetchInteractions = useCallback(async () => {
     if (!currentPhoto || !isOwnStory) return;
     
-    setLoadingViewers(true);
+    setLoadingInteractions(true);
     try {
-      const response = await activityPhotoApi.getPhotoViewers(currentPhoto.id);
+      const response = await activityPhotoApi.getPhotoInteractions(currentPhoto.id);
       if (response.success) {
-        setViewers(response.viewers || []);
-        setViewersTotal(response.total || 0);
+        setInteractions(response.interactions || []);
+        setInteractionsTotal(response.total || 0);
       }
     } catch (err) {
-      console.error('Failed to fetch viewers:', err);
+      console.error('Failed to fetch interactions:', err);
     } finally {
-      setLoadingViewers(false);
+      setLoadingInteractions(false);
     }
   }, [currentPhoto, isOwnStory]);
 
   useEffect(() => {
-    if (showViewers && isOwnStory) {
-      fetchViewers();
+    if (showInteractions && isOwnStory) {
+      fetchInteractions();
     }
-  }, [showViewers, fetchViewers, isOwnStory]);
+  }, [showInteractions, fetchInteractions, isOwnStory]);
+
+  // Handle like/unlike with optimistic update and haptic feedback
+  const handleLikeToggle = useCallback(async () => {
+    if (!currentPhoto || isOwnStory || likePending) return;
+    
+    const currentStatus = likeStatus.get(currentPhoto.id) || { liked: false, count: 0 };
+    const newLiked = !currentStatus.liked;
+    const newCount = newLiked ? currentStatus.count + 1 : Math.max(0, currentStatus.count - 1);
+    
+    // Optimistic update
+    setLikeStatus(prev => new Map(prev).set(currentPhoto.id, { liked: newLiked, count: newCount }));
+    setLikePending(true);
+    
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(newLiked ? 50 : 30);
+    }
+    
+    try {
+      if (newLiked) {
+        await activityPhotoApi.likePhoto(currentPhoto.id);
+      } else {
+        await activityPhotoApi.unlikePhoto(currentPhoto.id);
+      }
+    } catch (err) {
+      // Revert on error
+      console.error('Failed to toggle like:', err);
+      setLikeStatus(prev => new Map(prev).set(currentPhoto.id, currentStatus));
+      setToastMessage('Failed to update like');
+    } finally {
+      setLikePending(false);
+    }
+  }, [currentPhoto, isOwnStory, likeStatus, likePending]);
+
+  // Double-tap to like
+  const handleDoubleTap = useCallback(() => {
+    if (!currentPhoto || isOwnStory) return;
+    
+    const currentStatus = likeStatus.get(currentPhoto.id);
+    if (!currentStatus?.liked) {
+      // Show heart animation
+      setShowLikeAnimation(true);
+      setTimeout(() => setShowLikeAnimation(false), 1000);
+      
+      // Like the photo
+      handleLikeToggle();
+    }
+  }, [currentPhoto, isOwnStory, likeStatus, handleLikeToggle]);
+
+  // Detect double-tap on image
+  const handleImageTap = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (isOwnStory) return;
+    
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleDoubleTap();
+    }
+    lastTapRef.current = now;
+  }, [isOwnStory, handleDoubleTap]);
 
   // Helper helper to handle navigation with animation
   const animateTo = useCallback((direction: 'next' | 'prev' | 'stay') => {
@@ -227,8 +317,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         case 'Escape':
           if (showDeleteConfirm) {
             setShowDeleteConfirm(false);
-          } else if (showViewers) {
-            setShowViewers(false);
+          } else if (showInteractions) {
+            setShowInteractions(false);
           } else {
             handleClose();
           }
@@ -239,17 +329,24 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         case 'ArrowRight':
           goNext();
           break;
+        case 'l':
+        case 'L':
+          // Keyboard shortcut to like (non-own photos)
+          if (!isOwnStory) {
+            handleLikeToggle();
+          }
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showDeleteConfirm, showViewers, handleClose, goNext, goPrev, isAnimating]);
+  }, [isOpen, showDeleteConfirm, showInteractions, handleClose, goNext, goPrev, isAnimating, isOwnStory, handleLikeToggle]);
 
   // Touch/Swipe gesture handlers
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     // Don't track swipes if modals are open or already animating
-    if (showDeleteConfirm || showViewers || isAnimating) return;
+    if (showDeleteConfirm || showInteractions || isAnimating) return;
     
     const touch = e.touches[0];
     touchStartRef.current = {
@@ -259,7 +356,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     };
     setIsSwiping(false);
     setSwipeOffset(0);
-  }, [showDeleteConfirm, showViewers, isAnimating]);
+  }, [showDeleteConfirm, showInteractions, isAnimating]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!touchStartRef.current || isAnimating) return;
@@ -487,7 +584,15 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         <div 
           ref={containerRef}
           className="story-viewer-content"
+          onClick={handleImageTap}
         >
+          {/* Double-tap like animation */}
+          {showLikeAnimation && (
+            <div className="story-viewer-like-animation">
+              <Heart size={100} fill="white" color="white" />
+            </div>
+          )}
+
           {/* Navigation arrows */}
           {currentIndex > 0 && (
             <button
@@ -574,19 +679,37 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           </div>
         )}
 
-        {/* Footer - Seen by (own stories only) */}
-        {isOwnStory && (
-          <button
-            className="story-viewer-footer"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowViewers(true);
-            }}
-          >
-            <Eye size={16} />
-            <span>Seen by {viewersTotal > 0 ? viewersTotal : '—'}</span>
-          </button>
-        )}
+        {/* Footer */}
+        <div className="story-viewer-footer-container" onClick={e => e.stopPropagation()}>
+          {/* Like button (non-own stories) - no count shown, only owner sees counts */}
+          {!isOwnStory && currentPhoto && (
+            <button
+              className={`story-viewer-like-btn ${likeStatus.get(currentPhoto.id)?.liked ? 'liked' : ''}`}
+              onClick={handleLikeToggle}
+              disabled={likePending}
+              aria-label={likeStatus.get(currentPhoto.id)?.liked ? 'Unlike photo' : 'Like photo'}
+            >
+              <Heart 
+                size={24} 
+                fill={likeStatus.get(currentPhoto.id)?.liked ? 'currentColor' : 'none'} 
+              />
+            </button>
+          )}
+
+          {/* Interactions button (own stories) */}
+          {isOwnStory && (
+            <button
+              className="story-viewer-footer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowInteractions(true);
+              }}
+            >
+              <Eye size={16} />
+              <span>Seen by {interactionsTotal > 0 ? interactionsTotal : '—'}</span>
+            </button>
+          )}
+        </div>
 
         {/* Delete confirmation dialog */}
         {showDeleteConfirm && (
@@ -618,32 +741,40 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           </div>
         )}
 
-        {/* Viewers list panel */}
-        {showViewers && (
+        {/* Interactions panel (combined views + likes) */}
+        {showInteractions && (
           <div 
             className="story-viewer-viewers-overlay" 
             onClick={(e) => {
               e.stopPropagation(); // Prevent closing the main viewer
-              setShowViewers(false);
+              setShowInteractions(false);
             }}
           >
             <div className="story-viewer-viewers-panel" onClick={e => e.stopPropagation()}>
               <div className="story-viewer-viewers-header">
-                <h3>Seen by {viewersTotal}</h3>
-                <button onClick={() => setShowViewers(false)} aria-label="Close viewers">
+                <h3>Activity</h3>
+                <button onClick={() => setShowInteractions(false)} aria-label="Close">
                   <X size={20} />
                 </button>
               </div>
               <div className="story-viewer-viewers-list">
-                {loadingViewers ? (
+                {loadingInteractions ? (
                   <div className="story-viewer-viewers-loading">Loading...</div>
-                ) : viewers.length === 0 ? (
-                  <div className="story-viewer-viewers-empty">No views yet</div>
+                ) : interactions.length === 0 ? (
+                  <div className="story-viewer-viewers-empty">No activity yet</div>
                 ) : (
-                  viewers.map(viewer => (
-                    <div key={viewer.user_id} className="story-viewer-viewer-item">
-                      <Avatar src={viewer.profile_pic} name={viewer.username} size="sm" />
-                      <span className="story-viewer-viewer-name">{viewer.username}</span>
+                  interactions.map(interaction => (
+                    <div key={interaction.user_id} className="story-viewer-viewer-item">
+                      <Avatar src={interaction.profile_pic} name={interaction.username} size="sm" />
+                      <span className="story-viewer-viewer-name">{interaction.username}</span>
+                      <div className="story-viewer-interaction-icons">
+                        {(interaction.interaction_type === 'view' || interaction.interaction_type === 'both') && (
+                          <Eye size={14} className="story-viewer-icon-view" />
+                        )}
+                        {(interaction.interaction_type === 'like' || interaction.interaction_type === 'both') && (
+                          <Heart size={14} fill="currentColor" className="story-viewer-icon-like" />
+                        )}
+                      </div>
                     </div>
                   ))
                 )}

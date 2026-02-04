@@ -39,6 +39,7 @@ interface NotificationItemProps {
 
 const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   like_received: <Heart size={16} className={styles.iconLike} />,
+  story_liked: <Heart size={16} className={styles.iconLike} />,
   badge_unlocked: <Trophy size={16} className={styles.iconBadge} />,
   streak_milestone: <Flame size={16} className={styles.iconStreak} />,
   streak_at_risk: <AlertTriangle size={16} className={styles.iconWarning} />,
@@ -50,14 +51,13 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
 };
 
 /**
- * Type guard to check if metadata is LikeMetadata
+ * Type guard to check if metadata is LikeMetadata (for like_received or story_liked)
  */
 const isLikeMetadata = (metadata: unknown): metadata is LikeMetadata => {
   return (
     typeof metadata === 'object' &&
     metadata !== null &&
-    'liker_username' in metadata &&
-    'liked_date' in metadata
+    'liker_username' in metadata
   );
 };
 
@@ -74,9 +74,10 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
   const isUnread = !notification.read_at;
   const icon = NOTIFICATION_ICONS[notification.type] || <Megaphone size={16} />;
 
-  // Extract username from metadata for like notifications
+  // Extract username from metadata for like notifications (day likes and story likes)
   const likeMetadata = useMemo(() => {
-    if (notification.type === 'like_received' && isLikeMetadata(notification.metadata)) {
+    if ((notification.type === 'like_received' || notification.type === 'story_liked') && 
+        isLikeMetadata(notification.metadata)) {
       return notification.metadata;
     }
     return null;

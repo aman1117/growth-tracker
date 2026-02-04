@@ -19,6 +19,9 @@ export interface ActivityPhoto {
   created_at: string;
   // View status (only in following stories response)
   viewed?: boolean;
+  // Like status (populated when fetching individual photos)
+  liked?: boolean;
+  like_count?: number;
 }
 
 // Data for rendering a story circle
@@ -49,6 +52,24 @@ export interface PhotoViewer {
   viewed_at: string;
 }
 
+// Photo liker info
+export interface PhotoLiker {
+  user_id: number;
+  username: string;
+  profile_pic?: string;
+  liked_at: string;
+}
+
+// Photo interaction (combined view + like)
+export interface PhotoInteraction {
+  user_id: number;
+  username: string;
+  profile_pic?: string;
+  interaction_type: 'view' | 'like' | 'both';
+  viewed_at?: string;
+  liked_at?: string;
+}
+
 // API response types
 export interface UploadPhotoResponse {
   success: boolean;
@@ -71,6 +92,20 @@ export interface GetFollowingStoriesResponse {
 export interface GetPhotoViewersResponse {
   success: boolean;
   viewers: PhotoViewer[];
+  total: number;
+  error?: string;
+}
+
+export interface GetPhotoLikeStatusResponse {
+  success: boolean;
+  liked: boolean;
+  like_count: number;
+  error?: string;
+}
+
+export interface GetPhotoInteractionsResponse {
+  success: boolean;
+  interactions: PhotoInteraction[];
   total: number;
   error?: string;
 }

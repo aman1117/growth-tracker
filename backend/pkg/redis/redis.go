@@ -355,3 +355,167 @@ func SetAutocompleteCache(ctx context.Context, query string, data string) error 
 
 	return nil
 }
+
+// ==================== Story Likes Cache Functions ====================
+
+const (
+	// StoryLikeCountCachePrefix is the key prefix for story like counts
+	StoryLikeCountCachePrefix = "story_like_cnt:"
+	// StoryLikedByCachePrefix is the key prefix for user liked status
+	StoryLikedByCachePrefix = "story_liked_by:"
+	// StoryLikeCacheTTL is the cache duration for story like data
+	StoryLikeCacheTTL = 5 * time.Minute
+)
+
+// StoryLikeCountCacheKey generates the Redis key for like count cache
+func StoryLikeCountCacheKey(photoID uint) string {
+	return fmt.Sprintf("%s%d", StoryLikeCountCachePrefix, photoID)
+}
+
+// StoryLikedByCacheKey generates the Redis key for user liked status cache
+func StoryLikedByCacheKey(photoID, userID uint) string {
+	return fmt.Sprintf("%s%d:%d", StoryLikedByCachePrefix, photoID, userID)
+}
+
+// GetStoryLikeCount retrieves cached like count from Redis
+// Returns -1 on cache miss
+func GetStoryLikeCount(ctx context.Context, photoID uint) (int64, error) {
+	if client == nil {
+		return -1, nil // Redis not available, skip cache
+	}
+
+	key := StoryLikeCountCacheKey(photoID)
+	value, err := client.Get(ctx, key).Int64()
+	if err == goredis.Nil {
+		return -1, nil // Cache miss
+	}
+	if err != nil {
+		return -1, fmt.Errorf("failed to get story like count cache: %w", err)
+	}
+
+	return value, nil
+}
+
+// SetStoryLikeCount stores like count in Redis cache
+func SetStoryLikeCount(ctx context.Context, photoID uint, count int64) error {
+	if client == nil {
+		return nil // Redis not available, skip cache
+	}
+
+	key := StoryLikeCountCacheKey(photoID)
+	if err := client.Set(ctx, key, count, StoryLikeCacheTTL).Err(); err != nil {
+		return fmt.Errorf("failed to set story like count cache: %w", err)
+	}
+
+	return nil
+}
+
+// IncrementStoryLikeCount atomically increments the cached like count
+func IncrementStoryLikeCount(ctx context.Context, photoID uint) error {
+	if client == nil {
+		return nil
+	}
+
+	key := StoryLikeCountCacheKey(photoID)
+	// Only increment if key exists (to avoid creating stale data)
+	script := `
+		if redis.call("EXISTS", KEYS[1]) == 1 then
+			return redis.call("INCR", KEYS[1])
+		end
+		return nil
+	`
+	_, err := client.Eval(ctx, script, []string{key}).Result()
+	if err != nil && err != goredis.Nil {
+		return fmt.Errorf("failed to increment story like count: %w", err)
+	}
+	return nil
+}
+
+// DecrementStoryLikeCount atomically decrements the cached like count
+func DecrementStoryLikeCount(ctx context.Context, photoID uint) error {
+	if client == nil {
+		return nil
+	}
+
+	key := StoryLikeCountCacheKey(photoID)
+	// Only decrement if key exists and value > 0
+	script := `
+		if redis.call("EXISTS", KEYS[1]) == 1 then
+			local val = redis.call("GET", KEYS[1])
+			if tonumber(val) > 0 then
+				return redis.call("DECR", KEYS[1])
+			end
+		end
+		return nil
+	`
+	_, err := client.Eval(ctx, script, []string{key}).Result()
+	if err != nil && err != goredis.Nil {
+		return fmt.Errorf("failed to decrement story like count: %w", err)
+	}
+	return nil
+}
+
+// InvalidateStoryLikeCount removes like count from cache
+func InvalidateStoryLikeCount(ctx context.Context, photoID uint) error {
+	if client == nil {
+		return nil
+	}
+
+	key := StoryLikeCountCacheKey(photoID)
+	if err := client.Del(ctx, key).Err(); err != nil {
+		return fmt.Errorf("failed to invalidate story like count cache: %w", err)
+	}
+
+	return nil
+}
+
+// GetStoryLikedByUser checks if a user has liked a photo (from cache)
+// Returns: liked (bool), found (bool), error
+func GetStoryLikedByUser(ctx context.Context, photoID, userID uint) (bool, bool, error) {
+	if client == nil {
+		return false, false, nil // Redis not available
+	}
+
+	key := StoryLikedByCacheKey(photoID, userID)
+	value, err := client.Get(ctx, key).Result()
+	if err == goredis.Nil {
+		return false, false, nil // Cache miss
+	}
+	if err != nil {
+		return false, false, fmt.Errorf("failed to get story liked by user cache: %w", err)
+	}
+
+	return value == "1", true, nil
+}
+
+// SetStoryLikedByUser caches whether a user has liked a photo
+func SetStoryLikedByUser(ctx context.Context, photoID, userID uint, liked bool) error {
+	if client == nil {
+		return nil
+	}
+
+	key := StoryLikedByCacheKey(photoID, userID)
+	value := "0"
+	if liked {
+		value = "1"
+	}
+	if err := client.Set(ctx, key, value, StoryLikeCacheTTL).Err(); err != nil {
+		return fmt.Errorf("failed to set story liked by user cache: %w", err)
+	}
+
+	return nil
+}
+
+// InvalidateStoryLikedByUser removes user liked status from cache
+func InvalidateStoryLikedByUser(ctx context.Context, photoID, userID uint) error {
+	if client == nil {
+		return nil
+	}
+
+	key := StoryLikedByCacheKey(photoID, userID)
+	if err := client.Del(ctx, key).Err(); err != nil {
+		return fmt.Errorf("failed to invalidate story liked by user cache: %w", err)
+	}
+
+	return nil
+}

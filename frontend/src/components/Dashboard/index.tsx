@@ -782,6 +782,27 @@ export const Dashboard: React.FC = () => {
           onPhotosViewed={(photoIds) => {
             storyViewerState.handlers?.onPhotosViewed(photoIds);
           }}
+          onProfileClick={(username) => {
+            // Capture isOwnStory before resetting state to avoid stale closure
+            const isOwnStory = storyViewerState.isOwnStory;
+            
+            // Close the story viewer first
+            setStoryViewerState({
+              isOpen: false,
+              photos: [],
+              startIndex: 0,
+              ownerUsername: '',
+              ownerProfilePic: undefined,
+              isOwnStory: false,
+              handlers: undefined,
+            });
+            // Navigate to the user's profile
+            // For own stories, use targetUsername since ownerUsername is "Your Story"
+            const profileUsername = isOwnStory ? targetUsername : username;
+            if (profileUsername) {
+              navigate(`/user/${profileUsername}`);
+            }
+          }}
         />
       )}
     </div>

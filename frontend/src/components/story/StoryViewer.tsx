@@ -36,6 +36,8 @@ export interface StoryViewerProps {
   onPhotoDeleted?: (photoId: number) => void;
   /** Callback when photos are viewed (for marking friend stories as seen) */
   onPhotosViewed?: (photoIds: number[]) => void;
+  /** Callback when user clicks on the profile (avatar/username) */
+  onProfileClick?: (username: string) => void;
 }
 
 export const StoryViewer: React.FC<StoryViewerProps> = ({
@@ -48,6 +50,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   onClose,
   onPhotoDeleted,
   onPhotosViewed,
+  onProfileClick,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
   const [showViewers, setShowViewers] = useState(false);
@@ -430,7 +433,22 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       <div className="story-viewer-container">
         {/* Header */}
         <div className="story-viewer-header" onClick={e => e.stopPropagation()}>
-          <div className="story-viewer-user">
+          <div 
+            className={`story-viewer-user ${onProfileClick ? 'story-viewer-user-clickable' : ''}`}
+            onClick={() => {
+              if (onProfileClick) {
+                onProfileClick(ownerUsername);
+              }
+            }}
+            role={onProfileClick ? 'button' : undefined}
+            tabIndex={onProfileClick ? 0 : undefined}
+            onKeyDown={(e) => {
+              if (onProfileClick && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                onProfileClick(ownerUsername);
+              }
+            }}
+          >
             <Avatar src={ownerProfilePic} name={ownerUsername} size="sm" />
             <div className="story-viewer-user-info">
               <div className="story-viewer-user-top">

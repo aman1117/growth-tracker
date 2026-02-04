@@ -107,6 +107,32 @@
   gap: 10px;
 }
 
+/* Clickable user section for profile navigation */
+.story-viewer-user-clickable {
+  cursor: pointer;
+  padding: 6px 10px 6px 6px;
+  margin: -6px -10px -6px -6px;
+  border-radius: 24px;
+  transition: background-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.story-viewer-user-clickable:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.story-viewer-user-clickable:active {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="dark"] .story-viewer-user-clickable:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .story-viewer-user-clickable:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 /* Avatar styling - adapts to theme */
 .story-viewer-user [class*="avatar"] {
   color: var(--text-primary);

@@ -38,7 +38,7 @@ func NewActivityPhotoHandler(
 // @Accept multipart/form-data
 // @Produce json
 // @Security BearerAuth
-// @Param image formance file true "Image file (JPEG, PNG, WebP)"
+// @Param image formData file true "Image file (JPEG, PNG, WebP)"
 // @Param activity_name formData string true "Activity name"
 // @Param photo_date formData string true "Photo date (YYYY-MM-DD)"
 // @Success 200 {object} map[string]interface{} "Photo uploaded successfully"

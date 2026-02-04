@@ -31,6 +31,50 @@ definitions:
         example: 15.5
         type: number
     type: object
+  dto.AutocompleteResponse:
+    description: Autocomplete response with query echo, request ID for tracing, and
+      ranked suggestions
+    properties:
+      query:
+        example: john
+        type: string
+      requestId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      suggestions:
+        items:
+          $ref: '#/definitions/dto.AutocompleteSuggestion'
+        type: array
+    type: object
+  dto.AutocompleteSuggestion:
+    description: A single autocomplete suggestion with text, kind, score, and metadata
+    properties:
+      kind:
+        example: user
+        type: string
+      meta:
+        $ref: '#/definitions/dto.AutocompleteSuggestionMeta'
+      score:
+        example: 85.5
+        type: number
+      text:
+        example: john_doe
+        type: string
+    type: object
+  dto.AutocompleteSuggestionMeta:
+    description: Additional metadata for autocomplete suggestion (profile pic, verified
+      status, etc.)
+    properties:
+      followersCount:
+        example: 150
+        type: integer
+      isVerified:
+        example: false
+        type: boolean
+      profilePic:
+        example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+    type: object
   dto.BadgeDTO:
     description: Badge information
     properties:
@@ -1075,6 +1119,373 @@ info:
   title: Growth Tracker API
   version: "1.0"
 paths:
+  /activity-photo:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a photo for an activity on a specific date (max 5MB, within
+        7 days)
+      parameters:
+      - description: Image file (JPEG, PNG, WebP)
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Activity name
+        in: formData
+        name: activity_name
+        required: true
+        type: string
+      - description: Photo date (YYYY-MM-DD)
+        in: formData
+        name: photo_date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Photo uploaded successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Validation error or duplicate
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Photo already exists
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload activity photo
+      tags:
+      - Activity Photos
+  /activity-photo/{id}:
+    delete:
+      description: Delete a photo owned by the current user
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Photo deleted
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Not authorized to delete this photo
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Photo not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete activity photo
+      tags:
+      - Activity Photos
+  /activity-photo/{id}/interactions:
+    get:
+      description: Get combined list of viewers and likers with interaction type (owner
+        only)
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Max results (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Interactions list
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Not photo owner
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Photo not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get photo interactions
+      tags:
+      - Activity Photos
+  /activity-photo/{id}/like:
+    delete:
+      description: Remove like from a story photo
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Photo unliked
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Photo not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unlike a photo
+      tags:
+      - Activity Photos
+    post:
+      description: Like a story photo (also records view)
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Photo liked
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Cannot like own photo
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Must follow user
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Photo not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Like a photo
+      tags:
+      - Activity Photos
+  /activity-photo/{id}/like-status:
+    get:
+      description: Get whether current user has liked a photo and total like count
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Like status
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Photo not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get photo like status
+      tags:
+      - Activity Photos
+  /activity-photo/{id}/view:
+    post:
+      description: Record that the current user viewed a photo
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: View recorded
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Photo not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Record photo view
+      tags:
+      - Activity Photos
+  /activity-photo/{id}/viewers:
+    get:
+      description: Get list of users who viewed a photo (owner only)
+      parameters:
+      - description: Photo ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Max results (default 20)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Viewers list
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Not photo owner
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Photo not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get photo viewers
+      tags:
+      - Activity Photos
+  /activity-photos:
+    get:
+      description: Get photos for a user on a specific date. Records views for other
+        users' photos.
+      parameters:
+      - description: User ID
+        in: query
+        name: user_id
+        required: true
+        type: integer
+      - description: Date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Photos list
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Not authorized to view photos
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get activity photos
+      tags:
+      - Activity Photos
+  /activity-photos/following:
+    get:
+      description: Get photo stories from users the current user follows for a specific
+        date
+      parameters:
+      - description: Date (YYYY-MM-DD)
+        in: query
+        name: date
+        required: true
+        type: string
+      - description: Max users to return (default 20)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Story groups
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get following users' stories
+      tags:
+      - Activity Photos
   /auth/forgot-password:
     post:
       consumes:
@@ -1174,6 +1585,51 @@ paths:
       summary: Verify email address
       tags:
       - Authentication
+  /autocomplete/users:
+    get:
+      consumes:
+      - application/json
+      description: Search for users by username prefix with fuzzy matching, ranked
+        by relevance and popularity
+      parameters:
+      - description: Search query (1-80 chars)
+        in: query
+        maxLength: 80
+        minLength: 1
+        name: q
+        required: true
+        type: string
+      - default: 12
+        description: Max results (1-20, default 12)
+        in: query
+        maximum: 20
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Autocomplete suggestions
+          schema:
+            $ref: '#/definitions/dto.AutocompleteResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Autocomplete users
+      tags:
+      - Users
   /badges:
     get:
       consumes:

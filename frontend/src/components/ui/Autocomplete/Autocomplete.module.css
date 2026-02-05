@@ -99,11 +99,11 @@
 
 .dropdown {
   position: absolute;
-  top: calc(100% + var(--space-2));
+  top: calc(100% + var(--space-1));
   left: 0;
   right: 0;
   margin: 0;
-  padding: var(--space-2) 0;
+  padding: var(--space-1) 0;
   list-style: none;
   z-index: var(--z-dropdown);
   max-height: 400px;
@@ -151,11 +151,11 @@
 .suggestion {
   display: flex;
   align-items: center;
-  padding: var(--space-3) var(--space-4);
-  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  gap: var(--space-2);
   cursor: pointer;
   transition: background-color 0.1s ease;
-  min-height: 48px; /* Touch-friendly minimum height */
+  min-height: 40px; /* Compact touch-friendly height */
   touch-action: manipulation;
 }
 
@@ -177,7 +177,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .suggestionText {
@@ -258,7 +258,7 @@
   }
 
   .suggestion {
-    padding: var(--space-3);
+    padding: var(--space-2) var(--space-3);
   }
 }
 

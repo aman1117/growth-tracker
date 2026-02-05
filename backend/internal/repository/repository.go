@@ -623,7 +623,8 @@ type TrendingUserResult struct {
 }
 
 // GetTrendingUsersForUser returns users that the current user's followers have recently engaged with.
-// Filters to public users, prioritizes verified users, excludes self and already-followed users.
+// Shows public users + private users with mutual followers (Instagram-like behavior).
+// Prioritizes verified users, excludes self and already-followed users.
 // Falls back to global trending (by follower count) if personalized results are insufficient.
 func (r *RecentSearchRepository) GetTrendingUsersForUser(userID uint, limit int) ([]TrendingUserResult, error) {
 	// Validate input
@@ -643,15 +644,20 @@ func (r *RecentSearchRepository) GetTrendingUsersForUser(userID uint, limit int)
 	// Query explanation:
 	// 1. Find users that my followers have engaged with in last 7 days
 	//    (story likes, day likes, new follows)
-	// 2. Filter to public accounts only
+	// 2. Filter to: public accounts OR private accounts with mutual followers
 	// 3. Exclude self and users I already follow
 	// 4. Rank by interaction count, with verified users boosted
-	// 5. If <3 personalized results, pad with global trending
+	// 5. If insufficient personalized results, pad with global trending
 	err := r.db.Raw(`
 		WITH my_followers AS (
 			SELECT follower_id 
 			FROM follow_edges_by_followee 
 			WHERE followee_id = $1 AND state = 'ACTIVE'
+		),
+		my_following AS (
+			SELECT followee_id 
+			FROM follow_edges_by_follower 
+			WHERE follower_id = $1 AND state = 'ACTIVE'
 		),
 		follower_interactions AS (
 			-- Story likes from my followers
@@ -698,12 +704,19 @@ func (r *RecentSearchRepository) GetTrendingUsersForUser(userID uint, limit int)
 			FROM follower_interactions fi
 			JOIN users u ON u.id = fi.target_user_id
 			LEFT JOIN follow_counters fc ON fc.user_id = u.id
-			WHERE u.is_private = false
-			AND u.id != $1
+			WHERE u.id != $1
 			-- Exclude users I already follow
-			AND NOT EXISTS (
-				SELECT 1 FROM follow_edges_by_follower 
-				WHERE follower_id = $1 AND followee_id = u.id AND state = 'ACTIVE'
+			AND u.id NOT IN (SELECT followee_id FROM my_following)
+			-- Allow public users OR private users with mutual followers
+			AND (
+				u.is_private = false
+				OR EXISTS (
+					-- Has mutual followers: someone I follow also follows them
+					SELECT 1 FROM follow_edges_by_follower mf
+					WHERE mf.follower_id IN (SELECT followee_id FROM my_following)
+					AND mf.followee_id = u.id
+					AND mf.state = 'ACTIVE'
+				)
 			)
 			GROUP BY u.id, u.username, u.profile_pic, u.is_verified, fc.followers_count
 			ORDER BY 
@@ -722,12 +735,18 @@ func (r *RecentSearchRepository) GetTrendingUsersForUser(userID uint, limit int)
 				0 as interaction_count
 			FROM users u
 			LEFT JOIN follow_counters fc ON fc.user_id = u.id
-			WHERE u.is_private = false
-			AND u.id != $1
+			WHERE u.id != $1
 			-- Exclude users I already follow
-			AND NOT EXISTS (
-				SELECT 1 FROM follow_edges_by_follower 
-				WHERE follower_id = $1 AND followee_id = u.id AND state = 'ACTIVE'
+			AND u.id NOT IN (SELECT followee_id FROM my_following)
+			-- Allow public users OR private users with mutual followers
+			AND (
+				u.is_private = false
+				OR EXISTS (
+					SELECT 1 FROM follow_edges_by_follower mf
+					WHERE mf.follower_id IN (SELECT followee_id FROM my_following)
+					AND mf.followee_id = u.id
+					AND mf.state = 'ACTIVE'
+				)
 			)
 			-- Exclude users already in personalized results
 			AND u.id NOT IN (SELECT id FROM personalized_trending)

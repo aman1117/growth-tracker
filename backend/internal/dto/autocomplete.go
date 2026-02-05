@@ -26,3 +26,22 @@ type AutocompleteResponse struct {
 	RequestID   string                   `json:"requestId" example:"550e8400-e29b-41d4-a716-446655440000"`
 	Suggestions []AutocompleteSuggestion `json:"suggestions"`
 }
+
+// ==================== Search Suggestions DTOs ====================
+
+// SearchSuggestionUser represents a user in search suggestions (recent or trending)
+// @Description User information for search suggestions
+type SearchSuggestionUser struct {
+	ID             uint    `json:"id" example:"1"`
+	Username       string  `json:"username" example:"john_doe"`
+	ProfilePic     *string `json:"profilePic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	IsVerified     bool    `json:"isVerified" example:"false"`
+	FollowersCount int64   `json:"followersCount" example:"150"`
+}
+
+// SearchSuggestionsResponse represents the combined recent + trending suggestions response
+// @Description Search suggestions with recent searches and trending users
+type SearchSuggestionsResponse struct {
+	Recent   []SearchSuggestionUser `json:"recent"`
+	Trending []SearchSuggestionUser `json:"trending"`
+}

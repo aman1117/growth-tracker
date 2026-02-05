@@ -106,9 +106,15 @@
   padding: var(--space-2) 0;
   list-style: none;
   z-index: var(--z-dropdown);
-  max-height: 320px;
+  max-height: 400px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+
+  /* Hide scrollbar but keep scrollable */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 
   /* Glassmorphism styling */
   background: var(--glass-floating-bg);
@@ -120,6 +126,11 @@
 
   /* Smooth entrance animation */
   animation: dropdownEnter 0.15s ease-out;
+}
+
+/* Hide scrollbar for Chrome/Safari/Opera */
+.dropdown::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes dropdownEnter {

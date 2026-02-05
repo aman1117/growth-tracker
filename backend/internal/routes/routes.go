@@ -12,23 +12,24 @@ import (
 
 // Router holds all route handlers
 type Router struct {
-	authHandler           *handlers.AuthHandler
-	profileHandler        *handlers.ProfileHandler
-	activityHandler       *handlers.ActivityHandler
-	streakHandler         *handlers.StreakHandler
-	analyticsHandler      *handlers.AnalyticsHandler
-	tileConfigHandler     *handlers.TileConfigHandler
-	passwordResetHandler  *handlers.PasswordResetHandler
-	verificationHandler   *handlers.VerificationHandler
-	blobHandler           *handlers.BlobHandler
-	likeHandler           *handlers.LikeHandler
-	badgeHandler          *handlers.BadgeHandler
-	notificationHandler   *handlers.NotificationHandler
-	notificationWSHandler *handlers.NotificationWSHandler
-	pushHandler           *handlers.PushHandler
-	followHandler         *handlers.FollowHandler
-	activityPhotoHandler  *handlers.ActivityPhotoHandler
-	tokenSvc              *handlers.TokenService
+	authHandler              *handlers.AuthHandler
+	profileHandler           *handlers.ProfileHandler
+	activityHandler          *handlers.ActivityHandler
+	streakHandler            *handlers.StreakHandler
+	analyticsHandler         *handlers.AnalyticsHandler
+	tileConfigHandler        *handlers.TileConfigHandler
+	passwordResetHandler     *handlers.PasswordResetHandler
+	verificationHandler      *handlers.VerificationHandler
+	blobHandler              *handlers.BlobHandler
+	likeHandler              *handlers.LikeHandler
+	badgeHandler             *handlers.BadgeHandler
+	notificationHandler      *handlers.NotificationHandler
+	notificationWSHandler    *handlers.NotificationWSHandler
+	pushHandler              *handlers.PushHandler
+	followHandler            *handlers.FollowHandler
+	activityPhotoHandler     *handlers.ActivityPhotoHandler
+	searchSuggestionsHandler *handlers.SearchSuggestionsHandler
+	tokenSvc                 *handlers.TokenService
 }
 
 // NewRouter creates a new Router with all handlers
@@ -49,26 +50,28 @@ func NewRouter(
 	pushHandler *handlers.PushHandler,
 	followHandler *handlers.FollowHandler,
 	activityPhotoHandler *handlers.ActivityPhotoHandler,
+	searchSuggestionsHandler *handlers.SearchSuggestionsHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
-		authHandler:           authHandler,
-		profileHandler:        profileHandler,
-		activityHandler:       activityHandler,
-		streakHandler:         streakHandler,
-		analyticsHandler:      analyticsHandler,
-		tileConfigHandler:     tileConfigHandler,
-		passwordResetHandler:  passwordResetHandler,
-		verificationHandler:   verificationHandler,
-		blobHandler:           blobHandler,
-		likeHandler:           likeHandler,
-		badgeHandler:          badgeHandler,
-		notificationHandler:   notificationHandler,
-		notificationWSHandler: notificationWSHandler,
-		pushHandler:           pushHandler,
-		followHandler:         followHandler,
-		activityPhotoHandler:  activityPhotoHandler,
-		tokenSvc:              tokenSvc,
+		authHandler:              authHandler,
+		profileHandler:           profileHandler,
+		activityHandler:          activityHandler,
+		streakHandler:            streakHandler,
+		analyticsHandler:         analyticsHandler,
+		tileConfigHandler:        tileConfigHandler,
+		passwordResetHandler:     passwordResetHandler,
+		verificationHandler:      verificationHandler,
+		blobHandler:              blobHandler,
+		likeHandler:              likeHandler,
+		badgeHandler:             badgeHandler,
+		notificationHandler:      notificationHandler,
+		notificationWSHandler:    notificationWSHandler,
+		pushHandler:              pushHandler,
+		followHandler:            followHandler,
+		activityPhotoHandler:     activityPhotoHandler,
+		searchSuggestionsHandler: searchSuggestionsHandler,
+		tokenSvc:                 tokenSvc,
 	}
 }
 
@@ -117,6 +120,14 @@ func (r *Router) Setup(app *fiber.App) {
 
 	// User Autocomplete (lenient rate limit for rapid typing)
 	api.Get("/autocomplete/users", authMiddleware, autocompleteRateLimiter, r.profileHandler.AutocompleteUsers)
+
+	// ==================== Search Suggestions ====================
+	// Get recent + trending suggestions (called on search focus)
+	api.Get("/search/suggestions", authMiddleware, autocompleteRateLimiter, r.searchSuggestionsHandler.GetSearchSuggestions)
+	// Delete a specific recent search
+	api.Delete("/search/recent/:userId", authMiddleware, apiRateLimiter, r.searchSuggestionsHandler.DeleteRecentSearch)
+	// Clear all recent searches
+	api.Delete("/search/recent", authMiddleware, apiRateLimiter, r.searchSuggestionsHandler.ClearRecentSearches)
 
 	// Activities
 	api.Post("/create-activity", authMiddleware, apiRateLimiter, r.activityHandler.CreateActivity)

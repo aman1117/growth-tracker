@@ -519,3 +519,43 @@ func InvalidateStoryLikedByUser(ctx context.Context, photoID, userID uint) error
 
 	return nil
 }
+
+// ==================== Trending Users Cache Functions ====================
+
+const (
+	// TrendingCacheTTL is the cache duration for trending users (5 minutes)
+	TrendingCacheTTL = 5 * time.Minute
+)
+
+// GetTrendingCache retrieves cached trending users from Redis
+// Returns empty string on cache miss (not an error)
+func GetTrendingCache(ctx context.Context, key string) (string, error) {
+	if client == nil {
+		return "", nil // Redis not available, skip cache
+	}
+
+	value, err := client.Get(ctx, key).Result()
+	if err == goredis.Nil {
+		// Cache miss - normal, not an error
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to get trending cache: %w", err)
+	}
+
+	return value, nil
+}
+
+// SetTrendingCache stores trending users in Redis cache
+// Silently fails if Redis is not available (cache is optional)
+func SetTrendingCache(ctx context.Context, key string, data string) error {
+	if client == nil {
+		return nil // Redis not available, skip cache
+	}
+
+	if err := client.Set(ctx, key, data, TrendingCacheTTL).Err(); err != nil {
+		return fmt.Errorf("failed to set trending cache: %w", err)
+	}
+
+	return nil
+}

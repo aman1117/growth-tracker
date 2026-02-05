@@ -27,40 +27,43 @@ type Container struct {
 	FollowRepo        *repository.FollowRepository
 	CronJobLogRepo    *repository.CronJobLogRepository
 	ActivityPhotoRepo *repository.ActivityPhotoRepository
+	RecentSearchRepo  *repository.RecentSearchRepository
 
 	// Services
-	AuthService          *services.AuthService
-	ProfileService       *services.ProfileService
-	ActivityService      *services.ActivityService
-	StreakService        *services.StreakService
-	AnalyticsService     *services.AnalyticsService
-	TileConfigService    *services.TileConfigService
-	EmailService         *services.EmailService
-	CronService          *services.CronService
-	BlobService          *services.BlobService
-	BadgeService         *services.BadgeService
-	NotificationService  *services.NotificationService
-	FollowService        *services.FollowService
-	ActivityPhotoService *services.ActivityPhotoService
+	AuthService              *services.AuthService
+	ProfileService           *services.ProfileService
+	ActivityService          *services.ActivityService
+	StreakService            *services.StreakService
+	AnalyticsService         *services.AnalyticsService
+	TileConfigService        *services.TileConfigService
+	EmailService             *services.EmailService
+	CronService              *services.CronService
+	BlobService              *services.BlobService
+	BadgeService             *services.BadgeService
+	NotificationService      *services.NotificationService
+	FollowService            *services.FollowService
+	ActivityPhotoService     *services.ActivityPhotoService
+	SearchSuggestionsService *services.SearchSuggestionsService
 
 	// Handlers
-	TokenService          *handlers.TokenService
-	AuthHandler           *handlers.AuthHandler
-	ProfileHandler        *handlers.ProfileHandler
-	ActivityHandler       *handlers.ActivityHandler
-	StreakHandler         *handlers.StreakHandler
-	AnalyticsHandler      *handlers.AnalyticsHandler
-	TileConfigHandler     *handlers.TileConfigHandler
-	PasswordResetHandler  *handlers.PasswordResetHandler
-	VerificationHandler   *handlers.VerificationHandler
-	BlobHandler           *handlers.BlobHandler
-	LikeHandler           *handlers.LikeHandler
-	BadgeHandler          *handlers.BadgeHandler
-	NotificationHandler   *handlers.NotificationHandler
-	NotificationWSHandler *handlers.NotificationWSHandler
-	PushHandler           *handlers.PushHandler
-	FollowHandler         *handlers.FollowHandler
-	ActivityPhotoHandler  *handlers.ActivityPhotoHandler
+	TokenService             *handlers.TokenService
+	AuthHandler              *handlers.AuthHandler
+	ProfileHandler           *handlers.ProfileHandler
+	ActivityHandler          *handlers.ActivityHandler
+	StreakHandler            *handlers.StreakHandler
+	AnalyticsHandler         *handlers.AnalyticsHandler
+	TileConfigHandler        *handlers.TileConfigHandler
+	PasswordResetHandler     *handlers.PasswordResetHandler
+	VerificationHandler      *handlers.VerificationHandler
+	BlobHandler              *handlers.BlobHandler
+	LikeHandler              *handlers.LikeHandler
+	BadgeHandler             *handlers.BadgeHandler
+	NotificationHandler      *handlers.NotificationHandler
+	NotificationWSHandler    *handlers.NotificationWSHandler
+	PushHandler              *handlers.PushHandler
+	FollowHandler            *handlers.FollowHandler
+	ActivityPhotoHandler     *handlers.ActivityPhotoHandler
+	SearchSuggestionsHandler *handlers.SearchSuggestionsHandler
 
 	// Router
 	Router *routes.Router
@@ -82,6 +85,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.FollowRepo = repository.NewFollowRepository(db)
 	c.CronJobLogRepo = repository.NewCronJobLogRepository(db)
 	c.ActivityPhotoRepo = repository.NewActivityPhotoRepository(db)
+	c.RecentSearchRepo = repository.NewRecentSearchRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -94,6 +98,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.BlobService = services.NewBlobService(c.UserRepo, &cfg.AzureStorage)
 	c.BadgeService = services.NewBadgeService(c.BadgeRepo, c.UserRepo)
 	c.FollowService = services.NewFollowService(c.FollowRepo, c.UserRepo, &cfg.Follow)
+	c.SearchSuggestionsService = services.NewSearchSuggestionsService(c.RecentSearchRepo)
 
 	// Initialize activity photo service (optional - requires blob storage)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -123,7 +128,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 
 	// Initialize handlers
 	c.AuthHandler = handlers.NewAuthHandler(c.AuthService, c.TokenService, c.ProfileService, c.EmailService)
-	c.ProfileHandler = handlers.NewProfileHandler(c.ProfileService, c.AuthService, c.FollowService, c.StreakService)
+	c.ProfileHandler = handlers.NewProfileHandler(c.ProfileService, c.AuthService, c.FollowService, c.StreakService, c.SearchSuggestionsService)
 	c.ActivityHandler = handlers.NewActivityHandler(c.ActivityService, c.AuthService, c.ProfileService)
 	c.StreakHandler = handlers.NewStreakHandler(c.StreakService, c.AuthService, c.ProfileService, c.BadgeService)
 	c.AnalyticsHandler = handlers.NewAnalyticsHandler(c.AnalyticsService, c.AuthService, c.ProfileService)
@@ -136,6 +141,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.NotificationWSHandler = handlers.NewNotificationWSHandler(c.NotificationService, c.TokenService)
 	c.PushHandler = handlers.NewPushHandler(c.PushRepo, cfg)
 	c.FollowHandler = handlers.NewFollowHandler(c.FollowService, c.UserRepo, c.NotificationService)
+	c.SearchSuggestionsHandler = handlers.NewSearchSuggestionsHandler(c.SearchSuggestionsService)
 
 	// Initialize blob handler (optional)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -168,6 +174,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.PushHandler,
 		c.FollowHandler,
 		c.ActivityPhotoHandler,
+		c.SearchSuggestionsHandler,
 		c.TokenService,
 	)
 

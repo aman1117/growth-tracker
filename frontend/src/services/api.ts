@@ -612,3 +612,46 @@ export const activityPhotoApi = {
     ),
 };
 
+// ============================================================================
+// Search Suggestions API
+// ============================================================================
+
+import type { SearchSuggestionsResponse } from '../types/autocomplete';
+
+export const searchApi = {
+  /**
+   * Get search suggestions (recent + trending users)
+   * Called on search input focus, before any typing
+   */
+  getSuggestions: async (): Promise<SearchSuggestionsResponse> => {
+    const response = await apiClient.get<SearchSuggestionsResponse>(API_ROUTES.SEARCH.SUGGESTIONS);
+    // Ensure arrays are always defined (defensive)
+    return {
+      recent: response.recent ?? [],
+      trending: response.trending ?? [],
+    };
+  },
+
+  /**
+   * Delete a specific recent search
+   * @param userId - User ID to remove from recent searches
+   */
+  deleteRecentSearch: (userId: number) => {
+    // Validate userId before making request
+    if (!userId || userId <= 0 || !Number.isInteger(userId)) {
+      return Promise.reject(new Error('Invalid user ID'));
+    }
+    return apiClient.delete<{ success: boolean; message?: string }>(
+      API_ROUTES.SEARCH.DELETE_RECENT(userId)
+    );
+  },
+
+  /**
+   * Clear all recent searches
+   */
+  clearRecentSearches: () =>
+    apiClient.delete<{ success: boolean; message?: string }>(
+      API_ROUTES.SEARCH.CLEAR_RECENT
+    ),
+};
+

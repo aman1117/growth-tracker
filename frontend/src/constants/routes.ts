@@ -38,6 +38,18 @@ export const API_ROUTES = {
   },
 
   // ============================================================================
+  // Search Suggestions
+  // ============================================================================
+  SEARCH: {
+    /** GET - Get recent + trending suggestions */
+    SUGGESTIONS: '/search/suggestions',
+    /** DELETE - Delete a specific recent search */
+    DELETE_RECENT: (userId: number) => `/search/recent/${userId}`,
+    /** DELETE - Clear all recent searches */
+    CLEAR_RECENT: '/search/recent',
+  },
+
+  // ============================================================================
   // Privacy
   // ============================================================================
   PRIVACY: {

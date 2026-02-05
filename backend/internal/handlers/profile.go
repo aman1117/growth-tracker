@@ -24,15 +24,17 @@ type ProfileHandler struct {
 	authSvc    *services.AuthService
 	followSvc  *services.FollowService
 	streakSvc  *services.StreakService
+	searchSvc  *services.SearchSuggestionsService
 }
 
 // NewProfileHandler creates a new ProfileHandler
-func NewProfileHandler(profileSvc *services.ProfileService, authSvc *services.AuthService, followSvc *services.FollowService, streakSvc *services.StreakService) *ProfileHandler {
+func NewProfileHandler(profileSvc *services.ProfileService, authSvc *services.AuthService, followSvc *services.FollowService, streakSvc *services.StreakService, searchSvc *services.SearchSuggestionsService) *ProfileHandler {
 	return &ProfileHandler{
 		profileSvc: profileSvc,
 		authSvc:    authSvc,
 		followSvc:  followSvc,
 		streakSvc:  streakSvc,
+		searchSvc:  searchSvc,
 	}
 }
 
@@ -218,6 +220,17 @@ func (h *ProfileHandler) GetUserProfile(c *fiber.Ctx) error {
 	user, err := h.profileSvc.GetProfile(uint(targetID))
 	if err != nil || user == nil {
 		return response.NotFound(c, "User not found", constants.ErrCodeUserNotFound)
+	}
+
+	// Save recent search asynchronously (throttled to 60s)
+	// Use a detached goroutine with its own timeout since the request context may be canceled
+	if h.searchSvc != nil && viewerID != uint(targetID) && viewerID != 0 {
+		go func(viewerID, targetID uint) {
+			if err := h.searchSvc.SaveRecentSearch(viewerID, targetID); err != nil {
+				// Log error but don't fail the request
+				logger.Sugar.Warnw("Failed to save recent search", "viewer_id", viewerID, "target_id", targetID, "error", err)
+			}
+		}(viewerID, uint(targetID))
 	}
 
 	// Get follow counts

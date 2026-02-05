@@ -8,6 +8,8 @@
  * Metadata for a user autocomplete suggestion
  */
 export interface AutocompleteSuggestionMeta {
+  /** User ID (for recent searches) */
+  userId?: number;
   /** User's profile picture URL */
   profilePic?: string;
   /** Whether the user is verified */
@@ -40,4 +42,31 @@ export interface AutocompleteResponse {
   requestId: string;
   /** Ranked list of suggestions */
   suggestions: AutocompleteSuggestion[];
+}
+
+/**
+ * A user in search suggestions (recent or trending)
+ */
+export interface SearchSuggestionUser {
+  /** User ID */
+  id: number;
+  /** Username */
+  username: string;
+  /** Profile picture URL */
+  profilePic?: string;
+  /** Whether the user is verified */
+  isVerified: boolean;
+  /** Follower count */
+  followersCount: number;
+}
+
+/**
+ * API response for search suggestions endpoint
+ * Returns recent searches and trending users
+ */
+export interface SearchSuggestionsResponse {
+  /** User's recent profile searches */
+  recent: SearchSuggestionUser[];
+  /** Personalized trending users */
+  trending: SearchSuggestionUser[];
 }

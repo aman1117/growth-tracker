@@ -504,3 +504,248 @@ func (r *TileConfigRepository) Save(userID uint, config models.JSONB) error {
 	existing.Config = config
 	return r.db.Save(&existing).Error
 }
+
+// ==================== Recent Search Repository ====================
+
+// RecentSearchRepository handles recent search data operations
+type RecentSearchRepository struct {
+	db *gorm.DB
+}
+
+// NewRecentSearchRepository creates a new RecentSearchRepository
+func NewRecentSearchRepository(db *gorm.DB) *RecentSearchRepository {
+	return &RecentSearchRepository{db: db}
+}
+
+// RecentSearchResult represents a recent search with user details
+type RecentSearchResult struct {
+	ID             uint    `json:"id"`
+	Username       string  `json:"username"`
+	ProfilePic     *string `json:"profile_pic"`
+	IsVerified     bool    `json:"is_verified"`
+	FollowersCount int64   `json:"followers_count"`
+}
+
+// SaveRecentSearch upserts a recent search, only if last search was >60s ago (throttle)
+func (r *RecentSearchRepository) SaveRecentSearch(userID, searchedUserID uint) error {
+	// Validate input
+	if userID == 0 || searchedUserID == 0 {
+		return nil // Invalid IDs, silently skip
+	}
+
+	// Don't save if searching self
+	if userID == searchedUserID {
+		return nil
+	}
+
+	// Use upsert with throttle: only update if last save was >60 seconds ago
+	return r.db.Exec(`
+		INSERT INTO recent_searches (user_id, searched_user_id, searched_at)
+		VALUES ($1, $2, NOW())
+		ON CONFLICT (user_id, searched_user_id) DO UPDATE
+		SET searched_at = NOW()
+		WHERE recent_searches.searched_at < NOW() - INTERVAL '60 seconds'
+	`, userID, searchedUserID).Error
+}
+
+// GetRecentSearches returns the user's most recent profile searches with user details
+func (r *RecentSearchRepository) GetRecentSearches(userID uint, limit int) ([]RecentSearchResult, error) {
+	// Validate input
+	if userID == 0 {
+		return nil, nil // Invalid user, return empty
+	}
+
+	if limit <= 0 {
+		limit = 5
+	}
+	if limit > 10 {
+		limit = 10
+	}
+
+	var results []RecentSearchResult
+
+	err := r.db.Raw(`
+		SELECT 
+			u.id,
+			u.username,
+			u.profile_pic,
+			u.is_verified,
+			COALESCE(fc.followers_count, 0) as followers_count
+		FROM recent_searches rs
+		JOIN users u ON u.id = rs.searched_user_id
+		LEFT JOIN follow_counters fc ON fc.user_id = u.id
+		WHERE rs.user_id = $1
+		ORDER BY rs.searched_at DESC
+		LIMIT $2
+	`, userID, limit).Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+// DeleteRecentSearch removes a specific recent search
+func (r *RecentSearchRepository) DeleteRecentSearch(userID, searchedUserID uint) error {
+	// Validate input
+	if userID == 0 || searchedUserID == 0 {
+		return nil // Invalid IDs, nothing to delete
+	}
+
+	return r.db.Exec(`
+		DELETE FROM recent_searches 
+		WHERE user_id = $1 AND searched_user_id = $2
+	`, userID, searchedUserID).Error
+}
+
+// ClearRecentSearches removes all recent searches for a user
+func (r *RecentSearchRepository) ClearRecentSearches(userID uint) error {
+	// Validate input
+	if userID == 0 {
+		return nil // Invalid user, nothing to clear
+	}
+
+	return r.db.Exec(`
+		DELETE FROM recent_searches 
+		WHERE user_id = $1
+	`, userID).Error
+}
+
+// TrendingUserResult represents a trending user with engagement data
+type TrendingUserResult struct {
+	ID               uint    `json:"id"`
+	Username         string  `json:"username"`
+	ProfilePic       *string `json:"profile_pic"`
+	IsVerified       bool    `json:"is_verified"`
+	FollowersCount   int64   `json:"followers_count"`
+	InteractionCount int     `json:"interaction_count"`
+}
+
+// GetTrendingUsersForUser returns users that the current user's followers have recently engaged with.
+// Filters to public users, prioritizes verified users, excludes self and already-followed users.
+// Falls back to global trending (by follower count) if personalized results are insufficient.
+func (r *RecentSearchRepository) GetTrendingUsersForUser(userID uint, limit int) ([]TrendingUserResult, error) {
+	// Validate input
+	if userID == 0 {
+		return nil, nil // Invalid user, return empty
+	}
+
+	if limit <= 0 {
+		limit = 6
+	}
+	if limit > 10 {
+		limit = 10
+	}
+
+	var results []TrendingUserResult
+
+	// Query explanation:
+	// 1. Find users that my followers have engaged with in last 7 days
+	//    (story likes, day likes, new follows)
+	// 2. Filter to public accounts only
+	// 3. Exclude self and users I already follow
+	// 4. Rank by interaction count, with verified users boosted
+	// 5. If <3 personalized results, pad with global trending
+	err := r.db.Raw(`
+		WITH my_followers AS (
+			SELECT follower_id 
+			FROM follow_edges_by_followee 
+			WHERE followee_id = $1 AND state = 'ACTIVE'
+		),
+		follower_interactions AS (
+			-- Story likes from my followers
+			SELECT 
+				ap.user_id as target_user_id,
+				sl.liker_id as follower_id,
+				sl.liked_at as interaction_time
+			FROM story_likes sl
+			JOIN activity_photos ap ON ap.id = sl.photo_id
+			WHERE sl.liker_id IN (SELECT follower_id FROM my_followers)
+			AND sl.liked_at > NOW() - INTERVAL '7 days'
+			
+			UNION ALL
+			
+			-- Day likes from my followers
+			SELECT 
+				l.liked_user_id as target_user_id,
+				l.liker_id as follower_id,
+				l.created_at as interaction_time
+			FROM likes l
+			WHERE l.liker_id IN (SELECT follower_id FROM my_followers)
+			AND l.created_at > NOW() - INTERVAL '7 days'
+			
+			UNION ALL
+			
+			-- New follows from my followers
+			SELECT 
+				fe.followee_id as target_user_id,
+				fe.follower_id,
+				fe.created_at as interaction_time
+			FROM follow_edges_by_follower fe
+			WHERE fe.follower_id IN (SELECT follower_id FROM my_followers)
+			AND fe.state = 'ACTIVE'
+			AND fe.created_at > NOW() - INTERVAL '7 days'
+		),
+		personalized_trending AS (
+			SELECT 
+				u.id,
+				u.username,
+				u.profile_pic,
+				u.is_verified,
+				COALESCE(fc.followers_count, 0) as followers_count,
+				COUNT(DISTINCT fi.follower_id) as interaction_count
+			FROM follower_interactions fi
+			JOIN users u ON u.id = fi.target_user_id
+			LEFT JOIN follow_counters fc ON fc.user_id = u.id
+			WHERE u.is_private = false
+			AND u.id != $1
+			-- Exclude users I already follow
+			AND NOT EXISTS (
+				SELECT 1 FROM follow_edges_by_follower 
+				WHERE follower_id = $1 AND followee_id = u.id AND state = 'ACTIVE'
+			)
+			GROUP BY u.id, u.username, u.profile_pic, u.is_verified, fc.followers_count
+			ORDER BY 
+				CASE WHEN u.is_verified THEN 1 ELSE 0 END DESC,
+				interaction_count DESC,
+				followers_count DESC
+			LIMIT $2
+		),
+		global_trending AS (
+			SELECT 
+				u.id,
+				u.username,
+				u.profile_pic,
+				u.is_verified,
+				COALESCE(fc.followers_count, 0) as followers_count,
+				0 as interaction_count
+			FROM users u
+			LEFT JOIN follow_counters fc ON fc.user_id = u.id
+			WHERE u.is_private = false
+			AND u.id != $1
+			-- Exclude users I already follow
+			AND NOT EXISTS (
+				SELECT 1 FROM follow_edges_by_follower 
+				WHERE follower_id = $1 AND followee_id = u.id AND state = 'ACTIVE'
+			)
+			-- Exclude users already in personalized results
+			AND u.id NOT IN (SELECT id FROM personalized_trending)
+			ORDER BY 
+				CASE WHEN u.is_verified THEN 1 ELSE 0 END DESC,
+				followers_count DESC
+			LIMIT $2
+		)
+		-- Combine personalized + global fallback, limit to requested count
+		SELECT * FROM personalized_trending
+		UNION ALL
+		SELECT * FROM global_trending
+		LIMIT $2
+	`, userID, limit).Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}

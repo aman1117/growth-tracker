@@ -647,3 +647,42 @@ func (s *TileConfigService) SaveConfig(userID uint, config models.JSONB) error {
 
 	return s.tileRepo.Save(userID, config)
 }
+
+// ==================== Search Suggestions Service ====================
+
+// SearchSuggestionsService handles search suggestions business logic
+type SearchSuggestionsService struct {
+	recentSearchRepo *repository.RecentSearchRepository
+}
+
+// NewSearchSuggestionsService creates a new SearchSuggestionsService
+func NewSearchSuggestionsService(recentSearchRepo *repository.RecentSearchRepository) *SearchSuggestionsService {
+	return &SearchSuggestionsService{
+		recentSearchRepo: recentSearchRepo,
+	}
+}
+
+// SaveRecentSearch saves a recent profile search (throttled to 60s)
+func (s *SearchSuggestionsService) SaveRecentSearch(userID, searchedUserID uint) error {
+	return s.recentSearchRepo.SaveRecentSearch(userID, searchedUserID)
+}
+
+// GetRecentSearches returns the user's recent profile searches
+func (s *SearchSuggestionsService) GetRecentSearches(userID uint, limit int) ([]repository.RecentSearchResult, error) {
+	return s.recentSearchRepo.GetRecentSearches(userID, limit)
+}
+
+// DeleteRecentSearch removes a specific recent search
+func (s *SearchSuggestionsService) DeleteRecentSearch(userID, searchedUserID uint) error {
+	return s.recentSearchRepo.DeleteRecentSearch(userID, searchedUserID)
+}
+
+// ClearRecentSearches removes all recent searches for a user
+func (s *SearchSuggestionsService) ClearRecentSearches(userID uint) error {
+	return s.recentSearchRepo.ClearRecentSearches(userID)
+}
+
+// GetTrendingUsersForUser returns personalized trending users based on follower activity
+func (s *SearchSuggestionsService) GetTrendingUsersForUser(userID uint, limit int) ([]repository.TrendingUserResult, error) {
+	return s.recentSearchRepo.GetTrendingUsersForUser(userID, limit)
+}

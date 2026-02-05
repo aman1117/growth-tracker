@@ -3,12 +3,16 @@
  *
  * Google-like autocomplete search with keyboard navigation,
  * mobile-first design, and accessibility support.
+ * 
+ * Supports initial suggestions (recent/trending) shown on focus
+ * with section headers and custom action buttons.
  */
 
 import { Loader2, Search, X } from 'lucide-react';
 import React, {
   type KeyboardEvent,
   type MouseEvent,
+  type ReactNode,
   useCallback,
   useEffect,
   useId,
@@ -21,6 +25,16 @@ import type { AutocompleteSuggestion } from '../../../types';
 import { Avatar } from '../Avatar';
 import { VerifiedBadge } from '../VerifiedBadge';
 import styles from './Autocomplete.module.css';
+
+/**
+ * Section helper functions for rendering custom content
+ */
+interface SectionHelpers {
+  /** Render content before a suggestion item */
+  renderBeforeItem?: (index: number, suggestion: AutocompleteSuggestion) => ReactNode;
+  /** Render content after a suggestion item (e.g., delete button) */
+  renderAfterItem?: (index: number, suggestion: AutocompleteSuggestion) => ReactNode;
+}
 
 export interface AutocompleteProps {
   /** Placeholder text for the input */
@@ -39,6 +53,13 @@ export interface AutocompleteProps {
   className?: string;
   /** Callback when input loses focus (after blur delay) */
   onBlur?: () => void;
+  /** Initial suggestions to show on focus (before typing) */
+  initialSuggestions?: AutocompleteSuggestion[];
+  /** Function to render section headers and custom buttons */
+  renderSectionHelpers?: (
+    suggestions: AutocompleteSuggestion[],
+    inputValue: string
+  ) => SectionHelpers | null;
 }
 
 /**
@@ -84,6 +105,8 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
   autoFocus = false,
   className = '',
   onBlur,
+  initialSuggestions,
+  renderSectionHelpers,
 }) => {
   // Generate unique IDs for accessibility
   const instanceId = useId();
@@ -103,6 +126,7 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showingInitial, setShowingInitial] = useState(false);
 
   // Track the latest request to prevent stale responses
   const requestCounterRef = useRef(0);
@@ -114,13 +138,20 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
   useEffect(() => {
     const query = debouncedQuery;
 
-    // Clear suggestions if query is too short
+    // If query is empty and we have initial suggestions, show them
     if (query.length < minChars) {
       setSuggestions([]);
-      setIsOpen(false);
+      setShowingInitial(false);
       setActiveIndex(-1);
+      // Don't close if we have initial suggestions
+      if (!initialSuggestions || initialSuggestions.length === 0) {
+        setIsOpen(false);
+      }
       return;
     }
+
+    // We're searching - not showing initial anymore
+    setShowingInitial(false);
 
     // Increment request counter to track this request
     const currentRequest = ++requestCounterRef.current;
@@ -172,7 +203,21 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
     return () => {
       abortController.abort();
     };
-  }, [debouncedQuery, minChars, fetchSuggestions]);
+  }, [debouncedQuery, minChars, fetchSuggestions, initialSuggestions]);
+
+  // Show initial suggestions when they become available and input is focused
+  useEffect(() => {
+    if (
+      initialSuggestions &&
+      initialSuggestions.length > 0 &&
+      inputValue.trim().length < minChars &&
+      document.activeElement === inputRef.current
+    ) {
+      setSuggestions(initialSuggestions);
+      setShowingInitial(true);
+      setIsOpen(true);
+    }
+  }, [initialSuggestions, inputValue, minChars]);
 
   // Handle suggestion selection
   const handleSelect = useCallback(
@@ -240,11 +285,19 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
       blurTimeoutRef.current = null;
     }
 
+    // If input is empty and we have initial suggestions, show them
+    if (inputValue.trim().length < minChars && initialSuggestions && initialSuggestions.length > 0) {
+      setSuggestions(initialSuggestions);
+      setShowingInitial(true);
+      setIsOpen(true);
+      return;
+    }
+
     // Reopen dropdown if there are suggestions
     if (suggestions.length > 0) {
       setIsOpen(true);
     }
-  }, [suggestions.length]);
+  }, [suggestions.length, inputValue, minChars, initialSuggestions]);
 
   // Handle input blur with delay for touch/click
   const handleBlur = useCallback(() => {
@@ -358,42 +411,58 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
           className={styles.dropdown}
           role="listbox"
           aria-label="Search suggestions"
+          onTouchMove={(e) => e.stopPropagation()}
         >
-          {suggestions.map((suggestion, index) => (
-            <li
-              key={`${suggestion.text}-${index}`}
-              id={`${listboxId}-option-${index}`}
-              className={`${styles.suggestion} ${index === activeIndex ? styles.active : ''}`}
-              role="option"
-              aria-selected={index === activeIndex}
-              onMouseDown={(e) => handleSuggestionClick(suggestion, e)}
-              onMouseEnter={() => handleSuggestionHover(index)}
-            >
-              <Avatar
-                src={suggestion.meta?.profilePic}
-                name={suggestion.text}
-                size="sm"
-                className={styles.avatar}
-              />
-              <div className={styles.suggestionInfo}>
-                <span className={styles.suggestionText}>
-                  <span className={styles.username}>
-                    <HighlightedText text={suggestion.text} query={inputValue} />
-                  </span>
-                  {suggestion.meta?.isVerified && <VerifiedBadge size={12} />}
-                </span>
-                {suggestion.meta?.followersCount !== undefined && (
-                  <span className={styles.followerCount}>
-                    {formatFollowers(suggestion.meta.followersCount)} followers
-                  </span>
-                )}
-              </div>
-            </li>
-          ))}
+          {suggestions.map((suggestion, index) => {
+            // Get section helpers for rendering custom content
+            const sectionHelpers = renderSectionHelpers?.(suggestions, inputValue);
+            const beforeContent = sectionHelpers?.renderBeforeItem?.(index, suggestion);
+            const afterContent = sectionHelpers?.renderAfterItem?.(index, suggestion);
+            
+            // Use userId if available for more stable keys, fallback to text+index
+            const key = suggestion.meta?.userId 
+              ? `user-${suggestion.meta.userId}` 
+              : `${suggestion.text}-${index}`;
+
+            return (
+              <React.Fragment key={key}>
+                {beforeContent}
+                <li
+                  id={`${listboxId}-option-${index}`}
+                  className={`${styles.suggestion} ${index === activeIndex ? styles.active : ''}`}
+                  role="option"
+                  aria-selected={index === activeIndex}
+                  onMouseDown={(e) => handleSuggestionClick(suggestion, e)}
+                  onMouseEnter={() => handleSuggestionHover(index)}
+                >
+                  <Avatar
+                    src={suggestion.meta?.profilePic}
+                    name={suggestion.text}
+                    size="sm"
+                    className={styles.avatar}
+                  />
+                  <div className={styles.suggestionInfo}>
+                    <span className={styles.suggestionText}>
+                      <span className={styles.username}>
+                        <HighlightedText text={suggestion.text} query={showingInitial ? '' : inputValue} />
+                      </span>
+                      {suggestion.meta?.isVerified && <VerifiedBadge size={12} />}
+                    </span>
+                    {suggestion.meta?.followersCount !== undefined && (
+                      <span className={styles.followerCount}>
+                        {formatFollowers(suggestion.meta.followersCount)} followers
+                      </span>
+                    )}
+                  </div>
+                  {afterContent}
+                </li>
+              </React.Fragment>
+            );
+          })}
         </ul>
       )}
 
-      {isOpen && suggestions.length === 0 && !isLoading && debouncedQuery.length >= minChars && (
+      {isOpen && suggestions.length === 0 && !isLoading && !showingInitial && debouncedQuery.length >= minChars && (
         <div className={styles.noResults} role="status">
           No users found
         </div>

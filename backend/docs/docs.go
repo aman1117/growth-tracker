@@ -2328,6 +2328,132 @@ const docTemplate = `{
                 }
             }
         },
+        "/search/recent": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove all users from recent search history",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Clear all recent searches",
+                "responses": {
+                    "200": {
+                        "description": "Recent searches cleared",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/search/recent/{userId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a specific user from recent searches",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Delete a recent search",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID to remove from recent searches",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recent search deleted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/search/suggestions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get recent searches and personalized trending users for autocomplete on focus",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Get search suggestions",
+                "responses": {
+                    "200": {
+                        "description": "Recent and trending users",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SearchSuggestionsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tile-config": {
             "get": {
                 "security": [
@@ -4270,6 +4396,50 @@ const docTemplate = `{
             "properties": {
                 "config": {
                     "$ref": "#/definitions/models.JSONB"
+                }
+            }
+        },
+        "dto.SearchSuggestionUser": {
+            "description": "User information for search suggestions",
+            "type": "object",
+            "properties": {
+                "followersCount": {
+                    "type": "integer",
+                    "example": 150
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "isVerified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "profilePic": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc.jpg"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
+        "dto.SearchSuggestionsResponse": {
+            "description": "Search suggestions with recent searches and trending users",
+            "type": "object",
+            "properties": {
+                "recent": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SearchSuggestionUser"
+                    }
+                },
+                "trending": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SearchSuggestionUser"
+                    }
                 }
             }
         },

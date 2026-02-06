@@ -831,6 +831,37 @@ definitions:
       config:
         $ref: '#/definitions/models.JSONB'
     type: object
+  dto.SearchSuggestionUser:
+    description: User information for search suggestions
+    properties:
+      followersCount:
+        example: 150
+        type: integer
+      id:
+        example: 1
+        type: integer
+      isVerified:
+        example: false
+        type: boolean
+      profilePic:
+        example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
+  dto.SearchSuggestionsResponse:
+    description: Search suggestions with recent searches and trending users
+    properties:
+      recent:
+        items:
+          $ref: '#/definitions/dto.SearchSuggestionUser'
+        type: array
+      trending:
+        items:
+          $ref: '#/definitions/dto.SearchSuggestionUser'
+        type: array
+    type: object
   dto.SearchUsersRequest:
     description: Search for users by username
     properties:
@@ -2590,6 +2621,86 @@ paths:
       summary: Lookup relationship states
       tags:
       - Follow
+  /search/recent:
+    delete:
+      description: Remove all users from recent search history
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recent searches cleared
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Clear all recent searches
+      tags:
+      - Search
+  /search/recent/{userId}:
+    delete:
+      description: Remove a specific user from recent searches
+      parameters:
+      - description: User ID to remove from recent searches
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recent search deleted
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a recent search
+      tags:
+      - Search
+  /search/suggestions:
+    get:
+      description: Get recent searches and personalized trending users for autocomplete
+        on focus
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Recent and trending users
+          schema:
+            $ref: '#/definitions/dto.SearchSuggestionsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get search suggestions
+      tags:
+      - Search
   /tile-config:
     get:
       description: Get dashboard tile configuration for authenticated user

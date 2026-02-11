@@ -6,7 +6,14 @@ A complete Docker-based local development environment that mirrors production in
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
 - [Visual Studio Code](https://code.visualstudio.com/) with the [Go extension](https://marketplace.visualstudio.com/items?itemName=golang.Go)
+- [Go](https://go.dev/dl/) installed (for local debugging)
 - Git
+
+### Install Delve Debugger (Optional - for local debugging)
+
+```powershell
+go install -v github.com/go-delve/delve/cmd/dlv@latest
+```
 
 ## Quick Start
 
@@ -18,7 +25,7 @@ Copy-Item .env.example .env
 # Edit .env if you need push notification testing
 
 # Start all services and seed the database
-docker-compose up -d; docker-compose --profile seed up seed
+docker compose up -d; docker compose --profile seed up seed
 ```
 
 ### macOS / Linux (Bash)
@@ -29,7 +36,7 @@ cp .env.example .env
 # Edit .env if you need push notification testing
 
 # Start all services and seed the database
-docker-compose up -d && docker-compose --profile seed up seed
+docker compose up -d && docker compose --profile seed up seed
 ```
 
 ### Access Points
@@ -86,57 +93,64 @@ After seeding, these accounts are available:
 
 ```powershell
 # Start all services (detached)
-docker-compose up -d
+docker compose up -d
 
 # Start with logs visible
-docker-compose up
+docker compose up
 
 # Stop all services (keeps data)
-docker-compose down
+docker compose down
 
 # Stop and delete all data (fresh start)
-docker-compose down -v
+docker compose down -v
 ```
 
 ### View Logs
 
 ```powershell
 # All services
-docker-compose logs -f
+docker compose logs -f
 
 # Backend only (see hot-reload)
-docker-compose logs -f backend
+docker compose logs -f backend
 
 # Frontend only
-docker-compose logs -f frontend
+docker compose logs -f frontend
 
 # Multiple services
-docker-compose logs -f backend frontend
+docker compose logs -f backend frontend
 ```
 
 ### Rebuild After Changes
 
 ```powershell
 # Rebuild a specific service
-docker-compose up -d --build backend
+docker compose up -d --build backend
 
 # Rebuild all services
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ### Database Operations
 
 ```powershell
 # Seed the database (only needed once, or after reset)
-docker-compose --profile seed up seed
+docker compose --profile seed up seed
 
 # Connect to PostgreSQL directly
 docker exec -it growth-tracker-db psql -U localdev -d growth_tracker_dev
 
 # Reset database (deletes all data)
-docker-compose down -v
-docker-compose up -d
-docker-compose --profile seed up seed
+docker compose down -v
+docker compose up -d
+docker compose --profile seed up seed
+```
+
+### Run Migrations
+
+```powershell
+# Run all backend migrations in the container
+docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; for f in migrations/*.go; do echo "=== Running $f ==="; go run "$f"; done'
 ```
 
 ### Access Container Shell
@@ -174,7 +188,7 @@ VS Code launch configurations are pre-configured in `.vscode/launch.json`:
 
 1. **Start the containers** (if not already running):
    ```powershell
-   docker-compose up -d
+   docker compose up -d
    ```
 
 2. **Set breakpoints** in VS Code by clicking in the gutter next to line numbers in any Go file under `backend/`
@@ -200,13 +214,13 @@ VS Code launch configurations are pre-configured in `.vscode/launch.json`:
 ### Troubleshooting Debugging
 
 **Hollow breakpoints (not binding):**
-- Ensure containers are running: `docker-compose ps`
-- Rebuild containers: `docker-compose up -d --build backend`
+- Ensure containers are running: `docker compose ps`
+- Rebuild containers: `docker compose up -d --build backend`
 - Check Delve is listening: `docker logs growth-tracker-backend`
 
 **"Failed to attach" error:**
-- The app may have crashed. Check logs: `docker-compose logs backend`
-- Restart the container: `docker-compose restart backend`
+- The app may have crashed. Check logs: `docker compose logs backend`
+- Restart the container: `docker compose restart backend`
 
 **Breakpoint not hit:**
 - Verify the code path is being executed
@@ -282,21 +296,21 @@ taskkill /PID <PID> /F
 
 ```powershell
 # Check container logs
-docker-compose logs <service-name>
+docker compose logs <service-name>
 
 # Rebuild from scratch
-docker-compose down -v
-docker-compose build --no-cache
-docker-compose up -d
+docker compose down -v
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ### Backend Not Connecting to Database
 
-Wait a few seconds after `docker-compose up` - the backend waits for PostgreSQL to be healthy before starting.
+Wait a few seconds after `docker compose up` - the backend waits for PostgreSQL to be healthy before starting.
 
 ```powershell
 # Check health status
-docker-compose ps
+docker compose ps
 ```
 
 ### Changes Not Reflecting
@@ -304,7 +318,7 @@ docker-compose ps
 For backend Go changes:
 ```powershell
 # Check Air is detecting changes
-docker-compose logs -f backend
+docker compose logs -f backend
 ```
 
 For frontend changes, ensure you're editing files in `frontend/src/` (those are volume-mounted).
@@ -313,9 +327,9 @@ For frontend changes, ensure you're editing files in `frontend/src/` (those are 
 
 ```powershell
 # Nuclear option - removes all containers, volumes, and images
-docker-compose down -v --rmi local
-docker-compose up -d --build
-docker-compose --profile seed up seed
+docker compose down -v --rmi local
+docker compose up -d --build
+docker compose --profile seed up seed
 ```
 
 ## Project Structure

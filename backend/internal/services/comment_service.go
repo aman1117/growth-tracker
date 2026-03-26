@@ -169,7 +169,7 @@ func (s *CommentService) CreateComment(
 		IdempotencyKey: idempotencyKey,
 		CommentID:      comment.ID,
 	}
-	if err := s.dedupeRepo.Create(dedupe); err != nil {
+	if err := s.dedupeRepo.Upsert(dedupe); err != nil {
 		logger.Sugar.Warnw("Failed to store dedupe record, continuing",
 			"comment_id", comment.ID,
 			"error", err,

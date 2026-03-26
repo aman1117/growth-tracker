@@ -51,15 +51,25 @@ func (r *CommentDedupeRepository) CheckBodyHash(userID, dayOwnerID uint, dayDate
 	return &dedupe, nil
 }
 
-// Create inserts a new dedupe record
-func (r *CommentDedupeRepository) Create(dedupe *models.CommentDedupe) error {
-	if err := r.db.Create(dedupe).Error; err != nil {
-		logger.Sugar.Errorw("CommentDedupeRepository.Create failed",
+// Upsert inserts a new dedupe record or updates the existing one on conflict.
+// This handles the case where an expired record still occupies the unique constraint slot.
+func (r *CommentDedupeRepository) Upsert(dedupe *models.CommentDedupe) error {
+	result := r.db.Exec(
+		`INSERT INTO comment_dedupes (user_id, day_owner_id, day_date, body_hash, idempotency_key, comment_id, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, NOW())
+		 ON CONFLICT (user_id, day_owner_id, day_date, body_hash)
+		 DO UPDATE SET comment_id = EXCLUDED.comment_id,
+		               idempotency_key = EXCLUDED.idempotency_key,
+		               created_at = NOW()`,
+		dedupe.UserID, dedupe.DayOwnerID, dedupe.DayDate, dedupe.BodyHash, dedupe.IdempotencyKey, dedupe.CommentID,
+	)
+	if result.Error != nil {
+		logger.Sugar.Errorw("CommentDedupeRepository.Upsert failed",
 			"user_id", dedupe.UserID,
 			"comment_id", dedupe.CommentID,
-			"error", err,
+			"error", result.Error,
 		)
-		return err
+		return result.Error
 	}
 	return nil
 }

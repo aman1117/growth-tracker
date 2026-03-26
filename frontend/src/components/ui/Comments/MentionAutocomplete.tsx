@@ -42,7 +42,6 @@ export const MentionAutocomplete: React.FC<MentionAutocompleteProps> = ({
   onClose,
 }) => {
   const [suggestions, setSuggestions] = useState<AutocompleteSuggestion[]>([]);
-  const [loading, setLoading] = useState(false);
   const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
@@ -53,7 +52,6 @@ export const MentionAutocomplete: React.FC<MentionAutocompleteProps> = ({
 
     let cancelled = false;
     const fetchSuggestions = async () => {
-      setLoading(true);
       try {
         const response = await apiClient.get<AutocompleteApiResponse>(
           `${API_ROUTES.USER.AUTOCOMPLETE}?q=${encodeURIComponent(debouncedQuery)}&limit=5`
@@ -63,8 +61,6 @@ export const MentionAutocomplete: React.FC<MentionAutocompleteProps> = ({
         }
       } catch {
         if (!cancelled) setSuggestions([]);
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     };
 

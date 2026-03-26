@@ -85,12 +85,13 @@ export const CommentInput: React.FC<CommentInputProps> = ({
       setMentionQuery(null);
       setMentionStartIdx(-1);
 
-      // Focus back on input
+      // Focus back on input and keep it in view
       setTimeout(() => {
         if (textareaRef.current) {
           const pos = mentionStartIdx + selectedUsername.length + 2;
           textareaRef.current.focus();
           textareaRef.current.setSelectionRange(pos, pos);
+          textareaRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         }
       }, 0);
     },

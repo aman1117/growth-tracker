@@ -102,6 +102,7 @@ export const MentionAutocomplete: React.FC<MentionAutocompleteProps> = ({
         suggestions.map((suggestion) => (
           <button
             key={suggestion.text}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => handleSelect(suggestion.text)}
             style={{
               display: 'flex',

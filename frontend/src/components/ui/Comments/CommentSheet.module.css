@@ -59,6 +59,8 @@
   border: none;
   border-top: 1px solid var(--glass-border);
   box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.15);
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .panelMobileClosing {
@@ -212,6 +214,7 @@
   padding: var(--space-2) 0;
   -webkit-overflow-scrolling: touch;
   min-height: 120px;
+  overscroll-behavior: contain;
 }
 
 .commentListFading {

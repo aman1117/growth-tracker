@@ -152,7 +152,12 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
         />
       )}
 
-      <div ref={panelRef} className={panelClasses}>
+      <div
+        ref={panelRef}
+        className={panelClasses}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className={styles.panelHeader}>
           <h3 className={styles.panelTitle}>

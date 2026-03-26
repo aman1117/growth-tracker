@@ -170,7 +170,12 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
         onClick={onClose}
       />
 
-      <div ref={panelRef} className={panelClasses}>
+      <div
+        ref={panelRef}
+        className={panelClasses}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         {/* Drag handle (mobile only) */}
         {isMobile && (
           <div className={styles.dragHandle}>

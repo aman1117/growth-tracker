@@ -46,7 +46,6 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
   const loading = useCommentStore((s) => s.loading);
   const hasMore = useCommentStore((s) => s.hasMore);
   const sort = useCommentStore((s) => s.sort);
-  const count = useCommentStore((s) => s.counts[dayKey] ?? 0);
   const fetchComments = useCommentStore((s) => s.fetchComments);
   const setSort = useCommentStore((s) => s.setSort);
 

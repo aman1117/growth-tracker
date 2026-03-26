@@ -181,7 +181,7 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
 
         {/* Header */}
         <div className={styles.header}>
-          <h3 className={styles.title}>Comments{count > 0 ? ` (${count})` : ''}</h3>
+          <h3 className={styles.title}>Comments</h3>
           <div className={styles.headerActions}>
             <button className={styles.headerButton} onClick={handleRefresh} title="Refresh" aria-label="Refresh comments">
               <RefreshCw size={16} />

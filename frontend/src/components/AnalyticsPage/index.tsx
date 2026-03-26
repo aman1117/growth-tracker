@@ -415,10 +415,23 @@ export const AnalyticsPage: React.FC = () => {
   }
 
   // Calculate average for the chart
+  // For the current week, divide by days elapsed so far (not 7)
+  const getWeekDivisor = (): number => {
+    const currentWeekStart = getWeekStart(new Date());
+    if (weekStart.getTime() >= currentWeekStart.getTime()) {
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+      const daysSinceMonday = dayOfWeek === 0 ? 7 : dayOfWeek; // Mon=1, Tue=2, ..., Sun=7
+      return Math.max(1, daysSinceMonday);
+    }
+    return 7;
+  };
+
   const calculateAverage = () => {
     if (!analytics) return 0;
+    const divisor = getWeekDivisor();
     if (activityFilter.length === 0) {
-      return analytics.daily_breakdown.reduce((sum, d) => sum + d.total_hours, 0) / 7;
+      return analytics.daily_breakdown.reduce((sum, d) => sum + d.total_hours, 0) / divisor;
     }
     return (
       analytics.daily_breakdown.reduce((sum, d) => {
@@ -426,7 +439,7 @@ export const AnalyticsPage: React.FC = () => {
           .filter((a) => activityFilter.includes(a.name))
           .reduce((h, a) => h + a.hours, 0);
         return sum + filteredHours;
-      }, 0) / 7
+      }, 0) / divisor
     );
   };
 

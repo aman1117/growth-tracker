@@ -313,8 +313,9 @@ func (s *CommentService) DeleteComment(ctx context.Context, commentID, requestin
 		return fmt.Errorf("failed to delete comment: %w", err)
 	}
 
-	// Decrement parent reply count if this is a reply
-	if comment.ParentCommentID != nil {
+	// Decrement parent reply count only if this reply has no children.
+	// If it has children, it stays as a "[Deleted]" placeholder to keep the thread visible.
+	if comment.ParentCommentID != nil && comment.ReplyCount == 0 {
 		if err := s.commentRepo.DecrementReplyCount(*comment.ParentCommentID); err != nil {
 			logger.Sugar.Warnw("Failed to decrement reply count",
 				"parent_id", *comment.ParentCommentID,

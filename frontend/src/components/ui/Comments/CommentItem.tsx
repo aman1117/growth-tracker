@@ -339,8 +339,8 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   {hasHiddenReplies && (
                     <button className={styles.viewRepliesBtn} onClick={handleViewReplies}>
                       <span className={styles.repliesLine} />
-                      View {totalReplyCount - INITIAL_REPLIES_SHOWN} more{' '}
-                      {totalReplyCount - INITIAL_REPLIES_SHOWN === 1 ? 'reply' : 'replies'}
+                      View {Math.max(1, totalReplyCount - INITIAL_REPLIES_SHOWN)} more{' '}
+                      {Math.max(1, totalReplyCount - INITIAL_REPLIES_SHOWN) === 1 ? 'reply' : 'replies'}
                     </button>
                   )}
 

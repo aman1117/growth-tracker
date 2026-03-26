@@ -125,9 +125,14 @@ export const CommentInput: React.FC<CommentInputProps> = ({
     }
   }, [body, submitting, replyTarget, username, date, createComment, createReply, onCommentPosted]);
 
+  // Detect mobile to disable Enter-to-send (mobile users use the send button)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 640;
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      // On desktop: Enter sends, Shift+Enter adds new line
+      // On mobile: Enter always adds new line, send via button only
+      if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
         e.preventDefault();
         handleSubmit();
       }
@@ -135,7 +140,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
         onCancelReply();
       }
     },
-    [handleSubmit, replyTarget, onCancelReply]
+    [handleSubmit, replyTarget, onCancelReply, isMobile]
   );
 
   const showCharCounter = body.length > MAX_LENGTH * CHAR_COUNTER_THRESHOLD;

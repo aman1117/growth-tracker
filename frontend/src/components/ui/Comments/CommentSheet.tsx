@@ -142,10 +142,12 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
   }, []);
 
   const handleRefresh = useCallback(() => {
-    setListFading(true);
+    if (comments.length > 0) {
+      setListFading(true);
+      setTimeout(() => setListFading(false), 200);
+    }
     fetchComments(username, date, sort, true);
-    setTimeout(() => setListFading(false), 200);
-  }, [fetchComments, username, date, sort]);
+  }, [fetchComments, username, date, sort, comments.length]);
 
   const handleCommentPosted = useCallback(() => {
     setReplyTarget(null);

@@ -9,7 +9,6 @@
    ============================================================================ */
 
 .container {
-  border-top: 1px solid var(--glass-border);
   background: var(--bg-secondary);
   flex-shrink: 0;
 }

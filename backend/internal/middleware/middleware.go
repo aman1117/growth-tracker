@@ -136,6 +136,38 @@ func AutocompleteRateLimiter() fiber.Handler {
 	})
 }
 
+// CommentRateLimiter returns a rate limiter for comment creation endpoints
+// Moderate: 15 comments per minute per user
+func CommentRateLimiter() fiber.Handler {
+	return NewRateLimiter(RateLimitConfig{
+		Max:        constants.RateLimitCommentMaxRequests,
+		Expiration: constants.RateLimitCommentWindow,
+		Message:    constants.MsgRateLimitComment,
+		KeyFunc: func(c *fiber.Ctx) string {
+			if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
+				return fmt.Sprintf("comment:%d", userID)
+			}
+			return c.IP()
+		},
+	})
+}
+
+// CommentLikeRateLimiter returns a rate limiter for comment like endpoints
+// Moderate: 60 like actions per minute per user
+func CommentLikeRateLimiter() fiber.Handler {
+	return NewRateLimiter(RateLimitConfig{
+		Max:        constants.RateLimitCommentLikeMaxRequests,
+		Expiration: constants.RateLimitCommentLikeWindow,
+		Message:    constants.MsgRateLimitCommentLike,
+		KeyFunc: func(c *fiber.Ctx) string {
+			if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
+				return fmt.Sprintf("comment_like:%d", userID)
+			}
+			return c.IP()
+		},
+	})
+}
+
 // ==================== Request Logging ====================
 
 // RequestLogger logs all incoming HTTP requests with timing and trace_id

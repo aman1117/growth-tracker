@@ -16,18 +16,22 @@ type Container struct {
 	Config *config.Config
 
 	// Repositories
-	UserRepo          *repository.UserRepository
-	ActivityRepo      *repository.ActivityRepository
-	StreakRepo        *repository.StreakRepository
-	TileConfigRepo    *repository.TileConfigRepository
-	LikeRepo          *repository.LikeRepository
-	BadgeRepo         *repository.BadgeRepository
-	NotificationRepo  *repository.NotificationRepository
-	PushRepo          *repository.PushRepository
-	FollowRepo        *repository.FollowRepository
-	CronJobLogRepo    *repository.CronJobLogRepository
-	ActivityPhotoRepo *repository.ActivityPhotoRepository
-	RecentSearchRepo  *repository.RecentSearchRepository
+	UserRepo           *repository.UserRepository
+	ActivityRepo       *repository.ActivityRepository
+	StreakRepo         *repository.StreakRepository
+	TileConfigRepo     *repository.TileConfigRepository
+	LikeRepo           *repository.LikeRepository
+	BadgeRepo          *repository.BadgeRepository
+	NotificationRepo   *repository.NotificationRepository
+	PushRepo           *repository.PushRepository
+	FollowRepo         *repository.FollowRepository
+	CronJobLogRepo     *repository.CronJobLogRepository
+	ActivityPhotoRepo  *repository.ActivityPhotoRepository
+	RecentSearchRepo   *repository.RecentSearchRepository
+	CommentRepo        *repository.CommentRepository
+	CommentLikeRepo    *repository.CommentLikeRepository
+	CommentMentionRepo *repository.CommentMentionRepository
+	CommentDedupeRepo  *repository.CommentDedupeRepository
 
 	// Services
 	AuthService              *services.AuthService
@@ -44,6 +48,7 @@ type Container struct {
 	FollowService            *services.FollowService
 	ActivityPhotoService     *services.ActivityPhotoService
 	SearchSuggestionsService *services.SearchSuggestionsService
+	CommentService           *services.CommentService
 
 	// Handlers
 	TokenService             *handlers.TokenService
@@ -64,6 +69,7 @@ type Container struct {
 	FollowHandler            *handlers.FollowHandler
 	ActivityPhotoHandler     *handlers.ActivityPhotoHandler
 	SearchSuggestionsHandler *handlers.SearchSuggestionsHandler
+	CommentHandler           *handlers.CommentHandler
 
 	// Router
 	Router *routes.Router
@@ -86,6 +92,10 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.CronJobLogRepo = repository.NewCronJobLogRepository(db)
 	c.ActivityPhotoRepo = repository.NewActivityPhotoRepository(db)
 	c.RecentSearchRepo = repository.NewRecentSearchRepository(db)
+	c.CommentRepo = repository.NewCommentRepository(db)
+	c.CommentLikeRepo = repository.NewCommentLikeRepository(db)
+	c.CommentMentionRepo = repository.NewCommentMentionRepository(db)
+	c.CommentDedupeRepo = repository.NewCommentDedupeRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -99,6 +109,16 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.BadgeService = services.NewBadgeService(c.BadgeRepo, c.UserRepo)
 	c.FollowService = services.NewFollowService(c.FollowRepo, c.UserRepo, &cfg.Follow)
 	c.SearchSuggestionsService = services.NewSearchSuggestionsService(c.RecentSearchRepo)
+	c.CommentService = services.NewCommentService(
+		c.CommentRepo,
+		c.CommentLikeRepo,
+		c.CommentMentionRepo,
+		c.CommentDedupeRepo,
+		c.UserRepo,
+		c.FollowRepo,
+		c.NotificationService,
+		c.ProfileService,
+	)
 
 	// Initialize activity photo service (optional - requires blob storage)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -142,6 +162,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.PushHandler = handlers.NewPushHandler(c.PushRepo, cfg)
 	c.FollowHandler = handlers.NewFollowHandler(c.FollowService, c.UserRepo, c.NotificationService)
 	c.SearchSuggestionsHandler = handlers.NewSearchSuggestionsHandler(c.SearchSuggestionsService)
+	c.CommentHandler = handlers.NewCommentHandler(c.CommentService, c.ProfileService, c.AuthService)
 
 	// Initialize blob handler (optional)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -175,6 +196,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.FollowHandler,
 		c.ActivityPhotoHandler,
 		c.SearchSuggestionsHandler,
+		c.CommentHandler,
 		c.TokenService,
 	)
 

@@ -81,6 +81,10 @@ func AutoMigrate() error {
 		&models.CronJobLog{},
 		&models.ActivityPhoto{},
 		&models.StoryView{},
+		&models.Comment{},
+		&models.CommentLike{},
+		&models.CommentMention{},
+		&models.CommentDedupe{},
 	)
 }
 

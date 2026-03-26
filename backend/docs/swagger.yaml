@@ -149,6 +149,99 @@ definitions:
         example: true
         type: boolean
     type: object
+  dto.CommentActionResponse:
+    description: Response for comment create/delete/like actions
+    properties:
+      comment:
+        $ref: '#/definitions/dto.CommentDTO'
+      message:
+        example: Comment created successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.CommentCountResponse:
+    description: Comment count
+    properties:
+      count:
+        example: 12
+        type: integer
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.CommentDTO:
+    description: Comment information
+    properties:
+      author_avatar:
+        type: string
+      author_id:
+        example: 2
+        type: integer
+      author_username:
+        example: john_doe
+        type: string
+      author_verified:
+        example: false
+        type: boolean
+      body:
+        example: Great progress today!
+        type: string
+      created_at:
+        example: "2026-01-04T12:00:00Z"
+        type: string
+      day_date:
+        example: "2026-01-04"
+        type: string
+      day_owner_id:
+        example: 1
+        type: integer
+      id:
+        example: 1
+        type: integer
+      is_deleted:
+        example: false
+        type: boolean
+      like_count:
+        example: 5
+        type: integer
+      liked_by_me:
+        example: false
+        type: boolean
+      mentions:
+        items:
+          $ref: '#/definitions/dto.MentionDTO'
+        type: array
+      parent_comment_id:
+        type: integer
+      reply_count:
+        example: 2
+        type: integer
+      reply_to_user_id:
+        type: integer
+      reply_to_username:
+        type: string
+      root_comment_id:
+        type: integer
+    type: object
+  dto.CommentsListResponse:
+    description: Paginated comment list
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/dto.CommentDTO'
+        type: array
+      has_more:
+        example: true
+        type: boolean
+      next_cursor:
+        example: 15
+        type: integer
+      success:
+        example: true
+        type: boolean
+    type: object
   dto.CreateActivityRequest:
     description: Create or update an activity
     properties:
@@ -168,6 +261,20 @@ definitions:
         type: string
       username:
         example: john_doe
+        type: string
+    type: object
+  dto.CreateCommentRequest:
+    description: Create a comment on a user's day
+    properties:
+      body:
+        example: Great progress today!
+        type: string
+    type: object
+  dto.CreateReplyRequest:
+    description: Reply to an existing comment
+    properties:
+      body:
+        example: Thanks!
         type: string
     type: object
   dto.DataResponse:
@@ -508,6 +615,16 @@ definitions:
         type: boolean
       token_type:
         example: Bearer
+        type: string
+    type: object
+  dto.MentionDTO:
+    description: Mention information
+    properties:
+      user_id:
+        example: 1
+        type: integer
+      username:
+        example: john_doe
         type: string
     type: object
   dto.MutualsResponse:
@@ -1746,6 +1863,162 @@ paths:
       summary: Change password
       tags:
       - Profile
+  /comments/{commentId}:
+    delete:
+      description: Soft-delete a comment. Allowed by comment author or day owner.
+        Preserves thread integrity.
+      parameters:
+      - description: Comment ID
+        example: 1
+        in: path
+        name: commentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment deleted
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Invalid comment ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Not authorized to delete
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Comment not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a comment
+      tags:
+      - Comments
+  /comments/{commentId}/like:
+    delete:
+      description: Remove a like from a comment. Idempotent — unliking a not-liked
+        comment is a no-op.
+      parameters:
+      - description: Comment ID
+        example: 1
+        in: path
+        name: commentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Unlike successful
+          schema:
+            $ref: '#/definitions/dto.LikeActionResponse'
+        "400":
+          description: Invalid comment ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Unlike a comment
+      tags:
+      - Comments
+    post:
+      description: Like a comment. Idempotent — liking an already-liked comment is
+        a no-op.
+      parameters:
+      - description: Comment ID
+        example: 1
+        in: path
+        name: commentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Like successful
+          schema:
+            $ref: '#/definitions/dto.LikeActionResponse'
+        "400":
+          description: Invalid comment ID or deleted comment
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Like a comment
+      tags:
+      - Comments
+  /comments/{commentId}/replies:
+    get:
+      description: Retrieve paginated replies for a comment thread, ordered oldest-first.
+      parameters:
+      - description: Root comment ID
+        example: 1
+        in: path
+        name: commentId
+        required: true
+        type: integer
+      - description: Cursor for pagination (last reply ID)
+        in: query
+        name: cursor
+        type: integer
+      - default: 20
+        description: Number of replies per page
+        in: query
+        maximum: 50
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Replies list
+          schema:
+            $ref: '#/definitions/dto.CommentsListResponse'
+        "400":
+          description: Invalid comment ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Private account
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Comment not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get replies for a comment
+      tags:
+      - Comments
   /create-activity:
     post:
       consumes:
@@ -1778,6 +2051,248 @@ paths:
       summary: Create or update an activity
       tags:
       - Activities
+  /days/{username}/{date}/comments:
+    get:
+      description: Retrieve paginated top-level comments for a user's day. Supports
+        sort=top (ranked) and sort=newest.
+      parameters:
+      - description: Day owner username
+        example: '"john_doe"'
+        in: path
+        name: username
+        required: true
+        type: string
+      - description: Day date (YYYY-MM-DD)
+        example: '"2026-03-26"'
+        in: path
+        name: date
+        required: true
+        type: string
+      - default: top
+        description: 'Sort order: top or newest'
+        enum:
+        - top
+        - newest
+        in: query
+        name: sort
+        type: string
+      - description: Cursor for pagination (last comment ID)
+        in: query
+        name: cursor
+        type: integer
+      - default: 20
+        description: Number of comments per page
+        in: query
+        maximum: 50
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comments list
+          schema:
+            $ref: '#/definitions/dto.CommentsListResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Private account
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get comments for a day
+      tags:
+      - Comments
+    post:
+      consumes:
+      - application/json
+      description: Add a top-level comment on a user's day. Supports @mentions and
+        dedup via X-Idempotency-Key header.
+      parameters:
+      - description: Day owner username
+        example: '"john_doe"'
+        in: path
+        name: username
+        required: true
+        type: string
+      - description: Day date (YYYY-MM-DD)
+        example: '"2026-03-26"'
+        in: path
+        name: date
+        required: true
+        type: string
+      - description: Idempotency key for dedup
+        in: header
+        name: X-Idempotency-Key
+        type: string
+      - description: Comment body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Comment created
+          schema:
+            $ref: '#/definitions/dto.CommentActionResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Private account
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Duplicate comment
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a comment on a day
+      tags:
+      - Comments
+  /days/{username}/{date}/comments/{commentId}/replies:
+    post:
+      consumes:
+      - application/json
+      description: Create a reply to an existing comment. Supports nested replies
+        (all flatten under root).
+      parameters:
+      - description: Day owner username
+        example: '"john_doe"'
+        in: path
+        name: username
+        required: true
+        type: string
+      - description: Day date (YYYY-MM-DD)
+        example: '"2026-03-26"'
+        in: path
+        name: date
+        required: true
+        type: string
+      - description: Parent comment ID
+        example: 1
+        in: path
+        name: commentId
+        required: true
+        type: integer
+      - description: Idempotency key for dedup
+        in: header
+        name: X-Idempotency-Key
+        type: string
+      - description: Reply body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateReplyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Reply created
+          schema:
+            $ref: '#/definitions/dto.CommentActionResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Private account
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: User or parent comment not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Duplicate comment
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reply to a comment
+      tags:
+      - Comments
+  /days/{username}/{date}/comments/count:
+    get:
+      description: Returns the total number of non-deleted comments for a user's day.
+      parameters:
+      - description: Day owner username
+        example: '"john_doe"'
+        in: path
+        name: username
+        required: true
+        type: string
+      - description: Day date (YYYY-MM-DD)
+        example: '"2026-03-26"'
+        in: path
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comment count
+          schema:
+            $ref: '#/definitions/dto.CommentCountResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Private account
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get comment count for a day
+      tags:
+      - Comments
   /follow-requests/{targetId}/cancel:
     post:
       consumes:

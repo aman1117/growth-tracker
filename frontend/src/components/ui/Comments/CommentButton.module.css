@@ -1,0 +1,67 @@
+/**
+ * CommentButton Styles
+ *
+ * Message-circle comment button matching LikeButton design.
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.container {
+  display: flex;
+  align-items: center;
+}
+
+.sm {
+  gap: var(--space-1-5);
+}
+
+.md {
+  gap: var(--space-2);
+}
+
+/* ============================================================================
+   Button
+   ============================================================================ */
+
+.button {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition:
+    color var(--transition-fast) var(--ease-default),
+    transform var(--transition-fast) var(--ease-default);
+}
+
+.button:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* ============================================================================
+   Count
+   ============================================================================ */
+
+.count {
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--transition-fast) var(--ease-default);
+}
+
+.sm .count {
+  font-size: var(--text-xs);
+}
+
+.md .count {
+  font-size: var(--text-base);
+}

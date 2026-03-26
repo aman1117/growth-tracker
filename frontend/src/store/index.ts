@@ -48,3 +48,4 @@ export {
   type ToastType,
   useToastStore,
 } from './useToastStore';
+export { useCommentStore } from './useCommentStore';

@@ -180,6 +180,29 @@ export const API_ROUTES = {
     /** GET - Get combined interactions (views + likes) */
     GET_INTERACTIONS: (id: number) => `/activity-photo/${id}/interactions`,
   },
+
+  // ============================================================================
+  // Day Comments
+  // ============================================================================
+  COMMENT: {
+    /** POST - Create comment on a day */
+    CREATE: (username: string, date: string) => `/days/${username}/${date}/comments`,
+    /** POST - Reply to a comment */
+    CREATE_REPLY: (username: string, date: string, commentId: number) =>
+      `/days/${username}/${date}/comments/${commentId}/replies`,
+    /** GET - List top-level comments for a day */
+    LIST: (username: string, date: string) => `/days/${username}/${date}/comments`,
+    /** GET - Get comment count for a day */
+    COUNT: (username: string, date: string) => `/days/${username}/${date}/comments/count`,
+    /** DELETE - Delete a comment */
+    DELETE: (commentId: number) => `/comments/${commentId}`,
+    /** POST - Like a comment */
+    LIKE: (commentId: number) => `/comments/${commentId}/like`,
+    /** DELETE - Unlike a comment */
+    UNLIKE: (commentId: number) => `/comments/${commentId}/like`,
+    /** GET - Get replies for a comment */
+    GET_REPLIES: (commentId: number) => `/comments/${commentId}/replies`,
+  },
 } as const;
 
 /**

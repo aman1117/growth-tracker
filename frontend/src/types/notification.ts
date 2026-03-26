@@ -17,7 +17,11 @@ export type NotificationType =
   | 'new_follower'
   | 'follow_request'
   | 'follow_accepted'
-  | 'photo_uploaded';
+  | 'photo_uploaded'
+  | 'comment_received'
+  | 'comment_reply'
+  | 'comment_mention'
+  | 'comment_liked';
 
 export interface Notification {
   id: number;
@@ -78,6 +82,16 @@ export interface StoryLikedMetadata {
   photo_date: string;
 }
 
+export interface CommentMetadata {
+  comment_id: number;
+  comment_preview: string;
+  day_owner_username: string;
+  day_date: string;
+  author_id: number;
+  author_username: string;
+  author_avatar?: string;
+}
+
 export type NotificationMetadata =
   | LikeMetadata
   | StoryLikedMetadata
@@ -86,6 +100,7 @@ export type NotificationMetadata =
   | FollowMetadata
   | DayCompletedMetadata
   | PhotoUploadedMetadata
+  | CommentMetadata
   | Record<string, unknown>;
 
 // ==================== API Response Types ====================

@@ -935,6 +935,242 @@
                 }
             }
         },
+        "/comments/{commentId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Soft-delete a comment. Allowed by comment author or day owner. Preserves thread integrity.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Delete a comment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Comment ID",
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment deleted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid comment ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not authorized to delete",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Comment not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comments/{commentId}/like": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Like a comment. Idempotent — liking an already-liked comment is a no-op.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Like a comment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Comment ID",
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Like successful",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikeActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid comment ID or deleted comment",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove a like from a comment. Idempotent — unliking a not-liked comment is a no-op.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Unlike a comment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Comment ID",
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Unlike successful",
+                        "schema": {
+                            "$ref": "#/definitions/dto.LikeActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid comment ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/comments/{commentId}/replies": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve paginated replies for a comment thread, ordered oldest-first.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Get replies for a comment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Root comment ID",
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cursor for pagination (last reply ID)",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 50,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of replies per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Replies list",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommentsListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid comment ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Private account",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Comment not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/create-activity": {
             "post": {
                 "security": [
@@ -979,6 +1215,365 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/days/{username}/{date}/comments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve paginated top-level comments for a user's day. Supports sort=top (ranked) and sort=newest.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Get comments for a day",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"john_doe\"",
+                        "description": "Day owner username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2026-03-26\"",
+                        "description": "Day date (YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "top",
+                            "newest"
+                        ],
+                        "type": "string",
+                        "default": "top",
+                        "description": "Sort order: top or newest",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cursor for pagination (last comment ID)",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 50,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Number of comments per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comments list",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommentsListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Private account",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a top-level comment on a user's day. Supports @mentions and dedup via X-Idempotency-Key header.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Create a comment on a day",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"john_doe\"",
+                        "description": "Day owner username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2026-03-26\"",
+                        "description": "Day date (YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Idempotency key for dedup",
+                        "name": "X-Idempotency-Key",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Comment body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCommentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Comment created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommentActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Private account",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Duplicate comment",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/days/{username}/{date}/comments/count": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the total number of non-deleted comments for a user's day.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Get comment count for a day",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"john_doe\"",
+                        "description": "Day owner username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2026-03-26\"",
+                        "description": "Day date (YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment count",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommentCountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Private account",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/days/{username}/{date}/comments/{commentId}/replies": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a reply to an existing comment. Supports nested replies (all flatten under root).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Reply to a comment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"john_doe\"",
+                        "description": "Day owner username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2026-03-26\"",
+                        "description": "Day date (YYYY-MM-DD)",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "Parent comment ID",
+                        "name": "commentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Idempotency key for dedup",
+                        "name": "X-Idempotency-Key",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Reply body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateReplyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Reply created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CommentActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Private account",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User or parent comment not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Duplicate comment",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -3444,6 +4039,136 @@
                 }
             }
         },
+        "dto.CommentActionResponse": {
+            "description": "Response for comment create/delete/like actions",
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "$ref": "#/definitions/dto.CommentDTO"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Comment created successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.CommentCountResponse": {
+            "description": "Comment count",
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.CommentDTO": {
+            "description": "Comment information",
+            "type": "object",
+            "properties": {
+                "author_avatar": {
+                    "type": "string"
+                },
+                "author_id": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "author_username": {
+                    "type": "string",
+                    "example": "john_doe"
+                },
+                "author_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "body": {
+                    "type": "string",
+                    "example": "Great progress today!"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-01-04T12:00:00Z"
+                },
+                "day_date": {
+                    "type": "string",
+                    "example": "2026-01-04"
+                },
+                "day_owner_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_deleted": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "like_count": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "liked_by_me": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "mentions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MentionDTO"
+                    }
+                },
+                "parent_comment_id": {
+                    "type": "integer"
+                },
+                "reply_count": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "reply_to_user_id": {
+                    "type": "integer"
+                },
+                "reply_to_username": {
+                    "type": "string"
+                },
+                "root_comment_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CommentsListResponse": {
+            "description": "Paginated comment list",
+            "type": "object",
+            "properties": {
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.CommentDTO"
+                    }
+                },
+                "has_more": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "next_cursor": {
+                    "type": "integer",
+                    "example": 15
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "dto.CreateActivityRequest": {
             "description": "Create or update an activity",
             "type": "object",
@@ -3472,6 +4197,26 @@
                 "username": {
                     "type": "string",
                     "example": "john_doe"
+                }
+            }
+        },
+        "dto.CreateCommentRequest": {
+            "description": "Create a comment on a user's day",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "example": "Great progress today!"
+                }
+            }
+        },
+        "dto.CreateReplyRequest": {
+            "description": "Reply to an existing comment",
+            "type": "object",
+            "properties": {
+                "body": {
+                    "type": "string",
+                    "example": "Thanks!"
                 }
             }
         },
@@ -3944,6 +4689,20 @@
                 "token_type": {
                     "type": "string",
                     "example": "Bearer"
+                }
+            }
+        },
+        "dto.MentionDTO": {
+            "description": "Mention information",
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
                 }
             }
         },

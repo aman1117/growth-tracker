@@ -210,3 +210,17 @@ type FollowListRequest struct {
 	Cursor string `json:"cursor,omitempty" example:"eyJjcmVhdGVkX2F0IjoiMjAyNi0wMS0xMFQxMjowMDowMFoiLCJ1c2VyX2lkIjoxMH0="`
 	Limit  int    `json:"limit,omitempty" example:"20"`
 }
+
+// ==================== Comment DTOs ====================
+
+// CreateCommentRequest represents the request to create a comment on a day
+// @Description Create a comment on a user's day
+type CreateCommentRequest struct {
+	Body string `json:"body" example:"Great progress today!"`
+}
+
+// CreateReplyRequest represents the request to reply to a comment
+// @Description Reply to an existing comment
+type CreateReplyRequest struct {
+	Body string `json:"body" example:"Thanks!"`
+}

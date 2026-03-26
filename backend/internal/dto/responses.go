@@ -495,3 +495,59 @@ type MutualsResponse struct {
 	NextCursor string          `json:"next_cursor,omitempty"`
 	HasMore    bool            `json:"has_more" example:"true"`
 }
+
+// ==================== Comment DTOs ====================
+
+// MentionDTO represents an @mention in a comment
+// @Description Mention information
+type MentionDTO struct {
+	UserID   uint   `json:"user_id" example:"1"`
+	Username string `json:"username" example:"john_doe"`
+}
+
+// CommentDTO represents a comment for API responses
+// @Description Comment information
+type CommentDTO struct {
+	ID              uint         `json:"id" example:"1"`
+	DayOwnerID      uint         `json:"day_owner_id" example:"1"`
+	DayDate         string       `json:"day_date" example:"2026-01-04"`
+	AuthorID        uint         `json:"author_id" example:"2"`
+	AuthorUsername  string       `json:"author_username" example:"john_doe"`
+	AuthorAvatar    *string      `json:"author_avatar,omitempty"`
+	AuthorVerified  bool         `json:"author_verified" example:"false"`
+	ParentCommentID *uint        `json:"parent_comment_id,omitempty"`
+	RootCommentID   *uint        `json:"root_comment_id,omitempty"`
+	ReplyToUserID   *uint        `json:"reply_to_user_id,omitempty"`
+	ReplyToUsername *string      `json:"reply_to_username,omitempty"`
+	Body            string       `json:"body" example:"Great progress today!"`
+	LikeCount       int          `json:"like_count" example:"5"`
+	ReplyCount      int          `json:"reply_count" example:"2"`
+	IsDeleted       bool         `json:"is_deleted" example:"false"`
+	LikedByMe       bool         `json:"liked_by_me" example:"false"`
+	Mentions        []MentionDTO `json:"mentions"`
+	CreatedAt       string       `json:"created_at" example:"2026-01-04T12:00:00Z"`
+}
+
+// CommentsListResponse represents a paginated list of comments
+// @Description Paginated comment list
+type CommentsListResponse struct {
+	Success    bool         `json:"success" example:"true"`
+	Comments   []CommentDTO `json:"comments"`
+	HasMore    bool         `json:"has_more" example:"true"`
+	NextCursor *uint        `json:"next_cursor,omitempty" example:"15"`
+}
+
+// CommentCountResponse represents the comment count for a day
+// @Description Comment count
+type CommentCountResponse struct {
+	Success bool  `json:"success" example:"true"`
+	Count   int64 `json:"count" example:"12"`
+}
+
+// CommentActionResponse represents the response for comment actions
+// @Description Response for comment create/delete/like actions
+type CommentActionResponse struct {
+	Success bool        `json:"success" example:"true"`
+	Comment *CommentDTO `json:"comment,omitempty"`
+	Message string      `json:"message,omitempty" example:"Comment created successfully"`
+}

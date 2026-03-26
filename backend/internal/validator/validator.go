@@ -153,6 +153,52 @@ func ValidateNote(note *string) *ValidationError {
 	return nil
 }
 
+// MentionPattern matches @username patterns in comment text
+var MentionPattern = regexp.MustCompile(`@([a-z0-9_.]{3,20})`)
+
+// ValidateCommentBody validates a comment body for length and content
+func ValidateCommentBody(body string) *ValidationError {
+	trimmed := strings.TrimSpace(body)
+
+	if len(trimmed) < constants.CommentBodyMinLength {
+		return NewValidationError("Comment cannot be empty", constants.ErrCodeCommentEmpty)
+	}
+
+	if len(trimmed) > constants.CommentBodyMaxLength {
+		return NewValidationError(
+			"Comment must be 200 characters or less",
+			constants.ErrCodeCommentTooLong,
+		)
+	}
+
+	return nil
+}
+
+// ParseMentions extracts unique @username mentions from comment text.
+// Returns the list of usernames and a validation error if too many mentions.
+func ParseMentions(body string) ([]string, *ValidationError) {
+	matches := MentionPattern.FindAllStringSubmatch(body, -1)
+	seen := make(map[string]bool)
+	var usernames []string
+
+	for _, match := range matches {
+		username := match[1]
+		if !seen[username] {
+			seen[username] = true
+			usernames = append(usernames, username)
+		}
+	}
+
+	if len(usernames) > constants.CommentMaxMentions {
+		return nil, NewValidationError(
+			"Too many mentions (max 10 per comment)",
+			constants.ErrCodeTooManyMentions,
+		)
+	}
+
+	return usernames, nil
+}
+
 // ValidateActivityHours validates activity hours
 func ValidateActivityHours(hours float32) *ValidationError {
 	if hours < 0 || hours > constants.MaxDailyHours {

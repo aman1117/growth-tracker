@@ -1,0 +1,133 @@
+/**
+ * CommentInput Styles
+ *
+ * Fixed bottom input bar for commenting, with reply mode and mention autocomplete.
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.container {
+  border-top: 1px solid var(--glass-border);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   Reply Chip
+   ============================================================================ */
+
+.replyChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--glass-surface-bg);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.replyChipText {
+  flex: 1;
+}
+
+.replyChipUsername {
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+}
+
+.replyChipCancel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast) var(--ease-default);
+}
+
+.replyChipCancel:hover {
+  background: var(--glass-hover-bg);
+}
+
+/* ============================================================================
+   Input Row
+   ============================================================================ */
+
+.inputRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  position: relative;
+}
+
+.textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  line-height: 1.4;
+  background: var(--glass-surface-bg);
+  color: var(--text-primary);
+  outline: none;
+  max-height: 120px;
+  min-height: 36px;
+  overflow: hidden;
+  transition: border-color var(--transition-fast) var(--ease-default);
+}
+
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.textarea:focus {
+  border-color: var(--accent);
+}
+
+/* ============================================================================
+   Send Button
+   ============================================================================ */
+
+.sendButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  padding: var(--space-2);
+  flex-shrink: 0;
+  opacity: 1;
+  transition: opacity var(--transition-fast) var(--ease-default);
+}
+
+.sendButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   Character Counter
+   ============================================================================ */
+
+.charCounter {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: right;
+  padding: 0 var(--space-4) var(--space-1);
+  line-height: 1;
+}
+
+.charCounterWarning {
+  color: var(--color-like);
+}

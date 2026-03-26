@@ -89,6 +89,16 @@ func (r *UserRepository) FindByUsername(username string) (*models.User, error) {
 	return &user, nil
 }
 
+// FindByUsernames finds multiple users by their usernames
+func (r *UserRepository) FindByUsernames(usernames []string) ([]models.User, error) {
+	if len(usernames) == 0 {
+		return nil, nil
+	}
+	var users []models.User
+	err := r.db.Where("username IN ?", usernames).Find(&users).Error
+	return users, err
+}
+
 // FindByEmail finds a user by email
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User

@@ -757,6 +757,244 @@ func (s *NotificationService) NotifyNewFollower(
 	})
 }
 
+// ==================== Comment Notification Triggers ====================
+
+// NotifyCommentReceived creates a notification when someone comments on a user's day
+func (s *NotificationService) NotifyCommentReceived(
+	ctx context.Context,
+	recipientUserID, authorID uint,
+	authorUsername, authorAvatar string,
+	commentID uint, bodyPreview, dayOwnerUsername, dayDate string,
+) error {
+	entityKey := fmt.Sprintf("comment:%d", commentID)
+
+	db := s.repo.GetDB()
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		dedupe := &models.NotificationDedupe{
+			UserID:     recipientUserID,
+			ActorID:    authorID,
+			Type:       models.NotifTypeCommentReceived,
+			EntityType: "day_comment",
+			EntityKey:  entityKey,
+		}
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(dedupe)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return nil
+		}
+
+		notif := &models.Notification{
+			UserID: recipientUserID,
+			Type:   models.NotifTypeCommentReceived,
+			Title:  "New Comment",
+			Body:   fmt.Sprintf("%s commented on your day", authorUsername),
+			Metadata: models.CommentMetadata{
+				CommentID:        commentID,
+				CommentPreview:   bodyPreview,
+				DayOwnerUsername: dayOwnerUsername,
+				DayDate:          dayDate,
+				AuthorID:         authorID,
+				AuthorUsername:   authorUsername,
+				AuthorAvatar:     authorAvatar,
+			}.ToMap(),
+		}
+
+		if err := tx.Create(notif).Error; err != nil {
+			return err
+		}
+
+		s.invalidateUnreadCache(ctx, recipientUserID)
+		s.publishNotification(ctx, notif)
+
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			dedupeKey := fmt.Sprintf("comment:%d", commentID)
+			deepLink := fmt.Sprintf("/user/%s?date=%s&comments=true", dayOwnerUsername, dayDate)
+			publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink)
+		}
+
+		return nil
+	})
+}
+
+// NotifyCommentReply creates a notification when someone replies to a comment
+func (s *NotificationService) NotifyCommentReply(
+	ctx context.Context,
+	recipientUserID, authorID uint,
+	authorUsername, authorAvatar string,
+	commentID uint, bodyPreview, dayOwnerUsername, dayDate string,
+) error {
+	entityKey := fmt.Sprintf("reply:%d", commentID)
+
+	db := s.repo.GetDB()
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		dedupe := &models.NotificationDedupe{
+			UserID:     recipientUserID,
+			ActorID:    authorID,
+			Type:       models.NotifTypeCommentReply,
+			EntityType: "comment_reply",
+			EntityKey:  entityKey,
+		}
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(dedupe)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return nil
+		}
+
+		notif := &models.Notification{
+			UserID: recipientUserID,
+			Type:   models.NotifTypeCommentReply,
+			Title:  "New Reply",
+			Body:   fmt.Sprintf("%s replied to your comment", authorUsername),
+			Metadata: models.CommentMetadata{
+				CommentID:        commentID,
+				CommentPreview:   bodyPreview,
+				DayOwnerUsername: dayOwnerUsername,
+				DayDate:          dayDate,
+				AuthorID:         authorID,
+				AuthorUsername:   authorUsername,
+				AuthorAvatar:     authorAvatar,
+			}.ToMap(),
+		}
+
+		if err := tx.Create(notif).Error; err != nil {
+			return err
+		}
+
+		s.invalidateUnreadCache(ctx, recipientUserID)
+		s.publishNotification(ctx, notif)
+
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			dedupeKey := fmt.Sprintf("reply:%d", commentID)
+			deepLink := fmt.Sprintf("/user/%s?date=%s&comments=true", dayOwnerUsername, dayDate)
+			publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink)
+		}
+
+		return nil
+	})
+}
+
+// NotifyCommentMention creates a notification when a user is @mentioned in a comment
+func (s *NotificationService) NotifyCommentMention(
+	ctx context.Context,
+	recipientUserID, authorID uint,
+	authorUsername, authorAvatar string,
+	commentID uint, bodyPreview, dayOwnerUsername, dayDate string,
+) error {
+	entityKey := fmt.Sprintf("mention:%d:%d", commentID, recipientUserID)
+
+	db := s.repo.GetDB()
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		dedupe := &models.NotificationDedupe{
+			UserID:     recipientUserID,
+			ActorID:    authorID,
+			Type:       models.NotifTypeCommentMention,
+			EntityType: "comment_mention",
+			EntityKey:  entityKey,
+		}
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(dedupe)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return nil
+		}
+
+		notif := &models.Notification{
+			UserID: recipientUserID,
+			Type:   models.NotifTypeCommentMention,
+			Title:  "You were mentioned",
+			Body:   fmt.Sprintf("%s mentioned you in a comment", authorUsername),
+			Metadata: models.CommentMetadata{
+				CommentID:        commentID,
+				CommentPreview:   bodyPreview,
+				DayOwnerUsername: dayOwnerUsername,
+				DayDate:          dayDate,
+				AuthorID:         authorID,
+				AuthorUsername:   authorUsername,
+				AuthorAvatar:     authorAvatar,
+			}.ToMap(),
+		}
+
+		if err := tx.Create(notif).Error; err != nil {
+			return err
+		}
+
+		s.invalidateUnreadCache(ctx, recipientUserID)
+		s.publishNotification(ctx, notif)
+
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			dedupeKey := fmt.Sprintf("mention:%d:%d", commentID, recipientUserID)
+			deepLink := fmt.Sprintf("/user/%s?date=%s&comments=true", dayOwnerUsername, dayDate)
+			publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink)
+		}
+
+		return nil
+	})
+}
+
+// NotifyCommentLiked creates a notification when someone likes a comment
+func (s *NotificationService) NotifyCommentLiked(
+	ctx context.Context,
+	recipientUserID, likerID uint,
+	likerUsername, likerAvatar string,
+	commentID uint, bodyPreview, dayOwnerUsername, dayDate string,
+) error {
+	entityKey := fmt.Sprintf("comment_like:%d:%d", commentID, likerID)
+
+	db := s.repo.GetDB()
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		dedupe := &models.NotificationDedupe{
+			UserID:     recipientUserID,
+			ActorID:    likerID,
+			Type:       models.NotifTypeCommentLiked,
+			EntityType: "comment_like",
+			EntityKey:  entityKey,
+		}
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(dedupe)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return nil
+		}
+
+		notif := &models.Notification{
+			UserID: recipientUserID,
+			Type:   models.NotifTypeCommentLiked,
+			Title:  "Comment Liked",
+			Body:   fmt.Sprintf("%s liked your comment", likerUsername),
+			Metadata: models.CommentMetadata{
+				CommentID:        commentID,
+				CommentPreview:   bodyPreview,
+				DayOwnerUsername: dayOwnerUsername,
+				DayDate:          dayDate,
+				AuthorID:         likerID,
+				AuthorUsername:   likerUsername,
+				AuthorAvatar:     likerAvatar,
+			}.ToMap(),
+		}
+
+		if err := tx.Create(notif).Error; err != nil {
+			return err
+		}
+
+		s.invalidateUnreadCache(ctx, recipientUserID)
+		s.publishNotification(ctx, notif)
+
+		if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+			dedupeKey := entityKey
+			deepLink := fmt.Sprintf("/user/%s?date=%s&comments=true", dayOwnerUsername, dayDate)
+			publisher.PublishFromNotification(ctx, notif, dedupeKey, deepLink)
+		}
+
+		return nil
+	})
+}
+
 // ==================== Redis Pub/Sub Operations ====================
 
 // publishNotification publishes a notification to Redis pub/sub

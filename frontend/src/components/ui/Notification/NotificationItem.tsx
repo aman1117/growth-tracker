@@ -8,10 +8,13 @@
 
 import {
   AlertTriangle,
+  AtSign,
   Camera,
   Flame,
   Heart,
   Megaphone,
+  MessageCircle,
+  Reply,
   Trophy,
   UserCheck,
   UserPlus,
@@ -48,6 +51,10 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   follow_request: <UserPlus size={16} className={styles.iconFollow} />,
   follow_accepted: <UserCheck size={16} className={styles.iconFollow} />,
   photo_uploaded: <Camera size={16} className={styles.iconPhoto} />,
+  comment_received: <MessageCircle size={16} className={styles.iconFollow} />,
+  comment_reply: <Reply size={16} className={styles.iconFollow} />,
+  comment_mention: <AtSign size={16} className={styles.iconFollow} />,
+  comment_liked: <Heart size={16} className={styles.iconLike} />,
 };
 
 /**

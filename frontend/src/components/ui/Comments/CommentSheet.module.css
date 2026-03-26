@@ -1,0 +1,317 @@
+/**
+ * CommentSheet Styles
+ *
+ * Instagram-style bottom sheet on mobile, centered modal on desktop.
+ * Replicates the same slide-up animation as NotificationPanel.
+ */
+
+/* ============================================================================
+   Overlay (shared mobile + desktop)
+   ============================================================================ */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99998;
+  animation: fadeIn 0.2s ease-out;
+}
+
+[data-theme='light'] .overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.overlayClosing {
+  animation: fadeOut 0.15s ease-in forwards;
+}
+
+/* ============================================================================
+   Panel (base styles shared)
+   ============================================================================ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  z-index: 99999;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   Mobile Panel — bottom sheet
+   ============================================================================ */
+
+.panelMobile {
+  position: fixed;
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 70vh;
+  border-radius: 20px 20px 0 0;
+  animation: panelSlideUp 0.3s ease-out;
+  background: var(--bg-secondary);
+  backdrop-filter: blur(var(--tile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
+  border: none;
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.15);
+}
+
+.panelMobileClosing {
+  animation: panelSlideDown 0.2s ease-in forwards;
+}
+
+[data-theme='dark'] .panelMobile {
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================================
+   Desktop Panel — centered modal
+   ============================================================================ */
+
+.panelDesktop {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  max-width: 90vw;
+  max-height: 480px;
+  border-radius: var(--radius-2xl);
+  animation: modalFadeIn 0.25s ease-out;
+  background: var(--bg-secondary);
+  backdrop-filter: blur(var(--tile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-floating);
+}
+
+.panelDesktopClosing {
+  animation: modalFadeOut 0.15s ease-in forwards;
+}
+
+/* ============================================================================
+   Drag Handle (mobile only)
+   ============================================================================ */
+
+.dragHandle {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 4px;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.dragBar {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--text-muted);
+  opacity: 0.4;
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.headerActions {
+  position: absolute;
+  right: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.headerButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast) var(--ease-default);
+}
+
+.headerButton:hover {
+  background: var(--glass-hover-bg);
+}
+
+/* ============================================================================
+   Sort Toggle
+   ============================================================================ */
+
+.sortRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.sortButton {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast) var(--ease-default);
+}
+
+.sortButton:hover {
+  background: var(--glass-hover-bg);
+}
+
+.sortButtonActive {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border-color: var(--text-primary);
+}
+
+.sortButtonActive:hover {
+  background: var(--text-primary);
+  opacity: 0.9;
+}
+
+/* ============================================================================
+   Comment List
+   ============================================================================ */
+
+.commentList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2) 0;
+  -webkit-overflow-scrolling: touch;
+  min-height: 120px;
+}
+
+.commentListFading {
+  animation: listFade 0.2s ease-out;
+}
+
+@keyframes listFade {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
+}
+
+/* ============================================================================
+   Empty State
+   ============================================================================ */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.emptyTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1);
+}
+
+.emptySubtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ============================================================================
+   Loading
+   ============================================================================ */
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.loadingMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+/* ============================================================================
+   Animations
+   ============================================================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes panelSlideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes panelSlideDown {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(100%); }
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translate(-50%, -48%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+@keyframes modalFadeOut {
+  from { opacity: 1; transform: translate(-50%, -50%); }
+  to { opacity: 0; transform: translate(-50%, -48%); }
+}

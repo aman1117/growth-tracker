@@ -655,3 +655,79 @@ export const searchApi = {
     ),
 };
 
+// ============================================================================
+// Day Comments API
+// ============================================================================
+
+import type {
+  CommentsListResponse,
+  CommentCountResponse,
+  CommentActionResponse,
+  CommentLikeResponse,
+} from '../types/comment';
+
+export const commentApi = {
+  /** Create a top-level comment on a day */
+  createComment: (username: string, date: string, body: string, idempotencyKey: string) =>
+    apiClient.post<CommentActionResponse>(
+      API_ROUTES.COMMENT.CREATE(username, date),
+      { body },
+      { headers: { 'X-Idempotency-Key': idempotencyKey } }
+    ),
+
+  /** Reply to a comment */
+  createReply: (
+    username: string,
+    date: string,
+    commentId: number,
+    body: string,
+    idempotencyKey: string
+  ) =>
+    apiClient.post<CommentActionResponse>(
+      API_ROUTES.COMMENT.CREATE_REPLY(username, date, commentId),
+      { body },
+      { headers: { 'X-Idempotency-Key': idempotencyKey } }
+    ),
+
+  /** Get top-level comments for a day */
+  getComments: (username: string, date: string, sort?: string, cursor?: number, limit?: number) => {
+    const params = new URLSearchParams();
+    if (sort) params.set('sort', sort);
+    if (cursor) params.set('cursor', String(cursor));
+    if (limit) params.set('limit', String(limit));
+    const qs = params.toString();
+    return apiClient.get<CommentsListResponse>(
+      `${API_ROUTES.COMMENT.LIST(username, date)}${qs ? `?${qs}` : ''}`
+    );
+  },
+
+  /** Get replies for a comment */
+  getReplies: (commentId: number, cursor?: number, limit?: number) => {
+    const params = new URLSearchParams();
+    if (cursor) params.set('cursor', String(cursor));
+    if (limit) params.set('limit', String(limit));
+    const qs = params.toString();
+    return apiClient.get<CommentsListResponse>(
+      `${API_ROUTES.COMMENT.GET_REPLIES(commentId)}${qs ? `?${qs}` : ''}`
+    );
+  },
+
+  /** Delete a comment */
+  deleteComment: (commentId: number) =>
+    apiClient.delete<{ success: boolean; message: string }>(
+      API_ROUTES.COMMENT.DELETE(commentId)
+    ),
+
+  /** Like a comment */
+  likeComment: (commentId: number) =>
+    apiClient.post<CommentLikeResponse>(API_ROUTES.COMMENT.LIKE(commentId)),
+
+  /** Unlike a comment */
+  unlikeComment: (commentId: number) =>
+    apiClient.delete<CommentLikeResponse>(API_ROUTES.COMMENT.UNLIKE(commentId)),
+
+  /** Get comment count for a day */
+  getCommentCount: (username: string, date: string) =>
+    apiClient.get<CommentCountResponse>(API_ROUTES.COMMENT.COUNT(username, date)),
+};
+

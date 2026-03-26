@@ -29,6 +29,7 @@ type Router struct {
 	followHandler            *handlers.FollowHandler
 	activityPhotoHandler     *handlers.ActivityPhotoHandler
 	searchSuggestionsHandler *handlers.SearchSuggestionsHandler
+	commentHandler           *handlers.CommentHandler
 	tokenSvc                 *handlers.TokenService
 }
 
@@ -51,6 +52,7 @@ func NewRouter(
 	followHandler *handlers.FollowHandler,
 	activityPhotoHandler *handlers.ActivityPhotoHandler,
 	searchSuggestionsHandler *handlers.SearchSuggestionsHandler,
+	commentHandler *handlers.CommentHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
@@ -71,6 +73,7 @@ func NewRouter(
 		followHandler:            followHandler,
 		activityPhotoHandler:     activityPhotoHandler,
 		searchSuggestionsHandler: searchSuggestionsHandler,
+		commentHandler:           commentHandler,
 		tokenSvc:                 tokenSvc,
 	}
 }
@@ -245,4 +248,20 @@ func (r *Router) Setup(app *fiber.App) {
 	// Token is passed as query parameter: /api/ws/notifications?token=<jwt>
 	api.Use("/ws/notifications", r.notificationWSHandler.UpgradeMiddleware())
 	api.Get("/ws/notifications", r.notificationWSHandler.HandleConnection())
+
+	// ==================== Day Comments ====================
+	commentRateLimiter := middleware.CommentRateLimiter()
+	commentLikeRateLimiter := middleware.CommentLikeRateLimiter()
+
+	// Day comment CRUD
+	api.Post("/days/:username/:date/comments", authMiddleware, commentRateLimiter, r.commentHandler.CreateComment)
+	api.Post("/days/:username/:date/comments/:commentId/replies", authMiddleware, commentRateLimiter, r.commentHandler.CreateReply)
+	api.Get("/days/:username/:date/comments", authMiddleware, apiRateLimiter, r.commentHandler.GetComments)
+	api.Get("/days/:username/:date/comments/count", authMiddleware, apiRateLimiter, r.commentHandler.GetCommentCount)
+
+	// Comment actions (ID-based)
+	api.Delete("/comments/:commentId", authMiddleware, apiRateLimiter, r.commentHandler.DeleteComment)
+	api.Post("/comments/:commentId/like", authMiddleware, commentLikeRateLimiter, r.commentHandler.LikeComment)
+	api.Delete("/comments/:commentId/like", authMiddleware, commentLikeRateLimiter, r.commentHandler.UnlikeComment)
+	api.Get("/comments/:commentId/replies", authMiddleware, apiRateLimiter, r.commentHandler.GetReplies)
 }

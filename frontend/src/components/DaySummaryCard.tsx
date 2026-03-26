@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import { useCompletionStore } from '../store';
 import type { Badge } from '../types/api';
 import { renderBadgeIcon } from '../utils/badgeIcons';
-import { CalendarPicker, LikeButton } from './ui';
+import { CalendarPicker, CommentButton, LikeButton } from './ui';
 import type { CompletionData } from './ui/CalendarPicker';
 
 interface DaySummaryCardProps {
@@ -418,6 +418,8 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
 
         {/* Like Button */}
         <LikeButton username={username} date={date} size="sm" showCount={true} />
+        {/* Comment Button */}
+        <CommentButton username={username} date={date} size="sm" showCount={true} />
       </div>
 
       {/* Custom Calendar Picker with Heat Map */}

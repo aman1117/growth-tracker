@@ -1,0 +1,247 @@
+/**
+ * CommentItem Styles
+ *
+ * Individual comment row with Instagram-style layout.
+ */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+
+.comment {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  position: relative;
+}
+
+.topLevel {
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.comment.deleted {
+  opacity: 0.85;
+}
+
+/* ============================================================================
+   Avatar
+   ============================================================================ */
+
+.avatarWrap {
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   Content
+   ============================================================================ */
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Username row */
+.usernameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-0-5);
+  margin-bottom: var(--space-0-5);
+}
+
+.username {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.username:hover {
+  text-decoration: underline;
+}
+
+.verifiedBadge {
+  display: flex;
+  align-items: center;
+  color: var(--color-badge);
+}
+
+.timestamp {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* Reply indicator */
+.replyIndicator {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--space-0-5);
+}
+
+.replyUsername {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.replyUsername:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================================
+   Body
+   ============================================================================ */
+
+.body {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  line-height: 1.5;
+  word-break: break-word;
+  margin: 0;
+}
+
+.deletedBody {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.mention {
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: var(--font-medium);
+}
+
+.mention:hover {
+  text-decoration: underline;
+}
+
+.link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.moreButton {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  font-weight: var(--font-medium);
+}
+
+.moreButton:hover {
+  color: var(--text-secondary);
+}
+
+/* ============================================================================
+   Actions Row
+   ============================================================================ */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-1-5);
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: var(--font-medium);
+  transition: color var(--transition-fast) var(--ease-default);
+}
+
+.actionButton:hover {
+  color: var(--text-secondary);
+}
+
+.actionButton.liked {
+  color: var(--color-like);
+}
+
+.deleteAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.deleteAction:hover {
+  color: var(--error, #ef4444);
+}
+
+.deleteConfirm {
+  color: var(--error, #ef4444) !important;
+}
+
+/* ============================================================================
+   Replies Section
+   ============================================================================ */
+
+.repliesSection {
+  padding-left: var(--space-4);
+  margin-top: var(--space-1);
+}
+
+.repliesContainer {
+  overflow: hidden;
+  animation: repliesExpand 0.2s ease-out forwards;
+}
+
+@keyframes repliesExpand {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.viewRepliesBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: none;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: var(--font-semibold);
+  transition: color var(--transition-fast) var(--ease-default);
+}
+
+.viewRepliesBtn:hover {
+  color: var(--text-secondary);
+}
+
+.repliesLine {
+  width: 24px;
+  height: 1px;
+  background: var(--text-muted);
+  opacity: 0.4;
+}
+
+.loadMoreReplies {
+  composes: viewRepliesBtn;
+}

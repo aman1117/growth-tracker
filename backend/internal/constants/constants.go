@@ -248,6 +248,46 @@ const (
 	ErrCodeRateLimitExceeded = "RATE_LIMIT_EXCEEDED"
 )
 
+// Comment system constants
+const (
+	// Validation
+	CommentBodyMaxLength     = 200
+	CommentBodyMinLength     = 1
+	CommentMaxMentions       = 10
+	CommentListDefaultLimit  = 20
+	CommentListMaxLimit      = 50
+	CommentReplyDefaultLimit = 20
+	CommentReplyMaxLimit     = 50
+	CommentPreviewLength     = 100
+	CommentDedupeWindow      = 60 * time.Second
+
+	// Rate limits
+	RateLimitCommentWindow          = 1 * time.Minute
+	RateLimitCommentMaxRequests     = 15
+	RateLimitCommentLikeWindow      = 1 * time.Minute
+	RateLimitCommentLikeMaxRequests = 60
+
+	// Error codes
+	ErrCodeCommentNotFound  = "COMMENT_NOT_FOUND"
+	ErrCodeCommentDeleted   = "COMMENT_DELETED"
+	ErrCodeCommentTooLong   = "COMMENT_TOO_LONG"
+	ErrCodeCommentEmpty     = "COMMENT_EMPTY"
+	ErrCodeTooManyMentions  = "TOO_MANY_MENTIONS"
+	ErrCodeCommentForbidden = "COMMENT_FORBIDDEN"
+	ErrCodeDuplicateComment = "DUPLICATE_COMMENT"
+	ErrCodeParentNotFound   = "PARENT_COMMENT_NOT_FOUND"
+
+	// Messages
+	MsgCommentCreated = "Comment created successfully"
+	MsgCommentDeleted = "Comment deleted successfully"
+	MsgCommentLiked   = "Comment liked"
+	MsgCommentUnliked = "Comment unliked"
+
+	// Redis cache
+	CommentCountCachePrefix = "comment_cnt:"
+	CommentCountCacheTTL    = 5 * time.Minute
+)
+
 // Rate limiting messages
 const (
 	MsgRateLimitAuth         = "Too many attempts. Please wait a minute before trying again."
@@ -255,6 +295,8 @@ const (
 	MsgRateLimitAPI          = "Too many requests. Please slow down."
 	MsgRateLimitUpload       = "Too many uploads. Please wait a minute."
 	MsgRateLimitAutocomplete = "Too many search requests. Please slow down."
+	MsgRateLimitComment      = "Too many comments. Please slow down."
+	MsgRateLimitCommentLike  = "Too many like actions. Please slow down."
 )
 
 // Allowed file extensions for profile pictures

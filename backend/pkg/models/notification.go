@@ -22,6 +22,10 @@ const (
 	NotifTypeNewFollower     NotificationType = "new_follower"
 	NotifTypePhotoUploaded   NotificationType = "photo_uploaded"
 	NotifTypeStoryLiked      NotificationType = "story_liked"
+	NotifTypeCommentReceived NotificationType = "comment_received"
+	NotifTypeCommentReply    NotificationType = "comment_reply"
+	NotifTypeCommentMention  NotificationType = "comment_mention"
+	NotifTypeCommentLiked    NotificationType = "comment_liked"
 )
 
 // NotificationMetadata is a flexible JSON field for notification-specific data
@@ -136,6 +140,30 @@ func (m DayCompletedMetadata) ToMap() NotificationMetadata {
 		"completed_username":    m.CompletedUsername,
 		"completed_user_avatar": m.CompletedUserAvatar,
 		"completed_date":        m.CompletedDate,
+	}
+}
+
+// CommentMetadata holds data for comment-related notifications
+type CommentMetadata struct {
+	CommentID        uint   `json:"comment_id"`
+	CommentPreview   string `json:"comment_preview"`
+	DayOwnerUsername string `json:"day_owner_username"`
+	DayDate          string `json:"day_date"`
+	AuthorID         uint   `json:"author_id"`
+	AuthorUsername   string `json:"author_username"`
+	AuthorAvatar     string `json:"author_avatar,omitempty"`
+}
+
+// ToMap converts CommentMetadata to NotificationMetadata
+func (m CommentMetadata) ToMap() NotificationMetadata {
+	return NotificationMetadata{
+		"comment_id":         m.CommentID,
+		"comment_preview":    m.CommentPreview,
+		"day_owner_username": m.DayOwnerUsername,
+		"day_date":           m.DayDate,
+		"author_id":          m.AuthorID,
+		"author_username":    m.AuthorUsername,
+		"author_avatar":      m.AuthorAvatar,
 	}
 }
 

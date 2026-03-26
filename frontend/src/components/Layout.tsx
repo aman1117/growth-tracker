@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { APP_ROUTES } from '../constants/routes';
 import { useAuth } from '../store';
 import type { AutocompleteSuggestion, LikeMetadata, Notification } from '../types';
+import type { CommentMetadata } from '../types/notification';
 import { BottomNavigation } from './BottomNavigation';
 import { UserSearchAutocomplete } from './search';
 import { ThemeToggle } from './ThemeToggle';
@@ -75,6 +76,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     );
   };
 
+  // Type guard for comment metadata
+  const isCommentMetadata = (
+    metadata: unknown
+  ): metadata is CommentMetadata => {
+    return (
+      typeof metadata === 'object' &&
+      metadata !== null &&
+      'day_owner_username' in metadata &&
+      'day_date' in metadata
+    );
+  };
+
   // Handle notification card click - navigate based on notification type
   const handleNotificationClick = useCallback(
     (notification: Notification) => {
@@ -113,6 +126,17 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       ) {
         // Navigate to the actor's profile for follow notifications
         navigate(APP_ROUTES.USER_PROFILE(metadata.actor_username as string));
+      } else if (
+        (notification.type === 'comment_received' ||
+          notification.type === 'comment_reply' ||
+          notification.type === 'comment_mention' ||
+          notification.type === 'comment_liked') &&
+        isCommentMetadata(notification.metadata)
+      ) {
+        // Navigate to the day owner's profile with date and auto-open comments
+        navigate(
+          `${APP_ROUTES.USER_PROFILE(notification.metadata.day_owner_username)}?date=${notification.metadata.day_date}&comments=true`
+        );
       }
     },
     [navigate]

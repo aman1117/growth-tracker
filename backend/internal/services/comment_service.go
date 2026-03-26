@@ -176,11 +176,11 @@ func (s *CommentService) CreateComment(
 		)
 	}
 
-	// 8. Increment parent reply count
+	// 8. Increment reply_count on every ancestor (parent → root)
 	if parentCommentID != nil {
-		if err := s.commentRepo.IncrementReplyCount(*parentCommentID); err != nil {
-			logger.Sugar.Errorw("Failed to increment reply count",
-				"parent_id", *parentCommentID,
+		if err := s.commentRepo.IncrementAncestorReplyCounts(comment.ID); err != nil {
+			logger.Sugar.Errorw("Failed to increment ancestor reply counts",
+				"comment_id", comment.ID,
 				"error", err,
 			)
 		}
@@ -313,12 +313,12 @@ func (s *CommentService) DeleteComment(ctx context.Context, commentID, requestin
 		return fmt.Errorf("failed to delete comment: %w", err)
 	}
 
-	// Decrement parent reply count only if this reply has no children.
+	// Decrement ancestor reply counts only if this reply has no children.
 	// If it has children, it stays as a "[Deleted]" placeholder to keep the thread visible.
 	if comment.ParentCommentID != nil && comment.ReplyCount == 0 {
-		if err := s.commentRepo.DecrementReplyCount(*comment.ParentCommentID); err != nil {
-			logger.Sugar.Warnw("Failed to decrement reply count",
-				"parent_id", *comment.ParentCommentID,
+		if err := s.commentRepo.DecrementAncestorReplyCounts(comment.ID); err != nil {
+			logger.Sugar.Warnw("Failed to decrement ancestor reply counts",
+				"comment_id", comment.ID,
 				"error", err,
 			)
 		}

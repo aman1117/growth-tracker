@@ -257,11 +257,43 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
           };
         });
 
-        // Increment reply_count on the parent comment
-        set((state) => updateCommentInState(state, commentId, dayKey, (c) => ({
-          ...c,
-          reply_count: c.reply_count + 1,
-        })));
+        // Increment reply_count on all ancestor comments (parent → root)
+        set((state) => {
+          const result: Partial<CommentState> = {};
+          const ancestorIds = new Set<number>();
+          let currentId: number | null | undefined = commentId;
+
+          const allTopLevel = state.commentsByDay[dayKey] || [];
+          const allReplies = state.repliesByRoot[rootId]?.comments || [];
+          const allComments = [...allTopLevel, ...allReplies];
+
+          while (currentId != null) {
+            ancestorIds.add(currentId);
+            const current = allComments.find((c) => c.id === currentId);
+            currentId = current?.parent_comment_id ?? null;
+          }
+
+          if (state.commentsByDay[dayKey]) {
+            result.commentsByDay = {
+              ...state.commentsByDay,
+              [dayKey]: state.commentsByDay[dayKey].map((c) =>
+                ancestorIds.has(c.id) ? { ...c, reply_count: c.reply_count + 1 } : c
+              ),
+            };
+          }
+          if (state.repliesByRoot[rootId]) {
+            result.repliesByRoot = {
+              ...state.repliesByRoot,
+              [rootId]: {
+                ...state.repliesByRoot[rootId],
+                comments: state.repliesByRoot[rootId].comments.map((c) =>
+                  ancestorIds.has(c.id) ? { ...c, reply_count: c.reply_count + 1 } : c
+                ),
+              },
+            };
+          }
+          return result;
+        });
 
         return response.comment;
       }
@@ -275,6 +307,22 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     try {
       const response = await commentApi.deleteComment(commentId);
       if (response.success) {
+        // Find the comment before marking deleted, to check if it's a leaf
+        const state = get();
+        let deletedComment: Comment | undefined;
+        const dayComments = state.commentsByDay[dayKey] || [];
+        deletedComment = dayComments.find((c) => c.id === commentId);
+        let rootId: number | undefined;
+        if (!deletedComment) {
+          for (const [rid, replyState] of Object.entries(state.repliesByRoot)) {
+            deletedComment = replyState.comments.find((c) => c.id === commentId);
+            if (deletedComment) {
+              rootId = Number(rid);
+              break;
+            }
+          }
+        }
+
         // Soft delete: mark as deleted in state
         set((state) => {
           const changes = updateCommentInState(state, commentId, dayKey, (c) => ({
@@ -290,6 +338,48 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
             },
           };
         });
+
+        // Decrement ancestor reply_counts if leaf (no children)
+        if (deletedComment && deletedComment.parent_comment_id != null && deletedComment.reply_count === 0) {
+          set((state) => {
+            const result: Partial<CommentState> = {};
+            const ancestorIds = new Set<number>();
+            let currentId: number | null | undefined = deletedComment!.parent_comment_id;
+            const effectiveRootId = rootId ?? deletedComment!.root_comment_id;
+
+            const allTopLevel = state.commentsByDay[dayKey] || [];
+            const allReplies = effectiveRootId ? (state.repliesByRoot[effectiveRootId]?.comments || []) : [];
+            const allComments = [...allTopLevel, ...allReplies];
+
+            while (currentId != null) {
+              ancestorIds.add(currentId);
+              const current = allComments.find((c) => c.id === currentId);
+              currentId = current?.parent_comment_id ?? null;
+            }
+
+            if (state.commentsByDay[dayKey]) {
+              result.commentsByDay = {
+                ...state.commentsByDay,
+                [dayKey]: state.commentsByDay[dayKey].map((c) =>
+                  ancestorIds.has(c.id) ? { ...c, reply_count: Math.max(0, c.reply_count - 1) } : c
+                ),
+              };
+            }
+            if (effectiveRootId && state.repliesByRoot[effectiveRootId]) {
+              result.repliesByRoot = {
+                ...state.repliesByRoot,
+                [effectiveRootId]: {
+                  ...state.repliesByRoot[effectiveRootId],
+                  comments: state.repliesByRoot[effectiveRootId].comments.map((c) =>
+                    ancestorIds.has(c.id) ? { ...c, reply_count: Math.max(0, c.reply_count - 1) } : c
+                  ),
+                },
+              };
+            }
+            return result;
+          });
+        }
+
         return true;
       }
     } catch (error) {

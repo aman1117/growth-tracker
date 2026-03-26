@@ -142,18 +142,45 @@ func (r *CommentRepository) SoftDelete(commentID uint) error {
 	return nil
 }
 
-// IncrementReplyCount atomically increments the reply_count on a comment
-func (r *CommentRepository) IncrementReplyCount(commentID uint) error {
-	return r.db.Model(&models.Comment{}).
-		Where("id = ?", commentID).
-		UpdateColumn("reply_count", gorm.Expr("reply_count + 1")).Error
+// IncrementAncestorReplyCounts atomically increments reply_count on every
+// ancestor of the given comment (parent, grandparent, … up to root).
+// Uses a recursive CTE to walk the parent_comment_id chain.
+func (r *CommentRepository) IncrementAncestorReplyCounts(commentID uint) error {
+	return r.db.Exec(`
+		WITH RECURSIVE ancestors AS (
+			SELECT parent_comment_id AS id
+			FROM comments
+			WHERE id = ? AND parent_comment_id IS NOT NULL
+			UNION ALL
+			SELECT c.parent_comment_id
+			FROM comments c
+			INNER JOIN ancestors a ON c.id = a.id
+			WHERE c.parent_comment_id IS NOT NULL
+		)
+		UPDATE comments
+		SET reply_count = reply_count + 1
+		WHERE id IN (SELECT id FROM ancestors)
+	`, commentID).Error
 }
 
-// DecrementReplyCount atomically decrements reply_count (floor at 0)
-func (r *CommentRepository) DecrementReplyCount(commentID uint) error {
-	return r.db.Model(&models.Comment{}).
-		Where("id = ? AND reply_count > 0", commentID).
-		UpdateColumn("reply_count", gorm.Expr("reply_count - 1")).Error
+// DecrementAncestorReplyCounts atomically decrements reply_count on every
+// ancestor of the given comment (floor at 0).
+func (r *CommentRepository) DecrementAncestorReplyCounts(commentID uint) error {
+	return r.db.Exec(`
+		WITH RECURSIVE ancestors AS (
+			SELECT parent_comment_id AS id
+			FROM comments
+			WHERE id = ? AND parent_comment_id IS NOT NULL
+			UNION ALL
+			SELECT c.parent_comment_id
+			FROM comments c
+			INNER JOIN ancestors a ON c.id = a.id
+			WHERE c.parent_comment_id IS NOT NULL
+		)
+		UPDATE comments
+		SET reply_count = GREATEST(reply_count - 1, 0)
+		WHERE id IN (SELECT id FROM ancestors)
+	`, commentID).Error
 }
 
 // GetCommentCountForDay returns the count of non-deleted comments for a day

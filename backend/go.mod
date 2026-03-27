@@ -6,7 +6,7 @@ toolchain go1.24.11
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus v1.7.3
-	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.3
+	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.4
 	github.com/SherClockHolmes/webpush-go v1.3.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/gofiber/contrib/websocket v1.3.4
@@ -28,7 +28,7 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.19.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.20.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
 	github.com/Azure/go-amqp v1.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect

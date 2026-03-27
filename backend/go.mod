@@ -3,7 +3,7 @@ module github.com/aman1117/backend
 go 1.25.0
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus v1.7.3
+	github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus v1.10.0
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.6.4
 	github.com/SherClockHolmes/webpush-go v1.3.0
 	github.com/disintegration/imaging v1.6.2
@@ -28,7 +28,7 @@ require (
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.20.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
-	github.com/Azure/go-amqp v1.1.0 // indirect
+	github.com/Azure/go-amqp v1.4.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

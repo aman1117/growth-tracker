@@ -318,29 +318,8 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
           )}
         </div>
 
-        {/* Hours Display with Progress */}
+        {/* Hours Display */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {isToday() && !isComplete && (
-            <div
-              style={{
-                width: '40px',
-                height: '4px',
-                backgroundColor: 'var(--progress-track)',
-                borderRadius: '2px',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${percentage}%`,
-                  height: '100%',
-                  backgroundColor: 'var(--accent)',
-                  borderRadius: '2px',
-                  transition: 'width 0.4s ease',
-                }}
-              />
-            </div>
-          )}
           <span
             style={{
               fontSize: '0.85rem',
@@ -355,14 +334,44 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
         </div>
       </div>
 
+      {/* Progress Bar */}
+      <div
+        style={{
+          width: '100%',
+          height: '6px',
+          backgroundColor: 'var(--progress-track)',
+          borderRadius: '3px',
+          overflow: 'hidden',
+          boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <div
+          style={{
+            width: `${percentage}%`,
+            height: '100%',
+            backgroundColor:
+              totalHours >= maxHours
+                ? 'var(--success)'
+                : totalHours >= 18
+                  ? 'var(--accent)'
+                  : 'var(--accent)',
+            borderRadius: '3px',
+            transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            boxShadow:
+              percentage >= 75
+                ? `0 0 8px ${totalHours >= maxHours ? 'rgba(34, 197, 94, 0.4)' : 'rgba(99, 102, 241, 0.3)'}`
+                : 'none',
+          }}
+        />
+      </div>
+
       {/* Row 2: Streaks + Likes */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingTop: '0.5rem',
-          borderTop: '1px solid var(--tile-glass-border)',
+          paddingTop: '0.25rem',
         }}
       >
         {/* Streaks */}

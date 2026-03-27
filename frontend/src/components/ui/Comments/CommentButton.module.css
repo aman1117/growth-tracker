@@ -46,16 +46,24 @@
   transform: scale(0.95);
 }
 
+.button.hasComments {
+  color: var(--text-primary);
+}
+
 /* ============================================================================
    Count
    ============================================================================ */
 
 .count {
-  font-weight: var(--font-medium);
+  font-weight: var(--font-semibold);
   color: var(--text-secondary);
   line-height: 1;
   cursor: pointer;
   transition: color var(--transition-fast) var(--ease-default);
+}
+
+.count.hasComments {
+  color: var(--text-primary);
 }
 
 .sm .count {

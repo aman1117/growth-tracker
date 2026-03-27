@@ -60,6 +60,7 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
   );
 
   const iconSize = size === 'sm' ? 16 : 20;
+  const hasComments = count > 0;
   const containerClasses = [styles.container, styles[size]].join(' ');
 
   return (
@@ -67,14 +68,14 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
       <div className={containerClasses}>
         <button
           onClick={handleClick}
-          className={styles.button}
+          className={`${styles.button} ${hasComments ? styles.hasComments : ''}`}
           title="View comments"
           aria-label={`${count} comments`}
         >
-          <MessageCircle size={iconSize} />
+          <MessageCircle size={iconSize} fill={hasComments ? 'currentColor' : 'none'} />
         </button>
         {showCount && (
-          <span onClick={handleClick} className={styles.count}>
+          <span onClick={handleClick} className={`${styles.count} ${hasComments ? styles.hasComments : ''}`}>
             {count}
           </span>
         )}

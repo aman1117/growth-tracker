@@ -425,10 +425,11 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
           )}
         </div>
 
-        {/* Like Button */}
-        <LikeButton username={username} date={date} size="sm" showCount={true} />
-        {/* Comment Button */}
-        <CommentButton username={username} date={date} size="sm" showCount={true} />
+        {/* Like & Comment */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <LikeButton username={username} date={date} size="sm" showCount={true} />
+          <CommentButton username={username} date={date} size="sm" showCount={true} />
+        </div>
       </div>
 
       {/* Custom Calendar Picker with Heat Map */}

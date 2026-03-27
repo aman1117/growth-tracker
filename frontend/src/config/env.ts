@@ -15,8 +15,7 @@ interface EnvConfig {
 }
 
 const DEFAULT_DEV_API_URL = 'http://localhost:8000';
-const DEFAULT_PROD_API_URL =
-  'https://api.trackgrowth.in';
+const DEFAULT_PROD_API_URL = 'https://api.trackgrowth.in';
 
 function resolveApiUrl(): string {
   if (import.meta.env.VITE_API_URL) {

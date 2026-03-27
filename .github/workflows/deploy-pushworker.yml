@@ -7,6 +7,10 @@ on:
       - 'backend/**'
   workflow_dispatch:
 
+concurrency:
+  group: deploy-pushworker
+  cancel-in-progress: false
+
 env:
   AZURE_CONTAINER_REGISTRY: growthtrackeracr
   CONTAINER_IMAGE_NAME: growth-tracker-pushworker
@@ -70,8 +74,42 @@ jobs:
 
       - name: Deploy to Azure Container Apps
         if: steps.check-app.outputs.exists == 'true'
-        uses: azure/container-apps-deploy-action@v2
-        with:
-          resourceGroup: ${{ env.RESOURCE_GROUP }}
-          containerAppName: ${{ env.CONTAINER_APP_NAME }}
-          imageToDeploy: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_IMAGE_NAME }}:${{ github.sha }}
+        shell: bash
+        env:
+          IMAGE_TO_DEPLOY: ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_IMAGE_NAME }}:${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          max_attempts=8
+          sleep_seconds=15
+
+          for attempt in $(seq 1 "$max_attempts"); do
+            echo "Updating ${CONTAINER_APP_NAME} with ${IMAGE_TO_DEPLOY} (attempt ${attempt}/${max_attempts})"
+
+            output=$(az containerapp update \
+              --name "${CONTAINER_APP_NAME}" \
+              --resource-group "${RESOURCE_GROUP}" \
+              --image "${IMAGE_TO_DEPLOY}" \
+              --output json 2>&1) && break
+
+            echo "$output"
+
+            if [[ "$output" != *"ContainerAppOperationInProgress"* ]]; then
+              echo "Update failed for a non-retryable reason."
+              exit 1
+            fi
+
+            if [[ "$attempt" -eq "$max_attempts" ]]; then
+              echo "Container App remained busy after ${max_attempts} attempts."
+              exit 1
+            fi
+
+            echo "Container App has an active provisioning operation. Retrying in ${sleep_seconds}s."
+            sleep "$sleep_seconds"
+          done
+
+          az containerapp show \
+            --name "${CONTAINER_APP_NAME}" \
+            --resource-group "${RESOURCE_GROUP}" \
+            --query properties.provisioningState \
+            --output tsv

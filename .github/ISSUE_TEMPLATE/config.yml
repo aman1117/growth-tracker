@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Support and setup help
+    url: https://github.com/aman1117/growth-tracker/blob/main/SUPPORT.md
+    about: Read support guidance before opening a general help issue.
+  - name: Security policy
+    url: https://github.com/aman1117/growth-tracker/blob/main/SECURITY.md
+    about: Report vulnerabilities privately and avoid public disclosure.

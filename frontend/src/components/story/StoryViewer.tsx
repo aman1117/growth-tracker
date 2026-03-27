@@ -65,7 +65,9 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const [localPhotos, setLocalPhotos] = useState<ActivityPhoto[]>(photos);
 
   // Like state
-  const [likeStatus, setLikeStatus] = useState<Map<number, { liked: boolean; count: number }>>(new Map());
+  const [likeStatus, setLikeStatus] = useState<Map<number, { liked: boolean; count: number }>>(
+    new Map()
+  );
   const [likePending, setLikePending] = useState(false);
   const [showLikeAnimation, setShowLikeAnimation] = useState(false);
   const lastTapRef = useRef<number>(0);
@@ -92,7 +94,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       const originalTouchAction = document.body.style.touchAction;
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
-      
+
       return () => {
         document.body.style.overflow = originalOverflow;
         document.body.style.touchAction = originalTouchAction;
@@ -127,45 +129,53 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   // Fetch interactions count on load for own stories
   useEffect(() => {
     if (!isOpen || !isOwnStory || !currentPhoto) return;
-    
+
     // Fetch interaction count for current photo
-    activityPhotoApi.getPhotoInteractions(currentPhoto.id).then(response => {
-      if (response.success) {
-        setInteractionsTotal(response.total || 0);
-      }
-    }).catch(err => {
-      console.error('Failed to fetch interactions count:', err);
-    });
+    activityPhotoApi
+      .getPhotoInteractions(currentPhoto.id)
+      .then((response) => {
+        if (response.success) {
+          setInteractionsTotal(response.total || 0);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch interactions count:', err);
+      });
   }, [isOpen, isOwnStory, currentPhoto]);
 
   // Fetch like status when photo changes (for non-own photos)
   useEffect(() => {
     if (!currentPhoto || isOwnStory) return;
-    
+
     // Check if we already have status for this photo
     if (likeStatus.has(currentPhoto.id)) return;
-    
-    activityPhotoApi.getLikeStatus(currentPhoto.id).then(response => {
-      if (response.success) {
-        setLikeStatus(prev => new Map(prev).set(currentPhoto.id, {
-          liked: response.liked,
-          count: response.like_count
-        }));
-      }
-    }).catch(err => {
-      console.error('Failed to fetch like status:', err);
-    });
+
+    activityPhotoApi
+      .getLikeStatus(currentPhoto.id)
+      .then((response) => {
+        if (response.success) {
+          setLikeStatus((prev) =>
+            new Map(prev).set(currentPhoto.id, {
+              liked: response.liked,
+              count: response.like_count,
+            })
+          );
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch like status:', err);
+      });
   }, [currentPhoto, isOwnStory, likeStatus]);
 
   // Record view when photo changes (only for non-own photos)
   useEffect(() => {
     if (!currentPhoto || isOwnStory) return;
     if (viewedPhotosRef.current.has(currentPhoto.id)) return; // Already recorded
-    
+
     // Mark as viewed immediately to prevent duplicate calls
     viewedPhotosRef.current.add(currentPhoto.id);
-    
-    activityPhotoApi.recordView(currentPhoto.id).catch(err => {
+
+    activityPhotoApi.recordView(currentPhoto.id).catch((err) => {
       // Fail silently - view recording is not critical
       console.error('Failed to record view:', err);
     });
@@ -183,7 +193,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   // Fetch interactions when showing the modal
   const fetchInteractions = useCallback(async () => {
     if (!currentPhoto || !isOwnStory) return;
-    
+
     setLoadingInteractions(true);
     try {
       const response = await activityPhotoApi.getPhotoInteractions(currentPhoto.id);
@@ -207,20 +217,22 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   // Handle like/unlike with optimistic update and haptic feedback
   const handleLikeToggle = useCallback(async () => {
     if (!currentPhoto || isOwnStory || likePending) return;
-    
+
     const currentStatus = likeStatus.get(currentPhoto.id) || { liked: false, count: 0 };
     const newLiked = !currentStatus.liked;
     const newCount = newLiked ? currentStatus.count + 1 : Math.max(0, currentStatus.count - 1);
-    
+
     // Optimistic update
-    setLikeStatus(prev => new Map(prev).set(currentPhoto.id, { liked: newLiked, count: newCount }));
+    setLikeStatus((prev) =>
+      new Map(prev).set(currentPhoto.id, { liked: newLiked, count: newCount })
+    );
     setLikePending(true);
-    
+
     // Haptic feedback
     if (navigator.vibrate) {
       navigator.vibrate(newLiked ? 50 : 30);
     }
-    
+
     try {
       if (newLiked) {
         await activityPhotoApi.likePhoto(currentPhoto.id);
@@ -230,7 +242,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     } catch (err) {
       // Revert on error
       console.error('Failed to toggle like:', err);
-      setLikeStatus(prev => new Map(prev).set(currentPhoto.id, currentStatus));
+      setLikeStatus((prev) => new Map(prev).set(currentPhoto.id, currentStatus));
       setToastMessage('Failed to update like');
     } finally {
       setLikePending(false);
@@ -240,58 +252,64 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   // Double-tap to like
   const handleDoubleTap = useCallback(() => {
     if (!currentPhoto || isOwnStory) return;
-    
+
     const currentStatus = likeStatus.get(currentPhoto.id);
     if (!currentStatus?.liked) {
       // Show heart animation
       setShowLikeAnimation(true);
       setTimeout(() => setShowLikeAnimation(false), 1000);
-      
+
       // Like the photo
       handleLikeToggle();
     }
   }, [currentPhoto, isOwnStory, likeStatus, handleLikeToggle]);
 
   // Detect double-tap on image
-  const handleImageTap = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    if (isOwnStory) return;
-    
-    const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-    
-    if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      e.preventDefault();
-      e.stopPropagation();
-      handleDoubleTap();
-    }
-    lastTapRef.current = now;
-  }, [isOwnStory, handleDoubleTap]);
+  const handleImageTap = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      if (isOwnStory) return;
+
+      const now = Date.now();
+      const DOUBLE_TAP_DELAY = 300;
+
+      if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleDoubleTap();
+      }
+      lastTapRef.current = now;
+    },
+    [isOwnStory, handleDoubleTap]
+  );
 
   // Helper helper to handle navigation with animation
-  const animateTo = useCallback((direction: 'next' | 'prev' | 'stay') => {
-    if (!containerRef.current) return;
-    const width = containerRef.current.clientWidth;
-    
-    setIsSwiping(false);
-    setIsAnimating(true);
-    
-    let targetOffset = 0;
-    if (direction === 'next') targetOffset = -width;
-    if (direction === 'prev') targetOffset = width;
-    
-    setSwipeOffset(targetOffset);
-    
-    // After animation, update index and reset
-    setTimeout(() => {
-      if (direction === 'next') {
-        setCurrentIndex(prev => Math.min(prev + 1, localPhotos.length - 1));
-      } else if (direction === 'prev') {
-        setCurrentIndex(prev => Math.max(prev - 1, 0));
-      }
-      setIsAnimating(false);
-      setSwipeOffset(0);
-    }, 300); // Match CSS duration
-  }, [localPhotos.length]);
+  const animateTo = useCallback(
+    (direction: 'next' | 'prev' | 'stay') => {
+      if (!containerRef.current) return;
+      const width = containerRef.current.clientWidth;
+
+      setIsSwiping(false);
+      setIsAnimating(true);
+
+      let targetOffset = 0;
+      if (direction === 'next') targetOffset = -width;
+      if (direction === 'prev') targetOffset = width;
+
+      setSwipeOffset(targetOffset);
+
+      // After animation, update index and reset
+      setTimeout(() => {
+        if (direction === 'next') {
+          setCurrentIndex((prev) => Math.min(prev + 1, localPhotos.length - 1));
+        } else if (direction === 'prev') {
+          setCurrentIndex((prev) => Math.max(prev - 1, 0));
+        }
+        setIsAnimating(false);
+        setSwipeOffset(0);
+      }, 300); // Match CSS duration
+    },
+    [localPhotos.length]
+  );
 
   // Navigate
   const goNext = useCallback(() => {
@@ -312,7 +330,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isAnimating) return; // Ignore keys during animation
-      
+
       switch (e.key) {
         case 'Escape':
           if (showDeleteConfirm) {
@@ -341,76 +359,92 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, showDeleteConfirm, showInteractions, handleClose, goNext, goPrev, isAnimating, isOwnStory, handleLikeToggle]);
+  }, [
+    isOpen,
+    showDeleteConfirm,
+    showInteractions,
+    handleClose,
+    goNext,
+    goPrev,
+    isAnimating,
+    isOwnStory,
+    handleLikeToggle,
+  ]);
 
   // Touch/Swipe gesture handlers
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Don't track swipes if modals are open or already animating
-    if (showDeleteConfirm || showInteractions || isAnimating) return;
-    
-    const touch = e.touches[0];
-    touchStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now(),
-    };
-    setIsSwiping(false);
-    setSwipeOffset(0);
-  }, [showDeleteConfirm, showInteractions, isAnimating]);
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      // Don't track swipes if modals are open or already animating
+      if (showDeleteConfirm || showInteractions || isAnimating) return;
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current || isAnimating) return;
-    
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStartRef.current.x;
-    const deltaY = touch.clientY - touchStartRef.current.y;
-    
-    // Determine if this is a horizontal swipe (more horizontal than vertical)
-    const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
-    
-    // Only track horizontal swipes after initial threshold
-    if (Math.abs(deltaX) > 10 && isHorizontalSwipe) {
-      setIsSwiping(true);
-      
-      // Calculate bounded offset with resistance at edges
-      let offset = deltaX;
-      const canGoLeft = currentIndex < localPhotos.length - 1;
-      const canGoRight = currentIndex > 0;
-      
-      // Apply rubber-band resistance at edges
-      if ((offset < 0 && !canGoLeft) || (offset > 0 && !canGoRight)) {
-        // Rubber band effect: reduce movement logic
-        offset = offset * 0.3;
+      const touch = e.touches[0];
+      touchStartRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now(),
+      };
+      setIsSwiping(false);
+      setSwipeOffset(0);
+    },
+    [showDeleteConfirm, showInteractions, isAnimating]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!touchStartRef.current || isAnimating) return;
+
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - touchStartRef.current.x;
+      const deltaY = touch.clientY - touchStartRef.current.y;
+
+      // Determine if this is a horizontal swipe (more horizontal than vertical)
+      const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+
+      // Only track horizontal swipes after initial threshold
+      if (Math.abs(deltaX) > 10 && isHorizontalSwipe) {
+        setIsSwiping(true);
+
+        // Calculate bounded offset with resistance at edges
+        let offset = deltaX;
+        const canGoLeft = currentIndex < localPhotos.length - 1;
+        const canGoRight = currentIndex > 0;
+
+        // Apply rubber-band resistance at edges
+        if ((offset < 0 && !canGoLeft) || (offset > 0 && !canGoRight)) {
+          // Rubber band effect: reduce movement logic
+          offset = offset * 0.3;
+        }
+
+        setSwipeOffset(offset);
       }
-      
-      setSwipeOffset(offset);
-    }
-  }, [currentIndex, localPhotos.length, isAnimating]);
+    },
+    [currentIndex, localPhotos.length, isAnimating]
+  );
 
   const handleTouchEnd = useCallback(() => {
     if (!touchStartRef.current || isAnimating) return;
-    
-    if (isSwiping) {
-        const threshold = (containerRef.current?.clientWidth || window.innerWidth) * 0.25; // 25% width threshold
-        const velocityThreshold = 0.5; // px/ms
-        
-        const endTime = Date.now();
-        const duration = endTime - touchStartRef.current.time;
-        const velocity = Math.abs(swipeOffset) / duration;
-        
-        let direction: 'next' | 'prev' | 'stay' = 'stay';
 
-        if (Math.abs(swipeOffset) > threshold || velocity > velocityThreshold) {
-            if (swipeOffset < 0 && currentIndex < localPhotos.length - 1) {
-                direction = 'next';
-            } else if (swipeOffset > 0 && currentIndex > 0) {
-                direction = 'prev';
-            }
+    if (isSwiping) {
+      const threshold = (containerRef.current?.clientWidth || window.innerWidth) * 0.25; // 25% width threshold
+      const velocityThreshold = 0.5; // px/ms
+
+      const endTime = Date.now();
+      const duration = endTime - touchStartRef.current.time;
+      const velocity = Math.abs(swipeOffset) / duration;
+
+      let direction: 'next' | 'prev' | 'stay' = 'stay';
+
+      if (Math.abs(swipeOffset) > threshold || velocity > velocityThreshold) {
+        if (swipeOffset < 0 && currentIndex < localPhotos.length - 1) {
+          direction = 'next';
+        } else if (swipeOffset > 0 && currentIndex > 0) {
+          direction = 'prev';
         }
-        
-        animateTo(direction);
+      }
+
+      animateTo(direction);
     }
-    
+
     // Reset touch ref
     touchStartRef.current = null;
   }, [swipeOffset, isSwiping, currentIndex, localPhotos.length, isAnimating, animateTo]);
@@ -437,8 +471,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     if (!currentPhoto) return;
 
     const photoIdToDelete = currentPhoto.id;
-    const newPhotos = localPhotos.filter(p => p.id !== photoIdToDelete);
-    
+    const newPhotos = localPhotos.filter((p) => p.id !== photoIdToDelete);
+
     // Close immediately if no more photos, otherwise navigate
     if (newPhotos.length === 0) {
       // Close viewer immediately, delete happens in background
@@ -450,10 +484,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         setCurrentIndex(newPhotos.length - 1);
       }
     }
-    
+
     // Notify parent to update its state (for toast display)
     onPhotoDeleted?.(photoIdToDelete);
-    
+
     // Delete in background
     try {
       const response = await activityPhotoApi.deletePhoto(photoIdToDelete);
@@ -464,7 +498,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     } catch (err) {
       console.error('Delete failed:', err);
     }
-    
+
     setShowDeleteConfirm(false);
   };
 
@@ -495,9 +529,11 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   };
 
   // Get activity display info (label, icon, color)
-  const getActivityInfo = (photo: ActivityPhoto): { label: string; icon?: string; color: string } => {
+  const getActivityInfo = (
+    photo: ActivityPhoto
+  ): { label: string; icon?: string; color: string } => {
     const isCustom = photo.activity_name.startsWith('custom:');
-    
+
     // For custom tiles, prioritize stored metadata
     if (isCustom) {
       return {
@@ -506,7 +542,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         color: photo.activity_color || '#666',
       };
     }
-    
+
     // For standard activities, use config
     const config = getActivityConfig(photo.activity_name as ActivityName);
     return {
@@ -519,8 +555,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const activityInfo = getActivityInfo(currentPhoto);
 
   return (
-    <div 
-      className="story-viewer-overlay" 
+    <div
+      className="story-viewer-overlay"
       onClick={handleClose}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -529,8 +565,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     >
       <div className="story-viewer-container">
         {/* Header */}
-        <div className="story-viewer-header" onClick={e => e.stopPropagation()}>
-          <div 
+        <div className="story-viewer-header" onClick={(e) => e.stopPropagation()}>
+          <div
             className={`story-viewer-user ${onProfileClick ? 'story-viewer-user-clickable' : ''}`}
             onClick={() => {
               if (onProfileClick) {
@@ -551,8 +587,13 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
               <div className="story-viewer-user-top">
                 <span className="story-viewer-username">{ownerUsername}</span>
                 <span className="story-viewer-activity-dot">•</span>
-                <div className="story-viewer-activity-badge" style={{ backgroundColor: activityInfo.color }}>
-                  {activityInfo.icon && <DynamicIcon name={activityInfo.icon} size={12} color="white" />}
+                <div
+                  className="story-viewer-activity-badge"
+                  style={{ backgroundColor: activityInfo.color }}
+                >
+                  {activityInfo.icon && (
+                    <DynamicIcon name={activityInfo.icon} size={12} color="white" />
+                  )}
                 </div>
                 <span className="story-viewer-activity">{activityInfo.label}</span>
               </div>
@@ -570,22 +611,14 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
                 <Trash2 size={20} />
               </button>
             )}
-            <button
-              className="story-viewer-btn"
-              onClick={handleClose}
-              aria-label="Close"
-            >
+            <button className="story-viewer-btn" onClick={handleClose} aria-label="Close">
               <X size={24} />
             </button>
           </div>
         </div>
 
         {/* Main image */}
-        <div 
-          ref={containerRef}
-          className="story-viewer-content"
-          onClick={handleImageTap}
-        >
+        <div ref={containerRef} className="story-viewer-content" onClick={handleImageTap}>
           {/* Double-tap like animation */}
           {showLikeAnimation && (
             <div className="story-viewer-like-animation">
@@ -607,10 +640,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
             </button>
           )}
 
-          <div 
+          <div
             ref={trackRef}
             className={`story-viewer-track ${isAnimating ? 'animating' : isSwiping ? 'swiping' : ''}`}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             style={{
               transform: `translateX(${swipeOffset}px)`,
             }}
@@ -619,7 +652,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
             {[currentIndex - 1, currentIndex, currentIndex + 1].map((idx, offset) => {
               const photo = localPhotos[idx];
               if (!photo) return null;
-              
+
               const position = offset === 0 ? 'prev' : offset === 1 ? 'current' : 'next';
               const isError = failedImages.has(photo.id);
 
@@ -635,7 +668,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
                       src={photo.photo_url}
                       alt={`${ownerUsername}'s ${photo.activity_name} activity`}
                       className="story-viewer-image"
-                      onError={() => setFailedImages(prev => new Set(prev).add(photo.id))}
+                      onError={() => setFailedImages((prev) => new Set(prev).add(photo.id))}
                       style={{
                         WebkitUserSelect: 'none',
                         userSelect: 'none',
@@ -667,7 +700,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
         {/* Progress dots */}
         {localPhotos.length > 1 && (
-          <div className="story-viewer-progress" onClick={e => e.stopPropagation()}>
+          <div className="story-viewer-progress" onClick={(e) => e.stopPropagation()}>
             {localPhotos.map((_, idx) => (
               <button
                 key={idx}
@@ -680,7 +713,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         )}
 
         {/* Footer */}
-        <div className="story-viewer-footer-container" onClick={e => e.stopPropagation()}>
+        <div className="story-viewer-footer-container" onClick={(e) => e.stopPropagation()}>
           {/* Like button (non-own stories) - no count shown, only owner sees counts */}
           {!isOwnStory && currentPhoto && (
             <button
@@ -689,9 +722,9 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
               disabled={likePending}
               aria-label={likeStatus.get(currentPhoto.id)?.liked ? 'Unlike photo' : 'Like photo'}
             >
-              <Heart 
-                size={24} 
-                fill={likeStatus.get(currentPhoto.id)?.liked ? 'currentColor' : 'none'} 
+              <Heart
+                size={24}
+                fill={likeStatus.get(currentPhoto.id)?.liked ? 'currentColor' : 'none'}
               />
             </button>
           )}
@@ -713,14 +746,14 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
         {/* Delete confirmation dialog */}
         {showDeleteConfirm && (
-          <div 
-            className="story-viewer-dialog-overlay" 
+          <div
+            className="story-viewer-dialog-overlay"
             onClick={(e) => {
               e.stopPropagation(); // Prevent closing the main viewer
               setShowDeleteConfirm(false);
             }}
           >
-            <div className="story-viewer-dialog" onClick={e => e.stopPropagation()}>
+            <div className="story-viewer-dialog" onClick={(e) => e.stopPropagation()}>
               <h3>Delete Photo?</h3>
               <p>This photo will be permanently deleted.</p>
               <div className="story-viewer-dialog-actions">
@@ -743,14 +776,14 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
         {/* Interactions panel (combined views + likes) */}
         {showInteractions && (
-          <div 
-            className="story-viewer-viewers-overlay" 
+          <div
+            className="story-viewer-viewers-overlay"
             onClick={(e) => {
               e.stopPropagation(); // Prevent closing the main viewer
               setShowInteractions(false);
             }}
           >
-            <div className="story-viewer-viewers-panel" onClick={e => e.stopPropagation()}>
+            <div className="story-viewer-viewers-panel" onClick={(e) => e.stopPropagation()}>
               <div className="story-viewer-viewers-header">
                 <h3>Activity</h3>
                 <button onClick={() => setShowInteractions(false)} aria-label="Close">
@@ -763,15 +796,17 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
                 ) : interactions.length === 0 ? (
                   <div className="story-viewer-viewers-empty">No activity yet</div>
                 ) : (
-                  interactions.map(interaction => (
+                  interactions.map((interaction) => (
                     <div key={interaction.user_id} className="story-viewer-viewer-item">
                       <Avatar src={interaction.profile_pic} name={interaction.username} size="sm" />
                       <span className="story-viewer-viewer-name">{interaction.username}</span>
                       <div className="story-viewer-interaction-icons">
-                        {(interaction.interaction_type === 'view' || interaction.interaction_type === 'both') && (
+                        {(interaction.interaction_type === 'view' ||
+                          interaction.interaction_type === 'both') && (
                           <Eye size={14} className="story-viewer-icon-view" />
                         )}
-                        {(interaction.interaction_type === 'like' || interaction.interaction_type === 'both') && (
+                        {(interaction.interaction_type === 'like' ||
+                          interaction.interaction_type === 'both') && (
                           <Heart size={14} fill="currentColor" className="story-viewer-icon-like" />
                         )}
                       </div>

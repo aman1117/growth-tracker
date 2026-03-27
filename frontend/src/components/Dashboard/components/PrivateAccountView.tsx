@@ -91,9 +91,7 @@ export const PrivateAccountView: React.FC<PrivateAccountViewProps> = ({
           }}
         >
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Badges earned</span>
-          <div
-            style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}
-          >
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {earnedBadges.map((badge) => (
               <div
                 key={badge.key}

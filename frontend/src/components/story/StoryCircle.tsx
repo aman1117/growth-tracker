@@ -56,7 +56,7 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
 }) => {
   const hasPhoto = !!photo;
   const showAddButton = !hasPhoto && canUpload;
-  
+
   // Determine ring style
   const ringClass = hasPhoto
     ? isOwn || isViewed
@@ -66,7 +66,7 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
 
   const handleClick = () => {
     if (isUploading) return;
-    
+
     if (showAddButton && onUpload) {
       onUpload();
     } else if (hasPhoto && onClick) {
@@ -119,7 +119,11 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
           ) : (
             <div className="story-circle-placeholder" style={{ backgroundColor: `${color}15` }}>
               {icon ? (
-                <DynamicIcon name={icon} size={size === 'small' ? 16 : size === 'large' ? 28 : 22} color={color} />
+                <DynamicIcon
+                  name={icon}
+                  size={size === 'small' ? 16 : size === 'large' ? 28 : 22}
+                  color={color}
+                />
               ) : (
                 <Camera size={size === 'small' ? 16 : size === 'large' ? 28 : 22} color={color} />
               )}

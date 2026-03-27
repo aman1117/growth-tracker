@@ -4,11 +4,7 @@
  * Renders the draggable activity tiles grid with DnD support.
  */
 
-import {
-  closestCenter,
-  DndContext,
-  DragOverlay,
-} from '@dnd-kit/core';
+import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core';
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { Plus } from 'lucide-react';
 import React from 'react';
@@ -154,11 +150,7 @@ export const TileGrid: React.FC<TileGridProps> = ({
                   hasNote={!isReadOnly && !!activityNotes[name]}
                   isEditMode={isEditMode}
                   onHide={onHideTile}
-                  onEditCustomTile={
-                    customTile
-                      ? () => onEditCustomTile(customTile)
-                      : undefined
-                  }
+                  onEditCustomTile={customTile ? () => onEditCustomTile(customTile) : undefined}
                   displayLabel={config.label}
                   tileIndex={index}
                   iconName={config.iconName}

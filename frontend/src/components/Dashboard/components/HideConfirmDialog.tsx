@@ -99,11 +99,8 @@ export const HideConfirmDialog: React.FC<HideConfirmDialogProps> = ({
               lineHeight: 1.4,
             }}
           >
-            Hide{' '}
-            <strong style={{ color: 'var(--text-primary)' }}>
-              "{displayName}"
-            </strong>{' '}
-            from your dashboard? You can restore it anytime from the hidden tiles panel.
+            Hide <strong style={{ color: 'var(--text-primary)' }}>"{displayName}"</strong> from your
+            dashboard? You can restore it anytime from the hidden tiles panel.
           </p>
           <div
             style={{

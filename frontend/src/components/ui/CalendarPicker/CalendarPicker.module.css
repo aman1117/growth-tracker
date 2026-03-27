@@ -212,7 +212,6 @@
   animation: dayPop 0.25s var(--ease-out) backwards;
 }
 
-
 /* Staggered animation for days */
 .day:nth-child(7n + 1) {
   animation-delay: 0.02s;

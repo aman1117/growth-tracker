@@ -74,7 +74,7 @@ export const useActivityData = ({
         onPrivateAccount(false);
         const activityMap: Record<string, number> = {};
         const notesMap: Record<string, string> = {};
-        
+
         // Initialize all activities with 0
         ACTIVITY_NAMES.forEach((name) => {
           activityMap[name] = 0;
@@ -120,7 +120,14 @@ export const useActivityData = ({
     } finally {
       setLoading(false);
     }
-  }, [currentDate, targetUsername, isReadOnly, onPrivateAccount, fetchBadgesForPrivateAccount, onError]);
+  }, [
+    currentDate,
+    targetUsername,
+    isReadOnly,
+    onPrivateAccount,
+    fetchBadgesForPrivateAccount,
+    onError,
+  ]);
 
   useEffect(() => {
     fetchActivities();

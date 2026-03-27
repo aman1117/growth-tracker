@@ -5,11 +5,10 @@
  * Clean minimal design without background.
  */
 
-import React, { useEffect, useRef } from 'react';
 import { ArrowDown, Loader2 } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
 
 import type { PullToRefreshState } from '../../../hooks/usePullToRefresh';
-
 import styles from './PullToRefreshIndicator.module.css';
 
 export interface PullToRefreshIndicatorProps {
@@ -33,7 +32,7 @@ export const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const isAnimatingOutRef = useRef(false);
   const animationRef = useRef<Animation | null>(null);
-  
+
   const isRefreshing = state === 'refreshing';
   const isArmed = state === 'armed';
   const isPulling = state === 'pulling' || state === 'armed';
@@ -51,26 +50,26 @@ export const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
 
     if (isSettling && !isAnimatingOutRef.current) {
       isAnimatingOutRef.current = true;
-      
+
       // Get current visual position
       const rect = container.getBoundingClientRect();
       const startY = rect.top - HEADER_OFFSET;
-      
+
       // Cancel any existing animation
       if (animationRef.current) {
         animationRef.current.cancel();
       }
-      
+
       // Animate out using Web Animations API
       animationRef.current = container.animate(
         [
           { transform: `translateY(${startY}px)`, opacity: 1 },
-          { transform: 'translateY(-40px)', opacity: 0 }
+          { transform: 'translateY(-40px)', opacity: 0 },
         ],
         {
           duration: ANIMATION_DURATION,
           easing: 'cubic-bezier(0.4, 0, 1, 1)', // ease-in
-          fill: 'forwards'
+          fill: 'forwards',
         }
       );
 
@@ -79,7 +78,7 @@ export const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
         animationRef.current = null;
       };
     }
-    
+
     // Cleanup animation on unmount
     return () => {
       if (animationRef.current) {
@@ -105,15 +104,17 @@ export const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
   const translateY = isPulling ? Math.max(pullOffset - 24, 0) : 16;
 
   // Don't apply inline styles during settle animation (Web Animations API handles it)
-  const inlineStyle = isSettling ? undefined : {
-    transform: `translateY(${translateY}px)`,
-  };
+  const inlineStyle = isSettling
+    ? undefined
+    : {
+        transform: `translateY(${translateY}px)`,
+      };
 
   // Generate accessible label
-  const ariaLabel = isRefreshing 
-    ? 'Refreshing content' 
-    : isArmed 
-      ? 'Release to refresh' 
+  const ariaLabel = isRefreshing
+    ? 'Refreshing content'
+    : isArmed
+      ? 'Release to refresh'
       : 'Pull down to refresh';
 
   return (
@@ -125,11 +126,7 @@ export const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
       aria-label={ariaLabel}
     >
       {isRefreshing ? (
-        <Loader2 
-          size={24} 
-          className={`${styles.spinner} ${styles.spinning}`}
-          strokeWidth={2.5}
-        />
+        <Loader2 size={24} className={`${styles.spinner} ${styles.spinning}`} strokeWidth={2.5} />
       ) : (
         <ArrowDown
           size={24}

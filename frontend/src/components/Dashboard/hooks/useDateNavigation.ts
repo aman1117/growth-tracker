@@ -7,7 +7,11 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { getDateFromSearchParams, TILE_ANIMATION_DELAY, TILE_ANIMATION_DURATION } from '../Dashboard.constants';
+import {
+  getDateFromSearchParams,
+  TILE_ANIMATION_DELAY,
+  TILE_ANIMATION_DURATION,
+} from '../Dashboard.constants';
 
 interface UseDateNavigationReturn {
   currentDate: Date;

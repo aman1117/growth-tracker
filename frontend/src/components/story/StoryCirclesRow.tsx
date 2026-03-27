@@ -45,10 +45,10 @@ export interface StoryCirclesRowProps {
   isEditMode: boolean;
   /** Callback when a photo is clicked - returns handlers for deletion/viewing */
   onPhotoClick: (
-    photos: ActivityPhoto[], 
-    startIndex: number, 
-    ownerUsername: string, 
-    ownerProfilePic?: string, 
+    photos: ActivityPhoto[],
+    startIndex: number,
+    ownerUsername: string,
+    ownerProfilePic?: string,
     isOwn?: boolean,
     handlers?: {
       onPhotoDeleted: (photoId: number) => void;
@@ -81,14 +81,14 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Use ref to store callback to avoid infinite re-fetch loops
   // when the callback is recreated on parent re-renders
   const onTargetUserPhotosRef = useRef(onTargetUserPhotos);
   useEffect(() => {
     onTargetUserPhotosRef.current = onTargetUserPhotos;
   }, [onTargetUserPhotos]);
-  
+
   const [ownPhotos, setOwnPhotos] = useState<ActivityPhoto[]>([]);
   const [followingStories, setFollowingStories] = useState<UserStoryGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,15 +124,15 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   // Fetch photos
   const fetchPhotos = useCallback(async () => {
     if (!user?.id) return;
-    
+
     // Safety check: when viewing own profile, ensure we're fetching the logged-in user's photos
     // This prevents a race condition where targetUserId might be stale from viewing another user
     const userIdToFetch = isOwnProfile ? user.id : targetUserId;
     if (!userIdToFetch) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch own photos (or target user's if viewing someone else)
       const photosResponse = await activityPhotoApi.getPhotos(userIdToFetch, dateStr);
@@ -166,16 +166,16 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
 
   // Get available activities (ones without photos yet)
   const getAvailableActivities = useCallback((): AvailableActivity[] => {
-    const uploadedSet = new Set(ownPhotos.map(p => p.activity_name));
-    
+    const uploadedSet = new Set(ownPhotos.map((p) => p.activity_name));
+
     return activities
-      .filter(activityName => !uploadedSet.has(activityName))
-      .map(activityName => {
+      .filter((activityName) => !uploadedSet.has(activityName))
+      .map((activityName) => {
         const isCustom = activityName.startsWith('custom:');
         const customTile = isCustom
-          ? customTiles.find(t => `custom:${t.id}` === activityName)
+          ? customTiles.find((t) => `custom:${t.id}` === activityName)
           : null;
-        
+
         const config = isCustom ? null : getActivityConfig(activityName);
         const displayLabel = customTile?.name || config?.label || activityName;
         const iconName = customTile?.icon || config?.iconName;
@@ -195,7 +195,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     const activityToUpload = selectedActivity;
-    
+
     // Reset both inputs
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -232,11 +232,11 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
     try {
       // Compress image
       const compressedFile = await compressImageToFile(file);
-      
+
       // Get custom tile metadata if this is a custom activity
       let customTileMetadata: { icon?: string; color?: string; label?: string } | undefined;
       if (activityToUpload.startsWith('custom:')) {
-        const customTile = customTiles.find(t => `custom:${t.id}` === activityToUpload);
+        const customTile = customTiles.find((t) => `custom:${t.id}` === activityToUpload);
         if (customTile) {
           customTileMetadata = {
             icon: customTile.icon,
@@ -245,12 +245,17 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
           };
         }
       }
-      
+
       // Upload with custom tile metadata
-      const response = await activityPhotoApi.uploadPhoto(compressedFile, activityToUpload, dateStr, customTileMetadata);
-      
+      const response = await activityPhotoApi.uploadPhoto(
+        compressedFile,
+        activityToUpload,
+        dateStr,
+        customTileMetadata
+      );
+
       if (response.success && response.photo) {
-        setOwnPhotos(prev => [...prev, response.photo!]);
+        setOwnPhotos((prev) => [...prev, response.photo!]);
         setToastMessage('Photo uploaded!');
       } else {
         setToastMessage(response.error || 'Upload failed');
@@ -293,7 +298,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const handleAddStoryClick = () => {
     const available = getAvailableActivities();
     if (available.length === 0) {
-      setToastMessage('You\'ve added photos for all activities today!');
+      setToastMessage("You've added photos for all activities today!");
       return;
     }
     setShowActivityPicker(true);
@@ -301,35 +306,37 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
 
   // Handler for when own photo is deleted
   const handlePhotoDeleted = useCallback((photoId: number) => {
-    setOwnPhotos(prev => prev.filter(p => p.id !== photoId));
+    setOwnPhotos((prev) => prev.filter((p) => p.id !== photoId));
   }, []);
 
   // Handler for when friend's photos are viewed - mark individual photos as viewed
   const handlePhotosViewed = useCallback((photoIds: number[], userId: number) => {
-    setFollowingStories(prev => prev.map(group => {
-      if (group.user_id === userId) {
-        // Mark viewed photos
-        const updatedPhotos = group.photos.map(photo => 
-          photoIds.includes(photo.id) ? { ...photo, viewed: true } : photo
-        );
-        const hasUnseen = updatedPhotos.some(p => !p.viewed);
-        return { ...group, photos: updatedPhotos, has_unseen: hasUnseen };
-      }
-      return group;
-    }));
+    setFollowingStories((prev) =>
+      prev.map((group) => {
+        if (group.user_id === userId) {
+          // Mark viewed photos
+          const updatedPhotos = group.photos.map((photo) =>
+            photoIds.includes(photo.id) ? { ...photo, viewed: true } : photo
+          );
+          const hasUnseen = updatedPhotos.some((p) => !p.viewed);
+          return { ...group, photos: updatedPhotos, has_unseen: hasUnseen };
+        }
+        return group;
+      })
+    );
   }, []);
 
   // Handle clicking on own story avatar (when user has uploaded photos)
   const handleOwnStoryClick = () => {
     // Sort by created_at (older first)
-    const sortedPhotos = [...ownPhotos].sort((a, b) => 
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    const sortedPhotos = [...ownPhotos].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
     onPhotoClick(
-      sortedPhotos, 
+      sortedPhotos,
       0, // Always start from first for own photos
       'Your Story',
-      user?.profilePic || undefined, 
+      user?.profilePic || undefined,
       true,
       { onPhotoDeleted: handlePhotoDeleted, onPhotosViewed: () => {} }
     );
@@ -340,20 +347,16 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
     // Photos are already sorted by created_at from backend
     // Find the index of first unseen photo
     let startIndex = 0;
-    const firstUnseenIndex = group.photos.findIndex(p => !p.viewed);
+    const firstUnseenIndex = group.photos.findIndex((p) => !p.viewed);
     if (firstUnseenIndex !== -1) {
       startIndex = firstUnseenIndex;
     }
     // If all photos are viewed, start from the first one
-    
-    onPhotoClick(
-      group.photos, 
-      startIndex, 
-      group.username, 
-      group.profile_pic, 
-      false,
-      { onPhotoDeleted: handlePhotoDeleted, onPhotosViewed: (photoIds) => handlePhotosViewed(photoIds, group.user_id) }
-    );
+
+    onPhotoClick(group.photos, startIndex, group.username, group.profile_pic, false, {
+      onPhotoDeleted: handlePhotoDeleted,
+      onPhotosViewed: (photoIds) => handlePhotosViewed(photoIds, group.user_id),
+    });
   };
 
   // Don't render in edit mode
@@ -364,7 +367,11 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   if (!isOwnProfile) return null;
 
   // Don't render if date is too old and no content
-  if (!isDateWithinUploadWindow(currentDate) && ownPhotos.length === 0 && followingStories.length === 0) {
+  if (
+    !isDateWithinUploadWindow(currentDate) &&
+    ownPhotos.length === 0 &&
+    followingStories.length === 0
+  ) {
     return null;
   }
 
@@ -388,7 +395,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
         style={{ display: 'none' }}
         aria-hidden="true"
       />
-      
+
       {/* Hidden file input for gallery (no capture attribute) */}
       <input
         ref={galleryInputRef}
@@ -403,7 +410,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
       <div className="story-row-scroll">
         {loading ? (
           <div className="story-row-skeletons">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="story-circle-skeleton" />
             ))}
           </div>
@@ -421,15 +428,11 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
                         className={`story-add-circle ${uploadingActivity ? 'story-circle-uploading' : ''} ${hasOwnPhotos ? 'story-add-circle-clickable' : 'story-add-circle-no-photos'}`}
                         onClick={hasOwnPhotos ? handleOwnStoryClick : undefined}
                         disabled={!!uploadingActivity || !hasOwnPhotos}
-                        aria-label={hasOwnPhotos ? "View your story" : "Your story"}
+                        aria-label={hasOwnPhotos ? 'View your story' : 'Your story'}
                         type="button"
                       >
                         <div className="story-add-avatar">
-                          <Avatar 
-                            src={user?.profilePic} 
-                            name={user?.username || 'You'} 
-                            size="lg" 
-                          />
+                          <Avatar src={user?.profilePic} name={user?.username || 'You'} size="lg" />
                         </div>
                       </button>
                       {/* Plus icon - add new story */}
@@ -449,12 +452,14 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
                         </button>
                       )}
                     </div>
-                    <span className="story-circle-label">{hasOwnPhotos ? 'Your Story' : 'Add Story'}</span>
+                    <span className="story-circle-label">
+                      {hasOwnPhotos ? 'Your Story' : 'Add Story'}
+                    </span>
                   </div>
                 )}
 
                 {/* 2. Friends' stories */}
-                {followingStories.map(group => (
+                {followingStories.map((group) => (
                   <div key={group.user_id} className="story-circle-container story-circle-medium">
                     <button
                       className={`story-circle ${group.has_unseen ? 'story-ring-unseen' : 'story-ring-viewed'}`}
@@ -463,8 +468,8 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
                     >
                       <div className="story-circle-inner">
                         {group.profile_pic ? (
-                          <img 
-                            src={group.profile_pic} 
+                          <img
+                            src={group.profile_pic}
                             alt={group.username}
                             className="story-circle-image"
                           />
@@ -488,92 +493,97 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
 
       {/* Activity Picker Modal */}
       {/* Activity Picker Modal - rendered in portal to escape overflow:hidden */}
-      {showActivityPicker && createPortal(
-        <div className="story-activity-picker-overlay" onClick={() => setShowActivityPicker(false)}>
-          <div className="story-activity-picker" onClick={e => e.stopPropagation()}>
-            <div className="story-activity-picker-header">
-              <div>
-                <h3>Add Story</h3>
-                <p>Select an activity</p>
-              </div>
-              <button 
-                className="story-activity-picker-close"
-                onClick={() => setShowActivityPicker(false)}
-                aria-label="Close"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="story-activity-picker-list">
-              {availableActivities.map(activity => (
+      {showActivityPicker &&
+        createPortal(
+          <div
+            className="story-activity-picker-overlay"
+            onClick={() => setShowActivityPicker(false)}
+          >
+            <div className="story-activity-picker" onClick={(e) => e.stopPropagation()}>
+              <div className="story-activity-picker-header">
+                <div>
+                  <h3>Add Story</h3>
+                  <p>Select an activity</p>
+                </div>
                 <button
-                  key={activity.name}
-                  className="story-activity-picker-item"
-                  onClick={() => handleActivitySelect(activity.name)}
+                  className="story-activity-picker-close"
+                  onClick={() => setShowActivityPicker(false)}
+                  aria-label="Close"
                 >
-                  <div 
-                    className="story-activity-picker-icon"
-                    style={{ backgroundColor: activity.color }}
-                  >
-                    {activity.icon ? (
-                      <DynamicIcon name={activity.icon} size={18} color="white" />
-                    ) : (
-                      <Camera size={18} color="white" />
-                    )}
-                  </div>
-                  <span className="story-activity-picker-label">{activity.displayLabel}</span>
+                  <X size={20} />
                 </button>
-              ))}
+              </div>
+              <div className="story-activity-picker-list">
+                {availableActivities.map((activity) => (
+                  <button
+                    key={activity.name}
+                    className="story-activity-picker-item"
+                    onClick={() => handleActivitySelect(activity.name)}
+                  >
+                    <div
+                      className="story-activity-picker-icon"
+                      style={{ backgroundColor: activity.color }}
+                    >
+                      {activity.icon ? (
+                        <DynamicIcon name={activity.icon} size={18} color="white" />
+                      ) : (
+                        <Camera size={18} color="white" />
+                      )}
+                    </div>
+                    <span className="story-activity-picker-label">{activity.displayLabel}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Source Picker Modal - Camera or Gallery */}
-      {showSourcePicker && createPortal(
-        <div className="story-activity-picker-overlay" onClick={handleSourcePickerClose}>
-          <div className="story-source-picker" onClick={e => e.stopPropagation()}>
-            <div className="story-source-picker-header">
-              <h3>Add Photo</h3>
-              <button 
-                className="story-activity-picker-close"
-                onClick={handleSourcePickerClose}
-                aria-label="Close"
-              >
-                <X size={20} />
-              </button>
+      {showSourcePicker &&
+        createPortal(
+          <div className="story-activity-picker-overlay" onClick={handleSourcePickerClose}>
+            <div className="story-source-picker" onClick={(e) => e.stopPropagation()}>
+              <div className="story-source-picker-header">
+                <h3>Add Photo</h3>
+                <button
+                  className="story-activity-picker-close"
+                  onClick={handleSourcePickerClose}
+                  aria-label="Close"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="story-source-picker-options">
+                <button className="story-source-picker-option" onClick={handleCameraSelect}>
+                  <div className="story-source-picker-icon">
+                    <Camera size={24} />
+                  </div>
+                  <span>Take Photo</span>
+                </button>
+                <button className="story-source-picker-option" onClick={handleGallerySelect}>
+                  <div className="story-source-picker-icon">
+                    <Image size={24} />
+                  </div>
+                  <span>Choose from Gallery</span>
+                </button>
+              </div>
             </div>
-            <div className="story-source-picker-options">
-              <button
-                className="story-source-picker-option"
-                onClick={handleCameraSelect}
-              >
-                <div className="story-source-picker-icon">
-                  <Camera size={24} />
-                </div>
-                <span>Take Photo</span>
-              </button>
-              <button
-                className="story-source-picker-option"
-                onClick={handleGallerySelect}
-              >
-                <div className="story-source-picker-icon">
-                  <Image size={24} />
-                </div>
-                <span>Choose from Gallery</span>
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Toast notification */}
       {toastMessage && (
         <SnapToast
           message={toastMessage}
-          type={toastMessage.includes('failed') || toastMessage.includes('Please') || toastMessage.includes('must be') ? 'error' : 'success'}
+          type={
+            toastMessage.includes('failed') ||
+            toastMessage.includes('Please') ||
+            toastMessage.includes('must be')
+              ? 'error'
+              : 'success'
+          }
           onClose={() => setToastMessage(null)}
         />
       )}

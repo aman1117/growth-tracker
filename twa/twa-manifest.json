@@ -17,7 +17,7 @@
   "maskableIconUrl": "https://www.trackgrowth.in/pwa-maskable-512x512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "C:\\Users\\amansha\\growth-tracker\\twa\\android.keystore",
+    "path": "./android.keystore",
     "alias": "android"
   },
   "appVersionName": "2",

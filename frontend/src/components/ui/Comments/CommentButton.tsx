@@ -42,22 +42,22 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
       setIsSheetOpen(true);
       // Remove the param — this updates both the URL and React Router's state,
       // so the param won't persist through pull-to-refresh or remounts.
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete('comments');
-        return next;
-      }, { replace: true });
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('comments');
+          return next;
+        },
+        { replace: true }
+      );
     }
   }, [searchParams, setSearchParams]);
 
-  const handleClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      setIsSheetOpen(true);
-    },
-    []
-  );
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsSheetOpen(true);
+  }, []);
 
   const iconSize = size === 'sm' ? 16 : 20;
   const hasComments = count > 0;
@@ -75,7 +75,10 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
           <MessageCircle size={iconSize} fill={hasComments ? 'currentColor' : 'none'} />
         </button>
         {showCount && (
-          <span onClick={handleClick} className={`${styles.count} ${hasComments ? styles.hasComments : ''}`}>
+          <span
+            onClick={handleClick}
+            className={`${styles.count} ${hasComments ? styles.hasComments : ''}`}
+          >
             {count}
           </span>
         )}

@@ -77,9 +77,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   };
 
   // Type guard for comment metadata
-  const isCommentMetadata = (
-    metadata: unknown
-  ): metadata is CommentMetadata => {
+  const isCommentMetadata = (metadata: unknown): metadata is CommentMetadata => {
     return (
       typeof metadata === 'object' &&
       metadata !== null &&

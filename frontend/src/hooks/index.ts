@@ -5,8 +5,8 @@
 export { useDebounce } from './useDebounce';
 export { useOfflineStatus } from './useOfflineStatus';
 export {
-  usePullToRefresh,
   type PullToRefreshState,
+  usePullToRefresh,
   type UsePullToRefreshOptions,
   type UsePullToRefreshReturn,
 } from './usePullToRefresh';

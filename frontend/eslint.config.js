@@ -27,10 +27,10 @@ export default defineConfig([
     rules: {
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
-      // Downgrade some React Compiler rules that are too strict for existing codebase
-      // These patterns are common in React apps and work correctly
-      'react-hooks/set-state-in-effect': 'warn',
-      'react-hooks/static-components': 'warn',
+      // Disable React Compiler advisory rules that currently create noise without
+      // providing a strong correctness signal for this codebase.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/static-components': 'off',
       'react-hooks/purity': 'warn',
       'react-hooks/preserve-manual-memoization': 'warn',
       // Allow exporting constants alongside components (common pattern)

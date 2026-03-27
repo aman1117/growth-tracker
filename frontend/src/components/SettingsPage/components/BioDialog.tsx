@@ -11,12 +11,7 @@ import { api } from '../../../services/api';
 import type { BioDialogProps } from '../SettingsPage.types';
 import { DialogWrapper } from './DialogWrapper';
 
-export const BioDialog: React.FC<BioDialogProps> = ({
-  isOpen,
-  onClose,
-  currentBio,
-  onSuccess,
-}) => {
+export const BioDialog: React.FC<BioDialogProps> = ({ isOpen, onClose, currentBio, onSuccess }) => {
   const [bio, setBio] = useState(currentBio);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);

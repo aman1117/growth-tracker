@@ -10,6 +10,7 @@ export {
   useIsAuthenticated,
   type User,
 } from './useAuthStore';
+export { useCommentStore } from './useCommentStore';
 export {
   type MonthCompletionData,
   useCompletionStore,
@@ -48,4 +49,3 @@ export {
   type ToastType,
   useToastStore,
 } from './useToastStore';
-export { useCommentStore } from './useCommentStore';

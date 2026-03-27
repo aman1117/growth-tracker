@@ -10,8 +10,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useCommentStore } from '../../../store/useCommentStore';
 import { showError } from '../../../store/useToastStore';
-import { MentionAutocomplete } from './MentionAutocomplete';
 import styles from './CommentInput.module.css';
+import { MentionAutocomplete } from './MentionAutocomplete';
 
 const MAX_LENGTH = 200;
 const CHAR_COUNTER_THRESHOLD = 0.8; // Show at 80%
@@ -77,9 +77,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
   const handleMentionSelect = useCallback(
     (selectedUsername: string) => {
       const before = body.slice(0, mentionStartIdx);
-      const after = body.slice(
-        mentionStartIdx + (mentionQuery ? mentionQuery.length + 1 : 1)
-      );
+      const after = body.slice(mentionStartIdx + (mentionQuery ? mentionQuery.length + 1 : 1));
       const newBody = `${before}@${selectedUsername} ${after}`;
       setBody(newBody);
       setMentionQuery(null);
@@ -154,8 +152,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
       {replyTarget && (
         <div className={styles.replyChip}>
           <span className={styles.replyChipText}>
-            Replying to{' '}
-            <span className={styles.replyChipUsername}>@{replyTarget.username}</span>
+            Replying to <span className={styles.replyChipUsername}>@{replyTarget.username}</span>
           </span>
           <button
             className={styles.replyChipCancel}

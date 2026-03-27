@@ -134,7 +134,9 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
   // Cleanup delete timer on unmount
   useEffect(() => {
-    return () => { window.clearTimeout(deleteTimer.current); };
+    return () => {
+      window.clearTimeout(deleteTimer.current);
+    };
   }, []);
 
   const isMe = currentUser?.id === comment.author_id;
@@ -149,10 +151,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const canDelete = useMemo(() => {
     if (!currentUser) return false;
     // Author of the comment or owner of the day
-    return (
-      currentUser.id === comment.author_id ||
-      currentUser.username === username
-    );
+    return currentUser.id === comment.author_id || currentUser.username === username;
   }, [currentUser, comment.author_id, username]);
 
   const handleLikeToggle = useCallback(
@@ -205,29 +204,28 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   }, [comment.id, fetchReplies]);
 
   const needsTruncation = !comment.is_deleted && comment.body.length > TRUNCATE_LENGTH;
-  const displayBody = needsTruncation && !expanded
-    ? comment.body.slice(0, TRUNCATE_LENGTH) + '...'
-    : comment.body;
+  const displayBody =
+    needsTruncation && !expanded ? comment.body.slice(0, TRUNCATE_LENGTH) + '...' : comment.body;
 
   const replies = repliesState?.comments || [];
   const visibleReplies = showAllReplies ? replies : replies.slice(0, INITIAL_REPLIES_SHOWN);
-  const hasHiddenReplies = !showAllReplies && (
-    comment.reply_count > INITIAL_REPLIES_SHOWN ||
-    (replies.length > INITIAL_REPLIES_SHOWN)
-  );
+  const hasHiddenReplies =
+    !showAllReplies &&
+    (comment.reply_count > INITIAL_REPLIES_SHOWN || replies.length > INITIAL_REPLIES_SHOWN);
   const totalReplyCount = comment.reply_count;
 
   return (
     <>
-      <div className={`${styles.comment} ${comment.is_deleted ? styles.deleted : ''} ${isTopLevel ? styles.topLevel : ''}`}>
+      <div
+        className={`${styles.comment} ${comment.is_deleted ? styles.deleted : ''} ${isTopLevel ? styles.topLevel : ''}`}
+      >
         {/* Avatar */}
         {!comment.is_deleted && (
-          <div className={styles.avatarWrap} onClick={() => navigateToProfile(comment.author_username)}>
-            <Avatar
-              name={comment.author_username}
-              src={comment.author_avatar}
-              size="sm"
-            />
+          <div
+            className={styles.avatarWrap}
+            onClick={() => navigateToProfile(comment.author_username)}
+          >
+            <Avatar name={comment.author_username} src={comment.author_avatar} size="sm" />
           </div>
         )}
 
@@ -241,16 +239,15 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               <div className={styles.usernameRow}>
                 <span
                   className={styles.username}
-                  onClick={(e) => { e.stopPropagation(); navigateToProfile(comment.author_username); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigateToProfile(comment.author_username);
+                  }}
                 >
                   {isMe ? 'You' : comment.author_username}
                 </span>
-                {comment.author_verified && (
-                  <VerifiedBadge size={14} />
-                )}
-                <span className={styles.timestamp}>
-                  {formatRelativeTime(comment.created_at)}
-                </span>
+                {comment.author_verified && <VerifiedBadge size={14} />}
+                <span className={styles.timestamp}>{formatRelativeTime(comment.created_at)}</span>
               </div>
 
               {/* Reply indicator */}
@@ -259,9 +256,15 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   Replying to{' '}
                   <span
                     className={styles.replyUsername}
-                    onClick={(e) => { e.stopPropagation(); navigateToProfile(comment.reply_to_username!); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateToProfile(comment.reply_to_username!);
+                    }}
                   >
-                    @{currentUser?.username === comment.reply_to_username ? 'You' : comment.reply_to_username}
+                    @
+                    {currentUser?.username === comment.reply_to_username
+                      ? 'You'
+                      : comment.reply_to_username}
                   </span>
                 </div>
               )}
@@ -274,7 +277,10 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                     {' '}
                     <button
                       className={styles.moreButton}
-                      onClick={(e) => { e.stopPropagation(); setExpanded(true); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpanded(true);
+                      }}
                     >
                       more
                     </button>
@@ -300,10 +306,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   onClick={handleLikeToggle}
                   aria-label={comment.liked_by_me ? 'Unlike' : 'Like'}
                 >
-                  <Heart
-                    size={14}
-                    fill={comment.liked_by_me ? 'currentColor' : 'none'}
-                  />
+                  <Heart size={14} fill={comment.liked_by_me ? 'currentColor' : 'none'} />
                   {comment.like_count > 0 && <span>{comment.like_count}</span>}
                 </button>
 
@@ -340,7 +343,9 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                     <button className={styles.viewRepliesBtn} onClick={handleViewReplies}>
                       <span className={styles.repliesLine} />
                       View {Math.max(1, totalReplyCount - INITIAL_REPLIES_SHOWN)} more{' '}
-                      {Math.max(1, totalReplyCount - INITIAL_REPLIES_SHOWN) === 1 ? 'reply' : 'replies'}
+                      {Math.max(1, totalReplyCount - INITIAL_REPLIES_SHOWN) === 1
+                        ? 'reply'
+                        : 'replies'}
                     </button>
                   )}
 

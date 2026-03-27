@@ -5,13 +5,7 @@
  */
 
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
-import {
-  KeyboardSensor,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
+import { KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useState } from 'react';
 
@@ -29,9 +23,7 @@ interface UseDragAndDropReturn {
   handleDragEnd: (event: DragEndEvent) => void;
 }
 
-export const useDragAndDrop = ({
-  setTileOrder,
-}: UseDragAndDropProps): UseDragAndDropReturn => {
+export const useDragAndDrop = ({ setTileOrder }: UseDragAndDropProps): UseDragAndDropReturn => {
   const [activeDragId, setActiveDragId] = useState<ActivityName | null>(null);
 
   // DnD Sensors

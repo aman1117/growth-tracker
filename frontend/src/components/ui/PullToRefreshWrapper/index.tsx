@@ -9,7 +9,6 @@ import React, { useEffect, useRef } from 'react';
 
 import { usePullToRefresh } from '../../../hooks/usePullToRefresh';
 import { PullToRefreshIndicator } from '../PullToRefreshIndicator';
-
 import styles from './PullToRefreshWrapper.module.css';
 
 export interface PullToRefreshWrapperProps {
@@ -38,12 +37,7 @@ export const PullToRefreshWrapper: React.FC<PullToRefreshWrapperProps> = ({
   const isAnimatingRef = useRef(false);
   const animationRef = useRef<Animation | null>(null);
 
-  const {
-    state,
-    isPulling,
-    isRefreshing,
-    pullOffset,
-  } = usePullToRefresh({
+  const { state, isPulling, isRefreshing, pullOffset } = usePullToRefresh({
     onRefresh,
     disabled,
     threshold,
@@ -55,10 +49,10 @@ export const PullToRefreshWrapper: React.FC<PullToRefreshWrapperProps> = ({
   const isActive = isPulling || isRefreshing;
 
   // Calculate transform for content
-  const contentTransform = isPulling 
-    ? pullOffset 
-    : isRefreshing 
-      ? threshold * RESISTANCE_FACTOR 
+  const contentTransform = isPulling
+    ? pullOffset
+    : isRefreshing
+      ? threshold * RESISTANCE_FACTOR
       : 0;
 
   // Handle settle animation
@@ -68,7 +62,7 @@ export const PullToRefreshWrapper: React.FC<PullToRefreshWrapperProps> = ({
 
     if (isSettling && !isAnimatingRef.current) {
       isAnimatingRef.current = true;
-      
+
       // Get current transform
       const computedStyle = getComputedStyle(content);
       const matrix = new DOMMatrix(computedStyle.transform);
@@ -79,16 +73,13 @@ export const PullToRefreshWrapper: React.FC<PullToRefreshWrapperProps> = ({
         if (animationRef.current) {
           animationRef.current.cancel();
         }
-        
+
         animationRef.current = content.animate(
-          [
-            { transform: `translateY(${currentY}px)` },
-            { transform: 'translateY(0)' }
-          ],
+          [{ transform: `translateY(${currentY}px)` }, { transform: 'translateY(0)' }],
           {
             duration: ANIMATION_DURATION,
             easing: 'cubic-bezier(0.4, 0, 1, 1)',
-            fill: 'forwards'
+            fill: 'forwards',
           }
         );
 
@@ -101,7 +92,7 @@ export const PullToRefreshWrapper: React.FC<PullToRefreshWrapperProps> = ({
         isAnimatingRef.current = false;
       }
     }
-    
+
     // Cleanup animation on unmount
     return () => {
       if (animationRef.current) {
@@ -121,28 +112,22 @@ export const PullToRefreshWrapper: React.FC<PullToRefreshWrapperProps> = ({
   // Inline style for content (not during settle animation)
   // IMPORTANT: Only apply transform and will-change when actively pulling/refreshing
   // to avoid creating a new containing block that breaks position:fixed children
-  const contentStyle = isSettling ? undefined : {
-    transform: contentTransform > 0 ? `translateY(${contentTransform}px)` : undefined,
-    willChange: isActive ? 'transform' : undefined,
-  };
+  const contentStyle = isSettling
+    ? undefined
+    : {
+        transform: contentTransform > 0 ? `translateY(${contentTransform}px)` : undefined,
+        willChange: isActive ? 'transform' : undefined,
+      };
 
   return (
-    <div
-      className={`${styles.wrapper} ${className}`}
-      aria-busy={isRefreshing}
-      aria-live="polite"
-    >
+    <div className={`${styles.wrapper} ${className}`} aria-busy={isRefreshing} aria-live="polite">
       <PullToRefreshIndicator
         state={state}
         pullOffset={pullOffset}
         threshold={threshold * RESISTANCE_FACTOR}
       />
 
-      <div 
-        ref={contentRef} 
-        className={styles.content}
-        style={contentStyle}
-      >
+      <div ref={contentRef} className={styles.content} style={contentStyle}>
         {children}
       </div>
     </div>

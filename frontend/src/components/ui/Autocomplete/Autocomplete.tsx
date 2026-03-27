@@ -3,7 +3,7 @@
  *
  * Google-like autocomplete search with keyboard navigation,
  * mobile-first design, and accessibility support.
- * 
+ *
  * Supports initial suggestions (recent/trending) shown on focus
  * with section headers and custom action buttons.
  */
@@ -286,7 +286,11 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
     }
 
     // If input is empty and we have initial suggestions, show them
-    if (inputValue.trim().length < minChars && initialSuggestions && initialSuggestions.length > 0) {
+    if (
+      inputValue.trim().length < minChars &&
+      initialSuggestions &&
+      initialSuggestions.length > 0
+    ) {
       setSuggestions(initialSuggestions);
       setShowingInitial(true);
       setIsOpen(true);
@@ -386,12 +390,12 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
           aria-expanded={isOpen}
           aria-haspopup="listbox"
           aria-controls={listboxId}
-          aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
+          aria-activedescendant={
+            activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
+          }
           aria-autocomplete="list"
         />
-        {isLoading && (
-          <Loader2 className={styles.loadingIcon} size={18} aria-label="Loading..." />
-        )}
+        {isLoading && <Loader2 className={styles.loadingIcon} size={18} aria-label="Loading..." />}
         {!isLoading && inputValue && (
           <button
             type="button"
@@ -418,10 +422,10 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
             const sectionHelpers = renderSectionHelpers?.(suggestions, inputValue);
             const beforeContent = sectionHelpers?.renderBeforeItem?.(index, suggestion);
             const afterContent = sectionHelpers?.renderAfterItem?.(index, suggestion);
-            
+
             // Use userId if available for more stable keys, fallback to text+index
-            const key = suggestion.meta?.userId 
-              ? `user-${suggestion.meta.userId}` 
+            const key = suggestion.meta?.userId
+              ? `user-${suggestion.meta.userId}`
               : `${suggestion.text}-${index}`;
 
             return (
@@ -444,7 +448,10 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
                   <div className={styles.suggestionInfo}>
                     <span className={styles.suggestionText}>
                       <span className={styles.username}>
-                        <HighlightedText text={suggestion.text} query={showingInitial ? '' : inputValue} />
+                        <HighlightedText
+                          text={suggestion.text}
+                          query={showingInitial ? '' : inputValue}
+                        />
                       </span>
                       {suggestion.meta?.isVerified && <VerifiedBadge size={12} />}
                     </span>
@@ -462,11 +469,15 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
         </ul>
       )}
 
-      {isOpen && suggestions.length === 0 && !isLoading && !showingInitial && debouncedQuery.length >= minChars && (
-        <div className={styles.noResults} role="status">
-          No users found
-        </div>
-      )}
+      {isOpen &&
+        suggestions.length === 0 &&
+        !isLoading &&
+        !showingInitial &&
+        debouncedQuery.length >= minChars && (
+          <div className={styles.noResults} role="status">
+            No users found
+          </div>
+        )}
 
       {error && (
         <div className={styles.error} role="alert">

@@ -74,8 +74,7 @@ const clamp = (value: number, min: number, max: number): number =>
 
 /** Check if user prefers reduced motion */
 const prefersReducedMotion = (): boolean =>
-  typeof window !== 'undefined' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Trigger haptic feedback if available */
 const triggerHaptic = (): void => {
@@ -89,16 +88,13 @@ const triggerHaptic = (): void => {
 };
 
 /** Delay helper */
-const delay = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ============================================================================
 // Hook
 // ============================================================================
 
-export const usePullToRefresh = (
-  options: UsePullToRefreshOptions
-): UsePullToRefreshReturn => {
+export const usePullToRefresh = (options: UsePullToRefreshOptions): UsePullToRefreshReturn => {
   const {
     onRefresh,
     threshold = DEFAULT_THRESHOLD,
@@ -405,7 +401,7 @@ export const usePullToRefresh = (
       document.addEventListener('touchend', onTouchEnd, options);
       document.addEventListener('touchcancel', onTouchCancel, options);
     }
-    
+
     // Also add pointer events for desktop mouse support
     document.addEventListener('pointerdown', onPointerDown, options);
     document.addEventListener('pointermove', onPointerMove, options);

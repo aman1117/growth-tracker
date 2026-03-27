@@ -7,9 +7,9 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 
+import { API_ROUTES } from '../../../constants/routes';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { apiClient } from '../../../services/api';
-import { API_ROUTES } from '../../../constants/routes';
 import { Avatar } from '../Avatar';
 import { VerifiedBadge } from '../VerifiedBadge';
 
@@ -65,7 +65,9 @@ export const MentionAutocomplete: React.FC<MentionAutocompleteProps> = ({
     };
 
     fetchSuggestions();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [debouncedQuery]);
 
   const handleSelect = useCallback(
@@ -98,40 +100,46 @@ export const MentionAutocomplete: React.FC<MentionAutocompleteProps> = ({
         overflowY: 'auto',
       }}
     >
-      {
-        suggestions.map((suggestion) => (
-          <button
-            key={suggestion.text}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => handleSelect(suggestion.text)}
+      {suggestions.map((suggestion) => (
+        <button
+          key={suggestion.text}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => handleSelect(suggestion.text)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-3)',
+            width: '100%',
+            padding: 'var(--space-2) var(--space-4)',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            textAlign: 'left',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--text-primary)',
+            transition: 'background 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'var(--glass-hover-bg)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'none';
+          }}
+        >
+          <Avatar name={suggestion.text} src={suggestion.meta.profilePic} size="xs" />
+          <span
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 'var(--space-3)',
-              width: '100%',
-              padding: 'var(--space-2) var(--space-4)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              textAlign: 'left',
-              fontSize: 'var(--text-sm)',
-              color: 'var(--text-primary)',
-              transition: 'background 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'var(--glass-hover-bg)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'none';
+              gap: '4px',
+              fontWeight: 'var(--font-medium)' as React.CSSProperties['fontWeight'],
             }}
           >
-            <Avatar name={suggestion.text} src={suggestion.meta.profilePic} size="xs" />
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'var(--font-medium)' as React.CSSProperties['fontWeight'] }}>
-              {suggestion.text}
-              {suggestion.meta.isVerified && <VerifiedBadge size={14} />}
-            </span>
-          </button>
-        ))}
+            {suggestion.text}
+            {suggestion.meta.isVerified && <VerifiedBadge size={14} />}
+          </span>
+        </button>
+      ))}
     </div>
   );
 };

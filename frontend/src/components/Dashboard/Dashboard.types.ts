@@ -186,7 +186,9 @@ export interface StoryViewerState {
 
 export interface ToastState {
   toast: { message: string; type: 'success' | 'error' } | null;
-  setToast: React.Dispatch<React.SetStateAction<{ message: string; type: 'success' | 'error' } | null>>;
+  setToast: React.Dispatch<
+    React.SetStateAction<{ message: string; type: 'success' | 'error' } | null>
+  >;
 }
 
 // ============================================================================

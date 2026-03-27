@@ -123,7 +123,9 @@ export function isDateWithinUploadWindow(date: Date): boolean {
 
   // Normalize the target date to IST midnight
   const targetDate = new Date(date);
-  const targetIST = new Date(targetDate.getTime() + istOffset + targetDate.getTimezoneOffset() * 60 * 1000);
+  const targetIST = new Date(
+    targetDate.getTime() + istOffset + targetDate.getTimezoneOffset() * 60 * 1000
+  );
   const targetDayIST = new Date(targetIST.getFullYear(), targetIST.getMonth(), targetIST.getDate());
 
   // Check if in future

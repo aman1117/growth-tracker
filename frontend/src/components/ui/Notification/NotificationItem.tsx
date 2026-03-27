@@ -61,11 +61,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
  * Type guard to check if metadata is LikeMetadata (for like_received or story_liked)
  */
 const isLikeMetadata = (metadata: unknown): metadata is LikeMetadata => {
-  return (
-    typeof metadata === 'object' &&
-    metadata !== null &&
-    'liker_username' in metadata
-  );
+  return typeof metadata === 'object' && metadata !== null && 'liker_username' in metadata;
 };
 
 export const NotificationItem: React.FC<NotificationItemProps> = ({
@@ -83,8 +79,10 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 
   // Extract username from metadata for like notifications (day likes and story likes)
   const likeMetadata = useMemo(() => {
-    if ((notification.type === 'like_received' || notification.type === 'story_liked') && 
-        isLikeMetadata(notification.metadata)) {
+    if (
+      (notification.type === 'like_received' || notification.type === 'story_liked') &&
+      isLikeMetadata(notification.metadata)
+    ) {
       return notification.metadata;
     }
     return null;

@@ -91,9 +91,7 @@ export const EditModeToolbar: React.FC<EditModeToolbarProps> = ({
             color: 'var(--text-secondary)',
           }}
         >
-          <span
-            style={{ width: '14px', textAlign: 'center', color: '#ef4444', fontWeight: 600 }}
-          >
+          <span style={{ width: '14px', textAlign: 'center', color: '#ef4444', fontWeight: 600 }}>
             ✕
           </span>
           <span>Tap X to hide</span>

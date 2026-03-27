@@ -8,38 +8,31 @@
 
 ### Track all 24 hours. Build streaks. Grow intentionally.
 
+[![CI](https://github.com/aman1117/growth-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/aman1117/growth-tracker/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![Go](https://img.shields.io/badge/Go-1.24-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
 </div>
 
----
+Growth Tracker is a full-stack app for logging how you spend all 24 hours of your day, building streaks, and sharing progress with friends.
 
-## 💡 What is Growth Tracker?
+## What It Does
 
-We all have 24 hours in a day — but where do they actually go?
+Growth Tracker helps you account for your day across meaningful categories like sleep, study, work, fitness, family, and rest. The core idea is simple: complete your 24-hour day, stay consistent, and use streaks, reminders, and lightweight social features to keep momentum.
 
-**Growth Tracker** helps you answer that question by logging time across meaningful life categories like sleep, work, fitness, family, and more. Complete your day by logging all 24 hours, stay consistent, and watch your streak grow!
+## Screenshots
 
----
-
-## 📸 Screenshots
-
-### 🔐 Login → 📊 Dashboard
+### Login and dashboard
 
 <p align="center">
-  <img src="frontend/public/screenshots/auth.jpeg" width="280" alt="Login Screen"/>
+  <img src="frontend/public/screenshots/auth.jpeg" width="280" alt="Login screen"/>
   &nbsp;&nbsp;&nbsp;
   <img src="frontend/public/screenshots/dashboard.jpg" width="280" alt="Dashboard"/>
 </p>
 
-> **Left:** Clean authentication screen to get started  
-> **Right:** Your daily hub — see progress, streak, and activity tiles at a glance
-
----
-
-### 📈 Analytics → 🔔 Notifications
+### Analytics and notifications
 
 <p align="center">
   <img src="frontend/public/screenshots/analytics.jpg" width="280" alt="Analytics"/>
@@ -47,108 +40,196 @@ We all have 24 hours in a day — but where do they actually go?
   <img src="frontend/public/screenshots/notifications.jpg" width="280" alt="Notifications"/>
 </p>
 
-> **Left:** Weekly insights into how you spend your time  
-> **Right:** Stay on track with streak reminders and updates
-
----
-
-### ✏️ Customize Your Tiles
+### Tile customization
 
 <p align="center">
-  <img src="frontend/public/screenshots/edit-tiles-homescreen.jpg" width="280" alt="Edit Tiles - Homescreen"/>
+  <img src="frontend/public/screenshots/edit-tiles-homescreen.jpg" width="280" alt="Edit tiles on dashboard"/>
   &nbsp;&nbsp;&nbsp;
-  <img src="frontend/public/screenshots/edit-tiles-dialog.jpg" width="280" alt="Edit Tiles - Dialog"/>
+  <img src="frontend/public/screenshots/edit-tiles-dialog.jpg" width="280" alt="Edit tiles dialog"/>
 </p>
 
-> Drag-and-drop to reorder tiles, create custom activities, or hide what you don't need
-
----
-
-### 🔍 Search Users → ⚙️ Settings
+### Search and settings
 
 <p align="center">
-  <img src="frontend/public/screenshots/search.jpeg" width="280" alt="User Search"/>
+  <img src="frontend/public/screenshots/search.jpeg" width="280" alt="User search"/>
   &nbsp;&nbsp;&nbsp;
   <img src="frontend/public/screenshots/settings.jpg" width="280" alt="Settings"/>
 </p>
 
-> **Left:** Find and follow other users to see how they spend their time  
-> **Right:** Customize your experience — theme, notifications, profile
+## Features
 
----
+- 24-hour day tracking across built-in and custom categories.
+- Streaks and badges for consistency and milestone progress.
+- Social features including profiles, follows, likes, comments, and story-style activity photos.
+- Push notifications for streak reminders and account activity.
+- Drag-and-drop tile customization.
+- Dark and light themes.
+- Progressive Web App support.
 
-## ✨ Features
+## Architecture Overview
 
-| Feature | Description |
-|---------|-------------|
-| ⏱️ **24-Hour Tracking** | Log activities until your day is complete |
-| 🔥 **Streak System** | Build consistency — don't break the chain! |
-| 🏆 **Badges** | Earn achievements for milestones |
-| 👥 **Social** | Follow users, like activities, view profiles |
-| 🔔 **Push Notifications** | Streak reminders to keep you on track |
-| 🎨 **Tile Customization** | Drag-drop reorder, custom tiles, hide/show |
-| 🌗 **Dark & Light Mode** | Beautiful glassmorphism UI in both themes |
-| 📱 **PWA Support** | Install as app on any device |
+The actively maintained system has two main surfaces:
 
----
+- `frontend/`: React 19, TypeScript, Vite, Zustand, and PWA support.
+- `backend/`: Go 1.24, Fiber, GORM, PostgreSQL, Redis, Azure Blob Storage, Azure Service Bus.
 
-## 🎯 Activity Categories
+Supporting local development services are orchestrated through `docker-compose.yml`:
 
-Track time across **16 life categories**:
+- PostgreSQL for primary data.
+- Redis for cache and async coordination.
+- Azurite for local blob storage emulation.
+- Mailpit for local email testing.
 
-| | | | |
-|:---:|:---:|:---:|:---:|
-| 😴 Sleep | 📚 Study | 📖 Book Reading | 🍽️ Eating |
-| 👥 Friends | 💆 Grooming | 🏋️ Workout | 📱 Reels |
-| 🏠 Family | ☕ Idle | 🎨 Creative | ✈️ Travelling |
-| 🛒 Errand | 🛋️ Rest | 🎮 Entertainment | 💼 Office |
+## Repository Structure
 
-*Plus create your own custom categories!*
+```text
+.
+├── frontend/      # Active React application
+├── backend/       # Active Go API and workers
+├── docs/          # Project assets and screenshots
+├── android/       # Inactive reference implementation
+└── twa/           # Inactive Trusted Web Activity assets
+```
 
----
+## Maintenance Status
 
-## 🛠️ Tech Stack
+Active development is focused on:
 
-| Frontend | Backend |
-|:--------:|:-------:|
-| React 19 | Go 1.24 |
-| TypeScript | Fiber v2 |
-| Vite | PostgreSQL 16 |
-| Zustand | Redis 7 |
-| PWA | Azure Blob |
+- `frontend/`
+- `backend/`
+- `docker-compose.yml`
+- root documentation and contributor tooling
 
----
+The following directories are retained for reference and are not under active development:
 
-## 🚀 Getting Started
+- `android/`
+- `twa/`
 
-Ready to run locally? Check out the full setup guide:
+Pull requests for inactive areas may be declined unless they support a broader repository need.
 
-👉 **[LOCAL_DEV_README.md](LOCAL_DEV_README.md)**
+## Tech Stack
 
----
+| Area | Technology |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite, Zustand, PWA |
+| Backend | Go 1.24, Fiber, GORM |
+| Data | PostgreSQL 16, Redis 7 |
+| Storage and messaging | Azure Blob Storage, Azure Service Bus |
+| Local development | Docker Compose, Mailpit, Azurite |
 
-## 🤝 Contributing
+## Prerequisites
 
-Contributions are welcome! Here's how you can help:
+- Docker Desktop
+- Node.js 20+
+- npm 10+
+- Go 1.24+
 
-1. 🐛 **Report bugs** — Open an issue describing the problem
-2. 💡 **Suggest features** — Share your ideas in discussions
-3. 🔧 **Submit PRs** — Fork, create a branch, and submit a pull request
+## Installation
 
----
+### Recommended path
 
-## 📋 TODOs
+Use Docker Compose for the full stack:
 
-- [ ] Export data to CSV/PDF
-- [ ] Goal setting per activity category
-- [ ] Unit test cases
-- [ ] Add attachments to activities
-- [ ] Optimized photo upload
-- [ ] Story-like "updated their day" feature
-- [ ] Streak freeze days
-- [ ] Verified user criteria
-- [ ] Cleanup for stale subscriptions
-- [ ] Snooze 
+```bash
+docker compose up --build
+```
+
+Then open:
+
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:8000`
+- Mailpit: `http://localhost:8025`
+
+### Detailed local setup
+
+See [LOCAL_DEV_README.md](LOCAL_DEV_README.md) for:
+
+- local environment details
+- debugging with Delve
+- seed workflows
+- troubleshooting steps
+- local service architecture
+
+## Environment Setup
+
+Use the provided example files as your starting point:
+
+- `.env.example`
+- `.env.local.example`
+- `frontend/.env.example`
+
+Important rules:
+
+- Never commit real credentials or production secrets.
+- Treat any credential exposed in git history as compromised and rotate it.
+- Prefer local development credentials and emulators for all contributor workflows.
+
+## Development Commands
+
+| Command | Purpose |
+| --- | --- |
+| `docker compose up --build` | Start the full local stack |
+| `docker compose down` | Stop the local stack |
+| `make setup` | Install frontend dependencies |
+| `make check` | Run frontend and backend validation |
+| `cd frontend && npm run dev` | Start the frontend only |
+| `cd frontend && npm run lint` | Run frontend lint checks |
+| `cd frontend && npm run format:check` | Check frontend formatting |
+| `cd frontend && npm run typecheck` | Run frontend type checking |
+| `cd frontend && npm run build` | Build the frontend |
+| `cd backend && go fmt ./...` | Format backend packages |
+| `cd backend && go vet ./...` | Run backend vet |
+| `cd backend && go build ./...` | Build backend packages |
+
+## Testing and Validation
+
+This repository does not currently ship a committed automated test suite.
+
+Until that changes, contributors should validate work with:
+
+- frontend lint
+- frontend format check
+- frontend typecheck
+- frontend production build
+- backend format check
+- backend vet
+- backend build
+- manual verification using the Docker Compose environment
+
+## Build and Production Run
+
+- Frontend production assets are built with `npm run build` in `frontend/`.
+- Backend containers are built from `backend/Dockerfile` and `backend/Dockerfile.pushworker`.
+- Deployment workflows for the backend and push worker live in `.github/workflows/`.
+
+## Deployment Overview
+
+The current repository includes GitHub Actions for deploying:
+
+- the backend API to Azure Container Apps
+- the push worker to Azure Container Apps
+
+Local development uses Docker Compose and does not require Azure credentials unless you are testing cloud-backed integrations directly.
+
+## Contributing
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Also review:
+
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [SECURITY.md](SECURITY.md)
+- [SUPPORT.md](SUPPORT.md)
+
+## License
+
+This repository is licensed under the [MIT License](LICENSE).
+
+## Maintainer
+
+Maintained by `@aman1117`.
+
+If you want to contribute, open an issue or pull request with enough context to reproduce, review, and validate the change.
 
 
 

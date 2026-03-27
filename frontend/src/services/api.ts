@@ -464,10 +464,10 @@ export const likeApi = {
 
 import type {
   GetFollowingStoriesResponse,
+  GetPhotoInteractionsResponse,
+  GetPhotoLikeStatusResponse,
   GetPhotosResponse,
   GetPhotoViewersResponse,
-  GetPhotoLikeStatusResponse,
-  GetPhotoInteractionsResponse,
   UploadPhotoResponse,
 } from '../types/story';
 
@@ -480,8 +480,8 @@ export const activityPhotoApi = {
    * @param customTileMetadata - Optional custom tile metadata (icon, color, label)
    */
   uploadPhoto: async (
-    file: File, 
-    activityName: string, 
+    file: File,
+    activityName: string,
     photoDate: string,
     customTileMetadata?: { icon?: string; color?: string; label?: string }
   ): Promise<UploadPhotoResponse> => {
@@ -489,7 +489,7 @@ export const activityPhotoApi = {
     formData.append('image', file);
     formData.append('activity_name', activityName);
     formData.append('photo_date', photoDate);
-    
+
     // Add custom tile metadata if provided
     if (customTileMetadata?.icon) {
       formData.append('activity_icon', customTileMetadata.icon);
@@ -556,10 +556,7 @@ export const activityPhotoApi = {
    * @param photoId - Photo ID
    */
   recordView: (photoId: number) =>
-    apiClient.post<{ success: boolean }>(
-      API_ROUTES.ACTIVITY_PHOTO.RECORD_VIEW(photoId),
-      {}
-    ),
+    apiClient.post<{ success: boolean }>(API_ROUTES.ACTIVITY_PHOTO.RECORD_VIEW(photoId), {}),
 
   /**
    * Get viewers of a photo (owner only)
@@ -577,28 +574,21 @@ export const activityPhotoApi = {
    * @param photoId - Photo ID
    */
   likePhoto: (photoId: number) =>
-    apiClient.post<{ success: boolean }>(
-      API_ROUTES.ACTIVITY_PHOTO.LIKE(photoId),
-      {}
-    ),
+    apiClient.post<{ success: boolean }>(API_ROUTES.ACTIVITY_PHOTO.LIKE(photoId), {}),
 
   /**
    * Unlike a photo
    * @param photoId - Photo ID
    */
   unlikePhoto: (photoId: number) =>
-    apiClient.delete<{ success: boolean }>(
-      API_ROUTES.ACTIVITY_PHOTO.UNLIKE(photoId)
-    ),
+    apiClient.delete<{ success: boolean }>(API_ROUTES.ACTIVITY_PHOTO.UNLIKE(photoId)),
 
   /**
    * Get like status for a photo (liked + count)
    * @param photoId - Photo ID
    */
   getLikeStatus: (photoId: number) =>
-    apiClient.get<GetPhotoLikeStatusResponse>(
-      API_ROUTES.ACTIVITY_PHOTO.GET_LIKE_STATUS(photoId)
-    ),
+    apiClient.get<GetPhotoLikeStatusResponse>(API_ROUTES.ACTIVITY_PHOTO.GET_LIKE_STATUS(photoId)),
 
   /**
    * Get combined interactions (views + likes) for a photo (owner only)
@@ -650,9 +640,7 @@ export const searchApi = {
    * Clear all recent searches
    */
   clearRecentSearches: () =>
-    apiClient.delete<{ success: boolean; message?: string }>(
-      API_ROUTES.SEARCH.CLEAR_RECENT
-    ),
+    apiClient.delete<{ success: boolean; message?: string }>(API_ROUTES.SEARCH.CLEAR_RECENT),
 };
 
 // ============================================================================
@@ -660,10 +648,10 @@ export const searchApi = {
 // ============================================================================
 
 import type {
-  CommentsListResponse,
-  CommentCountResponse,
   CommentActionResponse,
+  CommentCountResponse,
   CommentLikeResponse,
+  CommentsListResponse,
 } from '../types/comment';
 
 export const commentApi = {
@@ -714,9 +702,7 @@ export const commentApi = {
 
   /** Delete a comment */
   deleteComment: (commentId: number) =>
-    apiClient.delete<{ success: boolean; message: string }>(
-      API_ROUTES.COMMENT.DELETE(commentId)
-    ),
+    apiClient.delete<{ success: boolean; message: string }>(API_ROUTES.COMMENT.DELETE(commentId)),
 
   /** Like a comment */
   likeComment: (commentId: number) =>
@@ -730,4 +716,3 @@ export const commentApi = {
   getCommentCount: (username: string, date: string) =>
     apiClient.get<CommentCountResponse>(API_ROUTES.COMMENT.COUNT(username, date)),
 };
-

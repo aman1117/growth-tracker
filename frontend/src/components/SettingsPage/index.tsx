@@ -29,7 +29,6 @@ import type { Badge } from '../../types/api';
 import { BadgeShowcase } from '../BadgeShowcase';
 import { FollowListModal, FollowRequestsModal } from '../social';
 import { SnapToast } from '../ui';
-
 import {
   BioDialog,
   FullscreenProfilePic,

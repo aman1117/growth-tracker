@@ -25,12 +25,7 @@ interface CommentSheetProps {
 
 const CLOSE_ANIMATION_MS = 200;
 
-export const CommentSheet: React.FC<CommentSheetProps> = ({
-  isOpen,
-  onClose,
-  username,
-  date,
-}) => {
+export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, username, date }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
@@ -107,7 +102,9 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
   useEffect(() => {
     if (isOpen && isMobile) {
       document.body.style.overflow = 'hidden';
-      return () => { document.body.style.overflow = ''; };
+      return () => {
+        document.body.style.overflow = '';
+      };
     }
   }, [isOpen, isMobile]);
 
@@ -187,10 +184,20 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
         <div className={styles.header}>
           <h3 className={styles.title}>Comments</h3>
           <div className={styles.headerActions}>
-            <button className={styles.headerButton} onClick={handleRefresh} title="Refresh" aria-label="Refresh comments">
+            <button
+              className={styles.headerButton}
+              onClick={handleRefresh}
+              title="Refresh"
+              aria-label="Refresh comments"
+            >
               <RefreshCw size={16} />
             </button>
-            <button className={styles.headerButton} onClick={onClose} title="Close" aria-label="Close comments">
+            <button
+              className={styles.headerButton}
+              onClick={onClose}
+              title="Close"
+              aria-label="Close comments"
+            >
               <X size={18} />
             </button>
           </div>
@@ -213,7 +220,11 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
         </div>
 
         {/* Comment List */}
-        <div ref={listRef} className={`${styles.commentList} ${listFading ? styles.commentListFading : ''}`} onScroll={handleScroll}>
+        <div
+          ref={listRef}
+          className={`${styles.commentList} ${listFading ? styles.commentListFading : ''}`}
+          onScroll={handleScroll}
+        >
           {loading && comments.length === 0 ? (
             <div className={styles.loading}>
               <RefreshCw size={18} className={styles.spinning} />

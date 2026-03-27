@@ -35,10 +35,20 @@ interface CommentState {
 }
 
 interface CommentActions {
-  fetchComments: (username: string, date: string, sort?: 'top' | 'newest', reset?: boolean) => Promise<void>;
+  fetchComments: (
+    username: string,
+    date: string,
+    sort?: 'top' | 'newest',
+    reset?: boolean
+  ) => Promise<void>;
   fetchReplies: (commentId: number, reset?: boolean) => Promise<void>;
   createComment: (username: string, date: string, body: string) => Promise<Comment | null>;
-  createReply: (username: string, date: string, commentId: number, body: string) => Promise<Comment | null>;
+  createReply: (
+    username: string,
+    date: string,
+    commentId: number,
+    body: string
+  ) => Promise<Comment | null>;
   deleteComment: (commentId: number, dayKey: string) => Promise<boolean>;
   likeComment: (commentId: number, dayKey: string) => void;
   unlikeComment: (commentId: number, dayKey: string) => void;
@@ -102,8 +112,9 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
   clearComments: (dayKey) => {
     if (dayKey) {
       set((state) => {
-        const { [dayKey]: _, ...rest } = state.commentsByDay;
-        return { commentsByDay: rest, repliesByRoot: {}, hasMore: false };
+        const nextCommentsByDay = { ...state.commentsByDay };
+        delete nextCommentsByDay[dayKey];
+        return { commentsByDay: nextCommentsByDay, repliesByRoot: {}, hasMore: false };
       });
     } else {
       set({ commentsByDay: {}, repliesByRoot: {}, hasMore: false });
@@ -124,9 +135,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     try {
       const response = await commentApi.getComments(username, date, currentSort, cursor, 20);
       if (response.success) {
-        const newComments = reset
-          ? response.comments
-          : [...existing, ...response.comments];
+        const newComments = reset ? response.comments : [...existing, ...response.comments];
         set((state) => ({
           commentsByDay: { ...state.commentsByDay, [dayKey]: newComments },
           hasMore: response.has_more,
@@ -141,7 +150,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
   },
 
   fetchReplies: async (commentId, reset) => {
-    const existing = reset ? [] : (get().repliesByRoot[commentId]?.comments || []);
+    const existing = reset ? [] : get().repliesByRoot[commentId]?.comments || [];
     const cursor = reset ? undefined : existing[existing.length - 1]?.id;
 
     set((state) => ({
@@ -158,9 +167,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     try {
       const response = await commentApi.getReplies(commentId, cursor, 20);
       if (response.success) {
-        const newReplies = reset
-          ? response.comments
-          : [...existing, ...response.comments];
+        const newReplies = reset ? response.comments : [...existing, ...response.comments];
         set((state) => ({
           repliesByRoot: {
             ...state.repliesByRoot,
@@ -236,7 +243,13 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     }
 
     try {
-      const response = await commentApi.createReply(username, date, commentId, body, idempotencyKey);
+      const response = await commentApi.createReply(
+        username,
+        date,
+        commentId,
+        body,
+        idempotencyKey
+      );
       if (response.success && response.comment) {
         // Add reply to repliesByRoot
         set((state) => {
@@ -340,7 +353,11 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
         });
 
         // Decrement ancestor reply_counts if leaf (no children)
-        if (deletedComment && deletedComment.parent_comment_id != null && deletedComment.reply_count === 0) {
+        if (
+          deletedComment &&
+          deletedComment.parent_comment_id != null &&
+          deletedComment.reply_count === 0
+        ) {
           set((state) => {
             const result: Partial<CommentState> = {};
             const ancestorIds = new Set<number>();
@@ -348,7 +365,9 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
             const effectiveRootId = rootId ?? deletedComment!.root_comment_id;
 
             const allTopLevel = state.commentsByDay[dayKey] || [];
-            const allReplies = effectiveRootId ? (state.repliesByRoot[effectiveRootId]?.comments || []) : [];
+            const allReplies = effectiveRootId
+              ? state.repliesByRoot[effectiveRootId]?.comments || []
+              : [];
             const allComments = [...allTopLevel, ...allReplies];
 
             while (currentId != null) {
@@ -371,7 +390,9 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
                 [effectiveRootId]: {
                   ...state.repliesByRoot[effectiveRootId],
                   comments: state.repliesByRoot[effectiveRootId].comments.map((c) =>
-                    ancestorIds.has(c.id) ? { ...c, reply_count: Math.max(0, c.reply_count - 1) } : c
+                    ancestorIds.has(c.id)
+                      ? { ...c, reply_count: Math.max(0, c.reply_count - 1) }
+                      : c
                   ),
                 },
               };
@@ -390,57 +411,69 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
 
   likeComment: async (commentId, dayKey) => {
     // Optimistic update
-    set((state) => updateCommentInState(state, commentId, dayKey, (c) => ({
-      ...c,
-      liked_by_me: true,
-      like_count: c.like_count + 1,
-    })));
+    set((state) =>
+      updateCommentInState(state, commentId, dayKey, (c) => ({
+        ...c,
+        liked_by_me: true,
+        like_count: c.like_count + 1,
+      }))
+    );
 
     try {
       const response = await commentApi.likeComment(commentId);
       if (response.success) {
-        set((state) => updateCommentInState(state, commentId, dayKey, (c) => ({
-          ...c,
-          liked_by_me: response.liked,
-          like_count: response.new_count,
-        })));
+        set((state) =>
+          updateCommentInState(state, commentId, dayKey, (c) => ({
+            ...c,
+            liked_by_me: response.liked,
+            like_count: response.new_count,
+          }))
+        );
       }
     } catch (error) {
       console.error('[CommentStore] likeComment failed:', error);
       // Revert
-      set((state) => updateCommentInState(state, commentId, dayKey, (c) => ({
-        ...c,
-        liked_by_me: false,
-        like_count: Math.max(0, c.like_count - 1),
-      })));
+      set((state) =>
+        updateCommentInState(state, commentId, dayKey, (c) => ({
+          ...c,
+          liked_by_me: false,
+          like_count: Math.max(0, c.like_count - 1),
+        }))
+      );
     }
   },
 
   unlikeComment: async (commentId, dayKey) => {
     // Optimistic update
-    set((state) => updateCommentInState(state, commentId, dayKey, (c) => ({
-      ...c,
-      liked_by_me: false,
-      like_count: Math.max(0, c.like_count - 1),
-    })));
+    set((state) =>
+      updateCommentInState(state, commentId, dayKey, (c) => ({
+        ...c,
+        liked_by_me: false,
+        like_count: Math.max(0, c.like_count - 1),
+      }))
+    );
 
     try {
       const response = await commentApi.unlikeComment(commentId);
       if (response.success) {
-        set((state) => updateCommentInState(state, commentId, dayKey, (c) => ({
-          ...c,
-          liked_by_me: response.liked,
-          like_count: response.new_count,
-        })));
+        set((state) =>
+          updateCommentInState(state, commentId, dayKey, (c) => ({
+            ...c,
+            liked_by_me: response.liked,
+            like_count: response.new_count,
+          }))
+        );
       }
     } catch (error) {
       console.error('[CommentStore] unlikeComment failed:', error);
       // Revert
-      set((state) => updateCommentInState(state, commentId, dayKey, (c) => ({
-        ...c,
-        liked_by_me: true,
-        like_count: c.like_count + 1,
-      })));
+      set((state) =>
+        updateCommentInState(state, commentId, dayKey, (c) => ({
+          ...c,
+          liked_by_me: true,
+          like_count: c.like_count + 1,
+        }))
+      );
     }
   },
 

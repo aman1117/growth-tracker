@@ -76,7 +76,7 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
   className,
 }) => {
   const navigate = useNavigate();
-  
+
   // State for initial suggestions (recent + trending)
   const [initialSuggestions, setInitialSuggestions] = useState<{
     recent: AutocompleteSuggestion[];
@@ -84,7 +84,7 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
   } | null>(null);
   const [suggestionsLoaded, setSuggestionsLoaded] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  
+
   // Track if suggestions have been fetched to avoid duplicate calls
   const suggestionsFetchedRef = useRef(false);
   // Track confirm timeout for cleanup
@@ -156,32 +156,29 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
     [onSelect, navigateOnSelect, navigate, onComplete]
   );
 
-  const handleDeleteRecent = useCallback(
-    async (username: string, userId?: number) => {
-      // Optimistically remove from UI
-      setInitialSuggestions((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          recent: prev.recent.filter((s) => s.text !== username),
-        };
-      });
+  const handleDeleteRecent = useCallback(async (username: string, userId?: number) => {
+    // Optimistically remove from UI
+    setInitialSuggestions((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        recent: prev.recent.filter((s) => s.text !== username),
+      };
+    });
 
-      // Delete from server in background
-      if (userId) {
-        try {
-          await searchApi.deleteRecentSearch(userId);
-        } catch (error) {
-          console.error('[UserSearchAutocomplete] Failed to delete recent search:', error);
-          // Revert on error by refetching
-          suggestionsFetchedRef.current = false;
-          setInitialSuggestions(null);
-          setSuggestionsLoaded(false);
-        }
+    // Delete from server in background
+    if (userId) {
+      try {
+        await searchApi.deleteRecentSearch(userId);
+      } catch (error) {
+        console.error('[UserSearchAutocomplete] Failed to delete recent search:', error);
+        // Revert on error by refetching
+        suggestionsFetchedRef.current = false;
+        setInitialSuggestions(null);
+        setSuggestionsLoaded(false);
       }
-    },
-    []
-  );
+    }
+  }, []);
 
   const handleClearAllRecent = useCallback(async () => {
     if (!showClearConfirm) {
@@ -232,7 +229,10 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
       }
 
       // If no initial suggestions loaded yet or no suggestions, return null
-      if (!initialSuggestions || (!initialSuggestions.recent.length && !initialSuggestions.trending.length)) {
+      if (
+        !initialSuggestions ||
+        (!initialSuggestions.recent.length && !initialSuggestions.trending.length)
+      ) {
         return null;
       }
 
@@ -242,7 +242,9 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
           if (index === 0 && initialSuggestions.recent.length > 0) {
             return (
               <div className="suggestion-section-header">
-                <span className="section-icon"><Clock size={14} /></span>
+                <span className="section-icon">
+                  <Clock size={14} />
+                </span>
                 <span className="section-title">Recent</span>
                 {initialSuggestions.recent.length > 0 && (
                   <button
@@ -262,10 +264,15 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
           }
 
           // Trending section header
-          if (index === initialSuggestions.recent.length && initialSuggestions.trending.length > 0) {
+          if (
+            index === initialSuggestions.recent.length &&
+            initialSuggestions.trending.length > 0
+          ) {
             return (
               <div className="suggestion-section-header">
-                <span className="section-icon"><TrendingUp size={14} /></span>
+                <span className="section-icon">
+                  <TrendingUp size={14} />
+                </span>
                 <span className="section-title">Trending</span>
               </div>
             );
@@ -299,9 +306,10 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
   );
 
   // Combine recent and trending for initial display
-  const combinedInitialSuggestions = suggestionsLoaded && initialSuggestions
-    ? [...initialSuggestions.recent, ...initialSuggestions.trending]
-    : undefined;
+  const combinedInitialSuggestions =
+    suggestionsLoaded && initialSuggestions
+      ? [...initialSuggestions.recent, ...initialSuggestions.trending]
+      : undefined;
 
   return (
     <Autocomplete
@@ -320,4 +328,3 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
 };
 
 export default UserSearchAutocomplete;
-

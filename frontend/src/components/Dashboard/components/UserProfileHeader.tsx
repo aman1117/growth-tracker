@@ -43,7 +43,8 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
   onAnalyticsClick,
 }) => {
   // Check if user has viewable stories (not private, has photos, and photos belong to current user)
-  const hasStories = !isPrivateAccount && targetUserPhotos.length > 0 && targetUserPhotosOwnerId === targetUserId;
+  const hasStories =
+    !isPrivateAccount && targetUserPhotos.length > 0 && targetUserPhotosOwnerId === targetUserId;
 
   return (
     <div
@@ -88,7 +89,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
             cursor: hasStories || targetProfilePic ? 'pointer' : 'default',
             // Use consistent 3px border, only color changes for story indicator
             border: hasStories
-              ? '3px solid #0095f6'  // Story ring indicator
+              ? '3px solid #0095f6' // Story ring indicator
               : '3px solid var(--border)',
           }}
         >
@@ -163,9 +164,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
           </span>
         )}
         {/* Mutual Followers - "Followed by X, Y and N others" */}
-        {targetUserId && (
-          <MutualFollowers userId={targetUserId} username={targetUsername} />
-        )}
+        {targetUserId && <MutualFollowers userId={targetUserId} username={targetUsername} />}
       </div>
 
       {/* Row 3: Follow Button + Analytics */}

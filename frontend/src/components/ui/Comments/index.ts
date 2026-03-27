@@ -3,7 +3,7 @@
  */
 
 export { CommentButton, type CommentButtonProps } from './CommentButton';
-export { CommentSheet } from './CommentSheet';
-export { CommentItem } from './CommentItem';
 export { CommentInput } from './CommentInput';
+export { CommentItem } from './CommentItem';
+export { CommentSheet } from './CommentSheet';
 export { MentionAutocomplete } from './MentionAutocomplete';

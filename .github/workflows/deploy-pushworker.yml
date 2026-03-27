@@ -70,7 +70,7 @@ jobs:
 
       - name: Deploy to Azure Container Apps
         if: steps.check-app.outputs.exists == 'true'
-        uses: azure/container-apps-deploy-action@v1
+        uses: azure/container-apps-deploy-action@v2
         with:
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           containerAppName: ${{ env.CONTAINER_APP_NAME }}

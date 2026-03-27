@@ -343,19 +343,16 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                 onChange={handleNameChange}
                 placeholder="Enter name..."
                 maxLength={20}
-                disabled={isEditing}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
-                  background: isEditing ? 'var(--bg-tertiary)' : 'var(--bg-secondary)',
+                  background: 'var(--bg-secondary)',
                   border: '1px solid var(--border)',
                   borderRadius: '10px',
-                  color: isEditing ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                  color: 'var(--text-primary)',
                   fontSize: '0.9rem',
                   outline: 'none',
                   boxSizing: 'border-box',
-                  cursor: isEditing ? 'not-allowed' : 'text',
-                  opacity: isEditing ? 0.7 : 1,
                 }}
               />
               <div
@@ -366,7 +363,7 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
                   textAlign: isEditing ? 'left' : 'right',
                 }}
               >
-                {isEditing ? 'Name cannot be changed after creation' : `${name.length}/20`}
+                {`${name.length}/20`}
               </div>
             </div>
           </div>

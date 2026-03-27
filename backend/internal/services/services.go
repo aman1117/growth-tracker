@@ -520,15 +520,17 @@ func (s *StreakService) GetAllStreaks(userID uint) ([]models.Streak, error) {
 
 // TileConfigService handles tile configuration business logic
 type TileConfigService struct {
-	tileRepo *repository.TileConfigRepository
-	userRepo *repository.UserRepository
+	tileRepo  *repository.TileConfigRepository
+	userRepo  *repository.UserRepository
+	photoRepo *repository.ActivityPhotoRepository
 }
 
 // NewTileConfigService creates a new TileConfigService
-func NewTileConfigService(tileRepo *repository.TileConfigRepository, userRepo *repository.UserRepository) *TileConfigService {
+func NewTileConfigService(tileRepo *repository.TileConfigRepository, userRepo *repository.UserRepository, photoRepo *repository.ActivityPhotoRepository) *TileConfigService {
 	return &TileConfigService{
-		tileRepo: tileRepo,
-		userRepo: userRepo,
+		tileRepo:  tileRepo,
+		userRepo:  userRepo,
+		photoRepo: photoRepo,
 	}
 }
 
@@ -616,7 +618,7 @@ func (s *TileConfigService) SaveConfig(userID uint, config models.JSONB) error {
 		return validationErr
 	}
 
-	// Check for tile renames (not allowed due to activity photos)
+	// Cascade renamed tile labels to activity photos
 	existingConfig, err := s.tileRepo.FindByUserID(userID)
 	if err == nil && existingConfig != nil {
 		existingData, err := existingConfig.GetConfigData()
@@ -624,19 +626,17 @@ func (s *TileConfigService) SaveConfig(userID uint, config models.JSONB) error {
 			newTC := &models.TileConfig{Config: config}
 			newData, err := newTC.GetConfigData()
 			if err == nil && newData != nil {
-				// Build map of existing custom tiles by ID
 				existingTiles := make(map[string]string) // ID -> Name
 				for _, tile := range existingData.CustomTiles {
 					existingTiles[tile.ID] = tile.Name
 				}
 
-				// Check if any tile was renamed
 				for _, newTile := range newData.CustomTiles {
 					if oldName, exists := existingTiles[newTile.ID]; exists {
-						if oldName != newTile.Name {
-							return &TileConfigValidationError{
-								Message: "Tile renaming is not supported",
-								Code:    constants.ErrCodeInvalidTileConfig,
+						if oldName != newTile.Name && s.photoRepo != nil {
+							activityName := models.CustomTilePrefix + newTile.ID
+							if updateErr := s.photoRepo.UpdateLabelByActivityName(userID, activityName, newTile.Name); updateErr != nil {
+								return updateErr
 							}
 						}
 					}

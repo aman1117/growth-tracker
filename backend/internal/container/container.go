@@ -104,7 +104,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.NotificationService = services.NewNotificationService(c.NotificationRepo)
 	c.ActivityService = services.NewActivityService(c.ActivityRepo, c.StreakService, c.UserRepo, c.FollowRepo, c.NotificationService)
 	c.AnalyticsService = services.NewAnalyticsService(c.ActivityRepo, c.StreakRepo, c.UserRepo)
-	c.TileConfigService = services.NewTileConfigService(c.TileConfigRepo, c.UserRepo)
+	c.TileConfigService = services.NewTileConfigService(c.TileConfigRepo, c.UserRepo, c.ActivityPhotoRepo)
 	c.BlobService = services.NewBlobService(c.UserRepo, &cfg.AzureStorage)
 	c.BadgeService = services.NewBadgeService(c.BadgeRepo, c.UserRepo)
 	c.FollowService = services.NewFollowService(c.FollowRepo, c.UserRepo, &cfg.Follow)

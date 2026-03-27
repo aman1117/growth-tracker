@@ -61,6 +61,13 @@ func (r *ActivityPhotoRepository) GetByUserAndDateRange(userID uint, startDate, 
 	return photos, err
 }
 
+// UpdateLabelByActivityName updates the activity_label for all photos matching a user and activity name
+func (r *ActivityPhotoRepository) UpdateLabelByActivityName(userID uint, activityName string, newLabel string) error {
+	return r.db.Model(&models.ActivityPhoto{}).
+		Where("user_id = ? AND activity_name = ?", userID, activityName).
+		Update("activity_label", newLabel).Error
+}
+
 // GetByActivityName retrieves photos for a specific activity name by user
 func (r *ActivityPhotoRepository) GetByActivityName(userID uint, activityName string) ([]models.ActivityPhoto, error) {
 	var photos []models.ActivityPhoto

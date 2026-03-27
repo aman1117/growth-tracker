@@ -7,7 +7,7 @@
 
 import { MessageCircle } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import { useCommentStore } from '../../../store/useCommentStore';
 import styles from './CommentButton.module.css';
@@ -27,7 +27,7 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
   showCount = true,
 }) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const dayKey = `${username}:${date}`;
   const count = useCommentStore((s) => s.counts[dayKey] ?? 0);
   const fetchCommentCount = useCommentStore((s) => s.fetchCommentCount);
@@ -38,17 +38,17 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
 
   // Deep link: auto-open comment sheet when URL has ?comments=true
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('comments') === 'true') {
+    if (searchParams.get('comments') === 'true') {
       setIsSheetOpen(true);
-      // Remove the param from URL to prevent re-opening
-      params.delete('comments');
-      const newUrl = params.toString()
-        ? `${location.pathname}?${params.toString()}`
-        : location.pathname;
-      window.history.replaceState({}, '', newUrl);
+      // Remove the param — this updates both the URL and React Router's state,
+      // so the param won't persist through pull-to-refresh or remounts.
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('comments');
+        return next;
+      }, { replace: true });
     }
-  }, [location]);
+  }, [searchParams, setSearchParams]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {

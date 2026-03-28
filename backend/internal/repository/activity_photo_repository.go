@@ -117,11 +117,12 @@ func (r *ActivityPhotoRepository) GetFollowingPhotosGrouped(viewerID uint, photo
 	var groups []models.UserStoryGroup
 	for _, userID := range userIDs {
 		var user struct {
-			ID         uint
-			Username   string
-			ProfilePic *string
+			ID              uint
+			Username        string
+			ProfilePic      *string
+			ProfilePicThumb *string
 		}
-		if err := r.db.Raw("SELECT id, username, profile_pic FROM users WHERE id = ?", userID).Scan(&user).Error; err != nil {
+		if err := r.db.Raw("SELECT id, username, profile_pic, profile_pic_thumb FROM users WHERE id = ?", userID).Scan(&user).Error; err != nil {
 			continue
 		}
 
@@ -161,11 +162,12 @@ func (r *ActivityPhotoRepository) GetFollowingPhotosGrouped(viewerID uint, photo
 		}
 
 		groups = append(groups, models.UserStoryGroup{
-			UserID:     user.ID,
-			Username:   user.Username,
-			ProfilePic: user.ProfilePic,
-			Photos:     photosWithViewed,
-			HasUnseen:  hasUnseen,
+			UserID:          user.ID,
+			Username:        user.Username,
+			ProfilePic:      user.ProfilePic,
+			ProfilePicThumb: user.ProfilePicThumb,
+			Photos:          photosWithViewed,
+			HasUnseen:       hasUnseen,
 		})
 	}
 
@@ -232,6 +234,7 @@ func (r *ActivityPhotoRepository) GetViewers(photoID uint, limit, offset int) ([
 			u.id as user_id, 
 			u.username, 
 			u.profile_pic,
+			u.profile_pic_thumb,
 			sv.viewed_at
 		FROM story_views sv
 		INNER JOIN users u ON sv.viewer_id = u.id
@@ -311,6 +314,7 @@ func (r *ActivityPhotoRepository) GetPhotoLikers(photoID uint, limit, offset int
 			u.id as user_id, 
 			u.username, 
 			u.profile_pic,
+			u.profile_pic_thumb,
 			sl.liked_at
 		FROM story_likes sl
 		INNER JOIN users u ON sl.liker_id = u.id
@@ -358,6 +362,7 @@ func (r *ActivityPhotoRepository) GetPhotoInteractions(photoID uint, limit, offs
 			COALESCE(v.user_id, l.user_id) as user_id,
 			u.username,
 			u.profile_pic,
+			u.profile_pic_thumb,
 			CASE 
 				WHEN v.user_id IS NOT NULL AND l.user_id IS NOT NULL THEN 'both'
 				WHEN l.user_id IS NOT NULL THEN 'like'

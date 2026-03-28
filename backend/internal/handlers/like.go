@@ -417,11 +417,12 @@ func (h *LikeHandler) GetLikes(c *fiber.Ctx) error {
 		likerDTOs = make([]dto.LikerDTO, len(likes))
 		for i, like := range likes {
 			likerDTOs[i] = dto.LikerDTO{
-				ID:         like.LikerID,
-				Username:   like.Username,
-				ProfilePic: like.ProfilePic,
-				IsVerified: like.IsVerified,
-				LikedAt:    like.CreatedAt.Format(time.RFC3339),
+				ID:              like.LikerID,
+				Username:        like.Username,
+				ProfilePic:      like.ProfilePic,
+				ProfilePicThumb: like.ProfilePicThumb,
+				IsVerified:      like.IsVerified,
+				LikedAt:         like.CreatedAt.Format(time.RFC3339),
 			}
 		}
 

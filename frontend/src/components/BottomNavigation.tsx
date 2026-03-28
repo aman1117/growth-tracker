@@ -191,7 +191,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ onCustomizeT
           onClick={() => navigate(APP_ROUTES.SETTINGS)}
           label="Profile"
           isProfile={true}
-          profilePic={user.profilePic}
+          profilePic={user.profilePicThumb || user.profilePic}
           username={user.username}
         />
       </div>

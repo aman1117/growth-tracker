@@ -432,7 +432,12 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
                         type="button"
                       >
                         <div className="story-add-avatar">
-                          <Avatar src={user?.profilePic} name={user?.username || 'You'} size="lg" />
+                          <Avatar
+                            src={user?.profilePic}
+                            thumbnailSrc={user?.profilePicThumb}
+                            name={user?.username || 'You'}
+                            size="lg"
+                          />
                         </div>
                       </button>
                       {/* Plus icon - add new story */}
@@ -469,7 +474,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
                       <div className="story-circle-inner">
                         {group.profile_pic ? (
                           <img
-                            src={group.profile_pic}
+                            src={group.profile_pic_thumb || group.profile_pic}
                             alt={group.username}
                             className="story-circle-image"
                           />

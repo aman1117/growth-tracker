@@ -98,6 +98,7 @@ export const Dashboard: React.FC = () => {
     targetUsername,
     targetUserId,
     targetProfilePic,
+    targetProfilePicThumb,
     targetBio,
     targetIsVerified,
     targetIsPrivate,
@@ -559,6 +560,7 @@ export const Dashboard: React.FC = () => {
             targetUsername={targetUsername || ''}
             targetUserId={targetUserId}
             targetProfilePic={targetProfilePic}
+            targetProfilePicThumb={targetProfilePicThumb}
             targetBio={targetBio}
             targetIsVerified={targetIsVerified}
             targetIsPrivate={targetIsPrivate}
@@ -757,6 +759,7 @@ export const Dashboard: React.FC = () => {
         {showTargetFullscreenPic && targetProfilePic && (
           <FullscreenProfilePic
             profilePic={targetProfilePic}
+            profilePicThumb={targetProfilePicThumb}
             username={targetUsername || ''}
             onClose={() => setShowTargetFullscreenPic(false)}
           />

@@ -144,9 +144,9 @@ func (s *ProfileService) GetBio(userID uint) (*string, error) {
 	return s.userRepo.GetBio(userID)
 }
 
-// UpdateProfilePic updates a user's profile picture URL
-func (s *ProfileService) UpdateProfilePic(userID uint, url *string) error {
-	return s.userRepo.UpdateProfilePic(userID, url)
+// UpdateProfilePic updates a user's profile picture URL and thumbnail
+func (s *ProfileService) UpdateProfilePic(userID uint, url *string, thumbURL *string) error {
+	return s.userRepo.UpdateProfilePic(userID, url, thumbURL)
 }
 
 // SearchUsers searches for users by username (includes private users)

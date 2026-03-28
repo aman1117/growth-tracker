@@ -16,6 +16,7 @@ interface UseTargetUserReturn {
   targetUsername: string | undefined;
   targetUserId: number | null;
   targetProfilePic: string | null;
+  targetProfilePicThumb: string | null;
   targetBio: string | null;
   targetIsVerified: boolean;
   targetIsPrivate: boolean;
@@ -45,6 +46,7 @@ export const useTargetUser = ({ fetchActivities }: UseTargetUserProps): UseTarge
 
   // Target user's profile pic and bio (when viewing another user's dashboard)
   const [targetProfilePic, setTargetProfilePic] = useState<string | null>(null);
+  const [targetProfilePicThumb, setTargetProfilePicThumb] = useState<string | null>(null);
   const [targetBio, setTargetBio] = useState<string | null>(null);
   const [targetIsVerified, setTargetIsVerified] = useState<boolean>(false);
   const [targetUserId, setTargetUserId] = useState<number | null>(null);
@@ -92,6 +94,7 @@ export const useTargetUser = ({ fetchActivities }: UseTargetUserProps): UseTarge
       if (isReadOnly && targetUsername) {
         // Reset state when switching users
         setTargetProfilePic(null);
+        setTargetProfilePicThumb(null);
         setTargetBio(null);
         setTargetIsVerified(false);
         setTargetUserId(null);
@@ -106,6 +109,7 @@ export const useTargetUser = ({ fetchActivities }: UseTargetUserProps): UseTarge
             );
             if (exactMatch) {
               setTargetProfilePic(exactMatch.profile_pic || null);
+              setTargetProfilePicThumb(exactMatch.profile_pic_thumb || null);
               // Bio is only returned for public profiles (backend handles privacy)
               setTargetBio(exactMatch.bio || null);
               setTargetIsVerified(exactMatch.is_verified || false);
@@ -152,6 +156,7 @@ export const useTargetUser = ({ fetchActivities }: UseTargetUserProps): UseTarge
     targetUsername,
     targetUserId,
     targetProfilePic,
+    targetProfilePicThumb,
     targetBio,
     targetIsVerified,
     targetIsPrivate,

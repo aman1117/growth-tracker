@@ -39,7 +39,13 @@ export const UserCard: React.FC<UserCardProps> = ({
 
   return (
     <div className={styles.card} onClick={handleUserClick}>
-      <Avatar src={user.profile_pic} name={user.username} size="md" className={styles.avatar} />
+      <Avatar
+        src={user.profile_pic}
+        thumbnailSrc={user.profile_pic_thumb}
+        name={user.username}
+        size="md"
+        className={styles.avatar}
+      />
 
       <div className={styles.userInfo}>
         <span className={styles.username}>

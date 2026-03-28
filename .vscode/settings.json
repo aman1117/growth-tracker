@@ -2,5 +2,6 @@
     "editor.fontSize": 13.5,
     "rust-analyzer.linkedProjects": [
         "backend/image_worker/Cargo.toml"
-    ]
+    ],
+    "chat.agent.maxRequests": 100
 }

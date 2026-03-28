@@ -11,9 +11,10 @@ import (
 // CommentWithAuthor represents a comment with joined author information
 type CommentWithAuthor struct {
 	models.Comment
-	AuthorUsername string  `json:"author_username"`
-	AuthorAvatar   *string `json:"author_avatar"`
-	AuthorVerified bool    `json:"author_verified"`
+	AuthorUsername    string  `json:"author_username"`
+	AuthorAvatar      *string `json:"author_avatar"`
+	AuthorAvatarThumb *string `json:"author_avatar_thumb"`
+	AuthorVerified    bool    `json:"author_verified"`
 }
 
 // CommentRepository handles comment data operations
@@ -53,7 +54,7 @@ func (r *CommentRepository) GetByID(id uint) (*models.Comment, error) {
 func (r *CommentRepository) GetByIDWithAuthor(id uint) (*CommentWithAuthor, error) {
 	var result CommentWithAuthor
 	err := r.db.Table("comments").
-		Select("comments.*, users.username as author_username, users.profile_pic as author_avatar, users.is_verified as author_verified").
+		Select("comments.*, users.username as author_username, users.profile_pic as author_avatar, users.profile_pic_thumb as author_avatar_thumb, users.is_verified as author_verified").
 		Joins("LEFT JOIN users ON users.id = comments.author_id").
 		Where("comments.id = ?", id).
 		Scan(&result).Error
@@ -72,7 +73,7 @@ func (r *CommentRepository) GetTopLevelByDay(dayOwnerID uint, dayDate time.Time,
 	dateStr := dayDate.Format("2006-01-02")
 
 	query := r.db.Table("comments").
-		Select("comments.*, users.username as author_username, users.profile_pic as author_avatar, users.is_verified as author_verified").
+		Select("comments.*, users.username as author_username, users.profile_pic as author_avatar, users.profile_pic_thumb as author_avatar_thumb, users.is_verified as author_verified").
 		Joins("LEFT JOIN users ON users.id = comments.author_id").
 		Where("comments.day_owner_id = ? AND comments.day_date = DATE(?) AND comments.parent_comment_id IS NULL",
 			dayOwnerID, dateStr)
@@ -100,7 +101,7 @@ func (r *CommentRepository) GetTopLevelByDay(dayOwnerID uint, dayDate time.Time,
 // GetRepliesByRoot retrieves replies for a root comment, oldest first
 func (r *CommentRepository) GetRepliesByRoot(rootCommentID uint, cursor *uint, limit int) ([]CommentWithAuthor, error) {
 	query := r.db.Table("comments").
-		Select("comments.*, users.username as author_username, users.profile_pic as author_avatar, users.is_verified as author_verified").
+		Select("comments.*, users.username as author_username, users.profile_pic as author_avatar, users.profile_pic_thumb as author_avatar_thumb, users.is_verified as author_verified").
 		Joins("LEFT JOIN users ON users.id = comments.author_id").
 		Where("comments.root_comment_id = ?", rootCommentID)
 

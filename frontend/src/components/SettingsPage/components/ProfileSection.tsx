@@ -14,6 +14,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   username,
   bio,
   profilePic,
+  profilePicThumb,
   followersCount,
   followingCount,
   isUploadingPic,
@@ -63,7 +64,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
               />
             ) : profilePic ? (
               <ProtectedImage
-                src={profilePic}
+                src={profilePicThumb || profilePic}
                 alt={username}
                 style={{
                   width: '100%',

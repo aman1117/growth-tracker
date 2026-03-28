@@ -214,6 +214,7 @@ func (s *CommentService) CreateComment(
 	}
 	if author != nil {
 		result.AuthorAvatar = author.ProfilePic
+		result.AuthorAvatarThumb = author.ProfilePicThumb
 		result.AuthorVerified = author.IsVerified
 	}
 	if replyToUserID != nil {
@@ -614,24 +615,25 @@ func (s *CommentService) buildCommentDTO(
 	mentionsMap map[uint][]models.CommentMention,
 ) *dto.CommentDTO {
 	result := &dto.CommentDTO{
-		ID:              c.ID,
-		DayOwnerID:      c.DayOwnerID,
-		DayDate:         c.DayDate.Format(constants.DateFormat),
-		AuthorID:        c.AuthorID,
-		AuthorUsername:  c.AuthorUsername,
-		AuthorAvatar:    c.AuthorAvatar,
-		AuthorVerified:  c.AuthorVerified,
-		ParentCommentID: c.ParentCommentID,
-		RootCommentID:   c.RootCommentID,
-		ReplyToUserID:   c.ReplyToUserID,
-		Body:            c.Body,
-		LikeCount:       c.LikeCount,
-		ReplyCount:      c.ReplyCount,
-		IsEdited:        c.IsEdited,
-		IsDeleted:       c.IsDeleted,
-		LikedByMe:       false,
-		Mentions:        []dto.MentionDTO{},
-		CreatedAt:       c.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		ID:                c.ID,
+		DayOwnerID:        c.DayOwnerID,
+		DayDate:           c.DayDate.Format(constants.DateFormat),
+		AuthorID:          c.AuthorID,
+		AuthorUsername:    c.AuthorUsername,
+		AuthorAvatar:      c.AuthorAvatar,
+		AuthorAvatarThumb: c.AuthorAvatarThumb,
+		AuthorVerified:    c.AuthorVerified,
+		ParentCommentID:   c.ParentCommentID,
+		RootCommentID:     c.RootCommentID,
+		ReplyToUserID:     c.ReplyToUserID,
+		Body:              c.Body,
+		LikeCount:         c.LikeCount,
+		ReplyCount:        c.ReplyCount,
+		IsEdited:          c.IsEdited,
+		IsDeleted:         c.IsDeleted,
+		LikedByMe:         false,
+		Mentions:          []dto.MentionDTO{},
+		CreatedAt:         c.CreatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	if likedMap != nil {

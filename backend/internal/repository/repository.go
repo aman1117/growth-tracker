@@ -157,9 +157,12 @@ func (r *UserRepository) GetBio(userID uint) (*string, error) {
 	return user.Bio, nil
 }
 
-// UpdateProfilePic updates a user's profile picture URL
-func (r *UserRepository) UpdateProfilePic(userID uint, url *string) error {
-	result := r.db.Model(&models.User{}).Where("id = ?", userID).Update("profile_pic", url)
+// UpdateProfilePic updates a user's profile picture URL and thumbnail
+func (r *UserRepository) UpdateProfilePic(userID uint, url *string, thumbURL *string) error {
+	result := r.db.Model(&models.User{}).Where("id = ?", userID).Updates(map[string]interface{}{
+		"profile_pic":       url,
+		"profile_pic_thumb": thumbURL,
+	})
 	return result.Error
 }
 
@@ -178,13 +181,14 @@ func (r *UserRepository) SearchByUsername(query string) ([]models.User, error) {
 
 // AutocompleteResult represents a user with their autocomplete score and follower count
 type AutocompleteResult struct {
-	ID             uint    `json:"id"`
-	Username       string  `json:"username"`
-	ProfilePic     *string `json:"profile_pic"`
-	IsVerified     bool    `json:"is_verified"`
-	IsPrivate      bool    `json:"is_private"`
-	FollowersCount int64   `json:"followers_count"`
-	Score          float64 `json:"score"`
+	ID              uint    `json:"id"`
+	Username        string  `json:"username"`
+	ProfilePic      *string `json:"profile_pic"`
+	ProfilePicThumb *string `json:"profile_pic_thumb"`
+	IsVerified      bool    `json:"is_verified"`
+	IsPrivate       bool    `json:"is_private"`
+	FollowersCount  int64   `json:"followers_count"`
+	Score           float64 `json:"score"`
 }
 
 // AutocompleteUsers performs ranked autocomplete search on usernames
@@ -219,6 +223,7 @@ func (r *UserRepository) AutocompleteUsers(query string, limit int) ([]Autocompl
 			u.id,
 			u.username,
 			u.profile_pic,
+			u.profile_pic_thumb,
 			u.is_verified,
 			u.is_private,
 			COALESCE(fc.followers_count, 0) as followers_count,
@@ -529,11 +534,12 @@ func NewRecentSearchRepository(db *gorm.DB) *RecentSearchRepository {
 
 // RecentSearchResult represents a recent search with user details
 type RecentSearchResult struct {
-	ID             uint    `json:"id"`
-	Username       string  `json:"username"`
-	ProfilePic     *string `json:"profile_pic"`
-	IsVerified     bool    `json:"is_verified"`
-	FollowersCount int64   `json:"followers_count"`
+	ID              uint    `json:"id"`
+	Username        string  `json:"username"`
+	ProfilePic      *string `json:"profile_pic"`
+	ProfilePicThumb *string `json:"profile_pic_thumb"`
+	IsVerified      bool    `json:"is_verified"`
+	FollowersCount  int64   `json:"followers_count"`
 }
 
 // SaveRecentSearch upserts a recent search, only if last search was >60s ago (throttle)
@@ -579,6 +585,7 @@ func (r *RecentSearchRepository) GetRecentSearches(userID uint, limit int) ([]Re
 			u.id,
 			u.username,
 			u.profile_pic,
+			u.profile_pic_thumb,
 			u.is_verified,
 			COALESCE(fc.followers_count, 0) as followers_count
 		FROM recent_searches rs
@@ -627,6 +634,7 @@ type TrendingUserResult struct {
 	ID               uint    `json:"id"`
 	Username         string  `json:"username"`
 	ProfilePic       *string `json:"profile_pic"`
+	ProfilePicThumb  *string `json:"profile_pic_thumb"`
 	IsVerified       bool    `json:"is_verified"`
 	FollowersCount   int64   `json:"followers_count"`
 	InteractionCount int     `json:"interaction_count"`
@@ -708,6 +716,7 @@ func (r *RecentSearchRepository) GetTrendingUsersForUser(userID uint, limit int)
 				u.id,
 				u.username,
 				u.profile_pic,
+				u.profile_pic_thumb,
 				u.is_verified,
 				COALESCE(fc.followers_count, 0) as followers_count,
 				COUNT(DISTINCT fi.follower_id) as interaction_count
@@ -728,7 +737,7 @@ func (r *RecentSearchRepository) GetTrendingUsersForUser(userID uint, limit int)
 					AND mf.state = 'ACTIVE'
 				)
 			)
-			GROUP BY u.id, u.username, u.profile_pic, u.is_verified, fc.followers_count
+			GROUP BY u.id, u.username, u.profile_pic, u.profile_pic_thumb, u.is_verified, fc.followers_count
 			ORDER BY 
 				CASE WHEN u.is_verified THEN 1 ELSE 0 END DESC,
 				interaction_count DESC,
@@ -740,6 +749,7 @@ func (r *RecentSearchRepository) GetTrendingUsersForUser(userID uint, limit int)
 				u.id,
 				u.username,
 				u.profile_pic,
+				u.profile_pic_thumb,
 				u.is_verified,
 				COALESCE(fc.followers_count, 0) as followers_count,
 				0 as interaction_count

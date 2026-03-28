@@ -516,9 +516,9 @@ func (s *BlobService) GetUser(userID uint) (*models.User, error) {
 	return s.userRepo.FindByID(userID)
 }
 
-// UpdateProfilePic updates the user's profile picture URL
-func (s *BlobService) UpdateProfilePic(userID uint, url *string) error {
-	return s.userRepo.UpdateProfilePic(userID, url)
+// UpdateProfilePic updates the user's profile picture URL and thumbnail
+func (s *BlobService) UpdateProfilePic(userID uint, url *string, thumbURL *string) error {
+	return s.userRepo.UpdateProfilePic(userID, url, thumbURL)
 }
 
 // GeneratePublicURL generates the public URL for a blob

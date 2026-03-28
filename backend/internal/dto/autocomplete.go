@@ -5,9 +5,10 @@ package dto
 // AutocompleteSuggestionMeta contains additional metadata for a suggestion
 // @Description Additional metadata for autocomplete suggestion (profile pic, verified status, etc.)
 type AutocompleteSuggestionMeta struct {
-	ProfilePic     *string `json:"profilePic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
-	IsVerified     bool    `json:"isVerified" example:"false"`
-	FollowersCount int64   `json:"followersCount" example:"150"`
+	ProfilePic      *string `json:"profilePic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb *string `json:"profilePicThumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
+	IsVerified      bool    `json:"isVerified" example:"false"`
+	FollowersCount  int64   `json:"followersCount" example:"150"`
 }
 
 // AutocompleteSuggestion represents a single autocomplete suggestion
@@ -32,11 +33,12 @@ type AutocompleteResponse struct {
 // SearchSuggestionUser represents a user in search suggestions (recent or trending)
 // @Description User information for search suggestions
 type SearchSuggestionUser struct {
-	ID             uint    `json:"id" example:"1"`
-	Username       string  `json:"username" example:"john_doe"`
-	ProfilePic     *string `json:"profilePic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
-	IsVerified     bool    `json:"isVerified" example:"false"`
-	FollowersCount int64   `json:"followersCount" example:"150"`
+	ID              uint    `json:"id" example:"1"`
+	Username        string  `json:"username" example:"john_doe"`
+	ProfilePic      *string `json:"profilePic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb *string `json:"profilePicThumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
+	IsVerified      bool    `json:"isVerified" example:"false"`
+	FollowersCount  int64   `json:"followersCount" example:"150"`
 }
 
 // SearchSuggestionsResponse represents the combined recent + trending suggestions response

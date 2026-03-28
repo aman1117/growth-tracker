@@ -185,16 +185,17 @@ func (h *ProfileHandler) GetProfile(c *fiber.Ctx) error {
 	}
 
 	return response.JSON(c, dto.ProfileResponse{
-		Success:        true,
-		Username:       user.Username,
-		Email:          user.Email,
-		ProfilePic:     user.ProfilePic,
-		Bio:            user.Bio,
-		IsPrivate:      user.IsPrivate,
-		IsVerified:     user.IsVerified,
-		EmailVerified:  user.EmailVerified,
-		FollowersCount: followersCount,
-		FollowingCount: followingCount,
+		Success:         true,
+		Username:        user.Username,
+		Email:           user.Email,
+		ProfilePic:      user.ProfilePic,
+		ProfilePicThumb: user.ProfilePicThumb,
+		Bio:             user.Bio,
+		IsPrivate:       user.IsPrivate,
+		IsVerified:      user.IsVerified,
+		EmailVerified:   user.EmailVerified,
+		FollowersCount:  followersCount,
+		FollowingCount:  followingCount,
 	})
 }
 
@@ -251,6 +252,7 @@ func (h *ProfileHandler) GetUserProfile(c *fiber.Ctx) error {
 		ID:                user.ID,
 		Username:          user.Username,
 		ProfilePic:        user.ProfilePic,
+		ProfilePicThumb:   user.ProfilePicThumb,
 		IsPrivate:         user.IsPrivate,
 		IsVerified:        user.IsVerified,
 		FollowersCount:    followersCount,
@@ -410,9 +412,10 @@ func (h *ProfileHandler) AutocompleteUsers(c *fiber.Ctx) error {
 			Kind:  "user",
 			Score: r.Score,
 			Meta: dto.AutocompleteSuggestionMeta{
-				ProfilePic:     r.ProfilePic,
-				IsVerified:     r.IsVerified,
-				FollowersCount: r.FollowersCount,
+				ProfilePic:      r.ProfilePic,
+				ProfilePicThumb: r.ProfilePicThumb,
+				IsVerified:      r.IsVerified,
+				FollowersCount:  r.FollowersCount,
 			},
 		})
 	}
@@ -447,12 +450,13 @@ func sanitizeUsersWithFollowing(users []models.User, followingSet map[uint]bool)
 	result := make([]dto.UserDTO, 0, len(users))
 	for _, u := range users {
 		d := dto.UserDTO{
-			ID:         u.ID,
-			Username:   u.Username,
-			Email:      u.Email,
-			ProfilePic: u.ProfilePic,
-			IsPrivate:  u.IsPrivate,
-			IsVerified: u.IsVerified,
+			ID:              u.ID,
+			Username:        u.Username,
+			Email:           u.Email,
+			ProfilePic:      u.ProfilePic,
+			ProfilePicThumb: u.ProfilePicThumb,
+			IsPrivate:       u.IsPrivate,
+			IsVerified:      u.IsVerified,
 		}
 		// Include bio for public profiles OR private profiles the viewer follows
 		if !u.IsPrivate || followingSet[u.ID] {

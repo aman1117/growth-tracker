@@ -84,10 +84,15 @@ const ProfileInitializer: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isAuthenticated && !isLoading && !hasFetched.current) {
       hasFetched.current = true;
       api
-        .get<{ profile_pic?: string; bio?: string; email_verified?: boolean }>('/profile')
+        .get<{
+          profile_pic?: string;
+          profile_pic_thumb?: string;
+          bio?: string;
+          email_verified?: boolean;
+        }>('/profile')
         .then((data) => {
           if (data?.profile_pic) {
-            updateProfilePic(data.profile_pic);
+            updateProfilePic(data.profile_pic, data.profile_pic_thumb);
           }
           if (data?.bio) {
             updateBio(data.bio);

@@ -45,10 +45,11 @@ func (StoryView) TableName() string {
 
 // PhotoViewer represents a user who viewed a photo (for API responses)
 type PhotoViewer struct {
-	UserID     uint      `json:"user_id"`
-	Username   string    `json:"username"`
-	ProfilePic *string   `json:"profile_pic,omitempty"`
-	ViewedAt   time.Time `json:"viewed_at"`
+	UserID          uint      `json:"user_id"`
+	Username        string    `json:"username"`
+	ProfilePic      *string   `json:"profile_pic,omitempty"`
+	ProfilePicThumb *string   `json:"profile_pic_thumb,omitempty"`
+	ViewedAt        time.Time `json:"viewed_at"`
 }
 
 // ActivityPhotoWithViews combines a photo with its view count
@@ -65,11 +66,12 @@ type ActivityPhotoInStory struct {
 
 // UserStoryGroup represents all photos from a single user for a date
 type UserStoryGroup struct {
-	UserID     uint                   `json:"user_id"`
-	Username   string                 `json:"username"`
-	ProfilePic *string                `json:"profile_pic,omitempty"`
-	Photos     []ActivityPhotoInStory `json:"photos"`
-	HasUnseen  bool                   `json:"has_unseen"`
+	UserID          uint                   `json:"user_id"`
+	Username        string                 `json:"username"`
+	ProfilePic      *string                `json:"profile_pic,omitempty"`
+	ProfilePicThumb *string                `json:"profile_pic_thumb,omitempty"`
+	Photos          []ActivityPhotoInStory `json:"photos"`
+	HasUnseen       bool                   `json:"has_unseen"`
 }
 
 // StoryLike tracks who has liked a story photo.
@@ -90,10 +92,11 @@ func (StoryLike) TableName() string {
 
 // PhotoLiker represents a user who liked a photo (for API responses)
 type PhotoLiker struct {
-	UserID     uint      `json:"user_id"`
-	Username   string    `json:"username"`
-	ProfilePic *string   `json:"profile_pic,omitempty"`
-	LikedAt    time.Time `json:"liked_at"`
+	UserID          uint      `json:"user_id"`
+	Username        string    `json:"username"`
+	ProfilePic      *string   `json:"profile_pic,omitempty"`
+	ProfilePicThumb *string   `json:"profile_pic_thumb,omitempty"`
+	LikedAt         time.Time `json:"liked_at"`
 }
 
 // PhotoInteraction represents a combined view/like entry (for API responses)
@@ -101,6 +104,7 @@ type PhotoInteraction struct {
 	UserID          uint      `json:"user_id"`
 	Username        string    `json:"username"`
 	ProfilePic      *string   `json:"profile_pic,omitempty"`
+	ProfilePicThumb *string   `json:"profile_pic_thumb,omitempty"`
 	InteractionType string    `json:"interaction_type"` // "view", "like", or "both"
 	ViewedAt        time.Time `json:"viewed_at,omitempty"`
 	LikedAt         time.Time `json:"liked_at,omitempty"`

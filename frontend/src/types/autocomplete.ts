@@ -12,6 +12,8 @@ export interface AutocompleteSuggestionMeta {
   userId?: number;
   /** User's profile picture URL */
   profilePic?: string;
+  /** User's profile picture thumbnail URL */
+  profilePicThumb?: string;
   /** Whether the user is verified */
   isVerified?: boolean;
   /** User's follower count */
@@ -54,6 +56,8 @@ export interface SearchSuggestionUser {
   username: string;
   /** Profile picture URL */
   profilePic?: string;
+  /** Profile picture thumbnail URL */
+  profilePicThumb?: string;
   /** Whether the user is verified */
   isVerified: boolean;
   /** Follower count */

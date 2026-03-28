@@ -5,21 +5,35 @@
  */
 
 import { X } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { ProtectedImage } from '../../ui';
 
 interface FullscreenViewerProps {
   profilePic: string;
+  profilePicThumb?: string | null;
   username: string;
   onClose: () => void;
 }
 
 export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({
   profilePic,
+  profilePicThumb,
   username,
   onClose,
 }) => {
+  const [fullLoaded, setFullLoaded] = useState(false);
+
+  // Preload full image in background
+  useEffect(() => {
+    if (!profilePicThumb) return;
+    const img = new Image();
+    img.onload = () => setFullLoaded(true);
+    img.src = profilePic;
+    return () => {
+      img.onload = null;
+    };
+  }, [profilePic, profilePicThumb]);
   return (
     <div
       onClick={onClose}
@@ -64,18 +78,48 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({
       </button>
 
       {/* Profile image */}
-      <ProtectedImage
-        src={profilePic}
-        alt={username}
-        style={{
-          maxWidth: '90vw',
-          maxHeight: '90vh',
-          objectFit: 'contain',
-          borderRadius: '8px',
-          cursor: 'default',
-          animation: 'scaleIn 0.2s ease-out',
-        }}
-      />
+      <div
+        style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {profilePicThumb && !fullLoaded && (
+          <ProtectedImage
+            src={profilePicThumb}
+            alt={username}
+            style={{
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              cursor: 'default',
+              filter: 'blur(10px)',
+              transform: 'scale(1.05)',
+              animation: 'scaleIn 0.2s ease-out',
+            }}
+          />
+        )}
+        <ProtectedImage
+          src={profilePic}
+          alt={username}
+          style={{
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            objectFit: 'contain',
+            borderRadius: '8px',
+            cursor: 'default',
+            animation: 'scaleIn 0.2s ease-out',
+            ...(profilePicThumb
+              ? {
+                  position: fullLoaded ? 'relative' : 'absolute',
+                  top: 0,
+                  left: 0,
+                  opacity: fullLoaded ? 1 : 0,
+                  transition: 'opacity 0.3s ease',
+                }
+              : {}),
+          }}
+        />
+      </div>
 
       {/* Username label */}
       <div

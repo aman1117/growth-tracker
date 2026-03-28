@@ -61,11 +61,12 @@ func (h *SearchSuggestionsHandler) GetSearchSuggestions(c *fiber.Ctx) error {
 	for _, r := range recentResults {
 		recentUserIDs[r.ID] = true
 		recent = append(recent, dto.SearchSuggestionUser{
-			ID:             r.ID,
-			Username:       r.Username,
-			ProfilePic:     r.ProfilePic,
-			IsVerified:     r.IsVerified,
-			FollowersCount: r.FollowersCount,
+			ID:              r.ID,
+			Username:        r.Username,
+			ProfilePic:      r.ProfilePic,
+			ProfilePicThumb: r.ProfilePicThumb,
+			IsVerified:      r.IsVerified,
+			FollowersCount:  r.FollowersCount,
 		})
 	}
 
@@ -102,11 +103,12 @@ func (h *SearchSuggestionsHandler) GetSearchSuggestions(c *fiber.Ctx) error {
 				continue
 			}
 			trending = append(trending, dto.SearchSuggestionUser{
-				ID:             t.ID,
-				Username:       t.Username,
-				ProfilePic:     t.ProfilePic,
-				IsVerified:     t.IsVerified,
-				FollowersCount: t.FollowersCount,
+				ID:              t.ID,
+				Username:        t.Username,
+				ProfilePic:      t.ProfilePic,
+				ProfilePicThumb: t.ProfilePicThumb,
+				IsVerified:      t.IsVerified,
+				FollowersCount:  t.FollowersCount,
 			})
 		}
 

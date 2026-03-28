@@ -4,15 +4,17 @@
  * Displays user avatar with fallback to initials.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import styles from './Avatar.module.css';
 
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export interface AvatarProps {
-  /** Image URL */
+  /** Image URL (full-size) */
   src?: string | null;
+  /** Thumbnail URL (preferred for display, falls back to src) */
+  thumbnailSrc?: string | null;
   /** Alt text / username for fallback initials */
   name: string;
   /** Avatar size */
@@ -31,6 +33,7 @@ const getInitials = (name: string): string => {
 
 export const Avatar: React.FC<AvatarProps> = ({
   src,
+  thumbnailSrc,
   name,
   size = 'md',
   onClick,
@@ -39,7 +42,13 @@ export const Avatar: React.FC<AvatarProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
-  const showImage = src && !imageError;
+  const displaySrc = thumbnailSrc || src;
+  const showImage = displaySrc && !imageError;
+
+  // Reset error state when the image source changes
+  useEffect(() => {
+    setImageError(false);
+  }, [displaySrc]);
 
   const classNames = [
     styles.avatar,
@@ -55,7 +64,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     <div className={classNames} onClick={onClick}>
       {showImage ? (
         <img
-          src={src}
+          src={displaySrc}
           alt={name}
           className={styles.image}
           onError={() => setImageError(true)}

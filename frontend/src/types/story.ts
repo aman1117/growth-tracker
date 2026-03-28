@@ -40,6 +40,7 @@ export interface UserStoryGroup {
   user_id: number;
   username: string;
   profile_pic?: string;
+  profile_pic_thumb?: string;
   photos: ActivityPhoto[];
   has_unseen: boolean;
 }
@@ -49,6 +50,7 @@ export interface PhotoViewer {
   user_id: number;
   username: string;
   profile_pic?: string;
+  profile_pic_thumb?: string;
   viewed_at: string;
 }
 
@@ -57,6 +59,7 @@ export interface PhotoLiker {
   user_id: number;
   username: string;
   profile_pic?: string;
+  profile_pic_thumb?: string;
   liked_at: string;
 }
 
@@ -65,6 +68,7 @@ export interface PhotoInteraction {
   user_id: number;
   username: string;
   profile_pic?: string;
+  profile_pic_thumb?: string;
   interaction_type: 'view' | 'like' | 'both';
   viewed_at?: string;
   liked_at?: string;

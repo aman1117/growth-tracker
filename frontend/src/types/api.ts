@@ -46,6 +46,7 @@ export interface AuthResponse {
   user_id?: number;
   username?: string;
   profile_pic?: string | null;
+  profile_pic_thumb?: string | null;
   bio?: string | null;
   error?: string;
 }
@@ -72,6 +73,7 @@ export interface UserSearchResult {
   username: string;
   email: string;
   profile_pic?: string;
+  profile_pic_thumb?: string;
   is_private: boolean;
   is_verified: boolean;
   bio?: string;
@@ -82,6 +84,7 @@ export type UserSearchResponse = ApiResponse<UserSearchResult[]>;
 export interface ProfileResponse {
   success: boolean;
   profile_pic?: string | null;
+  profile_pic_thumb?: string | null;
   bio?: string | null;
   is_verified?: boolean;
   error?: string;
@@ -189,6 +192,7 @@ export interface SaveTileConfigRequest {
 export interface UploadResponse {
   success: boolean;
   profile_pic?: string;
+  profile_pic_thumb?: string;
   error?: string;
 }
 
@@ -210,6 +214,7 @@ export interface LikerDTO {
   id: number;
   username: string;
   profile_pic?: string;
+  profile_pic_thumb?: string;
   is_verified?: boolean;
   liked_at: string;
 }

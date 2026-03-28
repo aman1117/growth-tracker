@@ -54,13 +54,14 @@ type TokenValidationResponse struct {
 // UserDTO represents a sanitized user for API responses
 // @Description User information for search results
 type UserDTO struct {
-	ID         uint    `json:"id" example:"1"`
-	Username   string  `json:"username" example:"john_doe"`
-	Email      string  `json:"email" example:"john@example.com"`
-	ProfilePic *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
-	Bio        *string `json:"bio,omitempty" example:"Software developer"` // Only included for public profiles
-	IsPrivate  bool    `json:"is_private" example:"false"`
-	IsVerified bool    `json:"is_verified" example:"false"`
+	ID              uint    `json:"id" example:"1"`
+	Username        string  `json:"username" example:"john_doe"`
+	Email           string  `json:"email" example:"john@example.com"`
+	ProfilePic      *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb *string `json:"profile_pic_thumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
+	Bio             *string `json:"bio,omitempty" example:"Software developer"` // Only included for public profiles
+	IsPrivate       bool    `json:"is_private" example:"false"`
+	IsVerified      bool    `json:"is_verified" example:"false"`
 }
 
 // ProfileResponse represents the full profile response
@@ -70,6 +71,7 @@ type ProfileResponse struct {
 	Username          string  `json:"username" example:"john_doe"`
 	Email             string  `json:"email" example:"john@example.com"`
 	ProfilePic        *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb   *string `json:"profile_pic_thumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
 	Bio               *string `json:"bio" example:"Software developer"`
 	IsPrivate         bool    `json:"is_private" example:"false"`
 	IsVerified        bool    `json:"is_verified" example:"false"`
@@ -86,6 +88,7 @@ type PublicProfileResponse struct {
 	ID                uint       `json:"id" example:"1"`
 	Username          string     `json:"username" example:"john_doe"`
 	ProfilePic        *string    `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb   *string    `json:"profile_pic_thumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
 	Bio               *string    `json:"bio,omitempty" example:"Software developer"` // Hidden for private accounts
 	IsPrivate         bool       `json:"is_private" example:"false"`
 	IsVerified        bool       `json:"is_verified" example:"false"`
@@ -120,8 +123,9 @@ type BioResponse struct {
 // ProfilePicResponse represents the profile picture upload response
 // @Description Profile picture upload result
 type ProfilePicResponse struct {
-	Success    bool   `json:"success" example:"true"`
-	ProfilePic string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	Success         bool   `json:"success" example:"true"`
+	ProfilePic      string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb string `json:"profile_pic_thumb" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
 }
 
 // ==================== Activity DTOs ====================
@@ -224,11 +228,12 @@ type TileConfigResponse struct {
 // LikerDTO represents a user who liked a day
 // @Description User who liked a day
 type LikerDTO struct {
-	ID         uint    `json:"id" example:"1"`
-	Username   string  `json:"username" example:"john_doe"`
-	ProfilePic *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
-	IsVerified bool    `json:"is_verified" example:"false"`
-	LikedAt    string  `json:"liked_at" example:"2026-01-04T12:00:00Z"`
+	ID              uint    `json:"id" example:"1"`
+	Username        string  `json:"username" example:"john_doe"`
+	ProfilePic      *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb *string `json:"profile_pic_thumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
+	IsVerified      bool    `json:"is_verified" example:"false"`
+	LikedAt         string  `json:"liked_at" example:"2026-01-04T12:00:00Z"`
 }
 
 // LikesResponse represents the response for getting likes on a day
@@ -427,24 +432,26 @@ type FollowActionResponse struct {
 // FollowUserDTO represents a user in follow lists
 // @Description User information for follow lists
 type FollowUserDTO struct {
-	ID         uint    `json:"id" example:"1"`
-	Username   string  `json:"username" example:"john_doe"`
-	ProfilePic *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
-	Bio        *string `json:"bio,omitempty" example:"Software developer"`
-	IsPrivate  bool    `json:"is_private" example:"false"`
-	IsVerified bool    `json:"is_verified" example:"false"`
-	FollowedAt string  `json:"followed_at,omitempty" example:"2026-01-04T12:00:00Z"`
+	ID              uint    `json:"id" example:"1"`
+	Username        string  `json:"username" example:"john_doe"`
+	ProfilePic      *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb *string `json:"profile_pic_thumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
+	Bio             *string `json:"bio,omitempty" example:"Software developer"`
+	IsPrivate       bool    `json:"is_private" example:"false"`
+	IsVerified      bool    `json:"is_verified" example:"false"`
+	FollowedAt      string  `json:"followed_at,omitempty" example:"2026-01-04T12:00:00Z"`
 }
 
 // FollowRequestDTO represents a pending follow request
 // @Description Pending follow request information
 type FollowRequestDTO struct {
-	ID          uint    `json:"id" example:"1"`
-	Username    string  `json:"username" example:"john_doe"`
-	ProfilePic  *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
-	Bio         *string `json:"bio,omitempty" example:"Software developer"`
-	IsVerified  bool    `json:"is_verified" example:"false"`
-	RequestedAt string  `json:"requested_at" example:"2026-01-04T12:00:00Z"`
+	ID              uint    `json:"id" example:"1"`
+	Username        string  `json:"username" example:"john_doe"`
+	ProfilePic      *string `json:"profile_pic,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb *string `json:"profile_pic_thumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
+	Bio             *string `json:"bio,omitempty" example:"Software developer"`
+	IsVerified      bool    `json:"is_verified" example:"false"`
+	RequestedAt     string  `json:"requested_at" example:"2026-01-04T12:00:00Z"`
 }
 
 // FollowListResponse represents paginated follow list
@@ -508,25 +515,26 @@ type MentionDTO struct {
 // CommentDTO represents a comment for API responses
 // @Description Comment information
 type CommentDTO struct {
-	ID              uint         `json:"id" example:"1"`
-	DayOwnerID      uint         `json:"day_owner_id" example:"1"`
-	DayDate         string       `json:"day_date" example:"2026-01-04"`
-	AuthorID        uint         `json:"author_id" example:"2"`
-	AuthorUsername  string       `json:"author_username" example:"john_doe"`
-	AuthorAvatar    *string      `json:"author_avatar,omitempty"`
-	AuthorVerified  bool         `json:"author_verified" example:"false"`
-	ParentCommentID *uint        `json:"parent_comment_id,omitempty"`
-	RootCommentID   *uint        `json:"root_comment_id,omitempty"`
-	ReplyToUserID   *uint        `json:"reply_to_user_id,omitempty"`
-	ReplyToUsername *string      `json:"reply_to_username,omitempty"`
-	Body            string       `json:"body" example:"Great progress today!"`
-	LikeCount       int          `json:"like_count" example:"5"`
-	ReplyCount      int          `json:"reply_count" example:"2"`
-	IsEdited        bool         `json:"is_edited" example:"false"`
-	IsDeleted       bool         `json:"is_deleted" example:"false"`
-	LikedByMe       bool         `json:"liked_by_me" example:"false"`
-	Mentions        []MentionDTO `json:"mentions"`
-	CreatedAt       string       `json:"created_at" example:"2026-01-04T12:00:00Z"`
+	ID                uint         `json:"id" example:"1"`
+	DayOwnerID        uint         `json:"day_owner_id" example:"1"`
+	DayDate           string       `json:"day_date" example:"2026-01-04"`
+	AuthorID          uint         `json:"author_id" example:"2"`
+	AuthorUsername    string       `json:"author_username" example:"john_doe"`
+	AuthorAvatar      *string      `json:"author_avatar,omitempty"`
+	AuthorAvatarThumb *string      `json:"author_avatar_thumb,omitempty"`
+	AuthorVerified    bool         `json:"author_verified" example:"false"`
+	ParentCommentID   *uint        `json:"parent_comment_id,omitempty"`
+	RootCommentID     *uint        `json:"root_comment_id,omitempty"`
+	ReplyToUserID     *uint        `json:"reply_to_user_id,omitempty"`
+	ReplyToUsername   *string      `json:"reply_to_username,omitempty"`
+	Body              string       `json:"body" example:"Great progress today!"`
+	LikeCount         int          `json:"like_count" example:"5"`
+	ReplyCount        int          `json:"reply_count" example:"2"`
+	IsEdited          bool         `json:"is_edited" example:"false"`
+	IsDeleted         bool         `json:"is_deleted" example:"false"`
+	LikedByMe         bool         `json:"liked_by_me" example:"false"`
+	Mentions          []MentionDTO `json:"mentions"`
+	CreatedAt         string       `json:"created_at" example:"2026-01-04T12:00:00Z"`
 }
 
 // CommentsListResponse represents a paginated list of comments

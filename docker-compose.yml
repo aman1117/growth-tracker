@@ -43,7 +43,7 @@ services:
       - "10002:10002"  # Table service
     volumes:
       - azurite_data:/data
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 -l /data"
+    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck -l /data"
     healthcheck:
       test: ["CMD", "sh", "-c", "nc -z 127.0.0.1 10000 || exit 1"]
       interval: 10s

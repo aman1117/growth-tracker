@@ -96,10 +96,10 @@ export const SettingsPage: React.FC = () => {
       });
 
       // Fetch profile data
-      api.get('/profile').then((res) => {
+      api.get<{ success: boolean; profile_pic?: string; profile_pic_thumb?: string; bio?: string }>('/profile').then((res) => {
         if (res.success) {
           if (res.profile_pic) {
-            updateProfilePic(res.profile_pic);
+            updateProfilePic(res.profile_pic, res.profile_pic_thumb);
           }
           if (res.bio !== undefined) {
             updateBio(res.bio);
@@ -183,7 +183,7 @@ export const SettingsPage: React.FC = () => {
     try {
       const res = await api.uploadFile('/profile/upload-picture', file);
       if (res.success) {
-        updateProfilePic(res.profile_pic ?? null);
+        updateProfilePic(res.profile_pic ?? null, res.profile_pic_thumb ?? null);
         setToast({ message: 'Profile picture updated!', type: 'success' });
       } else {
         setToast({ message: res.error || 'Failed to upload image', type: 'error' });
@@ -205,7 +205,7 @@ export const SettingsPage: React.FC = () => {
     try {
       const res = await api.delete('/profile/picture');
       if (res.success) {
-        updateProfilePic(null);
+        updateProfilePic(null, null);
         setToast({ message: 'Profile picture removed', type: 'success' });
       } else {
         setToast({ message: res.error || 'Failed to remove image', type: 'error' });
@@ -309,6 +309,7 @@ export const SettingsPage: React.FC = () => {
           username={user.username}
           bio={user.bio}
           profilePic={user.profilePic}
+          profilePicThumb={user.profilePicThumb}
           followersCount={followersCount}
           followingCount={followingCount}
           isUploadingPic={isUploadingPic}
@@ -748,6 +749,7 @@ export const SettingsPage: React.FC = () => {
         {showFullscreenPic && user.profilePic && (
           <FullscreenProfilePic
             profilePic={user.profilePic}
+            profilePicThumb={user.profilePicThumb}
             username={user.username}
             onClose={() => setShowFullscreenPic(false)}
           />

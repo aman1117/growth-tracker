@@ -231,12 +231,13 @@ func (h *FollowHandler) GetIncomingRequests(c *fiber.Ctx) error {
 			continue
 		}
 		requests = append(requests, dto.FollowRequestDTO{
-			ID:          user.ID,
-			Username:    user.Username,
-			ProfilePic:  user.ProfilePic,
-			Bio:         user.Bio,
-			IsVerified:  user.IsVerified,
-			RequestedAt: edge.CreatedAt.Format(time.RFC3339),
+			ID:              user.ID,
+			Username:        user.Username,
+			ProfilePic:      user.ProfilePic,
+			ProfilePicThumb: user.ProfilePicThumb,
+			Bio:             user.Bio,
+			IsVerified:      user.IsVerified,
+			RequestedAt:     edge.CreatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -433,13 +434,14 @@ func (h *FollowHandler) GetFollowers(c *fiber.Ctx) error {
 			continue
 		}
 		users = append(users, dto.FollowUserDTO{
-			ID:         user.ID,
-			Username:   user.Username,
-			ProfilePic: user.ProfilePic,
-			Bio:        user.Bio,
-			IsPrivate:  user.IsPrivate,
-			IsVerified: user.IsVerified,
-			FollowedAt: edge.CreatedAt.Format(time.RFC3339),
+			ID:              user.ID,
+			Username:        user.Username,
+			ProfilePic:      user.ProfilePic,
+			ProfilePicThumb: user.ProfilePicThumb,
+			Bio:             user.Bio,
+			IsPrivate:       user.IsPrivate,
+			IsVerified:      user.IsVerified,
+			FollowedAt:      edge.CreatedAt.Format(time.RFC3339),
 		})
 	}
 
@@ -505,13 +507,14 @@ func (h *FollowHandler) GetFollowing(c *fiber.Ctx) error {
 			continue
 		}
 		users = append(users, dto.FollowUserDTO{
-			ID:         user.ID,
-			Username:   user.Username,
-			ProfilePic: user.ProfilePic,
-			Bio:        user.Bio,
-			IsPrivate:  user.IsPrivate,
-			IsVerified: user.IsVerified,
-			FollowedAt: edge.CreatedAt.Format(time.RFC3339),
+			ID:              user.ID,
+			Username:        user.Username,
+			ProfilePic:      user.ProfilePic,
+			ProfilePicThumb: user.ProfilePicThumb,
+			Bio:             user.Bio,
+			IsPrivate:       user.IsPrivate,
+			IsVerified:      user.IsVerified,
+			FollowedAt:      edge.CreatedAt.Format(time.RFC3339),
 		})
 	}
 

@@ -35,6 +35,7 @@ export interface FollowUser {
   username: string;
   display_name?: string | null;
   profile_pic?: string | null;
+  profile_pic_thumb?: string | null;
   bio?: string | null;
   is_verified: boolean;
   is_private: boolean;

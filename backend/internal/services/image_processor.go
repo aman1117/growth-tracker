@@ -25,12 +25,28 @@ type ImageProcessor struct {
 	allowedMimeTypes map[string]bool
 }
 
-// NewImageProcessor creates a new ImageProcessor with default settings
+// NewImageProcessor creates a new ImageProcessor with default settings (for activity photos)
 func NewImageProcessor() *ImageProcessor {
 	return &ImageProcessor{
 		maxFullSize:   1080,
 		thumbnailSize: 150,
 		jpegQuality:   85,
+		allowedMimeTypes: map[string]bool{
+			"image/jpeg": true,
+			"image/png":  true,
+			"image/webp": true,
+			"image/heic": true,
+			"image/heif": true,
+		},
+	}
+}
+
+// NewImageProcessorWithOptions creates a new ImageProcessor with custom settings
+func NewImageProcessorWithOptions(maxFullSize, thumbnailSize, jpegQuality int) *ImageProcessor {
+	return &ImageProcessor{
+		maxFullSize:   maxFullSize,
+		thumbnailSize: thumbnailSize,
+		jpegQuality:   jpegQuality,
 		allowedMimeTypes: map[string]bool{
 			"image/jpeg": true,
 			"image/png":  true,

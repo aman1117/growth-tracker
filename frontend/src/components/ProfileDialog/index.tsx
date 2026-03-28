@@ -193,6 +193,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
       {showFullscreenPic && user.profilePic && (
         <FullscreenViewer
           profilePic={user.profilePic}
+          profilePicThumb={user.profilePicThumb}
           username={user.username}
           onClose={closeFullscreenPic}
         />

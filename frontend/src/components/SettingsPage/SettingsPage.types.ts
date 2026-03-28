@@ -87,6 +87,7 @@ export interface ProfileSectionProps {
   username: string;
   bio: string | null | undefined;
   profilePic: string | null | undefined;
+  profilePicThumb: string | null | undefined;
   followersCount: number;
   followingCount: number;
   isUploadingPic: boolean;
@@ -99,6 +100,7 @@ export interface ProfileSectionProps {
 
 export interface FullscreenProfilePicProps {
   profilePic: string;
+  profilePicThumb?: string | null;
   username: string;
   onClose: () => void;
 }

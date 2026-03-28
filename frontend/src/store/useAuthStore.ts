@@ -14,6 +14,7 @@ export interface User {
   id: number;
   username: string;
   profilePic?: string | null;
+  profilePicThumb?: string | null;
   bio?: string | null;
   isVerified?: boolean;
   emailVerified?: boolean;
@@ -34,7 +35,7 @@ interface AuthState {
   ) => void;
   logout: () => void;
   updateUsername: (newUsername: string) => void;
-  updateProfilePic: (url: string | null) => void;
+  updateProfilePic: (url: string | null, thumbUrl?: string | null) => void;
   updateBio: (bio: string | null) => void;
   updateEmailVerified: (verified: boolean) => void;
   setLoading: (value: boolean) => void;
@@ -93,14 +94,16 @@ export const useAuthStore = create<AuthState>()(
         }));
       },
 
-      updateProfilePic: (url) => {
+      updateProfilePic: (url, thumbUrl) => {
         if (url) {
           localStorage.setItem(STORAGE_KEYS.PROFILE_PIC, url);
         } else {
           localStorage.removeItem(STORAGE_KEYS.PROFILE_PIC);
         }
         set((state) => ({
-          user: state.user ? { ...state.user, profilePic: url } : null,
+          user: state.user
+            ? { ...state.user, profilePic: url, profilePicThumb: thumbUrl ?? null }
+            : null,
         }));
       },
 

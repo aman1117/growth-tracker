@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useAuth, useFollowStore } from '../../../store';
 import type { FollowUser } from '../../../types/follow';
+import { Avatar } from '../../ui/Avatar/Avatar';
 import styles from './MutualFollowers.module.css';
 
 interface MutualFollowersProps {
@@ -87,13 +88,12 @@ export const MutualFollowers: React.FC<MutualFollowersProps> = ({
             style={{ zIndex: 3 - index }}
             onClick={(e) => handleUserClick(mutual.username, e)}
           >
-            {mutual.profile_pic ? (
-              <img src={mutual.profile_pic} alt={mutual.username} className={styles.avatar} />
-            ) : (
-              <div className={styles.avatarPlaceholder}>
-                {mutual.username.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <Avatar
+              src={mutual.profile_pic}
+              thumbnailSrc={mutual.profile_pic_thumb}
+              name={mutual.username}
+              size="xs"
+            />
           </div>
         ))}
       </div>

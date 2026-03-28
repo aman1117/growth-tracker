@@ -100,7 +100,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onOpen }) => {
           >
             {user.profilePic ? (
               <ProtectedImage
-                src={user.profilePic}
+                src={user.profilePicThumb || user.profilePic}
                 alt={user.username}
                 style={{
                   width: '100%',

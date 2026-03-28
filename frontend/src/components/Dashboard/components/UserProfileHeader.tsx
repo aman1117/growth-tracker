@@ -17,6 +17,7 @@ interface UserProfileHeaderProps {
   targetUsername: string;
   targetUserId: number | null;
   targetProfilePic: string | null;
+  targetProfilePicThumb: string | null;
   targetBio: string | null;
   targetIsVerified: boolean;
   targetIsPrivate: boolean;
@@ -32,6 +33,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
   targetUsername,
   targetUserId,
   targetProfilePic,
+  targetProfilePicThumb,
   targetBio,
   targetIsVerified,
   targetIsPrivate,
@@ -95,7 +97,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         >
           {targetProfilePic ? (
             <ProtectedImage
-              src={targetProfilePic}
+              src={targetProfilePicThumb || targetProfilePic}
               alt={targetUsername}
               style={{
                 width: '100%',

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
-	"image/png"
 	"io"
 	"mime/multipart"
 	"path/filepath"
@@ -14,7 +13,7 @@ import (
 
 	"github.com/aman1117/backend/internal/logger"
 	"github.com/disintegration/imaging"
-	"golang.org/x/image/webp"
+	_ "golang.org/x/image/webp" // Register WebP decoder for image.Decode
 )
 
 // ImageProcessor handles image validation, processing, and thumbnail generation
@@ -115,20 +114,15 @@ func (p *ImageProcessor) Process(file multipart.File, fileHeader *multipart.File
 		return nil, fmt.Errorf("unsupported mime type: %s", mimeType)
 	}
 
-	// Decode image based on detected type
+	// Decode image with EXIF auto-orientation (fixes portrait photos from phones)
+	// imaging.Decode handles JPEG, PNG, GIF, BMP, and TIFF natively.
+	// For WebP, we need to ensure the decoder is registered.
 	var img image.Image
 	switch mimeType {
-	case "image/jpeg":
-		img, err = jpeg.Decode(file)
-	case "image/png":
-		img, err = png.Decode(file)
-	case "image/webp":
-		img, err = webp.Decode(file)
 	case "image/heic", "image/heif":
-		// HEIC requires special handling - for now, reject and ask for conversion
 		return nil, fmt.Errorf("HEIC/HEIF images are not yet supported, please convert to JPEG or PNG")
 	default:
-		return nil, fmt.Errorf("unsupported image type: %s", mimeType)
+		img, err = imaging.Decode(file, imaging.AutoOrientation(true))
 	}
 
 	if err != nil {

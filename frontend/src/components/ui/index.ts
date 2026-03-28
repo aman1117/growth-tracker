@@ -50,6 +50,10 @@ export {
   NotificationItem,
   NotificationPanel,
 } from './Notification';
+export {
+  NotificationPreviewToast,
+  type NotificationPreviewToastProps,
+} from './NotificationPreviewToast';
 export { VerifiedBadge, type VerifiedBadgeProps } from './VerifiedBadge';
 
 // Date & Time

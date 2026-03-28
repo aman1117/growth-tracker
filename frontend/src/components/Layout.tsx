@@ -3,17 +3,23 @@ import React, { useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
+import { useNotificationNavigation } from '../hooks/useNotificationNavigation';
 import { useAuth } from '../store';
-import type { AutocompleteSuggestion, LikeMetadata, Notification } from '../types';
-import type { CommentMetadata } from '../types/notification';
+import { useNotificationPreviewStore } from '../store/useNotificationPreviewStore';
+import type { AutocompleteSuggestion } from '../types';
 import { BottomNavigation } from './BottomNavigation';
 import { UserSearchAutocomplete } from './search';
 import { ThemeToggle } from './ThemeToggle';
-import { NotificationCenter } from './ui';
+import { NotificationCenter, NotificationPreviewToast } from './ui';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { handleNotificationClick, handleUsernameClick } = useNotificationNavigation();
+
+  // Notification preview state
+  const preview = useNotificationPreviewStore((s) => s.preview);
+  const dismissPreview = useNotificationPreviewStore((s) => s.dismissPreview);
 
   // Search State - simplified with new component
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -29,124 +35,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const closeSearch = () => {
     setIsSearchOpen(false);
   };
-
-  // Type guard to check if metadata is LikeMetadata
-  const isLikeMetadata = (metadata: unknown): metadata is LikeMetadata => {
-    return (
-      metadata !== null &&
-      typeof metadata === 'object' &&
-      'liker_username' in metadata &&
-      'liked_date' in metadata
-    );
-  };
-
-  // Type guard for story liked metadata
-  const isStoryLikedMetadata = (
-    metadata: unknown
-  ): metadata is { liker_username: string; photo_date: string } => {
-    return (
-      typeof metadata === 'object' &&
-      metadata !== null &&
-      'liker_username' in metadata &&
-      'photo_date' in metadata
-    );
-  };
-
-  // Type guard for day completed metadata
-  const isDayCompletedMetadata = (
-    metadata: unknown
-  ): metadata is { completed_username: string; completed_date: string } => {
-    return (
-      typeof metadata === 'object' &&
-      metadata !== null &&
-      'completed_username' in metadata &&
-      'completed_date' in metadata
-    );
-  };
-
-  // Type guard for photo uploaded metadata
-  const isPhotoUploadedMetadata = (
-    metadata: unknown
-  ): metadata is { uploader_username: string; photo_date: string } => {
-    return (
-      typeof metadata === 'object' &&
-      metadata !== null &&
-      'uploader_username' in metadata &&
-      'photo_date' in metadata
-    );
-  };
-
-  // Type guard for comment metadata
-  const isCommentMetadata = (metadata: unknown): metadata is CommentMetadata => {
-    return (
-      typeof metadata === 'object' &&
-      metadata !== null &&
-      'day_owner_username' in metadata &&
-      'day_date' in metadata
-    );
-  };
-
-  // Handle notification card click - navigate based on notification type
-  const handleNotificationClick = useCallback(
-    (notification: Notification) => {
-      const metadata = notification.metadata as Record<string, unknown> | undefined;
-
-      if (notification.type === 'like_received' && isLikeMetadata(notification.metadata)) {
-        // Navigate to home with the liked date as a query parameter
-        navigate(`${APP_ROUTES.HOME}?date=${notification.metadata.liked_date}`);
-      } else if (
-        notification.type === 'story_liked' &&
-        isStoryLikedMetadata(notification.metadata)
-      ) {
-        // Navigate to home with the photo date to see own story that was liked
-        navigate(`${APP_ROUTES.HOME}?date=${notification.metadata.photo_date}`);
-      } else if (
-        notification.type === 'streak_milestone' &&
-        isDayCompletedMetadata(notification.metadata)
-      ) {
-        // Navigate to the completed user's profile with the date
-        navigate(
-          `${APP_ROUTES.USER_PROFILE(notification.metadata.completed_username)}?date=${notification.metadata.completed_date}`
-        );
-      } else if (
-        notification.type === 'photo_uploaded' &&
-        isPhotoUploadedMetadata(notification.metadata)
-      ) {
-        // Navigate to the uploader's profile with the photo date
-        navigate(
-          `${APP_ROUTES.USER_PROFILE(notification.metadata.uploader_username)}?date=${notification.metadata.photo_date}`
-        );
-      } else if (
-        (notification.type === 'new_follower' ||
-          notification.type === 'follow_request' ||
-          notification.type === 'follow_accepted') &&
-        metadata?.actor_username
-      ) {
-        // Navigate to the actor's profile for follow notifications
-        navigate(APP_ROUTES.USER_PROFILE(metadata.actor_username as string));
-      } else if (
-        (notification.type === 'comment_received' ||
-          notification.type === 'comment_reply' ||
-          notification.type === 'comment_mention' ||
-          notification.type === 'comment_liked') &&
-        isCommentMetadata(notification.metadata)
-      ) {
-        // Navigate to the day owner's profile with date and auto-open comments
-        navigate(
-          `${APP_ROUTES.USER_PROFILE(notification.metadata.day_owner_username)}?date=${notification.metadata.day_date}&comments=true`
-        );
-      }
-    },
-    [navigate]
-  );
-
-  // Handle username click - navigate to user profile
-  const handleUsernameClick = useCallback(
-    (username: string) => {
-      navigate(APP_ROUTES.USER_PROFILE(username));
-    },
-    [navigate]
-  );
 
   const location = useLocation();
   const isSettingsPage = location.pathname === APP_ROUTES.SETTINGS;
@@ -315,6 +203,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
       {/* Bottom Navigation - only show for logged in users and not on settings page */}
       {user && !isSettingsPage && <BottomNavigation />}
+
+      {/* Notification Preview Toast */}
+      {preview && (
+        <NotificationPreviewToast
+          key={preview.id}
+          notification={preview}
+          onClose={dismissPreview}
+          onClick={handleNotificationClick}
+        />
+      )}
     </div>
   );
 };

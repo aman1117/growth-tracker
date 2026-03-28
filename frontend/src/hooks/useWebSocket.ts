@@ -13,7 +13,8 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { env } from '../config/env';
 import { STORAGE_KEYS } from '../constants';
-import { useFollowStore, useNotificationStore, useToastStore } from '../store';
+import { useFollowStore, useNotificationStore } from '../store';
+import { showNotificationPreview } from '../store/useNotificationPreviewStore';
 import type { Notification, WSConnectedPayload, WSMessage } from '../types';
 import { isFollowMetadata } from '../types/notification';
 import { useOfflineStatus } from './useOfflineStatus';
@@ -61,8 +62,6 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
   const { setWSStatus, addNotification, addPendingNotifications, fetchUnreadCount, wsStatus } =
     useNotificationStore();
-
-  const { addToast } = useToastStore();
 
   const { setRelationship } = useFollowStore();
 
@@ -126,8 +125,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
             const notification = message.payload as Notification;
             console.log('[WS] New notification:', notification.id);
             addNotification(notification);
-            // Show toast for new notification
-            addToast(notification.body || notification.title, 'info', 4000);
+            // Show rich notification preview toast
+            showNotificationPreview(notification);
 
             // Update follow relationship state for follow_accepted notifications
             if (
@@ -194,7 +193,6 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       addNotification,
       addPendingNotifications,
       stopFallbackPolling,
-      addToast,
       setRelationship,
     ]
   );

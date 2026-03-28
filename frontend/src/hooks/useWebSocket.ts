@@ -188,13 +188,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
         console.error('[WS] Failed to parse message:', error);
       }
     },
-    [
-      setWSStatus,
-      addNotification,
-      addPendingNotifications,
-      stopFallbackPolling,
-      setRelationship,
-    ]
+    [setWSStatus, addNotification, addPendingNotifications, stopFallbackPolling, setRelationship]
   );
 
   /**

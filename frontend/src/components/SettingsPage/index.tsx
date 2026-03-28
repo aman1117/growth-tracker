@@ -8,6 +8,7 @@
 import {
   ArrowLeft,
   ChevronRight,
+  HelpCircle,
   Key,
   Lock,
   LogOut,
@@ -613,6 +614,55 @@ export const SettingsPage: React.FC = () => {
 
           {/* Push Notifications */}
           <PushNotificationsSection onToast={(message, type) => setToast({ message, type })} />
+
+          {/* FAQs */}
+          <a
+            href={import.meta.env.PROD ? 'https://help.trackgrowth.in' : 'http://localhost:5174'}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.75rem 1rem',
+              gap: '0.75rem',
+              borderBottom: '1px solid var(--border)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = 'transparent')
+            }
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                backgroundColor: 'var(--icon-bg-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <HelpCircle size={16} />
+            </div>
+            <span
+              style={{
+                flex: 1,
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: 'var(--text-primary)',
+              }}
+            >
+              FAQs
+            </span>
+            <ChevronRight size={18} style={{ color: 'var(--text-muted)' }} />
+          </a>
 
           {/* Log Out */}
           <button

@@ -412,7 +412,9 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                         className={styles.editSaveBtn}
                         onClick={handleEditSave}
                         aria-label="Save edit"
-                        disabled={editSubmitting || !editBody.trim() || editBody.trim() === comment.body}
+                        disabled={
+                          editSubmitting || !editBody.trim() || editBody.trim() === comment.body
+                        }
                       >
                         <Check size={14} />
                       </button>
@@ -441,43 +443,43 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
               {/* Actions */}
               {!editing && (
-              <div className={styles.actions}>
-                {canEdit && withinEditWindow && (
+                <div className={styles.actions}>
+                  {canEdit && withinEditWindow && (
+                    <button
+                      className={styles.editAction}
+                      onClick={handleEditStart}
+                      aria-label="Edit comment"
+                      title="Edit"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                  )}
+
+                  {canDelete && (
+                    <button
+                      className={`${styles.deleteAction} ${deleteConfirm ? styles.deleteConfirm : ''}`}
+                      onClick={handleDelete}
+                      aria-label={deleteConfirm ? 'Tap again to delete' : 'Delete comment'}
+                      title={deleteConfirm ? 'Tap again to delete' : 'Delete'}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+
                   <button
-                    className={styles.editAction}
-                    onClick={handleEditStart}
-                    aria-label="Edit comment"
-                    title="Edit"
+                    className={`${styles.actionButton} ${comment.liked_by_me ? styles.liked : ''}`}
+                    onClick={handleLikeToggle}
+                    aria-label={comment.liked_by_me ? 'Unlike' : 'Like'}
                   >
-                    <Pencil size={14} />
+                    <Heart size={14} fill={comment.liked_by_me ? 'currentColor' : 'none'} />
+                    {comment.like_count > 0 && <span>{comment.like_count}</span>}
                   </button>
-                )}
 
-                {canDelete && (
-                  <button
-                    className={`${styles.deleteAction} ${deleteConfirm ? styles.deleteConfirm : ''}`}
-                    onClick={handleDelete}
-                    aria-label={deleteConfirm ? 'Tap again to delete' : 'Delete comment'}
-                    title={deleteConfirm ? 'Tap again to delete' : 'Delete'}
-                  >
-                    <Trash2 size={14} />
+                  <button className={styles.actionButton} onClick={handleReply} aria-label="Reply">
+                    <Reply size={14} />
+                    <span>Reply</span>
                   </button>
-                )}
-
-                <button
-                  className={`${styles.actionButton} ${comment.liked_by_me ? styles.liked : ''}`}
-                  onClick={handleLikeToggle}
-                  aria-label={comment.liked_by_me ? 'Unlike' : 'Like'}
-                >
-                  <Heart size={14} fill={comment.liked_by_me ? 'currentColor' : 'none'} />
-                  {comment.like_count > 0 && <span>{comment.like_count}</span>}
-                </button>
-
-                <button className={styles.actionButton} onClick={handleReply} aria-label="Reply">
-                  <Reply size={14} />
-                  <span>Reply</span>
-                </button>
-              </div>
+                </div>
               )}
             </>
           )}

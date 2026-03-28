@@ -270,7 +270,9 @@
   padding: var(--space-1);
   cursor: pointer;
   border-radius: var(--radius-sm, 4px);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .editCancelBtn {

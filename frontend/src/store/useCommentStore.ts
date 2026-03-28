@@ -436,9 +436,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
       const response = await commentApi.editComment(commentId, body);
       if (response.success && response.comment) {
         // Apply server response
-        set((s) =>
-          updateCommentInState(s, commentId, dayKey, () => response.comment!)
-        );
+        set((s) => updateCommentInState(s, commentId, dayKey, () => response.comment!));
         return response.comment;
       }
     } catch (error) {
@@ -447,9 +445,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
 
     // Revert on failure
     if (originalComment) {
-      set((s) =>
-        updateCommentInState(s, commentId, dayKey, () => originalComment!)
-      );
+      set((s) => updateCommentInState(s, commentId, dayKey, () => originalComment!));
     }
     return null;
   },

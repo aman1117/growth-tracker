@@ -96,16 +96,23 @@ export const SettingsPage: React.FC = () => {
       });
 
       // Fetch profile data
-      api.get<{ success: boolean; profile_pic?: string; profile_pic_thumb?: string; bio?: string }>('/profile').then((res) => {
-        if (res.success) {
-          if (res.profile_pic) {
-            updateProfilePic(res.profile_pic, res.profile_pic_thumb);
+      api
+        .get<{
+          success: boolean;
+          profile_pic?: string;
+          profile_pic_thumb?: string;
+          bio?: string;
+        }>('/profile')
+        .then((res) => {
+          if (res.success) {
+            if (res.profile_pic) {
+              updateProfilePic(res.profile_pic, res.profile_pic_thumb);
+            }
+            if (res.bio !== undefined) {
+              updateBio(res.bio);
+            }
           }
-          if (res.bio !== undefined) {
-            updateBio(res.bio);
-          }
-        }
-      });
+        });
 
       // Fetch badges
       api

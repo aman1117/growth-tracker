@@ -79,6 +79,7 @@
   gap: var(--space-2-5);
   text-decoration: none;
   color: var(--text-primary);
+  transition: none !important;
 }
 
 .help-header-brand:hover {
@@ -94,20 +95,25 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: none !important;
+}
+
+.help-header-logo svg {
+  transition: none !important;
 }
 
 .help-header-title {
   font-size: var(--text-md);
   font-weight: var(--font-bold);
   letter-spacing: var(--tracking-tight);
-  transition: color 150ms var(--ease-default) !important;
+  transition: none !important;
 }
 
 .help-header-subtitle {
   font-size: var(--text-xs);
   color: var(--text-muted);
   font-weight: var(--font-medium);
-  transition: color 150ms var(--ease-default) !important;
+  transition: none !important;
 }
 
 .help-theme-toggle {

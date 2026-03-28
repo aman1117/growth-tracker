@@ -260,6 +260,7 @@ const (
 	CommentReplyMaxLimit     = 50
 	CommentPreviewLength     = 100
 	CommentDedupeWindow      = 60 * time.Second
+	CommentEditWindow        = 1 * time.Hour
 
 	// Rate limits
 	RateLimitCommentWindow          = 1 * time.Minute
@@ -268,20 +269,22 @@ const (
 	RateLimitCommentLikeMaxRequests = 60
 
 	// Error codes
-	ErrCodeCommentNotFound  = "COMMENT_NOT_FOUND"
-	ErrCodeCommentDeleted   = "COMMENT_DELETED"
-	ErrCodeCommentTooLong   = "COMMENT_TOO_LONG"
-	ErrCodeCommentEmpty     = "COMMENT_EMPTY"
-	ErrCodeTooManyMentions  = "TOO_MANY_MENTIONS"
-	ErrCodeCommentForbidden = "COMMENT_FORBIDDEN"
-	ErrCodeDuplicateComment = "DUPLICATE_COMMENT"
-	ErrCodeParentNotFound   = "PARENT_COMMENT_NOT_FOUND"
+	ErrCodeCommentNotFound    = "COMMENT_NOT_FOUND"
+	ErrCodeCommentDeleted     = "COMMENT_DELETED"
+	ErrCodeCommentTooLong     = "COMMENT_TOO_LONG"
+	ErrCodeCommentEmpty       = "COMMENT_EMPTY"
+	ErrCodeTooManyMentions    = "TOO_MANY_MENTIONS"
+	ErrCodeCommentForbidden   = "COMMENT_FORBIDDEN"
+	ErrCodeDuplicateComment   = "DUPLICATE_COMMENT"
+	ErrCodeParentNotFound     = "PARENT_COMMENT_NOT_FOUND"
+	ErrCodeCommentEditExpired = "COMMENT_EDIT_EXPIRED"
 
 	// Messages
 	MsgCommentCreated = "Comment created successfully"
 	MsgCommentDeleted = "Comment deleted successfully"
 	MsgCommentLiked   = "Comment liked"
 	MsgCommentUnliked = "Comment unliked"
+	MsgCommentEdited  = "Comment edited successfully"
 
 	// Redis cache
 	CommentCountCachePrefix = "comment_cnt:"

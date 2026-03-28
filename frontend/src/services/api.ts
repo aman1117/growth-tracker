@@ -704,6 +704,10 @@ export const commentApi = {
   deleteComment: (commentId: number) =>
     apiClient.delete<{ success: boolean; message: string }>(API_ROUTES.COMMENT.DELETE(commentId)),
 
+  /** Edit a comment */
+  editComment: (commentId: number, body: string) =>
+    apiClient.put<CommentActionResponse>(API_ROUTES.COMMENT.EDIT(commentId), { body }),
+
   /** Like a comment */
   likeComment: (commentId: number) =>
     apiClient.post<CommentLikeResponse>(API_ROUTES.COMMENT.LIKE(commentId)),

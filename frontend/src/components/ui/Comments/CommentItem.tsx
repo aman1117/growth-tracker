@@ -5,7 +5,7 @@
  * Supports @mention highlighting, URL linking, truncation, and deleted state.
  */
 
-import { Heart, Reply, Trash2 } from 'lucide-react';
+import { Check, Heart, Pencil, Reply, Trash2, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +27,9 @@ interface CommentItemProps {
 
 const TRUNCATE_LENGTH = 200;
 const INITIAL_REPLIES_SHOWN = 3;
+const MAX_COMMENT_LENGTH = 200;
+const CHAR_COUNTER_THRESHOLD = 0.8;
+const EDIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 // Format relative time: "2h", "3d", "1w"
 function formatRelativeTime(dateStr: string): string {
@@ -123,12 +126,17 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [showAllReplies, setShowAllReplies] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editBody, setEditBody] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
   const deleteTimer = useRef<number>(0);
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
   const currentUser = useAuthStore((s) => s.user);
   const likeComment = useCommentStore((s) => s.likeComment);
   const unlikeComment = useCommentStore((s) => s.unlikeComment);
   const deleteComment = useCommentStore((s) => s.deleteComment);
+  const editComment = useCommentStore((s) => s.editComment);
   const fetchReplies = useCommentStore((s) => s.fetchReplies);
   const repliesState = useCommentStore((s) => s.repliesByRoot[comment.id]);
 
@@ -153,6 +161,51 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     // Author of the comment or owner of the day
     return currentUser.id === comment.author_id || currentUser.username === username;
   }, [currentUser, comment.author_id, username]);
+
+  const canEdit = useMemo(() => {
+    if (!currentUser || comment.is_deleted) return false;
+    if (currentUser.id !== comment.author_id) return false;
+    return true;
+  }, [currentUser, comment.author_id, comment.is_deleted]);
+
+  // Check edit window on mount and periodically — Date.now() is impure so keep it in an effect
+  const [withinEditWindow, setWithinEditWindow] = useState(() => {
+    const elapsed = Date.now() - new Date(comment.created_at).getTime();
+    return elapsed < EDIT_WINDOW_MS;
+  });
+
+  useEffect(() => {
+    if (!canEdit) return;
+    const elapsed = Date.now() - new Date(comment.created_at).getTime();
+    if (elapsed >= EDIT_WINDOW_MS) {
+      setWithinEditWindow(false);
+      return;
+    }
+    setWithinEditWindow(true);
+    const remaining = EDIT_WINDOW_MS - elapsed;
+    const timer = window.setTimeout(() => {
+      setWithinEditWindow(false);
+      if (editing) setEditing(false);
+    }, remaining);
+    return () => window.clearTimeout(timer);
+  }, [canEdit, comment.created_at, editing]);
+
+  // Auto-resize edit textarea
+  useEffect(() => {
+    const textarea = editTextareaRef.current;
+    if (textarea && editing) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+    }
+  }, [editBody, editing]);
+
+  // Focus textarea when entering edit mode
+  useEffect(() => {
+    if (editing && editTextareaRef.current) {
+      editTextareaRef.current.focus();
+      editTextareaRef.current.setSelectionRange(editBody.length, editBody.length);
+    }
+  }, [editing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLikeToggle = useCallback(
     (e: React.MouseEvent) => {
@@ -182,6 +235,57 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       }
     },
     [comment.id, dayKey, deleteComment, deleteConfirm]
+  );
+
+  const handleEditStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setEditBody(comment.body);
+      setEditing(true);
+    },
+    [comment.body]
+  );
+
+  const handleEditCancel = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditing(false);
+    setEditBody('');
+  }, []);
+
+  const handleEditSave = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const trimmed = editBody.trim();
+      if (!trimmed || editSubmitting) return;
+      if (trimmed === comment.body) {
+        setEditing(false);
+        return;
+      }
+
+      setEditSubmitting(true);
+      const result = await editComment(comment.id, trimmed, dayKey);
+      setEditSubmitting(false);
+
+      if (result) {
+        setEditing(false);
+        setEditBody('');
+      }
+    },
+    [editBody, editSubmitting, comment.body, comment.id, dayKey, editComment]
+  );
+
+  const handleEditKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setEditing(false);
+        setEditBody('');
+      }
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleEditSave(e as unknown as React.MouseEvent);
+      }
+    },
+    [handleEditSave]
   );
 
   const handleReply = useCallback(
@@ -247,7 +351,10 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   {isMe ? 'You' : comment.author_username}
                 </span>
                 {comment.author_verified && <VerifiedBadge size={14} />}
-                <span className={styles.timestamp}>{formatRelativeTime(comment.created_at)}</span>
+                <span className={styles.timestamp}>
+                  {formatRelativeTime(comment.created_at)}
+                  {comment.is_edited && <span className={styles.editedLabel}> (edited)</span>}
+                </span>
               </div>
 
               {/* Reply indicator */}
@@ -270,26 +377,82 @@ export const CommentItem: React.FC<CommentItemProps> = ({
               )}
 
               {/* Body */}
-              <p className={styles.body}>
-                {renderBody(displayBody, comment.mentions, navigateToProfile)}
-                {needsTruncation && !expanded && (
-                  <>
-                    {' '}
-                    <button
-                      className={styles.moreButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpanded(true);
-                      }}
-                    >
-                      more
-                    </button>
-                  </>
-                )}
-              </p>
+              {editing ? (
+                <div className={styles.editContainer}>
+                  <textarea
+                    ref={editTextareaRef}
+                    className={styles.editTextarea}
+                    value={editBody}
+                    onChange={(e) => {
+                      if (e.target.value.length <= MAX_COMMENT_LENGTH) {
+                        setEditBody(e.target.value);
+                      }
+                    }}
+                    onKeyDown={handleEditKeyDown}
+                    maxLength={MAX_COMMENT_LENGTH}
+                    rows={1}
+                    aria-label="Edit comment"
+                  />
+                  <div className={styles.editFooter}>
+                    {editBody.length > MAX_COMMENT_LENGTH * CHAR_COUNTER_THRESHOLD && (
+                      <span className={styles.charCounter}>
+                        {editBody.length}/{MAX_COMMENT_LENGTH}
+                      </span>
+                    )}
+                    <div className={styles.editActions}>
+                      <button
+                        className={styles.editCancelBtn}
+                        onClick={handleEditCancel}
+                        aria-label="Cancel edit"
+                        disabled={editSubmitting}
+                      >
+                        <X size={14} />
+                      </button>
+                      <button
+                        className={styles.editSaveBtn}
+                        onClick={handleEditSave}
+                        aria-label="Save edit"
+                        disabled={editSubmitting || !editBody.trim() || editBody.trim() === comment.body}
+                      >
+                        <Check size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className={styles.body}>
+                  {renderBody(displayBody, comment.mentions, navigateToProfile)}
+                  {needsTruncation && !expanded && (
+                    <>
+                      {' '}
+                      <button
+                        className={styles.moreButton}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpanded(true);
+                        }}
+                      >
+                        more
+                      </button>
+                    </>
+                  )}
+                </p>
+              )}
 
               {/* Actions */}
+              {!editing && (
               <div className={styles.actions}>
+                {canEdit && withinEditWindow && (
+                  <button
+                    className={styles.editAction}
+                    onClick={handleEditStart}
+                    aria-label="Edit comment"
+                    title="Edit"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                )}
+
                 {canDelete && (
                   <button
                     className={`${styles.deleteAction} ${deleteConfirm ? styles.deleteConfirm : ''}`}
@@ -315,6 +478,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   <span>Reply</span>
                 </button>
               </div>
+              )}
             </>
           )}
 

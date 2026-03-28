@@ -27,6 +27,7 @@ export interface Comment {
   like_count: number;
   reply_count: number;
   is_deleted: boolean;
+  is_edited: boolean;
   liked_by_me: boolean;
   mentions: MentionInfo[];
   created_at: string;

@@ -261,6 +261,7 @@ func (r *Router) Setup(app *fiber.App) {
 
 	// Comment actions (ID-based)
 	api.Delete("/comments/:commentId", authMiddleware, apiRateLimiter, r.commentHandler.DeleteComment)
+	api.Put("/comments/:commentId", authMiddleware, commentRateLimiter, r.commentHandler.EditComment)
 	api.Post("/comments/:commentId/like", authMiddleware, commentLikeRateLimiter, r.commentHandler.LikeComment)
 	api.Delete("/comments/:commentId/like", authMiddleware, commentLikeRateLimiter, r.commentHandler.UnlikeComment)
 	api.Get("/comments/:commentId/replies", authMiddleware, apiRateLimiter, r.commentHandler.GetReplies)

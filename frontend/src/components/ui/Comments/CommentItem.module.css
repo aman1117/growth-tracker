@@ -193,6 +193,109 @@
 }
 
 /* ============================================================================
+   Edit Styles
+   ============================================================================ */
+
+.editAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.editAction:hover {
+  color: var(--accent);
+}
+
+.editedLabel {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.editContainer {
+  margin: var(--space-1) 0;
+}
+
+.editTextarea {
+  width: 100%;
+  padding: var(--space-2);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 8px);
+  resize: none;
+  outline: none;
+  transition: border-color var(--transition-fast) var(--ease-default);
+  box-sizing: border-box;
+}
+
+.editTextarea:focus {
+  border-color: var(--accent);
+}
+
+.editFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+}
+
+.charCounter {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.editActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.editCancelBtn,
+.editSaveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  cursor: pointer;
+  border-radius: var(--radius-sm, 4px);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.editCancelBtn {
+  color: var(--text-muted);
+}
+
+.editCancelBtn:hover {
+  color: var(--error, #ef4444);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.editSaveBtn {
+  color: var(--accent);
+}
+
+.editSaveBtn:hover:not(:disabled) {
+  background: rgba(var(--accent-rgb, 99, 102, 241), 0.1);
+}
+
+.editSaveBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
    Replies Section
    ============================================================================ */
 

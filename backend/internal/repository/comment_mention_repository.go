@@ -38,6 +38,19 @@ func (r *CommentMentionRepository) GetByCommentID(commentID uint) ([]models.Comm
 	return mentions, err
 }
 
+// DeleteByCommentID removes all mentions for a comment
+func (r *CommentMentionRepository) DeleteByCommentID(commentID uint) error {
+	result := r.db.Where("comment_id = ?", commentID).Delete(&models.CommentMention{})
+	if result.Error != nil {
+		logger.Sugar.Errorw("CommentMentionRepository.DeleteByCommentID failed",
+			"comment_id", commentID,
+			"error", result.Error,
+		)
+		return result.Error
+	}
+	return nil
+}
+
 // GetByCommentIDs retrieves mentions for multiple comments, grouped by comment ID
 func (r *CommentMentionRepository) GetByCommentIDs(commentIDs []uint) (map[uint][]models.CommentMention, error) {
 	result := make(map[uint][]models.CommentMention)

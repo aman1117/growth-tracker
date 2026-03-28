@@ -257,6 +257,62 @@ func (h *CommentHandler) DeleteComment(c *fiber.Ctx) error {
 	return response.Success(c, constants.MsgCommentDeleted)
 }
 
+// EditComment edits a comment's body
+// @Summary Edit a comment
+// @Description Edit a comment's body. Only the original author can edit, within a 1-hour window.
+// @Tags Comments
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param commentId path int true "Comment ID" example(1)
+// @Param request body dto.EditCommentRequest true "New comment body"
+// @Success 200 {object} dto.CommentActionResponse "Comment edited"
+// @Failure 400 {object} dto.ErrorResponse "Validation error or edit window expired"
+// @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 403 {object} dto.ErrorResponse "Not authorized to edit"
+// @Failure 404 {object} dto.ErrorResponse "Comment not found"
+// @Failure 429 {object} dto.ErrorResponse "Rate limit exceeded"
+// @Router /comments/{commentId} [put]
+func (h *CommentHandler) EditComment(c *fiber.Ctx) error {
+	userID := getUserID(c)
+	commentIDStr := c.Params("commentId")
+
+	commentID, err := strconv.ParseUint(commentIDStr, 10, 64)
+	if err != nil {
+		return response.BadRequest(c, "Invalid comment ID", constants.ErrCodeInvalidRequest)
+	}
+
+	var req dto.EditCommentRequest
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body", constants.ErrCodeInvalidRequest)
+	}
+
+	result, err := h.commentSvc.EditComment(c.Context(), uint(commentID), userID, req.Body)
+	if err != nil {
+		if valErr, ok := err.(*validator.ValidationError); ok {
+			if valErr.ErrorCode == constants.ErrCodeCommentForbidden {
+				return response.Forbidden(c, valErr.Message, valErr.ErrorCode)
+			}
+			if valErr.ErrorCode == constants.ErrCodeCommentNotFound {
+				return response.NotFound(c, valErr.Message, valErr.ErrorCode)
+			}
+			return response.BadRequest(c, valErr.Message, valErr.ErrorCode)
+		}
+		logger.Sugar.Errorw("EditComment failed",
+			"user_id", userID,
+			"comment_id", commentID,
+			"error", err,
+		)
+		return response.InternalError(c, "Failed to edit comment", constants.ErrCodeUpdateFailed)
+	}
+
+	return response.JSON(c, dto.CommentActionResponse{
+		Success: true,
+		Comment: result,
+		Message: constants.MsgCommentEdited,
+	})
+}
+
 // LikeComment likes a comment
 // @Summary Like a comment
 // @Description Like a comment. Idempotent — liking an already-liked comment is a no-op.

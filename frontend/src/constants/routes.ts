@@ -196,6 +196,8 @@ export const API_ROUTES = {
     COUNT: (username: string, date: string) => `/days/${username}/${date}/comments/count`,
     /** DELETE - Delete a comment */
     DELETE: (commentId: number) => `/comments/${commentId}`,
+    /** PUT - Edit a comment */
+    EDIT: (commentId: number) => `/comments/${commentId}`,
     /** POST - Like a comment */
     LIKE: (commentId: number) => `/comments/${commentId}/like`,
     /** DELETE - Unlike a comment */

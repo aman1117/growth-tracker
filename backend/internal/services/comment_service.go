@@ -187,41 +187,7 @@ func (s *CommentService) CreateComment(
 	}
 
 	// 9. Resolve mentions and store
-	var mentionDTOs []dto.MentionDTO
-	if len(mentionedUsernames) > 0 {
-		users, err := s.userRepo.FindByUsernames(mentionedUsernames)
-		if err != nil {
-			logger.Sugar.Warnw("Failed to resolve mention usernames",
-				"usernames", mentionedUsernames,
-				"error", err,
-			)
-		}
-		if len(users) > 0 {
-			logger.Sugar.Debugw("Mentions resolved",
-				"comment_id", comment.ID,
-				"requested", len(mentionedUsernames),
-				"resolved", len(users),
-			)
-			var mentions []models.CommentMention
-			for _, u := range users {
-				mentions = append(mentions, models.CommentMention{
-					CommentID:       comment.ID,
-					MentionedUserID: u.ID,
-					Username:        u.Username,
-				})
-				mentionDTOs = append(mentionDTOs, dto.MentionDTO{
-					UserID:   u.ID,
-					Username: u.Username,
-				})
-			}
-			if err := s.mentionRepo.CreateBatch(mentions); err != nil {
-				logger.Sugar.Warnw("Failed to store mentions",
-					"comment_id", comment.ID,
-					"error", err,
-				)
-			}
-		}
-	}
+	mentionDTOs := s.resolveMentions(comment.ID, mentionedUsernames)
 
 	// 10. Invalidate comment count cache
 	s.invalidateCountCache(ctx, dayOwnerID, dayDate)
@@ -240,6 +206,7 @@ func (s *CommentService) CreateComment(
 		Body:            trimmedBody,
 		LikeCount:       0,
 		ReplyCount:      0,
+		IsEdited:        false,
 		IsDeleted:       false,
 		LikedByMe:       false,
 		Mentions:        mentionDTOs,
@@ -660,6 +627,7 @@ func (s *CommentService) buildCommentDTO(
 		Body:            c.Body,
 		LikeCount:       c.LikeCount,
 		ReplyCount:      c.ReplyCount,
+		IsEdited:        c.IsEdited,
 		IsDeleted:       c.IsDeleted,
 		LikedByMe:       false,
 		Mentions:        []dto.MentionDTO{},
@@ -682,6 +650,134 @@ func (s *CommentService) buildCommentDTO(
 	}
 
 	return result
+}
+
+// resolveMentions resolves @usernames to user IDs, stores CommentMention records,
+// and returns the corresponding MentionDTOs. Used by both CreateComment and EditComment.
+func (s *CommentService) resolveMentions(commentID uint, usernames []string) []dto.MentionDTO {
+	if len(usernames) == 0 {
+		return []dto.MentionDTO{}
+	}
+
+	users, err := s.userRepo.FindByUsernames(usernames)
+	if err != nil {
+		logger.Sugar.Warnw("Failed to resolve mention usernames",
+			"comment_id", commentID,
+			"usernames", usernames,
+			"error", err,
+		)
+		return []dto.MentionDTO{}
+	}
+	if len(users) == 0 {
+		return []dto.MentionDTO{}
+	}
+
+	logger.Sugar.Debugw("Mentions resolved",
+		"comment_id", commentID,
+		"requested", len(usernames),
+		"resolved", len(users),
+	)
+
+	var mentions []models.CommentMention
+	var mentionDTOs []dto.MentionDTO
+	for _, u := range users {
+		mentions = append(mentions, models.CommentMention{
+			CommentID:       commentID,
+			MentionedUserID: u.ID,
+			Username:        u.Username,
+		})
+		mentionDTOs = append(mentionDTOs, dto.MentionDTO{
+			UserID:   u.ID,
+			Username: u.Username,
+		})
+	}
+	if err := s.mentionRepo.CreateBatch(mentions); err != nil {
+		logger.Sugar.Warnw("Failed to store mentions",
+			"comment_id", commentID,
+			"error", err,
+		)
+	}
+	return mentionDTOs
+}
+
+// EditComment updates a comment's body if authorized and within the edit window.
+// No notifications are sent on edit.
+func (s *CommentService) EditComment(ctx context.Context, commentID, requestingUserID uint, newBody string) (*dto.CommentDTO, error) {
+	comment, err := s.commentRepo.GetByID(commentID)
+	if err != nil {
+		return nil, validator.NewValidationError("Comment not found", constants.ErrCodeCommentNotFound)
+	}
+	if comment.IsDeleted {
+		return nil, validator.NewValidationError("Cannot edit a deleted comment", constants.ErrCodeCommentDeleted)
+	}
+
+	// Authorization: only the original author can edit
+	if comment.AuthorID != requestingUserID {
+		logger.Sugar.Warnw("Unauthorized comment edit attempt",
+			"comment_id", commentID,
+			"requesting_user", requestingUserID,
+			"author_id", comment.AuthorID,
+		)
+		return nil, validator.NewValidationError("Not authorized to edit this comment", constants.ErrCodeCommentForbidden)
+	}
+
+	// Time window check
+	if time.Since(comment.CreatedAt) > constants.CommentEditWindow {
+		return nil, validator.NewValidationError("Edit window has expired", constants.ErrCodeCommentEditExpired)
+	}
+
+	trimmedBody := strings.TrimSpace(newBody)
+	if valErr := validator.ValidateCommentBody(trimmedBody); valErr != nil {
+		return nil, valErr
+	}
+
+	// Update body
+	if err := s.commentRepo.UpdateBody(commentID, trimmedBody); err != nil {
+		return nil, fmt.Errorf("failed to update comment: %w", err)
+	}
+
+	// Re-parse mentions and replace old ones
+	mentionedUsernames, valErr := validator.ParseMentions(trimmedBody)
+	if valErr != nil {
+		return nil, valErr
+	}
+	if err := s.mentionRepo.DeleteByCommentID(commentID); err != nil {
+		logger.Sugar.Warnw("Failed to delete old mentions during edit",
+			"comment_id", commentID,
+			"error", err,
+		)
+	}
+	s.resolveMentions(commentID, mentionedUsernames)
+
+	// Fetch updated comment with author info for the response
+	updated, err := s.commentRepo.GetByIDWithAuthor(commentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch updated comment: %w", err)
+	}
+
+	// Get mentions for DTO
+	mentions, _ := s.mentionRepo.GetByCommentID(commentID)
+	mentionsMap := map[uint][]models.CommentMention{commentID: mentions}
+
+	// Get like status for current user
+	likedMap, _ := s.likeRepo.BatchHasLiked([]uint{commentID}, requestingUserID)
+
+	result := s.buildCommentDTO(updated, requestingUserID, likedMap, mentionsMap)
+
+	// Resolve reply-to username if present
+	if updated.ReplyToUserID != nil {
+		replyToUsername, _ := s.commentRepo.GetReplyToUsername(*updated.ReplyToUserID)
+		if replyToUsername != "" {
+			result.ReplyToUsername = &replyToUsername
+		}
+	}
+
+	logger.Sugar.Infow("Comment edited",
+		"comment_id", commentID,
+		"edited_by", requestingUserID,
+	)
+
+	return result, nil
 }
 
 func (s *CommentService) sendCommentNotifications(

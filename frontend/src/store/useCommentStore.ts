@@ -50,6 +50,7 @@ interface CommentActions {
     body: string
   ) => Promise<Comment | null>;
   deleteComment: (commentId: number, dayKey: string) => Promise<boolean>;
+  editComment: (commentId: number, body: string, dayKey: string) => Promise<Comment | null>;
   likeComment: (commentId: number, dayKey: string) => void;
   unlikeComment: (commentId: number, dayKey: string) => void;
   fetchCommentCount: (username: string, date: string) => Promise<void>;
@@ -407,6 +408,50 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
       console.error('[CommentStore] deleteComment failed:', error);
     }
     return false;
+  },
+
+  editComment: async (commentId, body, dayKey) => {
+    // Save original for rollback
+    const state = get();
+    let originalComment: Comment | undefined;
+    const dayComments = state.commentsByDay[dayKey] || [];
+    originalComment = dayComments.find((c) => c.id === commentId);
+    if (!originalComment) {
+      for (const replyState of Object.values(state.repliesByRoot)) {
+        originalComment = replyState.comments.find((c) => c.id === commentId);
+        if (originalComment) break;
+      }
+    }
+
+    // Optimistic update
+    set((s) =>
+      updateCommentInState(s, commentId, dayKey, (c) => ({
+        ...c,
+        body,
+        is_edited: true,
+      }))
+    );
+
+    try {
+      const response = await commentApi.editComment(commentId, body);
+      if (response.success && response.comment) {
+        // Apply server response
+        set((s) =>
+          updateCommentInState(s, commentId, dayKey, () => response.comment!)
+        );
+        return response.comment;
+      }
+    } catch (error) {
+      console.error('[CommentStore] editComment failed:', error);
+    }
+
+    // Revert on failure
+    if (originalComment) {
+      set((s) =>
+        updateCommentInState(s, commentId, dayKey, () => originalComment!)
+      );
+    }
+    return null;
   },
 
   likeComment: async (commentId, dayKey) => {

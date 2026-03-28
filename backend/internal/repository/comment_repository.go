@@ -142,6 +142,24 @@ func (r *CommentRepository) SoftDelete(commentID uint) error {
 	return nil
 }
 
+// UpdateBody updates a comment's body and marks it as edited
+func (r *CommentRepository) UpdateBody(commentID uint, body string) error {
+	result := r.db.Model(&models.Comment{}).
+		Where("id = ? AND is_deleted = false", commentID).
+		Updates(map[string]interface{}{
+			"body":      body,
+			"is_edited": true,
+		})
+	if result.Error != nil {
+		logger.Sugar.Errorw("CommentRepository.UpdateBody failed",
+			"comment_id", commentID,
+			"error", result.Error,
+		)
+		return result.Error
+	}
+	return nil
+}
+
 // IncrementAncestorReplyCounts atomically increments reply_count on every
 // ancestor of the given comment (parent, grandparent, … up to root).
 // Uses a recursive CTE to walk the parent_comment_id chain.

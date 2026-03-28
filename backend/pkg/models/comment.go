@@ -17,6 +17,7 @@ type Comment struct {
 	Body            string     `gorm:"type:text;not null" json:"body"`
 	LikeCount       int        `gorm:"not null;default:0" json:"like_count"`
 	ReplyCount      int        `gorm:"not null;default:0" json:"reply_count"`
+	IsEdited        bool       `gorm:"not null;default:false" json:"is_edited"`
 	IsDeleted       bool       `gorm:"not null;default:false" json:"is_deleted"`
 	DeletedAt       *time.Time `json:"deleted_at,omitempty"`
 	CreatedAt       time.Time  `gorm:"not null;default:now();autoCreateTime;index:idx_comment_root_created,priority:2,sort:desc" json:"created_at"`

@@ -522,6 +522,7 @@ type CommentDTO struct {
 	Body            string       `json:"body" example:"Great progress today!"`
 	LikeCount       int          `json:"like_count" example:"5"`
 	ReplyCount      int          `json:"reply_count" example:"2"`
+	IsEdited        bool         `json:"is_edited" example:"false"`
 	IsDeleted       bool         `json:"is_deleted" example:"false"`
 	LikedByMe       bool         `json:"liked_by_me" example:"false"`
 	Mentions        []MentionDTO `json:"mentions"`

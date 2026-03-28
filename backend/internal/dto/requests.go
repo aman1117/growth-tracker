@@ -224,3 +224,9 @@ type CreateCommentRequest struct {
 type CreateReplyRequest struct {
 	Body string `json:"body" example:"Thanks!"`
 }
+
+// EditCommentRequest represents the request to edit a comment
+// @Description Edit an existing comment's body
+type EditCommentRequest struct {
+	Body string `json:"body" example:"Updated comment text"`
+}

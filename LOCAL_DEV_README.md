@@ -26,6 +26,9 @@ Copy-Item .env.example .env
 
 # Start all services and seed the database
 docker compose up -d; docker compose --profile seed up seed
+
+# Run required database migrations (indexes, extensions, extra tables)
+docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; for f in migrations/*.go; do echo "=== Running $f ==="; go run "$f"; done'
 ```
 
 ### macOS / Linux (Bash)
@@ -37,6 +40,9 @@ cp .env.example .env
 
 # Start all services and seed the database
 docker compose up -d && docker compose --profile seed up seed
+
+# Run required database migrations (indexes, extensions, extra tables)
+docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; for f in migrations/*.go; do echo "=== Running $f ==="; go run "$f"; done'
 ```
 
 ### Access Points
@@ -148,9 +154,38 @@ docker compose --profile seed up seed
 
 ### Run Migrations
 
+The database schema is managed in two layers:
+
+1. **AutoMigrate (automatic):** Creates all 20 base tables on server startup. No action needed.
+2. **Migration scripts (manual):** Add PostgreSQL extensions, custom indexes, and extra tables not managed by GORM. **You must run these after first setup.**
+
+#### Quick: Run All Migrations at Once
+
 ```powershell
-# Run all backend migrations in the container
+# Run ALL migration scripts inside the backend container (safe to re-run)
 docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; for f in migrations/*.go; do echo "=== Running $f ==="; go run "$f"; done'
+```
+
+#### Migration Reference
+
+Run these in order. All are idempotent (`IF NOT EXISTS` / `IF NOT`) — safe to re-run.
+
+| # | File | What it does | Why it's needed |
+|---|------|-------------|-----------------|
+| 1 | `add_autocomplete_indexes.go` | Enables `pg_trgm` extension, creates trigram GIN + prefix B-tree indexes on `users.username` | User search / autocomplete won't work without this |
+| 2 | `add_activity_photos.go` | Creates `activity_photos` and `story_views` tables with custom indexes and constraints | Stories / photo upload feature |
+| 3 | `add_story_likes.go` | Creates `story_likes` table with unique constraint and indexes | Story like/heart feature |
+| 4 | `add_recent_searches.go` | Creates `recent_searches` table with upsert constraint | Search suggestions feature |
+| 5 | `add_profile_pic_thumb.go` | Adds `profile_pic_thumb` column to `users` table | Profile picture thumbnails |
+| 6 | `seed_badges.go` | Seeds badge records for existing users based on streak data | **Optional** — only needed if you have existing users without badges |
+
+> **Note:** The seed command (`docker compose --profile seed up seed`) handles test data. The migration scripts above handle schema changes that GORM's AutoMigrate doesn't cover (extensions, custom indexes, raw SQL tables).
+
+#### Running a Single Migration
+
+```powershell
+# Example: run just the autocomplete indexes migration
+docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; go run migrations/add_autocomplete_indexes.go'
 ```
 
 ### Access Container Shell

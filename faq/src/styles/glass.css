@@ -1,0 +1,51 @@
+/**
+ * Glass Effect Utilities (subset from main app)
+ *
+ * Theme color transitions are handled globally in index.css.
+ * Only interactive transitions (hover transforms) are declared here.
+ */
+
+.glass-surface {
+  background: var(--glass-surface-bg);
+  border: 1px solid var(--glass-surface-border);
+  box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+}
+
+.glass-surface-interactive {
+  background: var(--glass-surface-bg);
+  border: 1px solid var(--glass-surface-border);
+  box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  backdrop-filter: blur(var(--glass-blur-sm));
+  cursor: pointer;
+}
+
+.glass-surface-interactive:hover {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-panel-border);
+  box-shadow: var(--shadow-elevated), var(--glass-surface-glow);
+  transform: translateY(-1px);
+}
+
+.glass-surface-interactive:active {
+  background: var(--glass-active-bg);
+  transform: translateY(0) scale(0.99);
+}
+
+.glass-surface-interactive:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--glass-surface-shadow),
+    var(--glass-surface-glow),
+    0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.glass-panel {
+  background: var(--glass-panel-bg);
+  border: 1px solid var(--glass-panel-border);
+  box-shadow: var(--glass-panel-shadow), var(--glass-panel-glow);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  backdrop-filter: blur(var(--glass-blur-md));
+}

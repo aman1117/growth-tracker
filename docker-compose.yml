@@ -296,6 +296,18 @@ services:
     depends_on:
       - backend
 
+  # FAQ / Help Center site with Vite hot-reload
+  faq:
+    build:
+      context: ./faq
+      dockerfile: Dockerfile.dev
+    container_name: growth-tracker-faq
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./faq:/app
+      - /app/node_modules
+
 volumes:
   postgres_data:
   azurite_data:

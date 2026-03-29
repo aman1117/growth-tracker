@@ -666,7 +666,7 @@ export const AnalyticsPage: React.FC = () => {
                     <span
                       style={{
                         fontSize: '0.65rem',
-                        color: (analytics.percentage_change ?? 0) >= 0 ? '#10b981' : '#ef4444',
+                        color: (analytics.percentage_change ?? 0) >= 0 ? 'var(--success)' : 'var(--error)',
                         fontWeight: 500,
                         display: 'flex',
                         alignItems: 'center',
@@ -674,9 +674,9 @@ export const AnalyticsPage: React.FC = () => {
                       }}
                     >
                       {(analytics.percentage_change ?? 0) >= 0 ? (
-                        <TrendingUp size={10} color="#10b981" />
+                        <TrendingUp size={10} color="var(--success)" />
                       ) : (
-                        <TrendingDown size={10} color="#ef4444" />
+                        <TrendingDown size={10} color="var(--error)" />
                       )}
                       {(analytics.percentage_change ?? 0) >= 0 ? '+' : ''}
                       {(analytics.percentage_change ?? 0).toFixed(0)}%
@@ -685,7 +685,7 @@ export const AnalyticsPage: React.FC = () => {
                     <span
                       style={{
                         fontSize: '0.65rem',
-                        color: (analytics.percentage_vs_current ?? 0) >= 0 ? '#10b981' : '#ef4444',
+                        color: (analytics.percentage_vs_current ?? 0) >= 0 ? 'var(--success)' : 'var(--error)',
                         fontWeight: 500,
                         display: 'flex',
                         alignItems: 'center',
@@ -693,9 +693,9 @@ export const AnalyticsPage: React.FC = () => {
                       }}
                     >
                       {(analytics.percentage_vs_current ?? 0) >= 0 ? (
-                        <TrendingUp size={10} color="#10b981" />
+                        <TrendingUp size={10} color="var(--success)" />
                       ) : (
-                        <TrendingDown size={10} color="#ef4444" />
+                        <TrendingDown size={10} color="var(--error)" />
                       )}
                       {(analytics.percentage_vs_current ?? 0) >= 0 ? '+' : ''}
                       {(analytics.percentage_vs_current ?? 0).toFixed(0)}%
@@ -729,7 +729,7 @@ export const AnalyticsPage: React.FC = () => {
                     gap: '0.25rem',
                   }}
                 >
-                  <Flame size={16} fill="#f87171" color="#ef4444" />
+                  <Flame size={16} fill="var(--color-like-light)" color="var(--color-like)" />
                   {analytics.streak.current}
                 </div>
                 <div

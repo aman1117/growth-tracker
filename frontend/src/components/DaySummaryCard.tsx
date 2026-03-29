@@ -379,7 +379,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
           {/* Current Streak - only show on Today */}
           {isToday() && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <Flame size={18} fill="#f87171" color="#ef4444" style={{ display: 'block' }} />
+              <Flame size={18} fill="var(--color-like-light)" color="var(--color-like)" style={{ display: 'block' }} />
               <span
                 style={{
                   fontSize: '0.85rem',
@@ -398,7 +398,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
 
           {/* Best Streak */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Trophy size={18} fill="#fbbf24" color="#f59e0b" style={{ display: 'block' }} />
+            <Trophy size={18} fill="var(--color-streak-light)" color="var(--color-streak)" style={{ display: 'block' }} />
             <span
               style={{
                 fontSize: '0.85rem',

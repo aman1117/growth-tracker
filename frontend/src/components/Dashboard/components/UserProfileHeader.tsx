@@ -91,7 +91,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
             cursor: hasStories || targetProfilePic ? 'pointer' : 'default',
             // Use consistent 3px border, only color changes for story indicator
             border: hasStories
-              ? '3px solid #0095f6' // Story ring indicator
+              ? '3px solid var(--color-follow)' // Story ring indicator
               : '3px solid var(--border)',
           }}
         >

@@ -13,8 +13,8 @@
   /* Slate 900 */
   --text-secondary: #525252;
   /* Neutral 600 */
-  --text-muted: #a3a3a3;
-  /* Neutral 400 */
+  --text-muted: #8b8b8b;
+  /* Neutral 400 — darkened for WCAG AA compliance (3.55:1) */
   --accent: #3b82f6;
   /* Blue 500 - Professional accent */
   --accent-hover: #2563eb;
@@ -65,6 +65,22 @@
 
   /* Toggle switch */
   --toggle-off-bg: rgba(120, 120, 128, 0.2);
+
+  /* ============================================================================
+     Semantic Text Colors
+     ============================================================================ */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: #737373; /* Neutral 500 — readable but muted */
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: #ffffff;
+  --color-text-disabled: var(--text-muted); /* apply opacity: 0.6 on element */
+  --color-text-link: var(--accent);
+  --color-text-link-hover: var(--accent-hover);
+  --color-text-success: var(--success);
+  --color-text-warning: #d97706; /* Amber 600 — better contrast than yellow */
+  --color-text-danger: var(--error);
+  --color-text-info: #3b82f6;
 }
 
 /* Dark Theme - Clean Neutral Black */
@@ -130,6 +146,11 @@
 
   /* Toggle switch */
   --toggle-off-bg: rgba(120, 120, 128, 0.4);
+
+  /* Semantic Text Colors (Dark) */
+  --color-text-tertiary: #a1a1aa; /* Zinc 400 */
+  --color-text-inverse: #0f172a;
+  --color-text-warning: #fbbf24; /* Amber 400 */
 }
 
 * {

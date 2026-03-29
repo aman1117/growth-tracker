@@ -78,6 +78,94 @@
   --tracking-wide: 0.025em;
 
   /* ============================================================================
+     Semantic Typography Roles
+     Compose from primitive tokens. Use in components, not raw sizes.
+     ============================================================================ */
+  /* Display — hero titles, landing sections */
+  --type-display-size: var(--text-4xl);
+  --type-display-weight: var(--font-bold);
+  --type-display-leading: var(--leading-tight);
+  --type-display-tracking: var(--tracking-tight);
+
+  /* Page Title — h1 headings */
+  --type-page-title-size: var(--text-3xl);
+  --type-page-title-weight: var(--font-bold);
+  --type-page-title-leading: var(--leading-tight);
+  --type-page-title-tracking: var(--tracking-tight);
+
+  /* Section Title — h2 headings, FAQ section titles */
+  --type-section-title-size: var(--text-xl);
+  --type-section-title-weight: var(--font-bold);
+  --type-section-title-leading: var(--leading-snug);
+  --type-section-title-tracking: var(--tracking-tight);
+
+  /* Card Title — modal titles, card headers, FAQ question triggers */
+  --type-card-title-size: var(--text-md);
+  --type-card-title-weight: var(--font-semibold);
+  --type-card-title-leading: var(--leading-snug);
+  --type-card-title-tracking: var(--tracking-normal);
+
+  /* Title Small — notification titles, setting labels, small card titles */
+  --type-title-sm-size: var(--text-base);
+  --type-title-sm-weight: var(--font-semibold);
+  --type-title-sm-leading: var(--leading-snug);
+  --type-title-sm-tracking: -0.01em;
+
+  /* Body Large — hero subtitles, input text */
+  --type-body-lg-size: var(--text-md);
+  --type-body-lg-weight: var(--font-normal);
+  --type-body-lg-leading: var(--leading-relaxed);
+  --type-body-lg-tracking: var(--tracking-normal);
+
+  /* Body — default body text, FAQ answers */
+  --type-body-size: var(--text-base);
+  --type-body-weight: var(--font-normal);
+  --type-body-leading: var(--leading-normal);
+  --type-body-tracking: var(--tracking-normal);
+
+  /* Body Small — secondary descriptions */
+  --type-body-sm-size: var(--text-sm);
+  --type-body-sm-weight: var(--font-normal);
+  --type-body-sm-leading: var(--leading-normal);
+  --type-body-sm-tracking: var(--tracking-normal);
+
+  /* Label — form labels, timestamps, metadata */
+  --type-label-size: var(--text-xs);
+  --type-label-weight: var(--font-medium);
+  --type-label-leading: var(--leading-tight);
+  --type-label-tracking: var(--tracking-wide);
+
+  /* Label Small — overline-style labels, badge counters */
+  --type-label-sm-size: var(--text-2xs);
+  --type-label-sm-weight: var(--font-semibold);
+  --type-label-sm-leading: var(--leading-tight);
+  --type-label-sm-tracking: 0.05em;
+
+  /* Caption — helper text, item counts, footer text */
+  --type-caption-size: var(--text-xs);
+  --type-caption-weight: var(--font-normal);
+  --type-caption-leading: var(--leading-snug);
+  --type-caption-tracking: var(--tracking-normal);
+
+  /* Button — button text (MD) */
+  --type-button-size: var(--text-base);
+  --type-button-weight: var(--font-semibold);
+  --type-button-leading: var(--leading-none);
+  --type-button-tracking: var(--tracking-normal);
+
+  /* Button Small — button text (XS/SM) */
+  --type-button-sm-size: var(--text-xs);
+  --type-button-sm-weight: var(--font-semibold);
+  --type-button-sm-leading: var(--leading-none);
+  --type-button-sm-tracking: var(--tracking-normal);
+
+  /* Overline — uppercase category headers */
+  --type-overline-size: var(--text-2xs);
+  --type-overline-weight: var(--font-semibold);
+  --type-overline-leading: var(--leading-none);
+  --type-overline-tracking: 0.05em;
+
+  /* ============================================================================
      Shadow Tokens
      ============================================================================ */
   --shadow-none: none;

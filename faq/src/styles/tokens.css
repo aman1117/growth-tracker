@@ -59,6 +59,65 @@
 
   --tracking-tight: -0.025em;
   --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+
+  /* ============================================================================
+     Semantic Typography Roles (synced from frontend/src/styles/tokens.css)
+     ============================================================================ */
+  --type-display-size: var(--text-4xl);
+  --type-display-weight: var(--font-bold);
+  --type-display-leading: var(--leading-tight);
+  --type-display-tracking: var(--tracking-tight);
+
+  --type-page-title-size: var(--text-3xl);
+  --type-page-title-weight: var(--font-bold);
+  --type-page-title-leading: var(--leading-tight);
+  --type-page-title-tracking: var(--tracking-tight);
+
+  --type-section-title-size: var(--text-xl);
+  --type-section-title-weight: var(--font-bold);
+  --type-section-title-leading: var(--leading-snug);
+  --type-section-title-tracking: var(--tracking-tight);
+
+  --type-card-title-size: var(--text-md);
+  --type-card-title-weight: var(--font-semibold);
+  --type-card-title-leading: var(--leading-snug);
+  --type-card-title-tracking: var(--tracking-normal);
+
+  --type-title-sm-size: var(--text-base);
+  --type-title-sm-weight: var(--font-semibold);
+  --type-title-sm-leading: var(--leading-snug);
+  --type-title-sm-tracking: -0.01em;
+
+  --type-body-lg-size: var(--text-md);
+  --type-body-lg-weight: var(--font-normal);
+  --type-body-lg-leading: var(--leading-relaxed);
+  --type-body-lg-tracking: var(--tracking-normal);
+
+  --type-body-size: var(--text-base);
+  --type-body-weight: var(--font-normal);
+  --type-body-leading: var(--leading-normal);
+  --type-body-tracking: var(--tracking-normal);
+
+  --type-body-sm-size: var(--text-sm);
+  --type-body-sm-weight: var(--font-normal);
+  --type-body-sm-leading: var(--leading-normal);
+  --type-body-sm-tracking: var(--tracking-normal);
+
+  --type-label-size: var(--text-xs);
+  --type-label-weight: var(--font-medium);
+  --type-label-leading: var(--leading-tight);
+  --type-label-tracking: var(--tracking-wide);
+
+  --type-caption-size: var(--text-xs);
+  --type-caption-weight: var(--font-normal);
+  --type-caption-leading: var(--leading-snug);
+  --type-caption-tracking: var(--tracking-normal);
+
+  --type-overline-size: var(--text-2xs);
+  --type-overline-weight: var(--font-semibold);
+  --type-overline-leading: var(--leading-none);
+  --type-overline-tracking: 0.05em;
 
   /* Shadows */
   --shadow-none: none;

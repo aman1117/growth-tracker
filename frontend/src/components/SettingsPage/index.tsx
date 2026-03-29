@@ -432,7 +432,7 @@ export const SettingsPage: React.FC = () => {
                 height: '24px',
                 borderRadius: '12px',
                 border: 'none',
-                backgroundColor: isPrivate ? '#0095f6' : 'var(--border)',
+                backgroundColor: isPrivate ? 'var(--color-follow)' : 'var(--border)',
                 cursor: 'pointer',
                 position: 'relative',
                 transition: 'background-color 0.2s',
@@ -479,7 +479,7 @@ export const SettingsPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: pendingRequestsCount > 0 ? '#f59e0b' : 'var(--text-secondary)',
+                color: pendingRequestsCount > 0 ? 'var(--color-warning)' : 'var(--text-secondary)',
               }}
             >
               <UserPlus size={16} />
@@ -499,7 +499,7 @@ export const SettingsPage: React.FC = () => {
               {pendingRequestsCount > 0 && (
                 <span
                   style={{
-                    backgroundColor: '#f59e0b',
+                    backgroundColor: 'var(--color-warning)',
                     color: 'white',
                     fontSize: '0.75rem',
                     fontWeight: 600,
@@ -692,7 +692,7 @@ export const SettingsPage: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#ef4444',
+                color: 'var(--error)',
               }}
             >
               <LogOut size={16} />
@@ -701,7 +701,7 @@ export const SettingsPage: React.FC = () => {
               style={{
                 fontSize: '0.875rem',
                 fontWeight: 500,
-                color: '#ef4444',
+                color: 'var(--error)',
               }}
             >
               Log out

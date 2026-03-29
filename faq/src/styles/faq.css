@@ -380,11 +380,11 @@
   border: none;
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: var(--text-md);
-  font-weight: var(--font-semibold);
+  font-size: var(--type-card-title-size);
+  font-weight: var(--type-card-title-weight);
   text-align: left;
   cursor: pointer;
-  line-height: var(--leading-snug);
+  line-height: var(--type-card-title-leading);
   transition: background-color var(--transition-fast) var(--ease-default);
 }
 
@@ -411,13 +411,14 @@
 .help-item-content {
   padding: 0 var(--space-5) var(--space-5);
   color: var(--text-secondary);
-  font-size: var(--text-base);
-  line-height: var(--leading-relaxed);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-lg-leading);
   animation: fadeIn var(--transition-normal) var(--ease-default);
 }
 
 .help-item-content p {
   margin-bottom: var(--space-3);
+  max-width: 65ch; /* Optimal reading width */
 }
 
 .help-item-content p:last-child {
@@ -539,6 +540,7 @@
 
 .help-footer a:hover {
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .help-footer-copy {

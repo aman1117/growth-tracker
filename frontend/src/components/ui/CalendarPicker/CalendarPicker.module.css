@@ -183,7 +183,7 @@
   text-align: center;
   padding: var(--space-1) 0;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: var(--tracking-wide);
 }
 
 /* Days Grid */

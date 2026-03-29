@@ -9,7 +9,7 @@
   --bg-tertiary: #f5f5f5;
   --text-primary: #0f172a;
   --text-secondary: #525252;
-  --text-muted: #a3a3a3;
+  --text-muted: #8b8b8b; /* darkened for WCAG AA compliance (3.55:1) */
   --accent: #3b82f6;
   --accent-hover: #2563eb;
   --border: #e5e5e5;
@@ -21,6 +21,8 @@
     sans-serif;
   --header-bg: rgba(255, 255, 255, 0.85);
   --icon-bg-muted: rgba(0, 0, 0, 0.04);
+  --logo-bg: #eab308;
+  --logo-color: #422006;
 }
 
 [data-theme='dark'] {
@@ -69,6 +71,8 @@ html[data-theme] {
 
 html {
   scroll-behavior: smooth;
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
 }
 
 body {
@@ -79,6 +83,27 @@ body {
   line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-family: inherit;
+  touch-action: manipulation;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px !important; /* Prevents iOS/Android auto-zoom on focus */
+  font-family: inherit;
+  touch-action: manipulation;
 }
 
 #root {

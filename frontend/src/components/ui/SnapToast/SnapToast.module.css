@@ -71,12 +71,12 @@
 }
 
 :root:not([data-theme='dark']) .snapToast .message {
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 :root:not([data-theme='dark']) .snapToast .iconWrapper {
   background: rgba(0, 0, 0, 0.08);
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 @media (prefers-color-scheme: light) {
@@ -90,7 +90,7 @@
   }
 
   :root:not([data-theme='dark']) .snapToast .message {
-    color: #1a1a1a;
+    color: var(--text-primary);
   }
 
   :root:not([data-theme='dark']) .snapToast .iconWrapper {
@@ -191,7 +191,7 @@
 
   /* Default neutral style */
   background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  color: var(--color-text-inverse);
 }
 
 /* Type-specific icon colors */
@@ -280,7 +280,7 @@
 .message {
   font-size: 0.875rem;
   font-weight: var(--font-semibold);
-  color: #ffffff;
+  color: var(--color-text-inverse);
   letter-spacing: -0.01em;
   line-height: 1.3;
   word-wrap: break-word;

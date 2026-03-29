@@ -28,8 +28,8 @@ export function Header() {
     <header className="help-header">
       <div className="help-header-inner">
         <div className="help-header-brand">
-          <div className="help-header-logo" style={{ background: '#eab308' }}>
-            <TrendingUp size={18} color="#422006" />
+          <div className="help-header-logo" style={{ background: 'var(--logo-bg)' }}>
+            <TrendingUp size={18} color="var(--logo-color)" />
           </div>
           <div>
             <div className="help-header-title">Growth Tracker</div>

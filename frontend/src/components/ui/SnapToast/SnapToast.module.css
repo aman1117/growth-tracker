@@ -191,7 +191,7 @@
 
   /* Default neutral style */
   background: rgba(255, 255, 255, 0.15);
-  color: var(--color-text-inverse);
+  color: #ffffff;
 }
 
 /* Type-specific icon colors */
@@ -280,7 +280,7 @@
 .message {
   font-size: 0.875rem;
   font-weight: var(--font-semibold);
-  color: var(--color-text-inverse);
+  color: #ffffff;
   letter-spacing: -0.01em;
   line-height: 1.3;
   word-wrap: break-word;

@@ -66,11 +66,14 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
     }
   }, [searchParams, setSearchParams, setSheetOpen]);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setSheetOpen(true);
-  }, [setSheetOpen]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setSheetOpen(true);
+    },
+    [setSheetOpen]
+  );
 
   const iconSize = size === 'sm' ? 16 : 20;
   const hasComments = count > 0;

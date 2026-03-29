@@ -184,6 +184,7 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="*" element={<Navigate to={APP_ROUTES.HOME} replace />} />
                 </Routes>
               </Suspense>
             </Layout>

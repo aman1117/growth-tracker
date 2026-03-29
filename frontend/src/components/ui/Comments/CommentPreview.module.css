@@ -23,7 +23,7 @@
 }
 
 .previewUsername {
-  font-size: var(--type-label-size);
+  font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--text-primary);
   white-space: nowrap;
@@ -31,7 +31,7 @@
 }
 
 .previewBody {
-  font-size: var(--type-label-size);
+  font-size: var(--text-sm);
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;

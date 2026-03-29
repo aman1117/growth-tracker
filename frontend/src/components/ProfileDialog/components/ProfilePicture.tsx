@@ -188,7 +188,7 @@ export const ProfilePicture: React.FC<ProfilePictureProps> = ({
         </div>
       )}
 
-      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.username}</span>
+      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)' }}>{user.username}</span>
     </div>
   );
 };

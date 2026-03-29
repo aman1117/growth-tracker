@@ -72,7 +72,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-weight: var(--type-title-sm-weight);
+  font-weight: var(--font-bold);
   font-size: var(--type-title-sm-size);
   color: var(--color-text-primary);
 }

@@ -118,7 +118,7 @@ export const FullscreenProfilePic: React.FC<FullscreenProfilePicProps> = ({
           transform: 'translateX(-50%)',
           color: 'white',
           fontSize: '1rem',
-          fontWeight: 500,
+          fontWeight: 700,
           padding: '8px 16px',
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
           borderRadius: '20px',

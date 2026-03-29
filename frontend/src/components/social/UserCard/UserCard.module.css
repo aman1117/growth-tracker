@@ -36,7 +36,7 @@
 
 .username {
   font-size: 14px;
-  font-weight: var(--font-semibold);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
   display: flex;
   align-items: center;

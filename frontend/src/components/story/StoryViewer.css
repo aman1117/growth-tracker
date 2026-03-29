@@ -157,7 +157,7 @@
 
 .story-viewer-username {
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.9rem;
 }
 
@@ -803,7 +803,7 @@
 
 .story-viewer-viewer-name {
   color: var(--text-primary);
-  font-weight: var(--font-medium);
+  font-weight: var(--font-bold);
   font-size: 0.875rem;
   flex: 1;
 }

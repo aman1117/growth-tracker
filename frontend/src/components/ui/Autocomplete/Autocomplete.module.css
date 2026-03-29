@@ -200,6 +200,7 @@
 
 .username {
   display: inline;
+  font-weight: var(--font-bold);
 }
 
 .highlight {

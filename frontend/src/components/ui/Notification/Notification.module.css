@@ -382,7 +382,7 @@
   margin: 0;
   font: inherit;
   color: var(--accent);
-  font-weight: var(--font-semibold);
+  font-weight: var(--font-bold);
   cursor: pointer;
   text-decoration: none;
   transition: color 0.15s ease;

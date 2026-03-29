@@ -538,7 +538,7 @@ export const AnalyticsPage: React.FC = () => {
                     alignItems: 'center',
                     gap: '2px',
                     color: 'var(--text-primary)',
-                    fontWeight: 500,
+                    fontWeight: 700,
                     fontSize: '0.95rem',
                   }}
                 >

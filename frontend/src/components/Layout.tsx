@@ -8,6 +8,7 @@ import { useAuth } from '../store';
 import { useNotificationPreviewStore } from '../store/useNotificationPreviewStore';
 import type { AutocompleteSuggestion } from '../types';
 import { BottomNavigation } from './BottomNavigation';
+import styles from './Layout.module.css';
 import { UserSearchAutocomplete } from './search';
 import { ThemeToggle } from './ThemeToggle';
 import { NotificationCenter, NotificationPreviewToast } from './ui';
@@ -49,98 +50,39 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   // For auth flow pages, render minimal layout without header/footer
   if (isAuthFlowPage) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <main style={{ flex: 1, paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>{children}</main>
+      <div className={styles.wrapper}>
+        <main className={`${styles.main} ${styles.mainNoNav}`}>{children}</main>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <header
-        style={{
-          borderBottom: '1px solid var(--border)',
-          padding: '0.75rem 0',
-          backgroundColor: 'var(--header-bg)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          transition: 'background-color 0.3s ease, border-color 0.3s ease',
-        }}
-      >
-        <div
-          className="container"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '0 1rem',
-            maxWidth: '560px',
-            margin: '0 auto',
-          }}
-        >
+    <div className={styles.wrapper}>
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
           {/* Logo - Left side */}
           {!isSearchOpen && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-              onClick={() => navigate(APP_ROUTES.HOME)}
-            >
-              <img
-                src="/logo.png"
-                alt="Growth Tracker"
-                style={{
-                  height: '28px',
-                  width: 'auto',
-                  filter: 'var(--logo-filter)',
-                }}
-              />
+            <div className={styles.logo} onClick={() => navigate(APP_ROUTES.HOME)}>
+              <img src="/logo.png" alt="Growth Tracker" className={styles.logoImage} />
             </div>
           )}
 
           {/* Right side icons */}
           {user && (
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                flex: isSearchOpen ? 1 : 'unset',
-                marginLeft: isSearchOpen ? '0' : 'auto',
-                position: 'relative',
-                justifyContent: 'flex-end',
-                transition: 'margin-left 0.3s ease',
-              }}
+              className={`${styles.rightIcons} ${isSearchOpen ? styles.rightIconsExpanded : ''}`}
             >
               {/* Search - icon button when closed, full autocomplete when open */}
               {!isSearchOpen ? (
                 <button
                   onClick={() => setIsSearchOpen(true)}
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: '50%',
-                    cursor: 'pointer',
-                    color: 'var(--text-primary)',
-                  }}
+                  className={styles.searchButton}
                   aria-label="Open search"
                 >
                   <Search size={22} strokeWidth={1.8} />
                 </button>
               ) : (
-                <div style={{ flex: 1 }}>
+                <div className={styles.searchExpanded}>
                   <UserSearchAutocomplete
                     placeholder="Search users..."
                     onSelect={handleSearchSelect}
@@ -167,36 +109,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       </header>
 
       {/* Backdrop blur when search is open */}
-      {isSearchOpen && (
-        <div
-          onClick={closeSearch}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.4)',
-            backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)',
-            zIndex: 40,
-            animation: 'fadeIn 0.2s ease-out',
-          }}
-        />
-      )}
-      <style>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-            `}</style>
+      {isSearchOpen && <div onClick={closeSearch} className={styles.backdrop} />}
 
       <main
-        style={{
-          flex: 1,
-          paddingTop: '0.5rem',
-          paddingBottom: user && !isSettingsPage ? '80px' : '0.5rem',
-        }}
+        className={`${styles.main} ${user && !isSettingsPage ? styles.mainWithNav : styles.mainNoNav}`}
       >
         {children}
       </main>

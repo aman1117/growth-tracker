@@ -92,7 +92,7 @@ export const AuthForm: React.FC = () => {
   return (
     <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
       <div className="card">
-        <h2 className="text-center" style={{ marginBottom: '0.75rem', fontSize: '1.1rem' }}>
+        <h2 className="text-center" style={{ marginBottom: '0.75rem', fontSize: 'var(--text-lg)' }}>
           {isLogin ? 'Welcome Back' : 'Create Account'}
         </h2>
 
@@ -147,7 +147,7 @@ export const AuthForm: React.FC = () => {
               <Link
                 to="/forgot-password"
                 style={{
-                  fontSize: '0.8rem',
+                  fontSize: 'var(--text-sm)',
                   color: 'var(--text-muted)',
                   textDecoration: 'none',
                 }}

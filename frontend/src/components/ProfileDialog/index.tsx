@@ -25,6 +25,7 @@ import {
   UsernameEditor,
 } from './components';
 import { useProfileDialog } from './hooks';
+import styles from './ProfileDialog.module.css';
 import type { ProfileDialogProps } from './ProfileDialog.types';
 
 export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, onLogout }) => {
@@ -75,65 +76,12 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
   if (!isOpen || !user) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        zIndex: 100,
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        paddingTop: '15vh',
-      }}
-      onClick={onClose}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '300px',
-          background: 'var(--glass-bg)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderRadius: '14px',
-          boxShadow: 'var(--glass-shadow)',
-          border: '1px solid var(--glass-border)',
-          overflow: 'hidden',
-          margin: '0 1rem',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div
-          style={{
-            padding: '0.75rem 1rem',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-            Profile
-          </span>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+        <div className={styles.header}>
+          <span className={styles.headerTitle}>Profile</span>
+          <button onClick={onClose} className={styles.closeButton}>
             <X size={18} />
           </button>
         </div>
@@ -151,7 +99,7 @@ export const ProfileDialog: React.FC<ProfileDialogProps> = ({ isOpen, onClose, o
         />
 
         {/* Options */}
-        <div style={{ padding: '0 0.5rem 0.5rem' }}>
+        <div className={styles.body}>
           <UsernameEditor
             isEditing={isEditingUsername}
             newUsername={newUsername}

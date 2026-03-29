@@ -1,0 +1,77 @@
+/**
+ * StreakCard CSS Module
+ *
+ * Replaces inline styles with token-backed classes.
+ */
+
+.card {
+  background-color: var(--bg-secondary);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  box-shadow: 0 1px 3px var(--shadow-sm);
+  flex-wrap: wrap;
+}
+
+.skeleton {
+  height: 60px;
+  width: 100%;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+}
+
+.streakItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--color-like-bg);
+}
+
+.iconCircle svg {
+  color: var(--color-like);
+}
+
+.streakText {
+  font-weight: var(--font-semibold);
+  font-size: var(--type-body-size);
+  white-space: nowrap;
+}
+
+.divider {
+  opacity: 0.5;
+  display: inline-block;
+  font-size: var(--type-body-size);
+}
+
+@media (max-width: 640px) {
+  .desktopDivider {
+    display: none !important;
+  }
+  .mobileDivider {
+    display: inline-block !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .desktopDivider {
+    display: block !important;
+  }
+  .mobileDivider {
+    display: none !important;
+  }
+}

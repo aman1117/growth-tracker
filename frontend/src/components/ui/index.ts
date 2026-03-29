@@ -59,6 +59,19 @@ export { VerifiedBadge, type VerifiedBadgeProps } from './VerifiedBadge';
 // Date & Time
 export { CalendarPicker, type CalendarPickerProps } from './CalendarPicker';
 
+// Typography
+export {
+  Heading,
+  type HeadingLevel,
+  type HeadingProps,
+  type HeadingSize,
+  Text,
+  type TextColor,
+  type TextProps,
+  type TextSize,
+  type TextWeight,
+} from './Typography';
+
 // Media
 export { ProtectedImage } from './ProtectedImage';
 

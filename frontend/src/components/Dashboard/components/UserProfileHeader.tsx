@@ -12,6 +12,7 @@ import type { ActivityPhoto } from '../../../types';
 import { formatLastLogged } from '../../../types';
 import { FollowButton, FollowStats, MutualFollowers } from '../../social';
 import { ProtectedImage, VerifiedBadge } from '../../ui';
+import styles from './UserProfileHeader.module.css';
 
 interface UserProfileHeaderProps {
   targetUsername: string;
@@ -49,68 +50,24 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
     !isPrivateAccount && targetUserPhotos.length > 0 && targetUserPhotosOwnerId === targetUserId;
 
   return (
-    <div
-      style={{
-        background: 'var(--tile-glass-bg)',
-        backdropFilter: 'blur(var(--tile-glass-blur))',
-        WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
-        padding: '1rem',
-        marginBottom: '1rem',
-        borderRadius: '20px',
-        border: '1px solid var(--tile-glass-border)',
-        boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.75rem',
-      }}
-    >
+    <div className={styles.container}>
       {/* Row 1: Avatar + Stats */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-        }}
-      >
+      <div className={styles.avatarRow}>
         <div
           onClick={onAvatarClick}
-          style={{
-            width: '72px',
-            height: '72px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--avatar-bg)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 700,
-            fontSize: '1.5rem',
-            color: 'var(--text-primary)',
-            textTransform: 'uppercase',
-            overflow: 'hidden',
-            flexShrink: 0,
-            cursor: hasStories || targetProfilePic ? 'pointer' : 'default',
-            // Use consistent 3px border, only color changes for story indicator
-            border: hasStories
-              ? '3px solid var(--color-follow)' // Story ring indicator
-              : '3px solid var(--border)',
-          }}
+          className={`${styles.avatar} ${hasStories ? styles.avatarWithStory : styles.avatarDefault} ${hasStories || targetProfilePic ? styles.avatarClickable : ''}`}
         >
           {targetProfilePic ? (
             <ProtectedImage
               src={targetProfilePicThumb || targetProfilePic}
               alt={targetUsername}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
+              className={styles.avatarImage}
             />
           ) : (
             targetUsername.charAt(0)
           )}
         </div>
-        {/* Stats next to avatar */}
-        <div style={{ flex: 1 }}>
+        <div className={styles.statsCol}>
           {targetUserId && (
             <FollowStats
               userId={targetUserId}
@@ -123,44 +80,15 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
       </div>
 
       {/* Row 2: Username + Bio */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        <span
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem',
-            fontWeight: 600,
-            fontSize: '0.875rem',
-            color: 'var(--text-primary)',
-          }}
-        >
+      <div className={styles.infoCol}>
+        <span className={styles.usernameRow}>
           {targetUsername}
           {targetIsVerified && <VerifiedBadge size={14} />}
         </span>
-        {!isPrivateAccount && targetBio && (
-          <span
-            style={{
-              fontSize: '0.875rem',
-              color: 'var(--text-primary)',
-              lineHeight: 1.4,
-              wordBreak: 'break-word',
-            }}
-          >
-            {targetBio}
-          </span>
-        )}
+        {!isPrivateAccount && targetBio && <span className={styles.bio}>{targetBio}</span>}
         {/* Last logged - only shown when available (privacy-aware from backend) */}
         {targetLastLoggedAt && (
-          <span
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '12px',
-              color: 'var(--text-primary)',
-              marginTop: '2px',
-            }}
-          >
+          <span className={styles.lastLogged}>
             <Clock size={12} />
             Last logged {formatLastLogged(targetLastLoggedAt)}
           </span>
@@ -170,15 +98,9 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
       </div>
 
       {/* Row 3: Follow Button + Analytics */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}
-      >
+      <div className={styles.actionRow}>
         {targetUserId && (
-          <div style={{ flex: 1 }}>
+          <div className={styles.followCol}>
             <FollowButton
               userId={targetUserId}
               username={targetUsername}
@@ -191,18 +113,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         {!isPrivateAccount && (
           <button
             onClick={onAnalyticsClick}
-            className="secondary-button"
-            style={{
-              padding: '0 0.875rem',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              height: '32px',
-              minWidth: '40px',
-            }}
+            className={`secondary-button ${styles.analyticsButton}`}
             title="View Analytics"
           >
             <BarChart3 size={16} />

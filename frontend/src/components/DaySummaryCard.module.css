@@ -1,0 +1,196 @@
+/**
+ * DaySummaryCard CSS Module
+ *
+ * Replaces 40+ inline styles with token-backed classes.
+ */
+
+/* Card Container */
+.card {
+  backdrop-filter: blur(var(--tile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
+  border-radius: 20px;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cardDefault {
+  background: var(--tile-glass-bg);
+  border: 1px solid var(--tile-glass-border);
+  box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
+}
+
+.cardComplete {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  box-shadow:
+    var(--tile-glass-shadow),
+    var(--tile-glass-inner-glow),
+    0 0 20px rgba(34, 197, 94, 0.1);
+}
+
+/* Skeleton loader */
+.skeleton {
+  height: 88px;
+  margin-bottom: 1rem;
+  border-radius: 20px;
+  background: var(--tile-glass-bg);
+  backdrop-filter: blur(var(--tile-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
+  border: 1px solid var(--tile-glass-border);
+  box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
+}
+
+/* Row layouts */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rowStart {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rowCenter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Navigation buttons */
+.navButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.navButtonDisabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+/* Date button */
+.dateButton {
+  font-size: var(--type-body-size);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  background: var(--tile-glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--tile-glass-border);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+/* Today button */
+.todayButton {
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  background: var(--tile-glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--tile-glass-border);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  margin-left: 0.25rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.todayButton:hover {
+  background: var(--tile-glass-bg-active);
+  border-color: var(--tile-glass-border-active);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Hours display */
+.hoursValue {
+  font-size: var(--type-body-size);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.hoursComplete {
+  font-weight: var(--font-semibold);
+  color: var(--success);
+}
+
+/* Progress bar */
+.progressTrack {
+  width: 100%;
+  height: 6px;
+  background-color: var(--progress-track);
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Streak row */
+.streakRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.25rem;
+}
+
+.streakGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.streakItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.streakValue {
+  font-size: var(--type-body-size);
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.streakLabel {
+  font-size: var(--type-label-size);
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}

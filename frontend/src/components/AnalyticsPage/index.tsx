@@ -666,7 +666,10 @@ export const AnalyticsPage: React.FC = () => {
                     <span
                       style={{
                         fontSize: '0.65rem',
-                        color: (analytics.percentage_change ?? 0) >= 0 ? 'var(--success)' : 'var(--error)',
+                        color:
+                          (analytics.percentage_change ?? 0) >= 0
+                            ? 'var(--success)'
+                            : 'var(--error)',
                         fontWeight: 500,
                         display: 'flex',
                         alignItems: 'center',
@@ -685,7 +688,10 @@ export const AnalyticsPage: React.FC = () => {
                     <span
                       style={{
                         fontSize: '0.65rem',
-                        color: (analytics.percentage_vs_current ?? 0) >= 0 ? 'var(--success)' : 'var(--error)',
+                        color:
+                          (analytics.percentage_vs_current ?? 0) >= 0
+                            ? 'var(--success)'
+                            : 'var(--error)',
                         fontWeight: 500,
                         display: 'flex',
                         alignItems: 'center',

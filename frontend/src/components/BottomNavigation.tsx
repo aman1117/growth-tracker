@@ -11,6 +11,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
 import { useAuth } from '../store';
+import styles from './BottomNavigation.module.css';
 import { ProtectedImage } from './ui';
 
 interface NavItemProps {
@@ -34,61 +35,19 @@ const NavItem: React.FC<NavItemProps> = ({
 }) => (
   <button
     onClick={onClick}
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '0.25rem',
-      padding: '0.5rem 1rem',
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-      transition: 'all 0.2s ease',
-      minWidth: '64px',
-    }}
+    className={`${styles.navItem} ${isActive ? styles.navItemActive : styles.navItemInactive}`}
     aria-label={label}
   >
     {isProfile ? (
       <div
-        style={{
-          width: '28px',
-          height: '28px',
-          borderRadius: '50%',
-          border: isActive ? '2px solid var(--text-primary)' : '2px solid transparent',
-          padding: '1px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'border-color 0.2s ease',
-        }}
+        className={`${styles.profileRing} ${isActive ? styles.profileRingActive : styles.profileRingInactive}`}
       >
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            borderRadius: '50%',
-            backgroundColor: 'var(--avatar-bg)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            color: 'var(--text-primary)',
-          }}
-        >
+        <div className={styles.profileAvatar}>
           {profilePic ? (
             <ProtectedImage
               src={profilePic}
               alt={username || 'Profile'}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
+              className={styles.profileImage}
             />
           ) : (
             username?.charAt(0) || <UserIcon size={16} />
@@ -96,14 +55,7 @@ const NavItem: React.FC<NavItemProps> = ({
         </div>
       </div>
     ) : (
-      <div
-        style={{
-          transform: isActive ? 'scale(1.1)' : 'scale(1)',
-          transition: 'transform 0.2s ease',
-        }}
-      >
-        {icon}
-      </div>
+      <div className={`${styles.iconScale} ${isActive ? styles.iconScaleActive : ''}`}>{icon}</div>
     )}
   </button>
 );
@@ -128,32 +80,8 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ onCustomizeT
   const isSettings = location.pathname === APP_ROUTES.SETTINGS;
 
   return (
-    <nav
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: 'var(--header-bg)',
-        backdropFilter: 'blur(var(--tile-glass-blur, 20px))',
-        WebkitBackdropFilter: 'blur(var(--tile-glass-blur, 20px))',
-        borderTop: '1px solid var(--border)',
-        zIndex: 50,
-        display: 'flex',
-        justifyContent: 'center',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          width: '100%',
-          maxWidth: '560px',
-          padding: '0.5rem 1rem',
-        }}
-      >
+    <nav className={styles.nav}>
+      <div className={styles.navInner}>
         {/* Home */}
         <NavItem
           icon={<Home size={26} strokeWidth={isHome && !isAnalytics && !isSettings ? 2 : 1.5} />}

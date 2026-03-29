@@ -300,20 +300,20 @@ export type ZIndexKey = keyof typeof Z_INDEX;
 // ============================================================================
 
 export const TYPOGRAPHY_ROLES = {
-  display:      { size: '2.25rem',   weight: 700, lineHeight: 1.25,  letterSpacing: '-0.025em' },
-  pageTitle:    { size: '1.875rem',  weight: 700, lineHeight: 1.25,  letterSpacing: '-0.025em' },
-  sectionTitle: { size: '1.25rem',   weight: 700, lineHeight: 1.375, letterSpacing: '-0.025em' },
-  cardTitle:    { size: '1rem',      weight: 600, lineHeight: 1.375, letterSpacing: '0' },
-  titleSm:     { size: '0.875rem',  weight: 600, lineHeight: 1.375, letterSpacing: '-0.01em' },
-  bodyLg:      { size: '1rem',      weight: 400, lineHeight: 1.625, letterSpacing: '0' },
-  body:        { size: '0.875rem',  weight: 400, lineHeight: 1.5,   letterSpacing: '0' },
-  bodySm:      { size: '0.8125rem', weight: 400, lineHeight: 1.5,   letterSpacing: '0' },
-  label:       { size: '0.75rem',   weight: 500, lineHeight: 1.25,  letterSpacing: '0.025em' },
-  labelSm:     { size: '0.625rem',  weight: 600, lineHeight: 1.25,  letterSpacing: '0.05em' },
-  caption:     { size: '0.75rem',   weight: 400, lineHeight: 1.375, letterSpacing: '0' },
-  button:      { size: '0.875rem',  weight: 600, lineHeight: 1,     letterSpacing: '0' },
-  buttonSm:    { size: '0.75rem',   weight: 600, lineHeight: 1,     letterSpacing: '0' },
-  overline:    { size: '0.625rem',  weight: 600, lineHeight: 1,     letterSpacing: '0.05em' },
+  display: { size: '2.25rem', weight: 700, lineHeight: 1.25, letterSpacing: '-0.025em' },
+  pageTitle: { size: '1.875rem', weight: 700, lineHeight: 1.25, letterSpacing: '-0.025em' },
+  sectionTitle: { size: '1.25rem', weight: 700, lineHeight: 1.375, letterSpacing: '-0.025em' },
+  cardTitle: { size: '1rem', weight: 600, lineHeight: 1.375, letterSpacing: '0' },
+  titleSm: { size: '0.875rem', weight: 600, lineHeight: 1.375, letterSpacing: '-0.01em' },
+  bodyLg: { size: '1rem', weight: 400, lineHeight: 1.625, letterSpacing: '0' },
+  body: { size: '0.875rem', weight: 400, lineHeight: 1.5, letterSpacing: '0' },
+  bodySm: { size: '0.8125rem', weight: 400, lineHeight: 1.5, letterSpacing: '0' },
+  label: { size: '0.75rem', weight: 500, lineHeight: 1.25, letterSpacing: '0.025em' },
+  labelSm: { size: '0.625rem', weight: 600, lineHeight: 1.25, letterSpacing: '0.05em' },
+  caption: { size: '0.75rem', weight: 400, lineHeight: 1.375, letterSpacing: '0' },
+  button: { size: '0.875rem', weight: 600, lineHeight: 1, letterSpacing: '0' },
+  buttonSm: { size: '0.75rem', weight: 600, lineHeight: 1, letterSpacing: '0' },
+  overline: { size: '0.625rem', weight: 600, lineHeight: 1, letterSpacing: '0.05em' },
 } as const;
 
 export type TypographyRoleKey = keyof typeof TYPOGRAPHY_ROLES;

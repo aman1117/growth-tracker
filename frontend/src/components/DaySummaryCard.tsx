@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { useCompletionStore } from '../store';
 import type { Badge } from '../types/api';
 import { renderBadgeIcon } from '../utils/badgeIcons';
+import s from './DaySummaryCard.module.css';
 import { CalendarPicker, CommentButton, LikeButton } from './ui';
 import type { CompletionData } from './ui/CalendarPicker';
 
@@ -178,156 +179,38 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
       : null;
 
   if (loading || streakLoading || badgesLoading) {
-    return (
-      <div
-        className="skeleton-glass"
-        style={{
-          height: '88px',
-          marginBottom: '1rem',
-          borderRadius: '20px',
-          background: 'var(--tile-glass-bg)',
-          backdropFilter: 'blur(var(--tile-glass-blur))',
-          WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
-          border: '1px solid var(--tile-glass-border)',
-          boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
-        }}
-      />
-    );
+    return <div className={`skeleton-glass ${s.skeleton}`} />;
   }
 
   return (
-    <div
-      style={{
-        background: isComplete
-          ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%)'
-          : 'var(--tile-glass-bg)',
-        backdropFilter: 'blur(var(--tile-glass-blur))',
-        WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
-        border: isComplete
-          ? '1px solid rgba(34, 197, 94, 0.3)'
-          : '1px solid var(--tile-glass-border)',
-        boxShadow: isComplete
-          ? 'var(--tile-glass-shadow), var(--tile-glass-inner-glow), 0 0 20px rgba(34, 197, 94, 0.1)'
-          : 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
-        borderRadius: '20px',
-        marginBottom: '1rem',
-        padding: '0.75rem 1rem',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
-      }}
-    >
+    <div className={`${s.card} ${isComplete ? s.cardComplete : s.cardDefault}`}>
       {/* Row 1: Date Navigation + Hours */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <div className={s.row}>
         {/* Date Navigation */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-          <button
-            onClick={onPrev}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
+        <div className={s.rowStart}>
+          <button onClick={onPrev} className={s.navButton}>
             <ChevronLeft size={18} />
           </button>
-          <button
-            onClick={() => setIsCalendarOpen(true)}
-            style={{
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              color: 'var(--text-primary)',
-              background: 'var(--tile-glass-bg)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              border: '1px solid var(--tile-glass-border)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-              cursor: 'pointer',
-              padding: '0.35rem 0.75rem',
-              borderRadius: '8px',
-              transition: 'all 0.2s ease',
-              whiteSpace: 'nowrap',
-            }}
-          >
+          <button onClick={() => setIsCalendarOpen(true)} className={s.dateButton}>
             {formatDate(currentDate)}
           </button>
           <button
             onClick={onNext}
             disabled={isNextDisabled}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: isNextDisabled ? 'not-allowed' : 'pointer',
-              padding: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              opacity: isNextDisabled ? 0.3 : 1,
-            }}
+            className={`${s.navButton} ${isNextDisabled ? s.navButtonDisabled : ''}`}
           >
             <ChevronRight size={18} />
           </button>
           {!isToday() && (
-            <button
-              onClick={handleGoToToday}
-              style={{
-                fontSize: '0.8rem',
-                fontWeight: 500,
-                color: 'var(--text-primary)',
-                background: 'var(--tile-glass-bg)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-                border: '1px solid var(--tile-glass-border)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                cursor: 'pointer',
-                padding: '0.3rem 0.6rem',
-                marginLeft: '0.25rem',
-                borderRadius: '8px',
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--tile-glass-bg-active)';
-                e.currentTarget.style.borderColor = 'var(--tile-glass-border-active)';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow =
-                  '0 4px 12px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--tile-glass-bg)';
-                e.currentTarget.style.borderColor = 'var(--tile-glass-border)';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow =
-                  '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-              }}
-              title="Go to today"
-            >
+            <button onClick={handleGoToToday} className={s.todayButton} title="Go to today">
               Today
             </button>
           )}
         </div>
 
         {/* Hours Display */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span
-            style={{
-              fontSize: '0.85rem',
-              fontWeight: isComplete ? 600 : 500,
-              color: isComplete ? 'var(--success)' : 'var(--text-primary)',
-              whiteSpace: 'nowrap',
-            }}
-          >
+        <div className={s.rowCenter}>
+          <span className={`${s.hoursValue} ${isComplete ? s.hoursComplete : ''}`}>
             {isComplete && '✓ '}
             {totalHours}/{maxHours}h
           </span>
@@ -335,28 +218,12 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
       </div>
 
       {/* Progress Bar */}
-      <div
-        style={{
-          width: '100%',
-          height: '6px',
-          backgroundColor: 'var(--progress-track)',
-          borderRadius: '3px',
-          overflow: 'hidden',
-          boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.1)',
-        }}
-      >
+      <div className={s.progressTrack}>
         <div
+          className={s.progressFill}
           style={{
             width: `${percentage}%`,
-            height: '100%',
-            backgroundColor:
-              totalHours >= maxHours
-                ? 'var(--success)'
-                : totalHours >= 18
-                  ? 'var(--accent)'
-                  : 'var(--accent)',
-            borderRadius: '3px',
-            transition: 'width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            backgroundColor: totalHours >= maxHours ? 'var(--success)' : 'var(--accent)',
             boxShadow:
               percentage >= 75
                 ? `0 0 8px ${totalHours >= maxHours ? 'rgba(34, 197, 94, 0.4)' : 'rgba(99, 102, 241, 0.3)'}`
@@ -366,67 +233,46 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
       </div>
 
       {/* Row 2: Streaks + Likes */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingTop: '0.25rem',
-        }}
-      >
+      <div className={s.streakRow}>
         {/* Streaks */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className={s.streakGroup}>
           {/* Current Streak - only show on Today */}
           {isToday() && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <Flame size={18} fill="var(--color-like-light)" color="var(--color-like)" style={{ display: 'block' }} />
-              <span
-                style={{
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                  lineHeight: 1,
-                }}
-              >
-                {streak.current}
-              </span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1 }}>
-                streak
-              </span>
+            <div className={s.streakItem}>
+              <Flame
+                size={18}
+                fill="var(--color-like-light)"
+                color="var(--color-like)"
+                style={{ display: 'block' }}
+              />
+              <span className={s.streakValue}>{streak.current}</span>
+              <span className={s.streakLabel}>streak</span>
             </div>
           )}
 
           {/* Best Streak */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Trophy size={18} fill="var(--color-streak-light)" color="var(--color-streak)" style={{ display: 'block' }} />
-            <span
-              style={{
-                fontSize: '0.85rem',
-                fontWeight: 500,
-                color: 'var(--text-primary)',
-                lineHeight: 1,
-              }}
-            >
-              {streak.longest}
-            </span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1 }}>
-              best
-            </span>
+          <div className={s.streakItem}>
+            <Trophy
+              size={18}
+              fill="var(--color-streak-light)"
+              color="var(--color-streak)"
+              style={{ display: 'block' }}
+            />
+            <span className={s.streakValue}>{streak.longest}</span>
+            <span className={s.streakLabel}>best</span>
           </div>
 
           {/* Current Badge */}
           {currentBadge && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <div className={s.streakItem}>
               {renderBadgeIcon(currentBadge.icon, currentBadge.color)}
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1 }}>
-                {currentBadge.name}
-              </span>
+              <span className={s.streakLabel}>{currentBadge.name}</span>
             </div>
           )}
         </div>
 
         {/* Like & Comment */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className={s.actionGroup}>
           <LikeButton username={username} date={date} size="sm" showCount={true} />
           <CommentButton username={username} date={date} size="sm" showCount={true} />
         </div>

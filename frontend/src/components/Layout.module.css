@@ -1,0 +1,113 @@
+/**
+ * Layout CSS Module
+ *
+ * Replaces inline styles for header, main content, and search backdrop.
+ */
+
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 0;
+  background-color: var(--header-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.headerInner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.logoImage {
+  height: 28px;
+  width: auto;
+  filter: var(--logo-filter);
+}
+
+.rightIcons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  transition: margin-left 0.3s ease;
+}
+
+.rightIconsExpanded {
+  flex: 1;
+  margin-left: 0;
+}
+
+.searchButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.searchExpanded {
+  flex: 1;
+}
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 40;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.main {
+  flex: 1;
+  padding-top: 0.5rem;
+}
+
+.mainWithNav {
+  padding-bottom: 80px;
+}
+
+.mainNoNav {
+  padding-bottom: 0.5rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,63 @@
+/**
+ * ProfileDialog CSS Module
+ *
+ * Replaces inline styles with token-backed classes.
+ */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding-top: 15vh;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 300px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 14px;
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+  margin: 0 1rem;
+}
+
+.header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerTitle {
+  font-size: var(--type-title-sm-size);
+  font-weight: var(--type-title-sm-weight);
+  color: var(--color-text-primary);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.body {
+  padding: 0 0.5rem 0.5rem;
+}

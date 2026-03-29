@@ -18,6 +18,12 @@ export interface CommentButtonProps {
   date: string;
   size?: 'sm' | 'md';
   showCount?: boolean;
+  /** Controlled mode: external open state */
+  isOpen?: boolean;
+  /** Controlled mode: callback when open state changes */
+  onOpenChange?: (open: boolean) => void;
+  /** Set false to skip rendering CommentSheet (parent renders it) */
+  renderSheet?: boolean;
 }
 
 export const CommentButton: React.FC<CommentButtonProps> = ({
@@ -25,8 +31,15 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
   date,
   size = 'sm',
   showCount = true,
+  isOpen: controlledOpen,
+  onOpenChange,
+  renderSheet = true,
 }) => {
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined && onOpenChange !== undefined;
+  const isSheetOpen = isControlled ? controlledOpen : internalOpen;
+  const setSheetOpen = isControlled ? onOpenChange : setInternalOpen;
+
   const [searchParams, setSearchParams] = useSearchParams();
   const dayKey = `${username}:${date}`;
   const count = useCommentStore((s) => s.counts[dayKey] ?? 0);
@@ -39,7 +52,7 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
   // Deep link: auto-open comment sheet when URL has ?comments=true
   useEffect(() => {
     if (searchParams.get('comments') === 'true') {
-      setIsSheetOpen(true);
+      setSheetOpen(true);
       // Remove the param — this updates both the URL and React Router's state,
       // so the param won't persist through pull-to-refresh or remounts.
       setSearchParams(
@@ -51,13 +64,13 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
         { replace: true }
       );
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, setSheetOpen]);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    setIsSheetOpen(true);
-  }, []);
+    setSheetOpen(true);
+  }, [setSheetOpen]);
 
   const iconSize = size === 'sm' ? 16 : 20;
   const hasComments = count > 0;
@@ -84,12 +97,14 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
         )}
       </div>
 
-      <CommentSheet
-        isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
-        username={username}
-        date={date}
-      />
+      {renderSheet && (
+        <CommentSheet
+          isOpen={isSheetOpen}
+          onClose={() => setSheetOpen(false)}
+          username={username}
+          date={date}
+        />
+      )}
     </>
   );
 };

@@ -3,10 +3,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../services/api';
 import { useCompletionStore } from '../store';
+import { useCommentStore } from '../store/useCommentStore';
 import type { Badge } from '../types/api';
 import { renderBadgeIcon } from '../utils/badgeIcons';
 import s from './DaySummaryCard.module.css';
-import { CalendarPicker, CommentButton, LikeButton } from './ui';
+import { CalendarPicker, CommentButton, CommentPreview, CommentSheet, LikeButton } from './ui';
 import type { CompletionData } from './ui/CalendarPicker';
 
 interface DaySummaryCardProps {
@@ -48,6 +49,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
   const [badges, setBadges] = useState<Badge[]>([]);
   const [badgesLoading, setBadgesLoading] = useState(true);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isCommentSheetOpen, setIsCommentSheetOpen] = useState(false);
   const [calendarViewMonth, setCalendarViewMonth] = useState<{ year: number; month: number }>({
     year: currentDate.getFullYear(),
     month: currentDate.getMonth(),
@@ -55,6 +57,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
 
   // Completion store for heat map
   const { fetchMonthData, getMonthData } = useCompletionStore();
+  const fetchPreviewComments = useCommentStore((st) => st.fetchPreviewComments);
 
   // Notify parent when calendar open state changes (for pull-to-refresh disable)
   useEffect(() => {
@@ -163,6 +166,11 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
   const handleGoToToday = () => {
     onDateChange(new Date());
   };
+
+  const handleCommentSheetClose = useCallback(() => {
+    setIsCommentSheetOpen(false);
+    fetchPreviewComments(username, date);
+  }, [username, date, fetchPreviewComments]);
 
   // Hours calculation
   const totalHours = Object.values(activities).reduce<number>((sum, hours) => sum + hours, 0);
@@ -274,9 +282,24 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
         {/* Like & Comment */}
         <div className={s.actionGroup}>
           <LikeButton username={username} date={date} size="sm" showCount={true} />
-          <CommentButton username={username} date={date} size="sm" showCount={true} />
+          <CommentButton
+            username={username}
+            date={date}
+            size="sm"
+            showCount={true}
+            isOpen={isCommentSheetOpen}
+            onOpenChange={setIsCommentSheetOpen}
+            renderSheet={false}
+          />
         </div>
       </div>
+
+      {/* Comment Preview */}
+      <CommentPreview
+        username={username}
+        date={date}
+        onOpenSheet={() => setIsCommentSheetOpen(true)}
+      />
 
       {/* Custom Calendar Picker with Heat Map */}
       <CalendarPicker
@@ -287,6 +310,14 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
         maxDate={new Date()}
         completionData={completionData}
         onMonthChange={handleCalendarMonthChange}
+      />
+
+      {/* Comment Sheet */}
+      <CommentSheet
+        isOpen={isCommentSheetOpen}
+        onClose={handleCommentSheetClose}
+        username={username}
+        date={date}
       />
     </div>
   );

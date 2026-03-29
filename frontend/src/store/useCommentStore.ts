@@ -26,6 +26,8 @@ interface CommentState {
   repliesByRoot: Record<number, ReplyState>;
   /** Comment counts keyed by "username:date" */
   counts: Record<string, number>;
+  /** Top 2 preview comments keyed by "username:date" */
+  previewsByDay: Record<string, Comment[]>;
   /** Loading state for top-level comments */
   loading: boolean;
   /** Whether more top-level comments exist */
@@ -54,6 +56,8 @@ interface CommentActions {
   likeComment: (commentId: number, dayKey: string) => void;
   unlikeComment: (commentId: number, dayKey: string) => void;
   fetchCommentCount: (username: string, date: string) => Promise<void>;
+  fetchPreviewComments: (username: string, date: string) => Promise<void>;
+  clearPreview: (dayKey: string) => void;
   setSort: (sort: 'top' | 'newest') => void;
   clearComments: (dayKey?: string) => void;
 }
@@ -62,13 +66,15 @@ type CommentStore = CommentState & CommentActions;
 
 const makeDayKey = (username: string, date: string) => `${username}:${date}`;
 
-// Helper to find and update a comment in the top-level list or replies
+// Helper to find and update a comment in the top-level list, replies, or previews
 const updateCommentInState = (
   state: CommentState,
   commentId: number,
   dayKey: string,
   updater: (c: Comment) => Comment
 ): Partial<CommentState> => {
+  const result: Partial<CommentState> = {};
+
   // Check top-level comments
   const dayComments = state.commentsByDay[dayKey];
   if (dayComments) {
@@ -76,8 +82,24 @@ const updateCommentInState = (
     if (idx !== -1) {
       const updated = [...dayComments];
       updated[idx] = updater(updated[idx]);
-      return { commentsByDay: { ...state.commentsByDay, [dayKey]: updated } };
+      result.commentsByDay = { ...state.commentsByDay, [dayKey]: updated };
     }
+  }
+
+  // Check previews
+  const previews = state.previewsByDay[dayKey];
+  if (previews) {
+    const idx = previews.findIndex((c) => c.id === commentId);
+    if (idx !== -1) {
+      const updated = [...previews];
+      updated[idx] = updater(updated[idx]);
+      result.previewsByDay = { ...state.previewsByDay, [dayKey]: updated };
+    }
+  }
+
+  // If found in top-level or previews, return early
+  if (Object.keys(result).length > 0) {
+    return result;
   }
 
   // Check replies
@@ -103,12 +125,21 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
   commentsByDay: {},
   repliesByRoot: {},
   counts: {},
+  previewsByDay: {},
   loading: false,
   hasMore: false,
   sort: 'top',
 
   // Actions
   setSort: (sort) => set({ sort }),
+
+  clearPreview: (dayKey) => {
+    set((state) => {
+      const next = { ...state.previewsByDay };
+      delete next[dayKey];
+      return { previewsByDay: next };
+    });
+  },
 
   clearComments: (dayKey) => {
     if (dayKey) {
@@ -201,16 +232,21 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     try {
       const response = await commentApi.createComment(username, date, body, idempotencyKey);
       if (response.success && response.comment) {
-        set((state) => ({
-          commentsByDay: {
-            ...state.commentsByDay,
-            [dayKey]: [response.comment!, ...(state.commentsByDay[dayKey] || [])],
-          },
-          counts: {
-            ...state.counts,
-            [dayKey]: (state.counts[dayKey] || 0) + 1,
-          },
-        }));
+        set((state) => {
+          const nextPreviews = { ...state.previewsByDay };
+          delete nextPreviews[dayKey];
+          return {
+            commentsByDay: {
+              ...state.commentsByDay,
+              [dayKey]: [response.comment!, ...(state.commentsByDay[dayKey] || [])],
+            },
+            counts: {
+              ...state.counts,
+              [dayKey]: (state.counts[dayKey] || 0) + 1,
+            },
+            previewsByDay: nextPreviews,
+          };
+        });
         return response.comment;
       }
     } catch (error) {
@@ -344,12 +380,15 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
             is_deleted: true,
             body: '[Deleted]',
           }));
+          const nextPreviews = { ...state.previewsByDay };
+          delete nextPreviews[dayKey];
           return {
             ...changes,
             counts: {
               ...state.counts,
               [dayKey]: Math.max(0, (state.counts[dayKey] || 0) - 1),
             },
+            previewsByDay: nextPreviews,
           };
         });
 
@@ -435,8 +474,15 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     try {
       const response = await commentApi.editComment(commentId, body);
       if (response.success && response.comment) {
-        // Apply server response
-        set((s) => updateCommentInState(s, commentId, dayKey, () => response.comment!));
+        // Apply server response and invalidate preview
+        set((s) => {
+          const nextPreviews = { ...s.previewsByDay };
+          delete nextPreviews[dayKey];
+          return {
+            ...updateCommentInState(s, commentId, dayKey, () => response.comment!),
+            previewsByDay: nextPreviews,
+          };
+        });
         return response.comment;
       }
     } catch (error) {
@@ -529,6 +575,23 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
       }
     } catch (error) {
       console.error('[CommentStore] fetchCommentCount failed:', error);
+    }
+  },
+
+  fetchPreviewComments: async (username, date) => {
+    const dayKey = makeDayKey(username, date);
+    try {
+      const response = await commentApi.getComments(username, date, 'top', undefined, 2);
+      if (response.success) {
+        set((state) => ({
+          previewsByDay: {
+            ...state.previewsByDay,
+            [dayKey]: response.comments.filter((c: Comment) => !c.is_deleted),
+          },
+        }));
+      }
+    } catch {
+      // Preview is non-critical — silently ignore errors
     }
   },
 }));

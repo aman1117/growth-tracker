@@ -42,7 +42,7 @@ export { SnapToast, type SnapToastProps, type SnapToastType } from './SnapToast'
 
 // Social & Interactions
 export { StreakBadge, type StreakBadgeProps } from './Badge';
-export { CommentButton, type CommentButtonProps } from './Comments';
+export { CommentButton, type CommentButtonProps, CommentPreview, CommentSheet } from './Comments';
 export { LikeButton, type LikeButtonProps } from './LikeButton';
 export {
   NotificationBell,

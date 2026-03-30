@@ -178,7 +178,7 @@
 
 .streakValue {
   font-size: var(--type-body-size);
-  font-weight: var(--font-medium);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
   line-height: 1;
 }

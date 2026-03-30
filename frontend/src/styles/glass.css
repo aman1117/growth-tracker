@@ -163,7 +163,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   backdrop-filter: blur(var(--glass-blur-sm));
   color: var(--text-primary);
-  font-weight: var(--font-bold);
+  font-weight: var(--font-extrabold);
   transition:
     background-color var(--transition-fast) var(--ease-default),
     border-color var(--transition-fast) var(--ease-default),

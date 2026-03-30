@@ -588,7 +588,7 @@
   padding: 10px 20px;
   border-radius: var(--radius-lg);
   font-size: 0.875rem;
-  font-weight: var(--font-semibold);
+  font-weight: var(--font-black);
   cursor: pointer;
   transition: all 0.15s var(--ease-default);
   -webkit-tap-highlight-color: transparent;

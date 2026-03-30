@@ -247,7 +247,7 @@
   background: var(--button-primary, #0095f6);
   color: white;
   font-size: 12px;
-  font-weight: var(--font-semibold);
+  font-weight: var(--font-black);
   cursor: pointer;
   transition:
     background-color 0.15s ease,
@@ -271,7 +271,7 @@
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 12px;
-  font-weight: var(--font-semibold);
+  font-weight: var(--font-black);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;

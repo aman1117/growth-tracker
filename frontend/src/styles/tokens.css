@@ -71,6 +71,7 @@
   --font-semibold: 600;
   --font-bold: 700;
   --font-extrabold: 800;
+  --font-black: 900;
 
   /* Letter Spacing */
   --tracking-tighter: -0.05em;

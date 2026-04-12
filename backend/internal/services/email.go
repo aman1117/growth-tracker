@@ -188,7 +188,7 @@ func (s *EmailService) buildVerificationEmailHTML(username, verifyLink string) s
                     <tr>
                         <td style="padding: 24px 32px; border-top: 1px solid #eee; text-align: center;">
                             <p style="margin: 0; font-size: 12px; color: #999;">
-                                Growth Tracker • Track your daily activities
+                                <a href="%s" style="color: #22c55e; text-decoration: none;">Growth Tracker</a> • Track your daily activities
                             </p>
                         </td>
                     </tr>
@@ -198,7 +198,7 @@ func (s *EmailService) buildVerificationEmailHTML(username, verifyLink string) s
     </table>
 </body>
 </html>
-`, username, verifyLink, verifyLink, verifyLink)
+`, username, verifyLink, verifyLink, verifyLink, s.frontendURL)
 }
 
 func (s *EmailService) buildPasswordResetHTML(username, resetLink string) string {
@@ -255,7 +255,7 @@ func (s *EmailService) buildPasswordResetHTML(username, resetLink string) string
                     <tr>
                         <td style="padding: 24px 32px; border-top: 1px solid #eee; text-align: center;">
                             <p style="margin: 0; font-size: 12px; color: #999;">
-                                Growth Tracker • Track your daily activities
+                                <a href="%s" style="color: #0066ff; text-decoration: none;">Growth Tracker</a> • Track your daily activities
                             </p>
                         </td>
                     </tr>
@@ -265,7 +265,7 @@ func (s *EmailService) buildPasswordResetHTML(username, resetLink string) string
     </table>
 </body>
 </html>
-`, username, resetLink, resetLink, resetLink)
+`, username, resetLink, resetLink, resetLink, s.frontendURL)
 }
 
 // ==================== Cron Service ====================

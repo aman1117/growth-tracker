@@ -14,7 +14,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.18.0
-	github.com/resend/resend-go/v3 v3.3.0
+	github.com/resend/resend-go/v3 v3.6.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.27.1

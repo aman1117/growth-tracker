@@ -342,10 +342,11 @@ export const authApi = {
 
   forgotPassword: (email: string) =>
     apiClient
-      .post<{ success: boolean; message?: string; error?: string }>(
-        API_ROUTES.AUTH.FORGOT_PASSWORD,
-        { email }
-      )
+      .post<{
+        success: boolean;
+        message?: string;
+        error?: string;
+      }>(API_ROUTES.AUTH.FORGOT_PASSWORD, { email })
       .then((res) => {
         gl.track('password_reset_requested');
         return res;
@@ -507,12 +508,10 @@ export const likeApi = {
    * Like a user's day
    */
   likeDay: (username: string, date: string) =>
-    apiClient
-      .post<LikeActionResponse>(API_ROUTES.LIKE.LIKE_DAY, { username, date })
-      .then((res) => {
-        gl.track('day_liked', { properties: { date } });
-        return res;
-      }),
+    apiClient.post<LikeActionResponse>(API_ROUTES.LIKE.LIKE_DAY, { username, date }).then((res) => {
+      gl.track('day_liked', { properties: { date } });
+      return res;
+    }),
 
   /**
    * Unlike a user's day

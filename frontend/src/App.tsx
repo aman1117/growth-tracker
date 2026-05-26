@@ -125,72 +125,72 @@ function App() {
       <GoodLogsProvider>
         <ThemeInitializer>
           <ProfileInitializer>
-          <OfflineBanner />
-          <EmailVerificationBanner />
-          <PWAUpdatePrompt />
-          <Router>
-            <Layout>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  <Route path={APP_ROUTES.LOGIN} element={<AuthForm />} />
-                  <Route path={APP_ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
-                  <Route path={APP_ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
-                  <Route path={APP_ROUTES.VERIFY_EMAIL} element={<VerifyEmail />} />
-                  <Route
-                    path={APP_ROUTES.HOME}
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <Dashboard />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/user/:username"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <Dashboard />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path={APP_ROUTES.SETTINGS}
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <SettingsPage />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path={APP_ROUTES.ANALYTICS}
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <AnalyticsPage />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/analytics/:username"
-                    element={
-                      <ProtectedRoute>
-                        <ErrorBoundary>
-                          <AnalyticsPage />
-                        </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<Navigate to={APP_ROUTES.HOME} replace />} />
-                </Routes>
-              </Suspense>
-            </Layout>
-          </Router>
+            <OfflineBanner />
+            <EmailVerificationBanner />
+            <PWAUpdatePrompt />
+            <Router>
+              <Layout>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path={APP_ROUTES.LOGIN} element={<AuthForm />} />
+                    <Route path={APP_ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+                    <Route path={APP_ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+                    <Route path={APP_ROUTES.VERIFY_EMAIL} element={<VerifyEmail />} />
+                    <Route
+                      path={APP_ROUTES.HOME}
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <Dashboard />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/user/:username"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <Dashboard />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={APP_ROUTES.SETTINGS}
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <SettingsPage />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={APP_ROUTES.ANALYTICS}
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <AnalyticsPage />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/analytics/:username"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary>
+                            <AnalyticsPage />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="*" element={<Navigate to={APP_ROUTES.HOME} replace />} />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </Router>
           </ProfileInitializer>
         </ThemeInitializer>
       </GoodLogsProvider>

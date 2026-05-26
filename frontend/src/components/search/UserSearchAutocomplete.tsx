@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '../../constants/routes';
 import { searchApi, userApi } from '../../services/api';
+import { gl } from '../../services/goodlogs';
 import type { AutocompleteSuggestion, SearchSuggestionUser } from '../../types/autocomplete';
 import { Autocomplete } from '../ui/Autocomplete';
 
@@ -142,6 +143,7 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
 
   const handleSelect = useCallback(
     (suggestion: AutocompleteSuggestion) => {
+      gl.track('search_result_selected', { properties: { username: suggestion.text } });
       // Call custom handler if provided
       onSelect?.(suggestion);
 
@@ -211,6 +213,7 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
     // Clear from server in background
     try {
       await searchApi.clearRecentSearches();
+      gl.track('recent_search_cleared');
     } catch (error) {
       console.error('[UserSearchAutocomplete] Failed to clear recent searches:', error);
       // Revert on error by refetching

@@ -9,6 +9,7 @@
 import { create } from 'zustand';
 
 import { commentApi } from '../services/api';
+import { gl } from '../services/goodlogs';
 import type { Comment } from '../types/comment';
 
 // ==================== Types ====================
@@ -232,6 +233,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     try {
       const response = await commentApi.createComment(username, date, body, idempotencyKey);
       if (response.success && response.comment) {
+        gl.track('comment_created', { properties: { username, date } });
         set((state) => {
           const nextPreviews = { ...state.previewsByDay };
           delete nextPreviews[dayKey];
@@ -288,6 +290,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
         idempotencyKey
       );
       if (response.success && response.comment) {
+        gl.track('reply_created', { properties: { username, date, commentId } });
         // Add reply to repliesByRoot
         set((state) => {
           const existingReplies = state.repliesByRoot[rootId]?.comments || [];
@@ -357,6 +360,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     try {
       const response = await commentApi.deleteComment(commentId);
       if (response.success) {
+        gl.track('comment_deleted', { properties: { commentId } });
         // Find the comment before marking deleted, to check if it's a leaf
         const state = get();
         let deletedComment: Comment | undefined;
@@ -474,6 +478,7 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
     try {
       const response = await commentApi.editComment(commentId, body);
       if (response.success && response.comment) {
+        gl.track('comment_edited', { properties: { commentId } });
         // Apply server response and invalidate preview
         set((s) => {
           const nextPreviews = { ...s.previewsByDay };
@@ -505,6 +510,8 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
         like_count: c.like_count + 1,
       }))
     );
+
+    gl.track('comment_liked', { properties: { commentId } });
 
     try {
       const response = await commentApi.likeComment(commentId);
@@ -539,6 +546,8 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
         like_count: Math.max(0, c.like_count - 1),
       }))
     );
+
+    gl.track('comment_unliked', { properties: { commentId } });
 
     try {
       const response = await commentApi.unlikeComment(commentId);

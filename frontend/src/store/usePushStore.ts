@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { gl } from '../services/goodlogs';
 import { pushService } from '../services/pushService';
 import type {
   PushActions,
@@ -125,6 +126,7 @@ export const usePushStore = create<PushStore>()(
           const response = await pushService.subscribe();
 
           if (response.success) {
+            gl.track('push_subscribed');
             set({
               isSubscribed: true,
               isLoading: false,
@@ -155,6 +157,7 @@ export const usePushStore = create<PushStore>()(
 
         try {
           await pushService.unsubscribe();
+          gl.track('push_unsubscribed');
           preferencesFetchedFlag = false;
           set({
             isSubscribed: false,
@@ -220,6 +223,7 @@ export const usePushStore = create<PushStore>()(
           const response = await pushService.updatePreferences(updates);
 
           if (response.success && response.preferences) {
+            gl.track('push_preferences_updated');
             set({ preferences: response.preferences });
             return true;
           } else {

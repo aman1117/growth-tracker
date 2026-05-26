@@ -12,6 +12,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getActivityConfig } from '../../constants';
 import { activityPhotoApi } from '../../services/api';
+import { gl } from '../../services/goodlogs';
 import type { ActivityName } from '../../types';
 import type { ActivityPhoto, PhotoInteraction } from '../../types/story';
 import { DynamicIcon } from '../DynamicIcon';
@@ -175,6 +176,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     // Mark as viewed immediately to prevent duplicate calls
     viewedPhotosRef.current.add(currentPhoto.id);
 
+    gl.track('story_viewed', { properties: { photoId: currentPhoto.id } });
     activityPhotoApi.recordView(currentPhoto.id).catch((err) => {
       // Fail silently - view recording is not critical
       console.error('Failed to record view:', err);
@@ -236,8 +238,10 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     try {
       if (newLiked) {
         await activityPhotoApi.likePhoto(currentPhoto.id);
+        gl.track('story_liked', { properties: { photoId: currentPhoto.id } });
       } else {
         await activityPhotoApi.unlikePhoto(currentPhoto.id);
+        gl.track('story_unliked', { properties: { photoId: currentPhoto.id } });
       }
     } catch (err) {
       // Revert on error
@@ -488,6 +492,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     // Notify parent to update its state (for toast display)
     onPhotoDeleted?.(photoIdToDelete);
 
+    gl.track('photo_deleted', { properties: { photoId: photoIdToDelete } });
+
     // Delete in background
     try {
       const response = await activityPhotoApi.deletePhoto(photoIdToDelete);
@@ -735,6 +741,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
               className="story-viewer-footer"
               onClick={(e) => {
                 e.stopPropagation();
+                gl.track('story_interactions_viewed', { properties: { photoId: currentPhoto.id } });
                 setShowInteractions(true);
               }}
             >

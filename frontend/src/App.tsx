@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-d
 
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { EmailVerificationBanner } from './components/EmailVerificationBanner';
+import { GoodLogsProvider } from './components/GoodLogsProvider';
 import { Layout } from './components/Layout';
 import { OfflineBanner } from './components/OfflineBanner';
 import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
@@ -121,8 +122,9 @@ const ProfileInitializer: React.FC<{ children: React.ReactNode }> = ({ children 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeInitializer>
-        <ProfileInitializer>
+      <GoodLogsProvider>
+        <ThemeInitializer>
+          <ProfileInitializer>
           <OfflineBanner />
           <EmailVerificationBanner />
           <PWAUpdatePrompt />
@@ -189,8 +191,9 @@ function App() {
               </Suspense>
             </Layout>
           </Router>
-        </ProfileInitializer>
-      </ThemeInitializer>
+          </ProfileInitializer>
+        </ThemeInitializer>
+      </GoodLogsProvider>
     </ErrorBoundary>
   );
 }

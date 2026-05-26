@@ -11,6 +11,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { API_ROUTES, APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
+import { gl } from '../services/goodlogs';
 import { useAuth } from '../store';
 import { SnapToast } from './ui';
 
@@ -48,6 +49,7 @@ export const VerifyEmail: React.FC = () => {
             setState('already_verified');
           } else {
             setState('success');
+            gl.track('email_verified');
           }
           // Update auth store if user is logged in
           updateEmailVerified(true);
@@ -79,6 +81,7 @@ export const VerifyEmail: React.FC = () => {
     setResending(true);
     try {
       await api.post(API_ROUTES.AUTH.RESEND_VERIFICATION, {});
+      gl.track('email_verification_resent');
       setToast({ message: 'Verification email sent! Check your inbox.', type: 'success' });
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Failed to send email';

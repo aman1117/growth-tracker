@@ -9,6 +9,7 @@ import { create } from 'zustand';
 
 import { API_ROUTES } from '../constants';
 import { api } from '../services/api';
+import { gl } from '../services/goodlogs';
 import type {
   FollowActionResponse,
   FollowCounts,
@@ -158,6 +159,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       const response = await api.post<FollowActionResponse>(API_ROUTES.FOLLOW.FOLLOW_USER(userId));
 
       if (response.success) {
+        gl.track('follow_sent', { properties: { targetUserId: userId, isPrivate } });
         // Convert backend state to RelationshipState
         const newState =
           response.new_state ||
@@ -205,6 +207,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       );
 
       if (response.success) {
+        gl.track('unfollowed', { properties: { targetUserId: userId } });
         // Convert backend state to RelationshipState
         const newState =
           response.new_state ||
@@ -248,6 +251,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       );
 
       if (response.success) {
+        gl.track('follow_cancelled', { properties: { targetUserId: userId } });
         const newState =
           response.new_state ||
           stateStringToRelationship(response.state || 'REMOVED', get().getRelationship(userId));
@@ -286,6 +290,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       );
 
       if (response.success) {
+        gl.track('follow_accepted', { properties: { userId } });
         // When accepting, they become a follower (followed_by = true)
         const existingState = get().getRelationship(userId);
         const newState: RelationshipState = {
@@ -330,6 +335,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       );
 
       if (response.success) {
+        gl.track('follow_declined', { properties: { userId } });
         // When declining, remove the incoming pending
         const existingState = get().getRelationship(userId);
         const newState: RelationshipState = {
@@ -372,6 +378,7 @@ export const useFollowStore = create<FollowState>((set, get) => ({
       );
 
       if (response.success) {
+        gl.track('follower_removed', { properties: { userId } });
         // When removing a follower, update their relationship state
         const existingState = get().getRelationship(userId);
         const newState: RelationshipState = {

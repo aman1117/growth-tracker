@@ -12,6 +12,8 @@ interface EnvConfig {
   isDevelopment: boolean;
   /** Whether the app is running in production mode */
   isProduction: boolean;
+  /** GoodLogs public key for browser analytics (gl_pk_*) */
+  goodlogsPublicKey: string;
 }
 
 const DEFAULT_DEV_API_URL = 'http://localhost:8000';
@@ -32,6 +34,7 @@ export const env: EnvConfig = {
   apiUrl: resolveApiUrl(),
   isDevelopment: import.meta.env.DEV,
   isProduction: import.meta.env.PROD,
+  goodlogsPublicKey: import.meta.env.VITE_GOODLOGS_PUBLIC_KEY ?? '',
 };
 
 // Validate required environment variables in development

@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { createCustomActivityName, getActivityConfig } from '../../constants';
 import { APP_ROUTES } from '../../constants/routes';
 import { api } from '../../services/api';
+import { gl } from '../../services/goodlogs';
 import { useAuth, useCompletionStore } from '../../store';
 import type { ActivityName, CustomTile } from '../../types';
 import { MAX_CUSTOM_TILES } from '../../types';
@@ -334,6 +335,7 @@ export const Dashboard: React.FC = () => {
 
   const handleConfirmHide = () => {
     if (hideConfirm) {
+      gl.track('tile_hidden', { properties: { tileName: hideConfirm.tileName } });
       setHiddenTiles((prev) => {
         if (prev.includes(hideConfirm.tileName)) return prev;
         return [...prev, hideConfirm.tileName];
@@ -344,6 +346,7 @@ export const Dashboard: React.FC = () => {
 
   // Restore tile handler
   const handleRestoreTile = (name: ActivityName) => {
+    gl.track('tile_restored', { properties: { tileName: name } });
     const newHiddenTiles = hiddenTiles.filter((t) => t !== name);
     setHiddenTiles(newHiddenTiles);
 
@@ -386,6 +389,10 @@ export const Dashboard: React.FC = () => {
     saveTileConfigToBackend(newTileOrder, newTileSizes, hiddenTiles, tileColors, newCustomTiles);
     setShowCustomTileModal(false);
     setEditingCustomTile(undefined);
+
+    if (isNewTile) {
+      gl.track('custom_tile_created', { properties: { tileId: tile.id, name: tile.name } });
+    }
   };
 
   // Delete custom tile handlers
@@ -393,6 +400,8 @@ export const Dashboard: React.FC = () => {
     const activityName = createCustomActivityName(tileId);
     const tileToDelete = customTiles.find((t) => t.id === tileId);
     if (!tileToDelete) return;
+
+    gl.track('custom_tile_deleted', { properties: { tileId, name: tileToDelete.name } });
 
     const orderIndex = tileOrder.indexOf(activityName);
     const wasHidden = hiddenTiles.includes(activityName);

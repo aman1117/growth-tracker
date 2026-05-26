@@ -9,6 +9,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { STORAGE_KEYS } from '../constants/storage';
+import { gl } from '../services/goodlogs';
 
 export interface User {
   id: number;
@@ -69,9 +70,15 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           isLoading: false,
         });
+
+        gl.identify(userId.toString());
+        gl.track('login', { properties: { username } });
       },
 
       logout: () => {
+        gl.track('logout');
+        gl.reset();
+
         // Clear all auth-related localStorage items
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USERNAME);

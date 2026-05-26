@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import { APP_ROUTES } from '../../constants/routes';
 import { VALIDATION, VALIDATION_MESSAGES } from '../../constants/validation';
 import { api } from '../../services/api';
+import { gl } from '../../services/goodlogs';
 import { useAuth, useFollowStore, usePendingRequestsCount, useTheme } from '../../store';
 import type { Badge } from '../../types/api';
 import { BadgeShowcase } from '../BadgeShowcase';
@@ -156,6 +157,7 @@ export const SettingsPage: React.FC = () => {
     try {
       const res = await api.post('/update-privacy', { is_private: !isPrivate });
       if (res.success) {
+        gl.track('privacy_toggled', { properties: { isPrivate: res.is_private } });
         setIsPrivate(res.is_private);
       }
     } catch {

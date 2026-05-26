@@ -7,6 +7,7 @@
 
 import { env } from '../config/env';
 import { API_ROUTES, STORAGE_KEYS } from '../constants';
+import { gl } from './goodlogs';
 
 // ============================================================================
 // Types
@@ -46,6 +47,7 @@ class ApiClient {
    * Handle 401 unauthorized responses
    */
   private handleUnauthorized(): void {
+    gl.track('session_expired');
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USERNAME);
     localStorage.removeItem(STORAGE_KEYS.USER_ID);
@@ -81,7 +83,15 @@ class ApiClient {
       config.body = JSON.stringify(body);
     }
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, config);
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}${endpoint}`, config);
+    } catch (err) {
+      gl.error('Network error', {
+        metadata: { endpoint, method, message: err instanceof Error ? err.message : String(err) },
+      });
+      throw err;
+    }
 
     if (response.status === 401) {
       this.handleUnauthorized();
@@ -91,6 +101,15 @@ class ApiClient {
     const data = await response.json();
 
     if (!response.ok) {
+      gl.warn('API error', {
+        metadata: {
+          endpoint,
+          method,
+          statusCode: response.status,
+          errorCode: data.error_code,
+          message: data.error,
+        },
+      });
       throw new ApiError(data.error || 'Request failed', response.status, data.error_code);
     }
 
@@ -314,19 +333,34 @@ export const authApi = {
     apiClient.post<AuthResponse>(API_ROUTES.AUTH.LOGIN, { identifier, password }),
 
   register: (username: string, email: string, password: string) =>
-    apiClient.post<AuthResponse>(API_ROUTES.AUTH.REGISTER, { username, email, password }),
+    apiClient
+      .post<AuthResponse>(API_ROUTES.AUTH.REGISTER, { username, email, password })
+      .then((res) => {
+        gl.track('signup', { properties: { method: 'email' } });
+        return res;
+      }),
 
   forgotPassword: (email: string) =>
-    apiClient.post<{ success: boolean; message?: string; error?: string }>(
-      API_ROUTES.AUTH.FORGOT_PASSWORD,
-      { email }
-    ),
+    apiClient
+      .post<{ success: boolean; message?: string; error?: string }>(
+        API_ROUTES.AUTH.FORGOT_PASSWORD,
+        { email }
+      )
+      .then((res) => {
+        gl.track('password_reset_requested');
+        return res;
+      }),
 
   resetPassword: (token: string, password: string) =>
-    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.AUTH.RESET_PASSWORD, {
-      token,
-      password,
-    }),
+    apiClient
+      .post<{ success: boolean; error?: string }>(API_ROUTES.AUTH.RESET_PASSWORD, {
+        token,
+        password,
+      })
+      .then((res) => {
+        gl.track('password_reset_completed');
+        return res;
+      }),
 
   validateResetToken: (token: string) =>
     apiClient.get<{ success: boolean; valid: boolean; error?: string }>(
@@ -353,12 +387,22 @@ export const userApi = {
   getProfile: () => apiClient.get<ProfileResponse>(API_ROUTES.USER.PROFILE),
 
   updateUsername: (username: string) =>
-    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_USERNAME, {
-      username,
-    }),
+    apiClient
+      .post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_USERNAME, {
+        username,
+      })
+      .then((res) => {
+        gl.track('profile_updated', { properties: { field: 'username' } });
+        return res;
+      }),
 
   updateBio: (bio: string) =>
-    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_BIO, { bio }),
+    apiClient
+      .post<{ success: boolean; error?: string }>(API_ROUTES.USER.UPDATE_BIO, { bio })
+      .then((res) => {
+        gl.track('profile_updated', { properties: { field: 'bio' } });
+        return res;
+      }),
 
   getBio: () => apiClient.get<{ success: boolean; bio?: string }>(API_ROUTES.USER.GET_BIO),
 
@@ -368,16 +412,31 @@ export const userApi = {
     apiClient.post<PrivacyResponse>(API_ROUTES.PRIVACY.UPDATE, { is_private: isPrivate }),
 
   uploadProfilePic: (file: File) =>
-    apiClient.uploadFile<UploadResponse>(API_ROUTES.USER.UPLOAD_PICTURE, file, 'image'),
+    apiClient
+      .uploadFile<UploadResponse>(API_ROUTES.USER.UPLOAD_PICTURE, file, 'image')
+      .then((res) => {
+        gl.track('profile_updated', { properties: { field: 'profile_pic' } });
+        return res;
+      }),
 
   deleteProfilePic: () =>
-    apiClient.delete<{ success: boolean; error?: string }>(API_ROUTES.USER.DELETE_PICTURE),
+    apiClient
+      .delete<{ success: boolean; error?: string }>(API_ROUTES.USER.DELETE_PICTURE)
+      .then((res) => {
+        gl.track('profile_pic_removed');
+        return res;
+      }),
 
   changePassword: (currentPassword: string, newPassword: string) =>
-    apiClient.post<{ success: boolean; error?: string }>(API_ROUTES.USER.CHANGE_PASSWORD, {
-      current_password: currentPassword,
-      new_password: newPassword,
-    }),
+    apiClient
+      .post<{ success: boolean; error?: string }>(API_ROUTES.USER.CHANGE_PASSWORD, {
+        current_password: currentPassword,
+        new_password: newPassword,
+      })
+      .then((res) => {
+        gl.track('password_changed');
+        return res;
+      }),
 };
 
 export const activityApi = {
@@ -395,13 +454,18 @@ export const activityApi = {
     date: string,
     note?: string
   ) =>
-    apiClient.post<LogActivityResponse>(API_ROUTES.ACTIVITY.CREATE, {
-      username,
-      activity,
-      hours,
-      date,
-      note,
-    }),
+    apiClient
+      .post<LogActivityResponse>(API_ROUTES.ACTIVITY.CREATE, {
+        username,
+        activity,
+        hours,
+        date,
+        note,
+      })
+      .then((res) => {
+        gl.track('activity_created', { properties: { activity } });
+        return res;
+      }),
 };
 
 export const streakApi = {
@@ -443,13 +507,23 @@ export const likeApi = {
    * Like a user's day
    */
   likeDay: (username: string, date: string) =>
-    apiClient.post<LikeActionResponse>(API_ROUTES.LIKE.LIKE_DAY, { username, date }),
+    apiClient
+      .post<LikeActionResponse>(API_ROUTES.LIKE.LIKE_DAY, { username, date })
+      .then((res) => {
+        gl.track('day_liked', { properties: { date } });
+        return res;
+      }),
 
   /**
    * Unlike a user's day
    */
   unlikeDay: (username: string, date: string) =>
-    apiClient.post<LikeActionResponse>(API_ROUTES.LIKE.UNLIKE_DAY, { username, date }),
+    apiClient
+      .post<LikeActionResponse>(API_ROUTES.LIKE.UNLIKE_DAY, { username, date })
+      .then((res) => {
+        gl.track('day_unliked', { properties: { date } });
+        return res;
+      }),
 
   /**
    * Get likes for a user's day
@@ -519,6 +593,7 @@ export const activityPhotoApi = {
       throw new ApiError(data.error || 'Upload failed', response.status, data.error_code);
     }
 
+    gl.track('photo_uploaded', { properties: { activityName } });
     return data as UploadPhotoResponse;
   },
 

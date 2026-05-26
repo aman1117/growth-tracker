@@ -8,6 +8,8 @@
 import type { ErrorInfo, ReactNode } from 'react';
 import React, { Component } from 'react';
 
+import { gl } from '../../services/goodlogs';
+
 interface ErrorBoundaryProps {
   /** Child components to wrap */
   children: ReactNode;
@@ -44,6 +46,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    gl.error('React render error', {
+      metadata: {
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+      },
+    });
     this.props.onError?.(error, errorInfo);
   }
 

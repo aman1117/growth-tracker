@@ -9,6 +9,8 @@ import { RefreshCw, X } from 'lucide-react';
 import React from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
+import { gl } from '../services/goodlogs';
+
 export const PWAUpdatePrompt: React.FC = () => {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -32,10 +34,12 @@ export const PWAUpdatePrompt: React.FC = () => {
   });
 
   const handleUpdate = () => {
+    gl.track('pwa_update_accepted');
     updateServiceWorker(true);
   };
 
   const handleDismiss = () => {
+    gl.track('pwa_update_dismissed');
     setNeedRefresh(false);
   };
 

@@ -1,14 +1,20 @@
 import { Moon, Sun } from 'lucide-react';
 import React from 'react';
 
+import { gl } from '../services/goodlogs';
 import { useTheme } from '../store';
 
 export const ThemeToggle: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
 
+  const handleToggle = () => {
+    gl.track('theme_toggled', { properties: { to: isDark ? 'light' : 'dark' } });
+    toggleTheme();
+  };
+
   return (
     <button
-      onClick={toggleTheme}
+      onClick={handleToggle}
       style={{
         width: '36px',
         height: '36px',

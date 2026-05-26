@@ -8,12 +8,20 @@
 
 import { useEffect, useState } from 'react';
 
+import { gl } from '../services/goodlogs';
+
 export function useOfflineStatus() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+    const handleOnline = () => {
+      gl.track('app_came_online');
+      setIsOffline(false);
+    };
+    const handleOffline = () => {
+      gl.track('app_went_offline');
+      setIsOffline(true);
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);

@@ -131,9 +131,7 @@ self.addEventListener('notificationclick', (event) => {
   
   // Handle action buttons
   if (action === 'accept' && data.type === 'follow_request') {
-    // Accept follow request - navigate to notifications to handle it
-    url = '/notifications';
-    // Also try to call the accept API
+    // Accept follow request, then open the requester's profile (the deep link)
     handleFollowRequestAction('accept', data);
   } else if (action === 'decline' && data.type === 'follow_request') {
     // Decline follow request

@@ -8,8 +8,10 @@
 import { Heart, User as UserIcon, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 
+import { APP_ROUTES } from '../../../constants/routes';
+import { useBackDismiss } from '../../../hooks/useBackDismiss';
+import { useOverlayAwareNavigate } from '../../../hooks/useOverlayAwareNavigate';
 import { likeApi } from '../../../services/api';
 import type { LikerDTO } from '../../../types/api';
 import { ProtectedImage } from '../ProtectedImage';
@@ -27,9 +29,12 @@ export interface LikersModalProps {
 }
 
 export const LikersModal: React.FC<LikersModalProps> = ({ username, date, isOpen, onClose }) => {
-  const navigate = useNavigate();
+  const navigate = useOverlayAwareNavigate();
   const [likers, setLikers] = useState<LikerDTO[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // System Back gesture / button closes the modal instead of leaving the page
+  useBackDismiss(isOpen, onClose);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -52,8 +57,9 @@ export const LikersModal: React.FC<LikersModalProps> = ({ username, date, isOpen
   }, [username, date, isOpen]);
 
   const handleUserClick = (likerUsername: string) => {
+    // Navigate first so the modal's history entry is replaced by the profile
+    navigate(APP_ROUTES.USER_PROFILE(likerUsername));
     onClose();
-    navigate(`/user/${likerUsername}`);
   };
 
   const handleBackdropClick = (e: React.MouseEvent) => {

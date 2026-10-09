@@ -2,6 +2,7 @@ import { ChevronDown, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { getActivityConfig } from '../constants/activities';
+import { useBackDismiss } from '../hooks/useBackDismiss';
 import type { ActivityName } from '../types';
 import type { CustomTile } from '../types';
 
@@ -46,6 +47,9 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
       noteInputRef.current.focus();
     }
   }, [isNoteExpanded]);
+
+  // System Back gesture / button closes the modal instead of leaving the page
+  useBackDismiss(isOpen && !!activityName, onClose);
 
   if (!isOpen || !activityName) return null;
 

@@ -17,6 +17,11 @@ interface ErrorBoundaryProps {
   fallback?: ReactNode;
   /** Callback when error is caught */
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  /**
+   * When this value changes while the fallback is shown, the boundary resets.
+   * Route boundaries pass the pathname so navigating away recovers automatically.
+   */
+  resetKey?: unknown;
 }
 
 interface ErrorBoundaryState {
@@ -54,6 +59,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       },
     });
     this.props.onError?.(error, errorInfo);
+  }
+
+  componentDidUpdate(prevProps: ErrorBoundaryProps): void {
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false, error: null });
+    }
   }
 
   handleRetry = (): void => {

@@ -1,62 +1,52 @@
-import React, { lazy, Suspense, useEffect, useRef } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { EmailVerificationBanner } from './components/EmailVerificationBanner';
 import { GoodLogsProvider } from './components/GoodLogsProvider';
 import { Layout } from './components/Layout';
+import {
+  NavigationManager,
+  ProtectedRoute,
+  PublicOnlyRoute,
+  RouteLoader,
+} from './components/navigation';
 import { OfflineBanner } from './components/OfflineBanner';
 import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
-import { LoadingSpinner } from './components/ui';
 import { APP_ROUTES } from './constants/routes';
 import { api } from './services/api';
 import { useAuth, useThemeStore } from './store';
+import { lazyWithRetry } from './utils/lazyWithRetry';
 
-// Lazy load route components for code splitting
-const AuthForm = lazy(() => import('./components/AuthForm').then((m) => ({ default: m.AuthForm })));
-const Dashboard = lazy(() =>
-  import('./components/Dashboard').then((m) => ({ default: m.Dashboard }))
+// Lazy load route components for code splitting (with stale-deploy recovery)
+const AuthForm = lazyWithRetry(
+  () => import('./components/AuthForm').then((m) => ({ default: m.AuthForm })),
+  'AuthForm'
 );
-const ForgotPassword = lazy(() =>
-  import('./components/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))
+const Dashboard = lazyWithRetry(
+  () => import('./components/Dashboard').then((m) => ({ default: m.Dashboard })),
+  'Dashboard'
 );
-const ResetPassword = lazy(() =>
-  import('./components/ResetPassword').then((m) => ({ default: m.ResetPassword }))
+const ForgotPassword = lazyWithRetry(
+  () => import('./components/ForgotPassword').then((m) => ({ default: m.ForgotPassword })),
+  'ForgotPassword'
 );
-const VerifyEmail = lazy(() =>
-  import('./components/VerifyEmail').then((m) => ({ default: m.VerifyEmail }))
+const ResetPassword = lazyWithRetry(
+  () => import('./components/ResetPassword').then((m) => ({ default: m.ResetPassword })),
+  'ResetPassword'
 );
-const SettingsPage = lazy(() =>
-  import('./components/SettingsPage').then((m) => ({ default: m.SettingsPage }))
+const VerifyEmail = lazyWithRetry(
+  () => import('./components/VerifyEmail').then((m) => ({ default: m.VerifyEmail })),
+  'VerifyEmail'
 );
-const AnalyticsPage = lazy(() =>
-  import('./components/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage }))
+const SettingsPage = lazyWithRetry(
+  () => import('./components/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+  'SettingsPage'
 );
-
-/**
- * Loading fallback component for Suspense
- */
-const PageLoader: React.FC = () => (
-  <div
-    style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}
-  >
-    <LoadingSpinner size="lg" />
-  </div>
+const AnalyticsPage = lazyWithRetry(
+  () => import('./components/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })),
+  'AnalyticsPage'
 );
-
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <PageLoader />;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to={APP_ROUTES.LOGIN} />;
-  }
-
-  return <>{children}</>;
-};
 
 /**
  * Theme initializer component - initializes theme on app mount
@@ -129,10 +119,18 @@ function App() {
             <EmailVerificationBanner />
             <PWAUpdatePrompt />
             <Router>
+              <NavigationManager />
               <Layout>
-                <Suspense fallback={<PageLoader />}>
+                <Suspense fallback={<RouteLoader />}>
                   <Routes>
-                    <Route path={APP_ROUTES.LOGIN} element={<AuthForm />} />
+                    <Route
+                      path={APP_ROUTES.LOGIN}
+                      element={
+                        <PublicOnlyRoute>
+                          <AuthForm />
+                        </PublicOnlyRoute>
+                      }
+                    />
                     <Route path={APP_ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
                     <Route path={APP_ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
                     <Route path={APP_ROUTES.VERIFY_EMAIL} element={<VerifyEmail />} />
@@ -140,9 +138,7 @@ function App() {
                       path={APP_ROUTES.HOME}
                       element={
                         <ProtectedRoute>
-                          <ErrorBoundary>
-                            <Dashboard />
-                          </ErrorBoundary>
+                          <Dashboard />
                         </ProtectedRoute>
                       }
                     />
@@ -150,9 +146,7 @@ function App() {
                       path="/user/:username"
                       element={
                         <ProtectedRoute>
-                          <ErrorBoundary>
-                            <Dashboard />
-                          </ErrorBoundary>
+                          <Dashboard />
                         </ProtectedRoute>
                       }
                     />
@@ -160,9 +154,7 @@ function App() {
                       path={APP_ROUTES.SETTINGS}
                       element={
                         <ProtectedRoute>
-                          <ErrorBoundary>
-                            <SettingsPage />
-                          </ErrorBoundary>
+                          <SettingsPage />
                         </ProtectedRoute>
                       }
                     />
@@ -170,9 +162,7 @@ function App() {
                       path={APP_ROUTES.ANALYTICS}
                       element={
                         <ProtectedRoute>
-                          <ErrorBoundary>
-                            <AnalyticsPage />
-                          </ErrorBoundary>
+                          <AnalyticsPage />
                         </ProtectedRoute>
                       }
                     />
@@ -180,11 +170,18 @@ function App() {
                       path="/analytics/:username"
                       element={
                         <ProtectedRoute>
-                          <ErrorBoundary>
-                            <AnalyticsPage />
-                          </ErrorBoundary>
+                          <AnalyticsPage />
                         </ProtectedRoute>
                       }
+                    />
+                    {/* Aliases for deep links sent by push notifications / older clients */}
+                    <Route
+                      path="/profile/*"
+                      element={<Navigate to={APP_ROUTES.SETTINGS} replace />}
+                    />
+                    <Route
+                      path="/notifications"
+                      element={<Navigate to={APP_ROUTES.HOME} replace />}
                     />
                     <Route path="*" element={<Navigate to={APP_ROUTES.HOME} replace />} />
                   </Routes>

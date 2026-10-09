@@ -5,7 +5,7 @@
  * Handles offline support and private account detection.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api, ApiError } from '../../../services/api';
 import type { Activity } from '../../../types';
@@ -43,6 +43,10 @@ export const useActivityData = ({
   const [activityNotes, setActivityNotes] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
+  // Only the latest request may update state. Without this, quickly switching days or
+  // profiles can render (and then let the user edit) another day's/user's data.
+  const latestRequestIdRef = useRef(0);
+
   // Fetch badges for private accounts (badges are always public)
   const fetchBadgesForPrivateAccount = useCallback(
     async (username: string) => {
@@ -60,6 +64,8 @@ export const useActivityData = ({
 
   const fetchActivities = useCallback(async () => {
     if (!targetUsername) return;
+    const requestId = ++latestRequestIdRef.current;
+    const isStale = () => requestId !== latestRequestIdRef.current;
     setLoading(true);
     const dateStr = formatDateForApi(currentDate);
 
@@ -69,6 +75,7 @@ export const useActivityData = ({
         start_date: dateStr,
         end_date: dateStr,
       });
+      if (isStale()) return;
 
       if (res.success) {
         onPrivateAccount(false);
@@ -100,6 +107,7 @@ export const useActivityData = ({
         fetchBadgesForPrivateAccount(targetUsername);
       }
     } catch (err: unknown) {
+      if (isStale()) return;
       // Check if it's a private account error
       if (err instanceof ApiError && err.errorCode === 'ACCOUNT_PRIVATE') {
         onPrivateAccount(true);
@@ -118,7 +126,7 @@ export const useActivityData = ({
         }
       }
     } finally {
-      setLoading(false);
+      if (!isStale()) setLoading(false);
     }
   }, [
     currentDate,

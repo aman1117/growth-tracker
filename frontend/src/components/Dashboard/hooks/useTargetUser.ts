@@ -90,6 +90,9 @@ export const useTargetUser = ({ fetchActivities }: UseTargetUserProps): UseTarge
 
   // Fetch target user's profile pic and bio when viewing another user's dashboard
   useEffect(() => {
+    // Ignore responses for a profile the user already navigated away from
+    let cancelled = false;
+
     const fetchTargetUserProfile = async () => {
       if (isReadOnly && targetUsername) {
         // Reset state when switching users
@@ -103,6 +106,7 @@ export const useTargetUser = ({ fetchActivities }: UseTargetUserProps): UseTarge
 
         try {
           const res = await api.post('/users', { username: targetUsername });
+          if (cancelled) return;
           if (res.success && res.data && res.data.length > 0) {
             const exactMatch = res.data.find(
               (u: { username: string }) => u.username.toLowerCase() === targetUsername.toLowerCase()
@@ -119,11 +123,12 @@ export const useTargetUser = ({ fetchActivities }: UseTargetUserProps): UseTarge
               // Lookup relationship state to get pending status
               if (exactMatch.id) {
                 await lookupRelationships([exactMatch.id]);
+                if (cancelled) return;
 
                 // Fetch full profile to get last_logged_at (privacy-aware)
                 try {
                   const profileRes = await api.get(`/users/${exactMatch.id}/profile`);
-                  if (profileRes.success && profileRes.last_logged_at) {
+                  if (!cancelled && profileRes.success && profileRes.last_logged_at) {
                     setTargetLastLoggedAt(profileRes.last_logged_at);
                   }
                 } catch {
@@ -138,6 +143,9 @@ export const useTargetUser = ({ fetchActivities }: UseTargetUserProps): UseTarge
       }
     };
     fetchTargetUserProfile();
+    return () => {
+      cancelled = true;
+    };
   }, [isReadOnly, targetUsername, lookupRelationships]);
 
   // Set targetUserId for own profile (needed for story circles)

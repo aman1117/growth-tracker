@@ -23,6 +23,7 @@ export { Input, type InputProps } from './Input';
 export { Toggle, type ToggleProps } from './Toggle';
 
 // Navigation
+export { PageHeader, type PageHeaderProps } from './PageHeader';
 export { type Tab, Tabs, type TabsProps } from './Tabs';
 
 // Feedback & Status

@@ -7,16 +7,23 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { createCustomActivityName, getActivityConfig } from '../../constants';
 import { APP_ROUTES } from '../../constants/routes';
+import { useOverlayAwareNavigate } from '../../hooks/useOverlayAwareNavigate';
+import { useSmartBack } from '../../hooks/useSmartBack';
 import { api } from '../../services/api';
 import { gl } from '../../services/goodlogs';
 import { useAuth, useCompletionStore } from '../../store';
 import type { ActivityName, CustomTile } from '../../types';
 import { MAX_CUSTOM_TILES } from '../../types';
 import type { Badge } from '../../types/api';
+import {
+  type HomeNavigationState,
+  TAB_RESELECT_EVENT,
+  type TabReselectDetail,
+} from '../../utils/navigation';
 import { playActivitySound, playCompletionSound } from '../../utils/sounds';
 import { ActivityModal } from '../ActivityModal';
 import type { TileSize } from '../ActivityTile';
@@ -25,7 +32,7 @@ import { CreateCustomTileModal } from '../CreateCustomTileModal';
 import { DaySummaryCard } from '../DaySummaryCard';
 import { HiddenTilesPanel } from '../HiddenTilesPanel';
 import { StoryCirclesRow, StoryViewer } from '../story';
-import { PullToRefreshWrapper, SnapToast } from '../ui';
+import { PageHeader, PullToRefreshWrapper, SnapToast, VerifiedBadge } from '../ui';
 import {
   EditModeToolbar,
   FullscreenProfilePic,
@@ -50,6 +57,9 @@ import { useTargetUser } from './hooks/useTargetUser';
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const overlayNavigate = useOverlayAwareNavigate();
+  const location = useLocation();
+  const goBack = useSmartBack(APP_ROUTES.HOME);
 
   // Toast state (moved up so callbacks can reference setToast)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -155,6 +165,7 @@ export const Dashboard: React.FC = () => {
     isEditMode,
     selectedTile,
     setSelectedTile,
+    enterEditMode,
     cancelEditMode: baseCancelEditMode,
     saveEditMode: baseSaveEditMode,
   } = useEditMode({
@@ -223,6 +234,41 @@ export const Dashboard: React.FC = () => {
     isOwnStory: false,
     handlers: undefined,
   });
+
+  // ============================================================================
+  // Navigation Effects
+  // ============================================================================
+
+  // "Customize" tapped on another screen: enter edit mode once tiles are ready,
+  // then clear the one-shot request so Back/refresh doesn't re-trigger it.
+  const editModeRequested = !!(location.state as HomeNavigationState | null)?.enterEditMode;
+  useEffect(() => {
+    if (!editModeRequested || configLoading) return;
+    if (!isReadOnly) {
+      enterEditMode();
+    }
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [
+    editModeRequested,
+    configLoading,
+    isReadOnly,
+    enterEditMode,
+    navigate,
+    location.pathname,
+    location.search,
+  ]);
+
+  // Re-tapping the Home tab while on Home jumps back to today (scroll is handled by the tab bar)
+  const isViewingToday = currentDate.toDateString() === new Date().toDateString();
+  useEffect(() => {
+    const handleTabReselect = (event: Event) => {
+      const { tab } = (event as CustomEvent<TabReselectDetail>).detail ?? {};
+      if (tab !== 'home' || isReadOnly || isEditMode || isViewingToday) return;
+      handleDateChange(new Date());
+    };
+    window.addEventListener(TAB_RESELECT_EVENT, handleTabReselect);
+    return () => window.removeEventListener(TAB_RESELECT_EVENT, handleTabReselect);
+  }, [handleDateChange, isEditMode, isReadOnly, isViewingToday]);
 
   // ============================================================================
   // Effects
@@ -565,6 +611,19 @@ export const Dashboard: React.FC = () => {
       <div className="container" style={{ paddingBottom: '2rem' }}>
         {/* User Profile Header (when viewing other's profile) */}
         {isReadOnly && (
+          <PageHeader
+            title={
+              <>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {targetUsername}
+                </span>
+                {targetIsVerified && <VerifiedBadge size={16} />}
+              </>
+            }
+            onBack={goBack}
+          />
+        )}
+        {isReadOnly && (
           <UserProfileHeader
             targetUsername={targetUsername || ''}
             targetUserId={targetUserId}
@@ -818,7 +877,7 @@ export const Dashboard: React.FC = () => {
               // For own stories, use targetUsername since ownerUsername is "Your Story"
               const profileUsername = isOwnStory ? targetUsername : username;
               if (profileUsername) {
-                navigate(`/user/${profileUsername}`);
+                overlayNavigate(APP_ROUTES.USER_PROFILE(profileUsername));
               }
             }}
           />

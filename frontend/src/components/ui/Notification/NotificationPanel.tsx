@@ -14,6 +14,7 @@ import { Check, RefreshCw, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useBackDismiss } from '../../../hooks/useBackDismiss';
 import { useNotificationStore } from '../../../store';
 import type { Notification } from '../../../types';
 import styles from './Notification.module.css';
@@ -98,6 +99,9 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
+
+  // System Back gesture / button closes the panel instead of leaving the page
+  useBackDismiss(isOpen, onClose);
 
   // Infinite scroll
   const handleScroll = useCallback(() => {

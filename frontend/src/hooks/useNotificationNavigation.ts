@@ -6,11 +6,11 @@
  */
 
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
 import type { LikeMetadata, Notification } from '../types';
 import type { CommentMetadata } from '../types/notification';
+import { useOverlayAwareNavigate } from './useOverlayAwareNavigate';
 
 function isLikeMetadata(metadata: unknown): metadata is LikeMetadata {
   return (
@@ -64,7 +64,9 @@ function isCommentMetadata(metadata: unknown): metadata is CommentMetadata {
 }
 
 export function useNotificationNavigation() {
-  const navigate = useNavigate();
+  // Notifications are usually opened from the panel overlay: replace its history entry
+  // so Back from the destination returns to the page, not to an invisible panel step.
+  const navigate = useOverlayAwareNavigate();
 
   const handleNotificationClick = useCallback(
     (notification: Notification) => {

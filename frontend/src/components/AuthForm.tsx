@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
 import { useAuth } from '../store';
+import { decodeAccessToken } from '../utils/jwt';
+import { getSafeRedirectPath, type RedirectState } from '../utils/navigation';
 import { SnapToast } from './ui';
 
 export const AuthForm: React.FC = () => {
@@ -16,6 +18,10 @@ export const AuthForm: React.FC = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Where to go after signing in: the page that required auth, or Home
+  const redirectTo = getSafeRedirectPath((location.state as RedirectState | null)?.from);
 
   // Username validation: lowercase letters, numbers, underscore, dot only
   const isValidUsername = (name: string) => /^[a-z0-9_.]+$/.test(name);
@@ -23,8 +29,24 @@ export const AuthForm: React.FC = () => {
   // Sanitize input by trimming whitespace
   const sanitizeInput = (value: string) => value.trim();
 
+  /**
+   * Stores the session from a login response and leaves the auth screen.
+   * `replace` keeps the login page out of history so Back never returns to it.
+   */
+  const completeLogin = (accessToken: unknown): boolean => {
+    const payload = decodeAccessToken(accessToken);
+    if (!payload || typeof accessToken !== 'string') {
+      console.error('[AuthForm] Received malformed access token');
+      return false;
+    }
+    login(accessToken, payload.username, payload.user_id);
+    navigate(redirectTo, { replace: true });
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
 
     // Sanitize inputs before submission
@@ -50,10 +72,9 @@ export const AuthForm: React.FC = () => {
         // Login
         const res = await api.post('/login', { identifier: sanitizedUsername, password });
         if (res.success) {
-          const token = res.access_token;
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          login(token, payload.username, payload.user_id);
-          navigate(APP_ROUTES.HOME);
+          if (!completeLogin(res.access_token)) {
+            setToast({ message: 'Login failed. Please try again.', type: 'error' });
+          }
         } else {
           setToast({ message: res.error || 'Login failed', type: 'error' });
         }
@@ -67,12 +88,7 @@ export const AuthForm: React.FC = () => {
         if (res.success) {
           // Auto login
           const loginRes = await api.post('/login', { identifier: sanitizedUsername, password });
-          if (loginRes.success) {
-            const token = loginRes.access_token;
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            login(token, payload.username, payload.user_id);
-            navigate(APP_ROUTES.HOME);
-          } else {
+          if (!loginRes.success || !completeLogin(loginRes.access_token)) {
             setIsLogin(true);
             setToast({ message: 'Registration successful, please login.', type: 'success' });
           }
@@ -99,40 +115,73 @@ export const AuthForm: React.FC = () => {
         <form onSubmit={handleSubmit}>
           {!isLogin && (
             <div className="input-group">
-              <label className="input-label">Email</label>
+              <label className="input-label" htmlFor="auth-email">
+                Email
+              </label>
               <input
+                id="auth-email"
                 type="email"
                 className="input-field"
                 value={email}
                 onChange={(e) => setEmail(e.target.value.trimStart())}
                 onBlur={(e) => setEmail(e.target.value.trim())}
+                autoComplete="email"
                 required
               />
             </div>
           )}
 
           <div className="input-group">
-            <label className="input-label">Username</label>
-            <input
-              type="text"
-              className="input-field"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase().trimStart())}
-              onBlur={(e) => setUsername(e.target.value.trim())}
-              required
-              pattern="[a-z0-9_.]+"
-              title="Only lowercase letters, numbers, underscore and dot allowed"
-              placeholder={isLogin ? '' : 'e.g. john_doe'}
-            />
+            <label className="input-label" htmlFor="auth-identifier">
+              {isLogin ? 'Username or email' : 'Username'}
+            </label>
+            {isLogin ? (
+              // Backend accepts either a username or an email address as the login identifier
+              <input
+                id="auth-identifier"
+                type="text"
+                className="input-field"
+                value={username}
+                onChange={(e) => {
+                  const value = e.target.value.trimStart();
+                  setUsername(value.includes('@') ? value : value.toLowerCase());
+                }}
+                onBlur={(e) => setUsername(e.target.value.trim())}
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                required
+              />
+            ) : (
+              <input
+                id="auth-identifier"
+                type="text"
+                className="input-field"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().trimStart())}
+                onBlur={(e) => setUsername(e.target.value.trim())}
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                required
+                pattern="[a-z0-9_.]+"
+                title="Only lowercase letters, numbers, underscore and dot allowed"
+                placeholder="e.g. john_doe"
+              />
+            )}
           </div>
 
           <div className="input-group">
-            <label className="input-label">Password</label>
+            <label className="input-label" htmlFor="auth-password">
+              Password
+            </label>
             <input
+              id="auth-password"
               type="password"
               className="input-field"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
               required
               minLength={8}
             />
@@ -145,7 +194,7 @@ export const AuthForm: React.FC = () => {
           {isLogin && (
             <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
               <Link
-                to="/forgot-password"
+                to={APP_ROUTES.FORGOT_PASSWORD}
                 style={{
                   fontSize: 'var(--text-sm)',
                   color: 'var(--text-muted)',

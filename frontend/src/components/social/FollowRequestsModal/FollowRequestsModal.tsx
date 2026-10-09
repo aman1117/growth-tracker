@@ -7,9 +7,9 @@
 
 import { AlertCircle, Bell, Loader2 } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { useInfiniteScrollModal } from '../../../hooks/useInfiniteScrollModal';
+import { useOverlayAwareNavigate } from '../../../hooks/useOverlayAwareNavigate';
 import { useFollowStore } from '../../../store';
 import type { FollowRequestsModalProps, FollowUser } from '../../../types/follow';
 import { Avatar, VerifiedBadge } from '../../ui';
@@ -76,7 +76,7 @@ export const FollowRequestsModal: React.FC<FollowRequestsModalProps> = ({
   onClose,
   onRequestHandled,
 }) => {
-  const navigate = useNavigate();
+  const navigate = useOverlayAwareNavigate();
   const { getIncomingRequests, acceptRequest, declineRequest } = useFollowStore();
   const [processingIds, setProcessingIds] = useState<Set<number>>(new Set());
 

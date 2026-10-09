@@ -6,7 +6,6 @@
  */
 
 import {
-  ArrowLeft,
   ChevronRight,
   HelpCircle,
   Key,
@@ -20,7 +19,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '../../constants/routes';
 import { VALIDATION, VALIDATION_MESSAGES } from '../../constants/validation';
@@ -29,8 +28,9 @@ import { gl } from '../../services/goodlogs';
 import { useAuth, useFollowStore, usePendingRequestsCount, useTheme } from '../../store';
 import type { Badge } from '../../types/api';
 import { BadgeShowcase } from '../BadgeShowcase';
+import { formatDateForApi } from '../Dashboard/Dashboard.constants';
 import { FollowListModal, FollowRequestsModal } from '../social';
-import { SnapToast } from '../ui';
+import { PageHeader, SnapToast } from '../ui';
 import {
   BioDialog,
   FullscreenProfilePic,
@@ -83,18 +83,18 @@ export const SettingsPage: React.FC = () => {
   // Toast
   const [toast, setToast] = useState<ToastData | null>(null);
 
-  // Page animation
-  const [isExiting, setIsExiting] = useState(false);
-
   // Fetch all data on mount
   useEffect(() => {
     if (user) {
       // Fetch privacy setting
-      api.get('/get-privacy').then((res) => {
-        if (res.success) {
-          setIsPrivate(res.is_private);
-        }
-      });
+      api
+        .get('/get-privacy')
+        .then((res) => {
+          if (res.success) {
+            setIsPrivate(res.is_private);
+          }
+        })
+        .catch((err) => console.warn('[SettingsPage] Failed to load privacy setting', err));
 
       // Fetch profile data
       api
@@ -113,7 +113,8 @@ export const SettingsPage: React.FC = () => {
               updateBio(res.bio);
             }
           }
-        });
+        })
+        .catch((err) => console.warn('[SettingsPage] Failed to load profile', err));
 
       // Fetch badges
       api
@@ -123,15 +124,20 @@ export const SettingsPage: React.FC = () => {
             setBadges(res.badges);
           }
         })
+        .catch((err) => console.warn('[SettingsPage] Failed to load badges', err))
         .finally(() => setBadgesLoading(false));
 
-      // Fetch streak for longest
-      const today = new Date().toISOString().split('T')[0];
-      api.post('/get-streak', { username: user.username, date: today }).then((res) => {
-        if (res.success && res.data) {
-          setLongestStreak(res.data.longest);
-        }
-      });
+      // Fetch streak for longest.
+      // Local calendar date — toISOString() is UTC and is off by a day in many timezones.
+      const today = formatDateForApi(new Date());
+      api
+        .post('/get-streak', { username: user.username, date: today })
+        .then((res) => {
+          if (res.success && res.data) {
+            setLongestStreak(res.data.longest);
+          }
+        })
+        .catch((err) => console.warn('[SettingsPage] Failed to load streak', err));
 
       // Fetch pending follow requests count
       getIncomingRequests(undefined, 1);
@@ -148,8 +154,7 @@ export const SettingsPage: React.FC = () => {
   }, []);
 
   if (!user) {
-    navigate(APP_ROUTES.LOGIN);
-    return null;
+    return <Navigate to={APP_ROUTES.LOGIN} replace />;
   }
 
   const togglePrivacy = async () => {
@@ -228,90 +233,23 @@ export const SettingsPage: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate(APP_ROUTES.LOGIN);
-  };
-
-  const handleBack = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-      navigate(-1);
-    }, 200);
+    // Replace so Back after signing out cannot return to a protected screen
+    navigate(APP_ROUTES.LOGIN, { replace: true });
   };
 
   return (
     <>
-      <style>{`
-        @keyframes slideInFromRight {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        @keyframes slideOutToRight {
-          from {
-            transform: translateX(0);
-            opacity: 1;
-          }
-          to {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-        }
-      `}</style>
       <div
         className="container"
         style={{
           maxWidth: '480px',
           padding: '0.5rem 1rem',
           paddingBottom: '2rem',
-          animation: isExiting
-            ? 'slideOutToRight 0.2s ease-in forwards'
-            : 'slideInFromRight 0.25s ease-out',
+          animation: 'fadeIn 0.2s ease-out',
         }}
       >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '0.75rem',
-          }}
-        >
-          <button
-            onClick={handleBack}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '8px',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1
-            style={{
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              margin: 0,
-            }}
-          >
-            Settings
-          </h1>
-        </div>
+        {/* Settings is a tab root (Profile tab) — title only, no Back button */}
+        <PageHeader title="Settings" />
 
         {/* Profile Section */}
         <ProfileSection

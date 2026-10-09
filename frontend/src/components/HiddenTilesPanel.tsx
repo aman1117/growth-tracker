@@ -12,6 +12,7 @@ import { AlertCircle, AlertTriangle, EyeOff, Pencil, Plus, Trash2, X } from 'luc
 import React, { useCallback, useState } from 'react';
 
 import { createCustomActivityName, getActivityConfig } from '../constants/activities';
+import { useBackDismiss } from '../hooks/useBackDismiss';
 import type { ActivityName, CustomTile, PredefinedActivityName } from '../types';
 import { isCustomTile } from '../types';
 import { DynamicIcon } from './DynamicIcon';
@@ -65,6 +66,9 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
   const handleCancelDelete = useCallback(() => {
     setDeleteConfirm(null);
   }, []);
+
+  // System Back gesture / button closes the panel instead of leaving the page
+  useBackDismiss(isOpen, onClose);
 
   if (!isOpen) return null;
 

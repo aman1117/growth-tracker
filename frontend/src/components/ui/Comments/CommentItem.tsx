@@ -7,8 +7,8 @@
 
 import { Check, Heart, Pencil, Reply, Trash2, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
+import { useOverlayAwareNavigate } from '../../../hooks/useOverlayAwareNavigate';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useCommentStore } from '../../../store/useCommentStore';
 import type { Comment } from '../../../types/comment';
@@ -131,7 +131,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const [editSubmitting, setEditSubmitting] = useState(false);
   const deleteTimer = useRef<number>(0);
   const editTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const navigate = useNavigate();
+  const navigate = useOverlayAwareNavigate();
   const currentUser = useAuthStore((s) => s.user);
   const likeComment = useCommentStore((s) => s.likeComment);
   const unlikeComment = useCommentStore((s) => s.unlikeComment);

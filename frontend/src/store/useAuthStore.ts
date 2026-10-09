@@ -10,6 +10,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { STORAGE_KEYS } from '../constants/storage';
 import { gl } from '../services/goodlogs';
+import { decodeAccessToken } from '../utils/jwt';
 
 export interface User {
   id: number;
@@ -143,8 +144,17 @@ export const useAuthStore = create<AuthState>()(
       onRehydrateStorage: () => (state) => {
         // Also check localStorage for token on rehydration
         const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-        if (!token && state) {
-          // No token means not authenticated
+        const exp = token ? decodeAccessToken(token)?.exp : undefined;
+        const isExpired = typeof exp === 'number' && exp * 1000 <= Date.now();
+
+        if (isExpired) {
+          // Avoid flashing protected screens that would immediately 401 and hard-redirect
+          console.info('[Auth] Stored session expired, signing out');
+          localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        }
+
+        if ((!token || isExpired) && state) {
+          // No valid token means not authenticated
           state.user = null;
           state.isAuthenticated = false;
         }

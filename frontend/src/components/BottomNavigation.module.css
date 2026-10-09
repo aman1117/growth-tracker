@@ -35,11 +35,26 @@
   justify-content: center;
   gap: 0.25rem;
   padding: 0.5rem 1rem;
+  min-width: 64px;
+  min-height: 48px;
   background: none;
   border: none;
+  border-radius: var(--radius-lg, 12px);
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 64px;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.navItem:focus-visible {
+  box-shadow: 0 0 0 var(--ring-width, 2px) var(--ring-color);
+}
+
+.navItem:active {
+  transform: scale(0.92);
 }
 
 .navItemActive {
@@ -96,4 +111,17 @@
 
 .iconScaleActive {
   transform: scale(1.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navItem,
+  .iconScale,
+  .profileRing {
+    transition: none;
+  }
+
+  .navItem:active,
+  .iconScaleActive {
+    transform: none;
+  }
 }

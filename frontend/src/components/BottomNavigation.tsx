@@ -1,18 +1,40 @@
 /**
  * BottomNavigation Component
  *
- * Instagram-style bottom navigation bar with icons for main navigation.
- * Features: Home, Add (customize tiles), Analytics, and Profile/Settings
+ * Instagram-style bottom tab bar: Home, Customize (action), Analytics and Profile.
+ *
+ * Behaviour (mirrors native tab bars):
+ * - Tapping a tab opens that tab's root screen.
+ * - Tapping the tab you are already on scrolls to the top and emits a
+ *   "tab reselect" event so the screen can reset (e.g. Home jumps to today).
+ * - Screens that belong to another user highlight no tab.
+ * - Customize works from any screen: it opens Home and enters edit mode there.
  */
 
 import { BarChart3, Home, Settings2, User as UserIcon } from 'lucide-react';
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
+import { useOverlayAwareNavigate } from '../hooks/useOverlayAwareNavigate';
+import { gl } from '../services/goodlogs';
 import { useAuth } from '../store';
+import {
+  type AppTab,
+  getActiveTab,
+  getProfileUsername,
+  type HomeNavigationState,
+  scrollToTop,
+  TAB_RESELECT_EVENT,
+  TAB_ROUTES,
+  type TabReselectDetail,
+} from '../utils/navigation';
 import styles from './BottomNavigation.module.css';
 import { ProtectedImage } from './ui';
+
+const ICON_SIZE = 26;
+const ACTIVE_STROKE = 2.25;
+const INACTIVE_STROKE = 1.5;
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -34,9 +56,11 @@ const NavItem: React.FC<NavItemProps> = ({
   username,
 }) => (
   <button
+    type="button"
     onClick={onClick}
     className={`${styles.navItem} ${isActive ? styles.navItemActive : styles.navItemInactive}`}
     aria-label={label}
+    aria-current={isActive ? 'page' : undefined}
   >
     {isProfile ? (
       <div
@@ -44,18 +68,19 @@ const NavItem: React.FC<NavItemProps> = ({
       >
         <div className={styles.profileAvatar}>
           {profilePic ? (
-            <ProtectedImage
-              src={profilePic}
-              alt={username || 'Profile'}
-              className={styles.profileImage}
-            />
+            <ProtectedImage src={profilePic} alt="" className={styles.profileImage} />
           ) : (
-            username?.charAt(0) || <UserIcon size={16} />
+            username?.charAt(0) || <UserIcon size={16} aria-hidden="true" />
           )}
         </div>
       </div>
     ) : (
-      <div className={`${styles.iconScale} ${isActive ? styles.iconScaleActive : ''}`}>{icon}</div>
+      <div
+        className={`${styles.iconScale} ${isActive ? styles.iconScaleActive : ''}`}
+        aria-hidden="true"
+      >
+        {icon}
+      </div>
     )}
   </button>
 );
@@ -65,60 +90,101 @@ interface BottomNavigationProps {
 }
 
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({ onCustomizeTiles }) => {
-  const navigate = useNavigate();
+  // Overlay-aware: tapping a tab while e.g. search is open replaces the overlay's entry
+  const navigate = useOverlayAwareNavigate();
   const location = useLocation();
   const { user } = useAuth();
 
+  const activeTab = getActiveTab(location.pathname, location.search, user?.username);
+
+  const handleTabPress = useCallback(
+    (tab: AppTab) => {
+      const root = TAB_ROUTES[tab];
+      // Read the live URL: during a pending (lazy-loading) transition React's location
+      // still points at the previous screen, and a quick second tap must not be ignored.
+      const { pathname, search } = window.location;
+      const currentTab = getActiveTab(pathname, search, user?.username);
+      const isOnRoot = pathname === root && !search;
+
+      if (currentTab === tab && isOnRoot) {
+        scrollToTop();
+        window.dispatchEvent(
+          new CustomEvent<TabReselectDetail>(TAB_RESELECT_EVENT, { detail: { tab } })
+        );
+        gl.debug('tab_reselected', { metadata: { tab } });
+        return;
+      }
+
+      gl.debug('tab_selected', { metadata: { tab, from: currentTab ?? 'none' } });
+      navigate(root);
+    },
+    [navigate, user?.username]
+  );
+
+  const handleCustomize = useCallback(() => {
+    if (onCustomizeTiles) {
+      onCustomizeTiles();
+      return;
+    }
+
+    const { pathname } = window.location;
+    const profileUsername = getProfileUsername(pathname);
+    const isOnOwnDashboard =
+      pathname === APP_ROUTES.HOME ||
+      (!!profileUsername && profileUsername.toLowerCase() === user?.username.toLowerCase());
+
+    if (isOnOwnDashboard) {
+      window.dispatchEvent(new CustomEvent('toggleEditMode'));
+      return;
+    }
+
+    // The tile grid lives on Home — open it and enter edit mode once it is ready
+    const state: HomeNavigationState = { enterEditMode: true };
+    gl.debug('customize_from_other_screen', { metadata: { tab: activeTab ?? 'none' } });
+    navigate(APP_ROUTES.HOME, { state });
+  }, [activeTab, navigate, onCustomizeTiles, user?.username]);
+
   if (!user) return null;
 
-  const isHome =
-    location.pathname === APP_ROUTES.HOME ||
-    location.pathname === '/' ||
-    location.pathname.startsWith('/user/');
-  const isAnalytics =
-    location.pathname === APP_ROUTES.ANALYTICS || location.pathname.startsWith('/analytics');
-  const isSettings = location.pathname === APP_ROUTES.SETTINGS;
+  const isHome = activeTab === 'home';
+  const isAnalytics = activeTab === 'analytics';
+  const isProfile = activeTab === 'profile';
 
   return (
-    <nav className={styles.nav}>
+    <nav className={styles.nav} aria-label="Primary">
       <div className={styles.navInner}>
-        {/* Home */}
         <NavItem
-          icon={<Home size={26} strokeWidth={isHome && !isAnalytics && !isSettings ? 2 : 1.5} />}
-          isActive={isHome && !isAnalytics && !isSettings}
-          onClick={() => navigate(APP_ROUTES.HOME)}
+          icon={<Home size={ICON_SIZE} strokeWidth={isHome ? ACTIVE_STROKE : INACTIVE_STROKE} />}
+          isActive={isHome}
+          onClick={() => handleTabPress('home')}
           label="Home"
         />
 
-        {/* Customize Tiles */}
         <NavItem
-          icon={<Settings2 size={26} strokeWidth={1.5} />}
+          icon={<Settings2 size={ICON_SIZE} strokeWidth={INACTIVE_STROKE} />}
           isActive={false}
-          onClick={() => {
-            if (onCustomizeTiles) {
-              onCustomizeTiles();
-            } else {
-              window.dispatchEvent(new CustomEvent('toggleEditMode'));
-            }
-          }}
-          label="Customize"
+          onClick={handleCustomize}
+          label="Customize tiles"
         />
 
-        {/* Analytics */}
         <NavItem
-          icon={<BarChart3 size={26} strokeWidth={isAnalytics ? 2 : 1.5} />}
+          icon={
+            <BarChart3
+              size={ICON_SIZE}
+              strokeWidth={isAnalytics ? ACTIVE_STROKE : INACTIVE_STROKE}
+            />
+          }
           isActive={isAnalytics}
-          onClick={() => navigate(APP_ROUTES.ANALYTICS)}
+          onClick={() => handleTabPress('analytics')}
           label="Analytics"
         />
 
-        {/* Profile/Settings */}
         <NavItem
-          icon={<UserIcon size={26} strokeWidth={isSettings ? 2 : 1.5} />}
-          isActive={isSettings}
-          onClick={() => navigate(APP_ROUTES.SETTINGS)}
-          label="Profile"
-          isProfile={true}
+          icon={<UserIcon size={ICON_SIZE} />}
+          isActive={isProfile}
+          onClick={() => handleTabPress('profile')}
+          label="Profile and settings"
+          isProfile
           profilePic={user.profilePicThumb || user.profilePic}
           username={user.username}
         />

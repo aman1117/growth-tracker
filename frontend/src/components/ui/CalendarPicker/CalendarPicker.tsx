@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useBackDismiss } from '../../../hooks/useBackDismiss';
 import styles from './CalendarPicker.module.css';
 
 /** Map of date string (YYYY-MM-DD) to total hours logged */
@@ -140,6 +141,9 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, handleClose]);
+
+  // System Back gesture / button closes the calendar instead of leaving the page
+  useBackDismiss(isOpen, handleClose);
 
   const handleDateClick = (date: Date) => {
     onDateSelect(date);

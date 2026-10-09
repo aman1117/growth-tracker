@@ -6,8 +6,8 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
+import { useOverlayAwareNavigate } from '../../../hooks/useOverlayAwareNavigate';
 import { useAuth, useFollowStore } from '../../../store';
 import type { FollowUser } from '../../../types/follow';
 import { Avatar } from '../../ui/Avatar/Avatar';
@@ -25,7 +25,7 @@ export const MutualFollowers: React.FC<MutualFollowersProps> = ({
   username: _username,
   onShowAll,
 }) => {
-  const navigate = useNavigate();
+  const navigate = useOverlayAwareNavigate();
   const { user } = useAuth();
   const { getMutuals } = useFollowStore();
 

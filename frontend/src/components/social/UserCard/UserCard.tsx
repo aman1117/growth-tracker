@@ -6,8 +6,8 @@
 
 import { Loader2 } from 'lucide-react';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 
+import { useOverlayAwareNavigate } from '../../../hooks/useOverlayAwareNavigate';
 import { useAuth } from '../../../store';
 import type { UserCardProps } from '../../../types/follow';
 import { Avatar, VerifiedBadge } from '../../ui';
@@ -22,7 +22,7 @@ export const UserCard: React.FC<UserCardProps> = ({
   isRemoving = false,
   onUserClick,
 }) => {
-  const navigate = useNavigate();
+  const navigate = useOverlayAwareNavigate();
   const { user: currentUser } = useAuth();
 
   const isOwnProfile = currentUser?.id === user.id;

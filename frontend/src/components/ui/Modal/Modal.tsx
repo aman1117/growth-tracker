@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 import React, { useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useBackDismiss } from '../../../hooks/useBackDismiss';
 import styles from './Modal.module.css';
 
 export type ModalSize = 'small' | 'medium' | 'large' | 'fullscreen';
@@ -63,16 +64,21 @@ export const Modal: React.FC<ModalProps> = ({
   );
 
   useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
+    if (!isOpen) return;
+
+    document.addEventListener('keydown', handleEscape);
+    // Restore the previous value (not '') so closing a nested modal keeps the page locked
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen, handleEscape]);
+
+  // System Back gesture / button closes the modal instead of leaving the page
+  useBackDismiss(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -87,6 +93,9 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         className={`${styles.modal} ${styles[size]} ${className || ''}`}
         style={maxWidth ? { maxWidth } : undefined}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
       >
         {(title || showCloseButton) && (
           <div className={styles.header}>

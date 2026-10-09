@@ -10,6 +10,7 @@ import { AlertCircle, X } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { ACTIVITY_CONFIG, PRESET_COLORS } from '../constants';
+import { useBackDismiss } from '../hooks/useBackDismiss';
 import type { CustomTile, PredefinedActivityName } from '../types';
 import { ACTIVITY_NAMES, MAX_CUSTOM_TILES } from '../types';
 import { ColorPicker } from './ColorPicker';
@@ -58,6 +59,9 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
       setError(null);
     }
   }, [isOpen, existingTile]);
+
+  // System Back gesture / button closes the modal instead of leaving the page
+  useBackDismiss(isOpen, onClose);
 
   const handleSubmit = useCallback(() => {
     // Validate name

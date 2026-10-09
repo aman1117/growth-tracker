@@ -6,7 +6,6 @@
  */
 
 import {
-  ArrowLeft,
   ArrowUpDown,
   Check,
   ChevronDown,
@@ -21,15 +20,16 @@ import {
   X,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { getActivityConfig, STORAGE_KEYS } from '../../constants';
 import { APP_ROUTES } from '../../constants/routes';
+import { useSmartBack } from '../../hooks/useSmartBack';
 import { api, ApiError, userApi } from '../../services/api';
 import { useAuth } from '../../store';
 import type { ActivityName, CustomTile, WeekAnalyticsResponse } from '../../types';
 import type { AutocompleteSuggestion } from '../../types/autocomplete';
-import { VerifiedBadge } from '../ui';
+import { PageHeader, VerifiedBadge } from '../ui';
 import { Autocomplete } from '../ui/Autocomplete';
 import { ActivityRow, DayBar } from './components';
 
@@ -166,7 +166,6 @@ export const AnalyticsPage: React.FC = () => {
   const { username: routeUsername } = useParams<{ username: string }>();
   const [searchParams] = useSearchParams();
 
-  const [isExiting, setIsExiting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [analytics, setAnalytics] = useState<WeekAnalyticsResponse | null>(null);
@@ -184,6 +183,8 @@ export const AnalyticsPage: React.FC = () => {
 
   // Target username and verification status
   const targetUsername = searchParams.get('user') || routeUsername || user?.username || '';
+  const isViewingOwnAnalytics =
+    !!user && targetUsername.toLowerCase() === user.username.toLowerCase();
   const [targetIsVerified, setTargetIsVerified] = useState<boolean>(false);
 
   // Custom tiles and color overrides for activity display
@@ -288,8 +289,14 @@ export const AnalyticsPage: React.FC = () => {
     []
   );
 
+  // Guards against out-of-order responses when switching user/week quickly
+  const analyticsRequestIdRef = useRef(0);
+
   const fetchAnalytics = useCallback(async () => {
     if (!targetUsername) return;
+
+    const requestId = ++analyticsRequestIdRef.current;
+    const isStale = () => requestId !== analyticsRequestIdRef.current;
 
     setLoading(true);
     setAnimateStats(false);
@@ -298,6 +305,7 @@ export const AnalyticsPage: React.FC = () => {
 
     try {
       const res = await api.getWeekAnalytics(targetUsername, formatDateForApi(weekStart));
+      if (isStale()) return;
       if (res.success) {
         const analyticsData = res as WeekAnalyticsResponse;
         setAnalytics(analyticsData);
@@ -321,6 +329,7 @@ export const AnalyticsPage: React.FC = () => {
         setAnalytics(null);
       }
     } catch (err) {
+      if (isStale()) return;
       if (err instanceof ApiError && err.errorCode === 'ACCOUNT_PRIVATE') {
         setIsPrivateAccount(true);
         setAnalytics(null);
@@ -329,7 +338,7 @@ export const AnalyticsPage: React.FC = () => {
         setAnalytics(null);
       }
     } finally {
-      setLoading(false);
+      if (!isStale()) setLoading(false);
     }
   }, [targetUsername, weekStart]);
 
@@ -339,24 +348,33 @@ export const AnalyticsPage: React.FC = () => {
 
   // Fetch target user's verification status
   useEffect(() => {
+    let cancelled = false;
+
     const fetchTargetUserVerification = async () => {
       if (!targetUsername) return;
 
       try {
         const res = await api.post('/users', { username: targetUsername });
-        if (res.success && res.data && res.data.length > 0) {
-          const exactMatch = res.data.find(
-            (u: { username: string }) => u.username.toLowerCase() === targetUsername.toLowerCase()
-          );
-          if (exactMatch) {
-            setTargetIsVerified(exactMatch.is_verified || false);
-          }
-        }
+        if (cancelled) return;
+        const exactMatch =
+          res.success && Array.isArray(res.data)
+            ? res.data.find(
+                (u: { username: string }) =>
+                  u.username.toLowerCase() === targetUsername.toLowerCase()
+              )
+            : undefined;
+        // Always overwrite so a previous user's badge never lingers
+        setTargetIsVerified(!!exactMatch?.is_verified);
       } catch (err) {
+        if (cancelled) return;
         console.error('Failed to fetch target user verification', err);
+        setTargetIsVerified(false);
       }
     };
     fetchTargetUserVerification();
+    return () => {
+      cancelled = true;
+    };
   }, [targetUsername]);
 
   const handlePrevWeek = () => {
@@ -379,20 +397,18 @@ export const AnalyticsPage: React.FC = () => {
     return weekStart >= today;
   };
 
-  const handleBack = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-      if (window.history.length > 2 && window.history.state?.idx > 0) {
-        navigate(-1);
-      } else {
-        navigate(APP_ROUTES.HOME, { replace: true });
-      }
-    }, 200);
-  };
+  const smartBack = useSmartBack(APP_ROUTES.ANALYTICS);
 
   const handleUserSelect = (username: string) => {
     setShowUserSelector(false);
-    navigate(APP_ROUTES.USER_ANALYTICS(username), { replace: true });
+    const selectingSelf = username.toLowerCase() === user?.username.toLowerCase();
+    if (selectingSelf) {
+      navigate(APP_ROUTES.ANALYTICS, { replace: true });
+      return;
+    }
+    // From your own analytics, another user's analytics is a new screen (Back returns);
+    // switching between other users just swaps the content in place.
+    navigate(APP_ROUTES.USER_ANALYTICS(username), { replace: !isViewingOwnAnalytics });
   };
 
   const handleAutocompleteSelect = (suggestion: AutocompleteSuggestion) => {
@@ -410,8 +426,7 @@ export const AnalyticsPage: React.FC = () => {
     : [];
 
   if (!user) {
-    navigate(APP_ROUTES.LOGIN);
-    return null;
+    return <Navigate to={APP_ROUTES.LOGIN} replace />;
   }
 
   // Calculate average for the chart
@@ -453,51 +468,13 @@ export const AnalyticsPage: React.FC = () => {
           maxWidth: '600px',
           padding: '0.5rem 1rem',
           paddingBottom: '2rem',
-          animation: isExiting
-            ? 'slideOutToRight 0.2s ease-in forwards'
+          // Own analytics is a tab root (fade); another user's analytics is a pushed screen
+          animation: isViewingOwnAnalytics
+            ? 'fadeIn 0.2s ease-out'
             : 'slideInFromRight 0.25s ease-out',
         }}
       >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-          }}
-        >
-          <button
-            onClick={handleBack}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '0.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '8px',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1
-            style={{
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              margin: 0,
-              flex: 1,
-            }}
-          >
-            Analytics
-          </h1>
-        </div>
+        <PageHeader title="Analytics" onBack={isViewingOwnAnalytics ? undefined : smartBack} />
 
         {/* User Selector */}
         <div ref={userSelectorRef} style={{ position: 'relative', marginBottom: '1rem' }}>

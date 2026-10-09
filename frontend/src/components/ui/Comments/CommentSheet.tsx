@@ -11,6 +11,7 @@ import { RefreshCw, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useBackDismiss } from '../../../hooks/useBackDismiss';
 import { useCommentStore } from '../../../store/useCommentStore';
 import { CommentInput } from './CommentInput';
 import { CommentItem } from './CommentItem';
@@ -107,6 +108,9 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, use
       };
     }
   }, [isOpen, isMobile]);
+
+  // System Back gesture / button closes the sheet instead of leaving the page
+  useBackDismiss(isOpen, onClose);
 
   // Infinite scroll
   const handleScroll = useCallback(() => {

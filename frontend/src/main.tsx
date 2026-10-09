@@ -4,6 +4,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App.tsx';
+import { EXTERNAL_NAVIGATE_EVENT } from './utils/navigation';
 
 // Service worker message handlers for push notifications
 if ('serviceWorker' in navigator) {
@@ -47,7 +48,14 @@ if ('serviceWorker' in navigator) {
 
       case 'NAVIGATE_TO':
         if (url && window.location.pathname + window.location.search !== url) {
-          window.location.href = url;
+          // Prefer an in-app (SPA) navigation; fall back to a full load if the router
+          // is not mounted yet. The router handler calls preventDefault() when handled.
+          const handled = !window.dispatchEvent(
+            new CustomEvent(EXTERNAL_NAVIGATE_EVENT, { detail: { url }, cancelable: true })
+          );
+          if (!handled) {
+            window.location.href = url;
+          }
         }
         break;
 

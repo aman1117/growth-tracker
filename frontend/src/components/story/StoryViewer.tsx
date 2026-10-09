@@ -11,6 +11,7 @@ import { AlertCircle, ChevronLeft, ChevronRight, Eye, Heart, Trash2, X } from 'l
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getActivityConfig } from '../../constants';
+import { useBackDismiss } from '../../hooks/useBackDismiss';
 import { activityPhotoApi } from '../../services/api';
 import { gl } from '../../services/goodlogs';
 import type { ActivityName } from '../../types';
@@ -453,22 +454,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     touchStartRef.current = null;
   }, [swipeOffset, isSwiping, currentIndex, localPhotos.length, isAnimating, animateTo]);
 
-  // Handle browser back
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Push a state to handle back button
-    window.history.pushState({ storyViewer: true }, '');
-
-    const handlePopState = () => {
-      handleClose();
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [isOpen, handleClose]);
+  // Handle browser / hardware back: close the viewer instead of leaving the page
+  useBackDismiss(isOpen, handleClose);
 
   // Delete photo - closes immediately and deletes in background
   const handleDelete = async () => {

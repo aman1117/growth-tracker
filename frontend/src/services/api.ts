@@ -54,8 +54,11 @@ class ApiClient {
     localStorage.removeItem(STORAGE_KEYS.PROFILE_PIC);
     localStorage.removeItem(STORAGE_KEYS.BIO);
 
-    // Use window.location for a full page redirect to clear all state
-    window.location.href = '/login';
+    // Use window.location for a full page redirect to clear all state.
+    // Skip when already on the login screen to avoid a reload loop.
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
   }
 
   /**

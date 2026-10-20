@@ -1,11 +1,12 @@
 /**
  * PullToRefreshIndicator Styles
- * Twitter-style minimal spinner
+ *
+ * Glass puck under the header: arrow while pulling, violet when armed/refreshing.
  */
 
 .container {
   position: fixed;
-  top: 56px;
+  top: calc(env(safe-area-inset-top, 0px) + var(--header-height, 60px));
   left: 0;
   right: 0;
   z-index: 45;
@@ -13,11 +14,37 @@
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  color: var(--text-primary);
+}
+
+.puck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--glass-floating-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-floating-border);
+  box-shadow: var(--glass-floating-shadow);
+  color: var(--accent-text);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.25s var(--ease-bounce);
+}
+
+.armed {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: #ffffff;
+  transform: scale(1.06);
+  box-shadow: var(--shadow-glow-accent);
 }
 
 .spinner {
-  /* No background, no border - just the icon */
+  display: block;
 }
 
 .spinning {
@@ -34,5 +61,9 @@
 @media (prefers-reduced-motion: reduce) {
   .spinning {
     animation: none;
+  }
+
+  .puck {
+    transition: none;
   }
 }

@@ -136,6 +136,8 @@ export const CommentInput: React.FC<CommentInputProps> = ({
         handleSubmit();
       }
       if (e.key === 'Escape' && replyTarget) {
+        // Claim Escape so the surrounding sheet stays open
+        e.preventDefault();
         onCancelReply();
       }
     },
@@ -159,7 +161,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
             onClick={onCancelReply}
             aria-label="Cancel reply"
           >
-            <X size={14} />
+            <X size={14} strokeWidth={2.5} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -197,7 +199,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
           disabled={!canSubmit}
           aria-label="Post comment"
         >
-          <Send size={18} />
+          <Send size={18} strokeWidth={2.25} aria-hidden="true" />
         </button>
       </div>
 

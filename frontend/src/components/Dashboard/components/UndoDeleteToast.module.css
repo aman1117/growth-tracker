@@ -1,0 +1,144 @@
+/**
+ * UndoDeleteToast Styles
+ */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.wrapper {
+  position: fixed;
+  left: 50%;
+  /* Phones/tablets: float above the bottom dock (includes the home-indicator inset) */
+  bottom: var(--nav-clearance);
+  transform: translateX(-50%);
+  z-index: 10001;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  animation: slideUp 0.34s var(--ease-spring);
+}
+
+/* Desktop: navigation is a side rail, so sit near the bottom edge */
+@media (min-width: 1024px) {
+  .wrapper {
+    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-2);
+  overflow: hidden;
+  background: var(--glass-floating-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-floating-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--glass-floating-shadow), var(--glass-floating-glow);
+}
+
+.progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--gradient-warm);
+  transform-origin: left;
+  animation: countdown linear forwards;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--error-soft);
+  color: var(--color-text-danger);
+}
+
+.text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.text strong {
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.undoButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  transition: background-color var(--transition-fast) var(--ease-default);
+}
+
+.undoButton:hover {
+  background: var(--accent-soft-strong);
+}
+
+.dismissButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default);
+}
+
+.dismissButton:hover {
+  background: var(--chip-bg);
+  color: var(--text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrapper {
+    animation: none;
+  }
+}

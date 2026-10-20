@@ -16,22 +16,33 @@
 .inputWrapper {
   display: flex;
   align-items: center;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border);
+  background-color: var(--input-bg);
+  border: 1.5px solid var(--input-border);
   border-radius: var(--radius-full);
-  transition: all 0.2s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   overflow: hidden;
+}
+
+.inputWrapper:hover {
+  border-color: var(--border-strong);
 }
 
 .inputWrapper:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .searchIcon {
-  color: var(--text-secondary);
+  color: var(--text-muted);
   margin-left: var(--space-3);
   flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.inputWrapper:focus-within .searchIcon {
+  color: var(--accent-text);
 }
 
 .input {
@@ -47,11 +58,11 @@
 }
 
 .input::placeholder {
-  color: var(--text-muted);
+  color: var(--input-placeholder);
 }
 
 .loadingIcon {
-  color: var(--accent);
+  color: var(--accent-text);
   margin-right: var(--space-3);
   flex-shrink: 0;
   animation: spin 1s linear infinite;
@@ -76,16 +87,19 @@
   padding: 0;
   border: none;
   border-radius: var(--radius-full);
-  background: var(--hover-bg);
+  background: var(--chip-bg);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
   flex-shrink: 0;
   touch-action: manipulation;
 }
 
 .clearButton:hover {
-  background: var(--glass-active-bg);
+  background: var(--accent-soft);
   color: var(--text-primary);
 }
 
@@ -99,11 +113,11 @@
 
 .dropdown {
   position: absolute;
-  top: calc(100% + var(--space-1));
+  top: calc(100% + var(--space-2));
   left: 0;
   right: 0;
   margin: 0;
-  padding: var(--space-1) 0;
+  padding: var(--space-1-5);
   list-style: none;
   z-index: var(--z-dropdown);
   max-height: 400px;
@@ -119,13 +133,13 @@
   /* Glassmorphism styling */
   background: var(--glass-floating-bg);
   border: 1px solid var(--glass-floating-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   box-shadow: var(--glass-floating-shadow), var(--glass-floating-glow);
-  -webkit-backdrop-filter: blur(var(--glass-blur-md));
-  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
 
   /* Smooth entrance animation */
-  animation: dropdownEnter 0.15s ease-out;
+  animation: dropdownEnter 0.18s var(--ease-out);
 }
 
 /* Hide scrollbar for Chrome/Safari/Opera */
@@ -153,19 +167,20 @@
   align-items: center;
   padding: var(--space-2) var(--space-3);
   gap: var(--space-2);
+  border-radius: var(--radius-md);
   cursor: pointer;
   transition: background-color 0.1s ease;
-  min-height: 40px; /* Compact touch-friendly height */
+  min-height: 44px; /* Touch-friendly height */
   touch-action: manipulation;
 }
 
 .suggestion:hover,
 .suggestion.active {
-  background-color: var(--glass-hover-bg);
+  background-color: var(--accent-soft);
 }
 
 .suggestion:active {
-  background-color: var(--glass-active-bg);
+  background-color: var(--accent-soft-strong);
 }
 
 .avatar {
@@ -204,13 +219,14 @@
 }
 
 .highlight {
-  font-weight: var(--font-bold);
+  font-weight: var(--font-extrabold);
+  color: var(--accent-text);
   display: inline;
 }
 
 .followerCount {
   font-size: var(--text-xs);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   line-height: 1.2;
 }
 
@@ -231,10 +247,10 @@
   right: 0;
   background: var(--glass-floating-bg);
   border: 1px solid var(--glass-floating-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   box-shadow: var(--glass-floating-shadow);
-  -webkit-backdrop-filter: blur(var(--glass-blur-md));
-  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
   z-index: var(--z-dropdown);
 
   animation: dropdownEnter 0.15s ease-out;
@@ -244,9 +260,9 @@
   margin-top: var(--space-2);
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-xs);
-  color: var(--error);
-  background: var(--color-like-bg);
-  border-radius: var(--radius-sm);
+  color: var(--color-text-danger);
+  background: var(--error-soft);
+  border-radius: var(--radius-md);
 }
 
 /* ============================================================================

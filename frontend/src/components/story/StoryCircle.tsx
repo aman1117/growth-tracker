@@ -2,17 +2,17 @@
  * StoryCircle Component
  *
  * Displays a circular story indicator similar to Instagram stories.
- * Shows activity thumbnail with gradient ring (unseen) or gray ring (seen/own).
+ * Shows activity thumbnail with an aurora ring (unseen) or neutral ring (seen/own).
  * Shows "+" icon for uploadable activities without photos.
  */
-
-import './StoryCircle.css';
 
 import { Camera, Plus } from 'lucide-react';
 import React from 'react';
 
 import type { ActivityPhoto } from '../../types/story';
 import { DynamicIcon } from '../DynamicIcon';
+import styles from './StoryCircle.module.css';
+import ring from './StoryRing.module.css';
 
 export interface StoryCircleProps {
   /** Activity name (e.g., 'sleep', 'custom:uuid') */
@@ -41,6 +41,8 @@ export interface StoryCircleProps {
   size?: 'small' | 'medium' | 'large';
 }
 
+const ICON_SIZES = { small: 16, medium: 22, large: 28 } as const;
+
 export const StoryCircle: React.FC<StoryCircleProps> = ({
   displayLabel,
   icon,
@@ -56,13 +58,16 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
 }) => {
   const hasPhoto = !!photo;
   const showAddButton = !hasPhoto && canUpload;
+  const iconSize = ICON_SIZES[size];
 
   // Determine ring style
   const ringClass = hasPhoto
     ? isOwn || isViewed
-      ? 'story-ring-viewed'
-      : 'story-ring-unseen'
-    : 'story-ring-empty';
+      ? ring.ringViewed
+      : ring.ringUnseen
+    : ring.ringEmpty;
+
+  const sizeClass = size === 'small' ? ring.small : size === 'large' ? ring.large : '';
 
   const handleClick = () => {
     if (isUploading) return;
@@ -74,8 +79,6 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
     }
   };
 
-  const sizeClass = `story-circle-${size}`;
-
   // Generate aria label for accessibility
   const ariaLabel = hasPhoto
     ? `View ${displayLabel} photo`
@@ -84,64 +87,55 @@ export const StoryCircle: React.FC<StoryCircleProps> = ({
       : `${displayLabel} - no photo`;
 
   return (
-    <div className={`story-circle-container ${sizeClass}`}>
+    <div className={ring.item} style={{ '--activity-color': color } as React.CSSProperties}>
       <button
-        className={`story-circle ${ringClass} ${isUploading ? 'story-circle-uploading' : ''}`}
+        className={`${ring.ring} ${sizeClass} ${ringClass} ${isUploading ? ring.ringUploading : ''}`}
         onClick={handleClick}
         disabled={isUploading || (!hasPhoto && !canUpload)}
         aria-label={ariaLabel}
+        aria-busy={isUploading || undefined}
         type="button"
       >
-        {/* Inner content */}
-        <div className="story-circle-inner">
+        <span className={ring.ringContent}>
           {hasPhoto && photo ? (
             <img
               src={photo.thumbnail_url}
               alt={`${displayLabel} activity`}
-              className="story-circle-image"
+              className={ring.image}
               loading="lazy"
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
-              style={{
-                WebkitUserSelect: 'none',
-                userSelect: 'none',
-                WebkitTouchCallout: 'none',
-              }}
             />
           ) : showAddButton ? (
-            <div className="story-circle-add" style={{ backgroundColor: `${color}20` }}>
+            <span className={`${styles.fill} ${styles.add}`}>
               {isUploading ? (
-                <div className="story-circle-spinner" />
+                <span className={styles.spinner} aria-hidden="true" />
               ) : (
-                <Plus size={size === 'small' ? 16 : size === 'large' ? 28 : 22} color={color} />
+                <Plus size={iconSize} strokeWidth={2.5} aria-hidden="true" />
               )}
-            </div>
+            </span>
           ) : (
-            <div className="story-circle-placeholder" style={{ backgroundColor: `${color}15` }}>
+            <span className={`${styles.fill} ${styles.placeholder}`}>
               {icon ? (
-                <DynamicIcon
-                  name={icon}
-                  size={size === 'small' ? 16 : size === 'large' ? 28 : 22}
-                  color={color}
-                />
+                <DynamicIcon name={icon} size={iconSize} aria-hidden="true" />
               ) : (
-                <Camera size={size === 'small' ? 16 : size === 'large' ? 28 : 22} color={color} />
+                <Camera size={iconSize} aria-hidden="true" />
               )}
-            </div>
+            </span>
           )}
-        </div>
+        </span>
 
         {/* Activity icon badge (bottom-right) */}
         {hasPhoto && icon && (
-          <div className="story-circle-badge" style={{ backgroundColor: color }}>
+          <span className={styles.badge} aria-hidden="true">
             <DynamicIcon name={icon} size={12} color="white" />
-          </div>
+          </span>
         )}
       </button>
 
       {/* Activity name label */}
-      <span className="story-circle-label" title={displayLabel}>
-        {displayLabel.length > 10 ? `${displayLabel.slice(0, 9)}...` : displayLabel}
+      <span className={ring.label} title={displayLabel}>
+        {displayLabel}
       </span>
     </div>
   );

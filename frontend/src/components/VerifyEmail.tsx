@@ -2,10 +2,10 @@
  * Verify Email Page Component
  *
  * Handles email verification from the link sent to user's email.
- * Shows loading, success, or error states with glassmorphism design.
+ * Shows verifying, success, or error states on the shared AuthShell.
  */
 
-import { CheckCircle, Loader2, RefreshCw, XCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, RefreshCw, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ import { API_ROUTES, APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
 import { gl } from '../services/goodlogs';
 import { useAuth } from '../store';
+import { AuthShell, authStyles } from './auth';
 import { SnapToast } from './ui';
 
 type VerificationState = 'verifying' | 'success' | 'error' | 'already_verified';
@@ -77,6 +78,7 @@ export const VerifyEmail: React.FC = () => {
       navigate(APP_ROUTES.LOGIN);
       return;
     }
+    if (resending) return;
 
     setResending(true);
     try {
@@ -95,262 +97,85 @@ export const VerifyEmail: React.FC = () => {
     navigate(APP_ROUTES.HOME);
   };
 
+  const toastElement = toast && (
+    <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+  );
+
   // Loading state
   if (state === 'verifying') {
     return (
-      <div className="container" style={{ maxWidth: '360px', marginTop: '3rem' }}>
-        <div
-          className="glass-panel"
-          style={{
-            padding: '2rem',
-            borderRadius: '16px',
-            textAlign: 'center',
-          }}
-        >
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              background:
-                'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.05) 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1.25rem',
-            }}
-          >
-            <Loader2
-              size={28}
-              color="var(--accent)"
-              style={{ animation: 'spin 1s linear infinite' }}
-            />
-          </div>
-          <h2 style={{ marginBottom: '0.5rem', fontSize: '1.15rem', color: 'var(--text-primary)' }}>
-            Verifying Your Email
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            Please wait while we verify your email address...
-          </p>
-        </div>
-        <style>{`
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
+      <AuthShell
+        icon={<Loader2 size={30} className={authStyles.spinner} />}
+        tone="info"
+        title="Verifying your email…"
+        subtitle="Please wait while we confirm your address."
+        live
+      />
     );
   }
 
   // Success state
   if (state === 'success' || state === 'already_verified') {
     return (
-      <div className="container" style={{ maxWidth: '360px', marginTop: '3rem' }}>
-        <div
-          className="glass-panel"
-          style={{
-            padding: '2rem',
-            borderRadius: '16px',
-            textAlign: 'center',
-          }}
-        >
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '16px',
-              background:
-                'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.05) 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1.25rem',
-            }}
-          >
-            <CheckCircle size={28} color="#22c55e" />
-          </div>
-          <h2 style={{ marginBottom: '0.5rem', fontSize: '1.15rem', color: 'var(--text-primary)' }}>
-            {state === 'already_verified' ? 'Already Verified!' : 'Email Verified!'}
-          </h2>
-          <p
-            style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}
-          >
-            {state === 'already_verified'
-              ? 'Your email address was already verified.'
-              : 'Your email address has been successfully verified.'}
-          </p>
-          <button
-            className="btn btn-primary"
-            onClick={handleContinue}
-            style={{
-              width: '100%',
-              padding: '12px 20px',
-              borderRadius: '10px',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-              border: 'none',
-              color: '#ffffff',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            Continue to App
+      <AuthShell
+        icon={<CheckCircle2 size={30} strokeWidth={2} />}
+        tone="success"
+        title={state === 'already_verified' ? 'Already verified' : 'Email verified!'}
+        subtitle={
+          state === 'already_verified'
+            ? 'Your email address was already verified. You are all set.'
+            : 'Thanks for confirming. Your account is fully unlocked.'
+        }
+        live
+        actions={
+          <button className="btn btn-primary" onClick={handleContinue}>
+            Continue to app
+            <ArrowRight size={18} strokeWidth={2.5} aria-hidden="true" />
           </button>
-        </div>
-      </div>
+        }
+      />
     );
   }
 
   // Error state
   return (
-    <div className="container" style={{ maxWidth: '360px', marginTop: '3rem' }}>
-      {toast && (
-        <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
-      )}
-      <div
-        className="glass-panel"
-        style={{
-          padding: '2rem',
-          borderRadius: '16px',
-          textAlign: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '16px',
-            background:
-              'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 1.25rem',
-          }}
-        >
-          <XCircle size={28} color="#ef4444" />
-        </div>
-        <h2 style={{ marginBottom: '0.5rem', fontSize: '1.15rem', color: 'var(--text-primary)' }}>
-          Verification Failed
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-          {errorMessage || 'This verification link is invalid or has expired.'}
-        </p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {isAuthenticated ? (
-            <button
-              onClick={handleResendVerification}
-              disabled={resending}
-              style={{
-                width: '100%',
-                padding: '12px 20px',
-                borderRadius: '10px',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                background: 'var(--glass-surface-bg)',
-                border: '1px solid var(--glass-surface-border)',
-                color: 'var(--accent)',
-                cursor: resending ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                opacity: resending ? 0.7 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (!resending) {
-                  e.currentTarget.style.background = 'var(--glass-hover-bg)';
-                  e.currentTarget.style.borderColor = 'var(--accent)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--glass-surface-bg)';
-                e.currentTarget.style.borderColor = 'var(--glass-surface-border)';
-              }}
-            >
-              <RefreshCw
-                size={16}
-                style={{ animation: resending ? 'spin 1s linear infinite' : 'none' }}
-              />
-              {resending ? 'Sending...' : 'Resend Verification Email'}
-            </button>
-          ) : (
-            <Link to={APP_ROUTES.LOGIN} style={{ textDecoration: 'none', width: '100%' }}>
+    <>
+      <AuthShell
+        icon={<XCircle size={30} strokeWidth={2} />}
+        tone="danger"
+        title="Verification failed"
+        subtitle={errorMessage || 'This verification link is invalid or has expired.'}
+        live
+        actions={
+          <>
+            {isAuthenticated ? (
               <button
-                style={{
-                  width: '100%',
-                  padding: '12px 20px',
-                  borderRadius: '10px',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  background: 'var(--glass-surface-bg)',
-                  border: '1px solid var(--glass-surface-border)',
-                  color: 'var(--accent)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--glass-hover-bg)';
-                  e.currentTarget.style.borderColor = 'var(--accent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--glass-surface-bg)';
-                  e.currentTarget.style.borderColor = 'var(--glass-surface-border)';
-                }}
+                className="btn btn-primary"
+                onClick={handleResendVerification}
+                disabled={resending}
+                aria-busy={resending}
               >
-                Login
+                <RefreshCw
+                  size={17}
+                  strokeWidth={2.5}
+                  className={resending ? authStyles.spinner : undefined}
+                  aria-hidden="true"
+                />
+                {resending ? 'Sending…' : 'Resend verification email'}
               </button>
-            </Link>
-          )}
+            ) : (
+              <Link to={APP_ROUTES.LOGIN} className="btn btn-primary">
+                Log in
+              </Link>
+            )}
 
-          <Link to={APP_ROUTES.HOME} style={{ textDecoration: 'none', width: '100%' }}>
-            <button
-              style={{
-                width: '100%',
-                padding: '10px 16px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                fontWeight: 500,
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                transition: 'color 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-secondary)';
-              }}
-            >
-              Go to Home
-            </button>
-          </Link>
-        </div>
-      </div>
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+            <Link to={APP_ROUTES.HOME} className={authStyles.ghostButton}>
+              Go to home
+            </Link>
+          </>
         }
-      `}</style>
-    </div>
+      />
+      {toastElement}
+    </>
   );
 };

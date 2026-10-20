@@ -1,0 +1,684 @@
+/**
+ * StoryViewer Styles
+ *
+ * Immersive viewer: the photo floats over a blurred, darkened copy of itself
+ * (same in light and dark mode so photos always pop). Controls are glass pills.
+ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heartPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.28);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes doubleTapHeart {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.25);
+  }
+}
+
+/* Sits just below shared modals so delete-confirm / activity sheets open on top */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-modal) - 10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #07060d;
+  color: #ffffff;
+  animation: fadeIn 0.25s var(--ease-default);
+}
+
+/* Blurred, darkened copy of the current photo as an ambient backdrop */
+.ambient {
+  position: absolute;
+  inset: -12%;
+  width: 124%;
+  height: 124%;
+  object-fit: cover;
+  filter: blur(46px) saturate(1.5) brightness(0.5);
+  opacity: 0.9;
+  pointer-events: none;
+  user-select: none;
+}
+
+.overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 80% at 50% 40%, transparent 30%, rgba(5, 4, 12, 0.65) 100%);
+  pointer-events: none;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 520px;
+  height: 100%;
+  overflow: hidden;
+  animation: zoomIn 0.38s var(--ease-spring);
+  /* Allow clicks to pass through to overlay for closing */
+  pointer-events: none;
+}
+
+/* Re-enable pointer events for interactive children */
+.container > * {
+  pointer-events: auto;
+}
+
+/* ============================================================================
+   Top: progress segments + header
+   ============================================================================ */
+
+.top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 28px;
+  background: linear-gradient(to bottom, rgba(5, 4, 12, 0.6), transparent);
+  animation: slideDown 0.38s var(--ease-spring) 0.05s backwards;
+}
+
+.segments {
+  display: flex;
+  gap: 4px;
+  margin: 0 2px 8px;
+}
+
+.segment {
+  position: relative;
+  flex: 1;
+  height: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.segment::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.32);
+  transition: background-color 0.25s var(--ease-default);
+}
+
+.segmentSeen::before {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.segmentActive::before {
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.55);
+}
+
+.segment:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 10px 4px 4px;
+  margin: -4px;
+  border-radius: var(--radius-full);
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.userClickable {
+  cursor: pointer;
+  transition: background-color var(--transition-fast) var(--ease-default);
+}
+
+.userClickable:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.userClickable:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 0;
+}
+
+.avatarRing {
+  display: flex;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--gradient-ring);
+}
+
+.avatarRing > * {
+  border-color: #0b0a14;
+  box-shadow: none;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.userTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.username {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  font-weight: var(--font-extrabold);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.activityChip {
+  --activity-color: var(--accent);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  height: 22px;
+  padding: 0 9px 0 3px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 0.75rem;
+  font-weight: var(--font-bold);
+  white-space: nowrap;
+}
+
+.activityIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--activity-color);
+}
+
+.date {
+  font-size: 0.75rem;
+  font-weight: var(--font-semibold);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
+}
+
+.iconButton:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.iconButton:active {
+  transform: scale(0.92);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.deleteButton {
+  color: #ff9a9a;
+}
+
+/* ============================================================================
+   Photo track
+   ============================================================================ */
+
+.content {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Allow clicks to pass through to overlay */
+  pointer-events: none;
+}
+
+.track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  /* Pass through clicks in empty areas */
+  pointer-events: none;
+}
+
+.trackAnimating {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  padding: 0 14px;
+  pointer-events: none;
+}
+
+.slidePrev {
+  transform: translateX(-100%);
+}
+
+.slideNext {
+  transform: translateX(100%);
+}
+
+.image {
+  max-width: 100%;
+  max-height: calc(100dvh - 190px);
+  object-fit: contain;
+  border-radius: var(--radius-2xl);
+  box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.85);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  /* Only the image itself captures clicks */
+  pointer-events: auto;
+}
+
+.imageError {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px;
+  border-radius: var(--radius-2xl);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.9rem;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.imageError svg {
+  opacity: 0.6;
+}
+
+/* Navigation arrows */
+.nav {
+  position: absolute;
+  top: 50%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #ffffff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  -webkit-tap-highlight-color: transparent;
+  /* Re-enable pointer events */
+  pointer-events: auto;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    transform 0.2s var(--ease-default);
+}
+
+.nav:hover {
+  background: rgba(255, 255, 255, 0.26);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.nav:active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.nav:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.navPrev {
+  left: 12px;
+}
+
+.navNext {
+  right: 12px;
+}
+
+/* Double-tap like burst */
+.likeBurst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 100;
+  color: #ff4d6d;
+  filter: drop-shadow(0 10px 30px rgba(255, 77, 109, 0.6));
+  pointer-events: none;
+  animation: doubleTapHeart 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ============================================================================
+   Footer
+   ============================================================================ */
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 28px 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  background: linear-gradient(to top, rgba(5, 4, 12, 0.6), transparent);
+  animation: slideUp 0.38s var(--ease-spring) 0.1s backwards;
+}
+
+.likeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #ffffff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    border-color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
+}
+
+.likeButton:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.likeButton:active {
+  transform: scale(0.92);
+}
+
+.likeButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.likeButton:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.liked {
+  border-color: rgba(255, 77, 109, 0.45);
+  background: rgba(255, 77, 109, 0.2);
+  color: #ff4d6d;
+  animation: heartPop 0.32s var(--ease-bounce);
+}
+
+.seenBy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
+}
+
+.seenBy:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.seenBy:active {
+  transform: scale(0.96);
+}
+
+.seenBy:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   Story activity sheet (inside shared Modal — follows the app theme)
+   ============================================================================ */
+
+.interactionList {
+  margin: 0;
+  padding: var(--space-1) 0 var(--space-2);
+  list-style: none;
+}
+
+.interactionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+}
+
+.interactionName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.interactionIcons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.iconChip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+.iconView {
+  background: var(--chip-bg);
+  color: var(--text-secondary);
+}
+
+.iconLike {
+  background: var(--color-like-bg);
+  color: var(--color-like);
+}
+
+.interactionSkeleton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+}
+
+@media (max-width: 600px) {
+  .nav {
+    width: 38px;
+    height: 38px;
+  }
+
+  .navPrev {
+    left: 8px;
+  }
+
+  .navNext {
+    right: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .container,
+  .top,
+  .footer,
+  .liked {
+    animation: none;
+  }
+
+  .trackAnimating {
+    transition: none;
+  }
+}

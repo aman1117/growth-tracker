@@ -29,7 +29,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     .join(' ');
 
   return (
-    <div className={classNames}>
+    <div className={classNames} role="presentation">
       <div className={styles.circle} />
     </div>
   );

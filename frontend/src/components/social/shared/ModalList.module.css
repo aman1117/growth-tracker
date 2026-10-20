@@ -2,79 +2,8 @@
  * Shared Modal List Styles
  *
  * Consistent styling for all follow-related modal lists.
- * Used by: FollowListModal, FollowRequestsModal
+ * Used by: FollowListModal, FollowRequestsModal (rows: UserCard / RequestCard)
  */
-
-/* ============================================================================
-   Container
-   ============================================================================ */
-
-.container {
-  display: flex;
-  flex-direction: column;
-  max-height: 50vh;
-  overflow: visible;
-}
-
-/* ============================================================================
-   List
-   ============================================================================ */
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 8px 0;
-  min-height: 100px;
-  max-height: calc(50vh - 50px);
-}
-
-/* Custom scrollbar */
-.list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.list::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb, rgba(255, 255, 255, 0.2));
-  border-radius: 3px;
-}
-
-.list::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover, rgba(255, 255, 255, 0.3));
-}
-
-[data-theme='light'] .list::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-}
-
-[data-theme='light'] .list::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
-}
-
-/* ============================================================================
-   Loading State
-   ============================================================================ */
-
-.loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-  color: var(--accent);
-}
 
 @keyframes spin {
   to {
@@ -82,296 +11,200 @@
   }
 }
 
-/* ============================================================================
-   Error State
-   ============================================================================ */
+/* Header icon chip tones (fills the Modal header icon slot) */
+.headerIcon {
+  --tone: var(--accent);
 
-.errorState {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  color: var(--error, #ef4444);
-  text-align: center;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--tone) 16%, var(--bg-elevated));
+  color: color-mix(in srgb, var(--tone), var(--tile-ink-mix) var(--tile-ink-strength));
 }
 
-.errorIcon {
-  color: var(--error, #ef4444);
+.toneViolet {
+  --tone: #7c5cff;
 }
 
-.retryButton {
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.75rem;
-  background: var(--surface-elevated);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: var(--font-medium);
-  cursor: pointer;
-  transition: opacity 0.15s ease;
+.toneTeal {
+  --tone: #14b8a6;
 }
 
-.retryButton:hover {
-  opacity: 0.8;
-}
-
-[data-theme='light'] .retryButton {
-  border-color: rgba(0, 0, 0, 0.1);
+.tonePink {
+  --tone: #ec4899;
 }
 
 /* ============================================================================
-   Empty State
+   Container / list
    ============================================================================ */
 
-.emptyState {
+.container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 2rem;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  text-align: center;
 }
 
-.emptyIcon {
-  color: var(--text-tertiary, var(--text-secondary));
-  opacity: 0.6;
+.list {
+  display: flex;
+  flex-direction: column;
+  min-height: 96px;
+  padding: var(--space-1) 0 var(--space-2);
 }
 
 /* ============================================================================
-   Load More
+   Feedback
    ============================================================================ */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-1) var(--space-4) var(--space-2);
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--error-soft);
+  color: var(--color-text-danger);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+}
+
+.banner svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.stateWrap {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+}
+
+/* Skeleton rows while the first page loads */
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2-5) var(--space-4);
+}
+
+.skeletonText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 7px;
+}
+
+.spinner {
+  animation: spin 0.9s linear infinite;
+  color: var(--accent);
+}
 
 .loadMoreTrigger {
-  min-height: 1px;
   width: 100%;
+  min-height: 1px;
 }
 
 .loadingMore {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: var(--space-2);
+  padding: var(--space-3);
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
 }
 
 /* ============================================================================
-   User Card - Shared across all modals
+   Rows (request cards; UserCard has the same anatomy)
    ============================================================================ */
 
 .card {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  gap: 12px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
+  gap: var(--space-3);
+  min-height: 64px;
+  padding: var(--space-2) var(--space-4);
+  transition: background-color var(--transition-fast) var(--ease-default);
 }
 
 .card:hover {
-  background-color: var(--hover-bg, rgba(255, 255, 255, 0.05));
+  background: var(--chip-bg);
 }
 
-[data-theme='light'] .card:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  margin: -4px;
+  padding: 4px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.identity:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .userInfo {
-  flex: 1;
-  min-width: 60px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
 }
 
 .username {
-  font-size: 14px;
-  font-weight: var(--font-bold);
-  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
+  font-size: 0.9375rem;
+  font-weight: var(--font-bold);
   line-height: 1.3;
+  color: var(--text-primary);
 }
 
-.displayName {
-  font-size: 13px;
-  font-weight: var(--font-normal);
-  color: var(--text-secondary);
+.usernameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secondaryText {
+  overflow: hidden;
+  font-size: var(--text-sm);
   line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
 }
 
 .actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
   flex-shrink: 0;
   margin-left: auto;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
 }
 
-.youLabel {
-  padding: 6px 12px;
-  border-radius: 6px;
-  background: var(--surface-elevated);
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: var(--font-semibold);
-}
-
-/* ============================================================================
-   Action Buttons
-   ============================================================================ */
-
-.primaryButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  background: var(--button-primary, #0095f6);
-  color: white;
-  font-size: 12px;
-  font-weight: var(--font-black);
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    opacity 0.15s ease;
-  white-space: nowrap;
-}
-
-.primaryButton:hover:not(:disabled) {
-  background: var(--button-primary-hover, #1877f2);
-}
-
-.primaryButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.secondaryButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: var(--font-black);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  background: #ffffff;
-  color: #262626;
-  border: 1px solid #d4d4d4;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.08),
-    0 1px 2px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
-}
-
-.secondaryButton:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #a3a3a3;
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.1),
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
-}
-
-.secondaryButton:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-[data-theme='dark'] .secondaryButton {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.12),
-    0 1px 2px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-[data-theme='dark'] .secondaryButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.15),
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.secondaryButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ============================================================================
-   Mobile Responsive
-   ============================================================================ */
-
-@media (max-width: 480px) {
-  .container {
-    max-height: 60vh;
+@media (max-width: 360px) {
+  .card,
+  .skeletonRow {
+    padding-inline: var(--space-3);
   }
+}
 
-  .list {
-    max-height: calc(60vh - 50px);
-    padding: 4px 0;
-  }
-
-  .card {
-    padding: 8px 12px;
-    gap: 10px;
-  }
-
-  .avatar {
-    width: 32px;
-    height: 32px;
-  }
-
-  .username {
-    font-size: 13px;
-  }
-
-  .displayName {
-    font-size: 12px;
-  }
-
-  .actions {
-    gap: 6px;
-  }
-
-  .primaryButton,
-  .secondaryButton {
-    padding: 5px 10px;
-    font-size: 11px;
-  }
-
-  .youLabel {
-    padding: 5px 10px;
-    font-size: 11px;
-  }
-
-  .loadingState,
-  .emptyState,
-  .errorState {
-    padding: 1.5rem;
-    font-size: 0.8rem;
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
   }
 }

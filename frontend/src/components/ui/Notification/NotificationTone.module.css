@@ -1,0 +1,50 @@
+/**
+ * Shared notification tones.
+ *
+ * Each class only sets --tone / --tone-soft; consumers paint with
+ * var(--tone, …) and var(--tone-soft, …) so load order never matters.
+ */
+
+.system {
+  --tone: var(--accent-text);
+  --tone-soft: var(--accent-soft);
+}
+
+.like {
+  --tone: var(--color-like);
+  --tone-soft: var(--color-like-bg);
+}
+
+.badge {
+  --tone: var(--color-badge);
+  --tone-soft: var(--color-badge-bg);
+}
+
+.streak {
+  --tone: var(--color-streak);
+  --tone-soft: var(--color-streak-bg);
+}
+
+.warning {
+  --tone: var(--color-text-warning);
+  --tone-soft: var(--color-warning-bg);
+}
+
+.follow {
+  --tone: var(--color-follow);
+  --tone-soft: var(--color-follow-bg);
+}
+
+.photo {
+  --tone: var(--teal-600);
+  --tone-soft: rgba(20, 184, 166, 0.14);
+}
+
+.comment {
+  --tone: var(--color-info);
+  --tone-soft: var(--color-info-bg);
+}
+
+:global([data-theme='dark']) .photo {
+  --tone: var(--teal-400);
+}

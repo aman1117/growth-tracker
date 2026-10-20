@@ -1,10 +1,11 @@
-import { Mail } from 'lucide-react';
+import { ArrowLeft, Loader2, Mail, MailCheck, Send } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
 import { api } from '../services/api';
-import { SnapToast } from './ui';
+import { AuthShell, authStyles } from './auth';
+import { Input, SnapToast } from './ui';
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ export const ForgotPassword: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
 
     try {
@@ -27,77 +29,84 @@ export const ForgotPassword: React.FC = () => {
     }
   };
 
+  const backToLogin = (
+    <Link to={APP_ROUTES.LOGIN} className={authStyles.backLink}>
+      <ArrowLeft size={16} strokeWidth={2.5} aria-hidden="true" />
+      Back to log in
+    </Link>
+  );
+
   if (isSubmitted) {
     return (
-      <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
-        <div className="card text-center">
-          <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
-            <Mail size={32} color="var(--accent)" />
-          </div>
-          <h2 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Check Your Email</h2>
-          <p
-            style={{ color: 'var(--text-secondary)', marginBottom: '0.25rem', fontSize: '0.8rem' }}
-          >
-            If an account exists with <strong>{email}</strong>, we've sent a reset link.
-          </p>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.75rem' }}>
-            The link will expire in 15 minutes.
-          </p>
-          <Link to={APP_ROUTES.LOGIN} style={{ textDecoration: 'none' }}>
-            <button className="btn btn-primary">Back to Login</button>
-          </Link>
-        </div>
-      </div>
+      <AuthShell
+        icon={<MailCheck size={30} strokeWidth={2} />}
+        tone="success"
+        title="Check your inbox"
+        subtitle={
+          <>
+            If an account exists for <span className={authStyles.emphasis}>{email}</span>, a reset
+            link is on its way. It expires in 15 minutes.
+          </>
+        }
+        live
+        actions={
+          <>
+            <Link to={APP_ROUTES.LOGIN} className="btn btn-primary">
+              Back to log in
+            </Link>
+            <button
+              type="button"
+              className={authStyles.ghostButton}
+              onClick={() => setIsSubmitted(false)}
+            >
+              Use a different email
+            </button>
+          </>
+        }
+      />
     );
   }
 
   return (
-    <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
-      <div className="card">
-        <h2 className="text-center" style={{ marginBottom: '0.35rem', fontSize: '1.1rem' }}>
-          Forgot Password?
-        </h2>
-        <p
-          className="text-center"
-          style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.75rem' }}
-        >
-          Enter your email and we'll send you a reset link
-        </p>
+    <>
+      <AuthShell
+        icon={<Mail size={30} strokeWidth={2} />}
+        title="Forgot your password?"
+        subtitle="No worries. Enter your email and we'll send you a reset link."
+        footer={backToLogin}
+      >
+        <form onSubmit={handleSubmit} className={authStyles.form}>
+          <Input
+            id="forgot-email"
+            label="Email address"
+            type="email"
+            icon={<Mail size={18} strokeWidth={2.25} aria-hidden="true" />}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+            required
+          />
 
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label className="input-label">Email Address</label>
-            <input
-              type="email"
-              className="input-field"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Reset Link'}
+          <button
+            type="submit"
+            className={`btn btn-primary ${authStyles.submit}`}
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading ? (
+              <Loader2 size={18} className={authStyles.spinner} aria-hidden="true" />
+            ) : (
+              <Send size={17} strokeWidth={2.5} aria-hidden="true" />
+            )}
+            {loading ? 'Sending…' : 'Send reset link'}
           </button>
         </form>
+      </AuthShell>
 
-        <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
-          <Link
-            to={APP_ROUTES.LOGIN}
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--text-secondary)',
-              textDecoration: 'none',
-            }}
-          >
-            ← Back to Login
-          </Link>
-        </div>
-      </div>
       {toast && (
         <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
-    </div>
+    </>
   );
 };

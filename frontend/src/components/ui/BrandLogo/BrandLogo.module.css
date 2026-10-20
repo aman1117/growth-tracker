@@ -1,0 +1,62 @@
+/**
+ * BrandLogo Styles
+ *
+ * logo.png is 2379×446 (≈5.33:1). It is used purely as an alpha mask.
+ */
+
+.logo {
+  --logo-height: 28px;
+
+  display: inline-block;
+  flex-shrink: 0;
+  height: var(--logo-height);
+  aspect-ratio: 2379 / 446;
+  background: var(--gradient-brand);
+  background-size: 160% 100%;
+  background-position: 0% 50%;
+  -webkit-mask: url('/logo.png') left center / contain no-repeat;
+  mask: url('/logo.png') left center / contain no-repeat;
+}
+
+.sm {
+  --logo-height: 22px;
+}
+
+.md {
+  --logo-height: 28px;
+}
+
+.lg {
+  --logo-height: 40px;
+}
+
+.animated {
+  animation: auroraDrift 10s ease-in-out infinite;
+}
+
+/* Local copy: CSS Modules scope keyframe names to this file */
+@keyframes auroraDrift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated {
+    animation: none;
+  }
+}
+
+/* Very old engines without mask support: fall back to a solid wordmark color */
+@supports not ((mask-image: url('')) or (-webkit-mask-image: url(''))) {
+  .logo {
+    background: none;
+    background-image: url('/logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+}

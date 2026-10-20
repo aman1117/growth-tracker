@@ -368,11 +368,139 @@
 
 .animate-shimmer {
   background: linear-gradient(
-    90deg,
-    var(--bg-secondary) 0%,
-    var(--bg-tertiary) 50%,
-    var(--bg-secondary) 100%
+    100deg,
+    var(--skeleton-bg) 20%,
+    var(--skeleton-shine) 50%,
+    var(--skeleton-bg) 80%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ============================================================================
+   Brand Motion ("Aurora")
+   Playful but quick: springy entrances, gentle sheens and gradient drift.
+   ============================================================================ */
+
+/* Slow drift for animated brand gradients (logo, story rings, progress) */
+@keyframes auroraDrift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Diagonal light sweep across a surface (e.g. completed progress bars) */
+@keyframes sheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  60%,
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+
+/* Springy pop used for likes, checkmarks and badge reveals */
+@keyframes springPop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.96);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Sheet entrance from the bottom edge (mobile dialogs) */
+@keyframes sheetUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Dialog entrance with a soft spring */
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Gentle float for decorative illustrations */
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Attention shake for validation errors */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-springPop {
+  animation: springPop 0.45s var(--ease-spring) both;
+}
+
+.animate-dialogIn {
+  animation: dialogIn 0.28s var(--ease-spring) both;
+}
+
+.animate-sheetUp {
+  animation: sheetUp 0.3s var(--ease-spring) both;
+}
+
+.animate-shake {
+  animation: shake 0.35s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-editing,
+  .tile-editing-alt,
+  .delete-badge,
+  .animate-springPop,
+  .animate-dialogIn,
+  .animate-sheetUp,
+  .animate-shake,
+  .animate-pulse,
+  .animate-shimmer {
+    animation: none;
+  }
 }

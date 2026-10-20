@@ -1,21 +1,22 @@
 /**
  * HiddenTilesPanel Component
  *
- * A slide-up panel showing all hidden tiles with restore functionality.
- * Supports both predefined and custom tiles.
- * Also shows orphaned custom tiles (tiles in DB but not in order/hidden).
- * Glassmorphism styled to match app theme.
+ * Lists hidden tiles with restore actions. Supports both predefined and custom
+ * tiles, and also surfaces custom tiles that exist in the database but are
+ * missing from the dashboard order ("not on dashboard").
+ * Bottom sheet on phones, dialog on larger screens.
  */
 
 import type { LucideIcon } from 'lucide-react';
-import { AlertCircle, AlertTriangle, EyeOff, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { AlertTriangle, EyeOff, LayoutGrid, Pencil, Plus, Trash2, Undo2 } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
 
 import { createCustomActivityName, getActivityConfig } from '../constants/activities';
-import { useBackDismiss } from '../hooks/useBackDismiss';
 import type { ActivityName, CustomTile, PredefinedActivityName } from '../types';
 import { isCustomTile } from '../types';
 import { DynamicIcon } from './DynamicIcon';
+import styles from './HiddenTilesPanel.module.css';
+import { ConfirmDialog, EmptyState, Modal } from './ui';
 
 interface HiddenTilesPanelProps {
   isOpen: boolean;
@@ -29,6 +30,81 @@ interface HiddenTilesPanelProps {
   onEditCustomTile?: (tile: CustomTile) => void;
 }
 
+interface TileRowProps {
+  label: string;
+  color: string;
+  icon: React.ReactNode;
+  meta?: string;
+  warning?: boolean;
+  restoreLabel: string;
+  onRestore: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}
+
+/** One tile entry: tinted icon chip, name and its actions */
+const TileRow: React.FC<TileRowProps> = ({
+  label,
+  color,
+  icon,
+  meta,
+  warning = false,
+  restoreLabel,
+  onRestore,
+  onEdit,
+  onDelete,
+}) => (
+  <li
+    className={`${styles.row} ${warning ? styles.rowWarning : ''}`}
+    style={{ '--tile-color': color } as React.CSSProperties}
+  >
+    <span className={styles.rowIcon} aria-hidden="true">
+      {icon}
+    </span>
+    <div className={styles.rowText}>
+      <span className={styles.rowName}>{label}</span>
+      {meta && <span className={styles.rowMeta}>{meta}</span>}
+    </div>
+    <div className={styles.rowActions}>
+      <button
+        type="button"
+        className={styles.restoreButton}
+        onClick={onRestore}
+        aria-label={`${restoreLabel} ${label}`}
+      >
+        {restoreLabel === 'Add' ? (
+          <Plus size={15} strokeWidth={2.5} aria-hidden="true" />
+        ) : (
+          <Undo2 size={15} strokeWidth={2.5} aria-hidden="true" />
+        )}
+        <span>{restoreLabel}</span>
+      </button>
+      {onEdit && (
+        <button
+          type="button"
+          className={styles.iconAction}
+          onClick={onEdit}
+          aria-label={`Edit ${label}`}
+          title="Edit tile"
+        >
+          <Pencil size={16} strokeWidth={2.25} aria-hidden="true" />
+        </button>
+      )}
+      {onDelete && (
+        <button
+          type="button"
+          className={`${styles.iconAction} ${styles.dangerAction}`}
+          onClick={onDelete}
+          aria-label={`Delete ${label} permanently`}
+          title="Delete permanently"
+        >
+          <Trash2 size={16} strokeWidth={2.25} aria-hidden="true" />
+        </button>
+      )}
+    </div>
+  </li>
+);
+
 export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
   isOpen,
   onClose,
@@ -40,21 +116,10 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
   onDeleteCustomTile,
   onEditCustomTile,
 }) => {
-  const handleRestore = useCallback(
-    (tileName: ActivityName) => {
-      onRestoreTile(tileName);
-    },
-    [onRestoreTile]
-  );
-
   // State for delete confirmation
   const [deleteConfirm, setDeleteConfirm] = useState<{ tileId: string; tileName: string } | null>(
     null
   );
-
-  const handleDeleteClick = useCallback((tileId: string, tileName: string) => {
-    setDeleteConfirm({ tileId, tileName });
-  }, []);
 
   const handleConfirmDelete = useCallback(() => {
     if (deleteConfirm) {
@@ -66,9 +131,6 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
   const handleCancelDelete = useCallback(() => {
     setDeleteConfirm(null);
   }, []);
-
-  // System Back gesture / button closes the panel instead of leaving the page
-  useBackDismiss(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -84,641 +146,149 @@ export const HiddenTilesPanel: React.FC<HiddenTilesPanelProps> = ({
 
   // Check if there's any content to show
   const hasContent = hiddenTiles.length > 0 || orphanedCustomTiles.length > 0;
+  const hiddenCount = hiddenTiles.length;
+
+  const subtitle = !hasContent
+    ? 'Everything is on your dashboard'
+    : [
+        hiddenCount > 0 ? `${hiddenCount} hidden` : null,
+        orphanedCustomTiles.length > 0 ? `${orphanedCustomTiles.length} not on dashboard` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ');
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-      onClick={onClose}
-    >
-      {/* Backdrop */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
-        }}
-      />
-
-      {/* Panel */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '500px',
-          maxHeight: '70vh',
-          background: 'var(--glass-bg)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: '24px 24px 0 0',
-          border: '1px solid var(--border)',
-          borderBottom: 'none',
-          boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.3)',
-          animation: 'slideUpPanel 0.3s ease-out',
-          overflow: 'hidden',
-        }}
+    <>
+      <Modal
+        isOpen
+        onClose={onClose}
+        title="Manage tiles"
+        subtitle={subtitle}
+        icon={<LayoutGrid size={19} strokeWidth={2.25} />}
+        maxWidth="480px"
       >
-        <style>{`
-                    @keyframes slideUpPanel {
-                        from {
-                            transform: translateY(100%);
-                            opacity: 0;
-                        }
-                        to {
-                            transform: translateY(0);
-                            opacity: 1;
-                        }
-                    }
-                `}</style>
-
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 20px',
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-            }}
-          >
-            Manage Tiles
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'transparent',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div
-          style={{
-            padding: '16px 24px 24px',
-            maxHeight: 'calc(70vh - 100px)',
-            overflowY: 'auto',
-          }}
-        >
+        <div className={styles.body}>
           {!hasContent ? (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '40px 20px',
-                color: 'var(--text-tertiary)',
-              }}
-            >
-              <EyeOff size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
-              <p style={{ margin: 0, fontSize: '0.9rem' }}>No hidden or orphaned tiles</p>
-              <p style={{ margin: '8px 0 0', fontSize: '0.8rem' }}>
-                Tap the X on any tile in edit mode to hide it
-              </p>
-            </div>
+            <EmptyState
+              icon={<EyeOff size={26} strokeWidth={2} />}
+              title="No hidden tiles"
+              description="In edit mode, tap the ✕ on any tile to hide it. It will wait for you here."
+              size="sm"
+            />
           ) : (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-              }}
-            >
+            <>
               {/* Predefined Tiles Section */}
               {hiddenPredefined.length > 0 && (
-                <>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: 'var(--text-tertiary)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '4px',
-                      marginTop: '8px',
-                    }}
-                  >
-                    Default Tiles
-                  </div>
-                  {hiddenPredefined.map((tileName) => {
-                    const config = getActivityConfig(tileName, customTiles, colorOverrides);
-                    const IconComponent = config.icon as LucideIcon;
-
-                    return (
-                      <div
-                        key={tileName}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          padding: '12px 16px',
-                          background: 'var(--bg-secondary)',
-                          borderRadius: '12px',
-                          border: '1px solid var(--border)',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: `${config.color}20`,
-                            borderRadius: '10px',
-                          }}
-                        >
-                          <IconComponent size={20} color={config.color} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              fontSize: '0.9rem',
-                              fontWeight: 500,
-                              color: 'var(--text-primary)',
-                            }}
-                          >
-                            {config.label}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => handleRestore(tileName)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 12px',
-                            background: `${config.color}15`,
-                            border: `1px solid ${config.color}30`,
-                            borderRadius: '8px',
-                            color: config.color,
-                            fontSize: '0.8rem',
-                            fontWeight: 500,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Plus size={14} />
-                          Restore
-                        </button>
-                      </div>
-                    );
-                  })}
-                </>
+                <section className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Default tiles</h3>
+                  <ul className={styles.list}>
+                    {hiddenPredefined.map((tileName) => {
+                      const config = getActivityConfig(tileName, customTiles, colorOverrides);
+                      const IconComponent = config.icon as LucideIcon;
+                      return (
+                        <TileRow
+                          key={tileName}
+                          label={config.label}
+                          color={config.color}
+                          icon={<IconComponent size={20} strokeWidth={2.1} />}
+                          restoreLabel="Restore"
+                          onRestore={() => onRestoreTile(tileName)}
+                        />
+                      );
+                    })}
+                  </ul>
+                </section>
               )}
 
               {/* Custom Tiles Section */}
               {hiddenCustom.length > 0 && (
-                <>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: 'var(--text-tertiary)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '4px',
-                      marginTop: hiddenPredefined.length > 0 ? '16px' : '8px',
-                    }}
-                  >
-                    Custom Tiles
-                  </div>
-                  {hiddenCustom.map((tileName) => {
-                    const config = getActivityConfig(tileName, customTiles, colorOverrides);
-                    const tileId = tileName.replace('custom:', '');
-                    // Find the custom tile object for editing
-                    const customTileObj = customTiles.find((t) => t.id === tileId);
-
-                    return (
-                      <div
-                        key={tileName}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          padding: '12px 16px',
-                          background: 'var(--bg-secondary)',
-                          borderRadius: '12px',
-                          border: '1px solid var(--border)',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: `${config.color}20`,
-                            borderRadius: '10px',
-                          }}
-                        >
-                          <DynamicIcon
-                            name={config.icon as string}
-                            size={20}
-                            color={config.color}
-                          />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              fontSize: '0.9rem',
-                              fontWeight: 500,
-                              color: 'var(--text-primary)',
-                            }}
-                          >
-                            {config.label}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: '0.75rem',
-                              color: 'var(--text-tertiary)',
-                            }}
-                          >
-                            Custom tile
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '8px',
-                          }}
-                        >
-                          <button
-                            onClick={() => handleRestore(tileName)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              padding: '8px 12px',
-                              background: `${config.color}15`,
-                              border: `1px solid ${config.color}30`,
-                              borderRadius: '8px',
-                              color: config.color,
-                              fontSize: '0.8rem',
-                              fontWeight: 500,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Plus size={14} />
-                            Restore
-                          </button>
-                          {onEditCustomTile && customTileObj && (
-                            <button
-                              onClick={() => onEditCustomTile(customTileObj)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '36px',
-                                height: '36px',
-                                background: 'rgba(0, 149, 246, 0.1)',
-                                border: '1px solid rgba(0, 149, 246, 0.3)',
-                                borderRadius: '8px',
-                                color: '#0095f6',
-                                cursor: 'pointer',
-                              }}
-                              title="Edit tile"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
-                          {onDeleteCustomTile && (
-                            <button
-                              onClick={() => handleDeleteClick(tileId, config.label)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '36px',
-                                height: '36px',
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                borderRadius: '8px',
-                                color: '#ef4444',
-                                cursor: 'pointer',
-                              }}
-                              title="Delete permanently"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
+                <section className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Custom tiles</h3>
+                  <ul className={styles.list}>
+                    {hiddenCustom.map((tileName) => {
+                      const config = getActivityConfig(tileName, customTiles, colorOverrides);
+                      const tileId = tileName.replace('custom:', '');
+                      // Find the custom tile object for editing
+                      const customTileObj = customTiles.find((t) => t.id === tileId);
+                      return (
+                        <TileRow
+                          key={tileName}
+                          label={config.label}
+                          color={config.color}
+                          icon={
+                            <DynamicIcon name={config.icon as string} size={20} strokeWidth={2.1} />
+                          }
+                          meta="Custom tile"
+                          restoreLabel="Restore"
+                          onRestore={() => onRestoreTile(tileName)}
+                          onEdit={
+                            onEditCustomTile && customTileObj
+                              ? () => onEditCustomTile(customTileObj)
+                              : undefined
+                          }
+                          onDelete={
+                            onDeleteCustomTile
+                              ? () => setDeleteConfirm({ tileId, tileName: config.label })
+                              : undefined
+                          }
+                        />
+                      );
+                    })}
+                  </ul>
+                </section>
               )}
 
               {/* Orphaned Custom Tiles Section */}
               {orphanedCustomTiles.length > 0 && (
-                <>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: '#f59e0b',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '4px',
-                      marginTop:
-                        hiddenPredefined.length > 0 || hiddenCustom.length > 0 ? '16px' : '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <AlertCircle size={14} />
-                    Orphaned Tiles
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.75rem',
-                      color: 'var(--text-tertiary)',
-                      marginBottom: '12px',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    These tiles exist in the database but are not visible on your dashboard. You can
-                    restore or delete them.
-                  </div>
-                  {orphanedCustomTiles.map((tile) => {
-                    const activityName = createCustomActivityName(tile.id);
-
-                    return (
-                      <div
+                <section className={styles.section}>
+                  <h3 className={`${styles.sectionTitle} ${styles.sectionTitleWarning}`}>
+                    <AlertTriangle size={14} strokeWidth={2.5} aria-hidden="true" />
+                    Not on your dashboard
+                  </h3>
+                  <p className={styles.sectionHint}>
+                    These custom tiles are saved to your account but aren&apos;t on your dashboard.
+                    Add them back or delete them.
+                  </p>
+                  <ul className={styles.list}>
+                    {orphanedCustomTiles.map((tile) => (
+                      <TileRow
                         key={tile.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          padding: '12px 16px',
-                          background: 'rgba(245, 158, 11, 0.08)',
-                          borderRadius: '12px',
-                          border: '1px solid rgba(245, 158, 11, 0.2)',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '40px',
-                            height: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: `${tile.color}20`,
-                            borderRadius: '10px',
-                          }}
-                        >
-                          <DynamicIcon name={tile.icon} size={20} color={tile.color} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              fontSize: '0.9rem',
-                              fontWeight: 500,
-                              color: 'var(--text-primary)',
-                            }}
-                          >
-                            {tile.name}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: '0.75rem',
-                              color: '#f59e0b',
-                            }}
-                          >
-                            Not in dashboard
-                          </div>
-                        </div>
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '8px',
-                          }}
-                        >
-                          <button
-                            onClick={() => onRestoreTile(activityName)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              padding: '8px 12px',
-                              background: `${tile.color}15`,
-                              border: `1px solid ${tile.color}30`,
-                              borderRadius: '8px',
-                              color: tile.color,
-                              fontSize: '0.8rem',
-                              fontWeight: 500,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Plus size={14} />
-                            Add
-                          </button>
-                          {onEditCustomTile && (
-                            <button
-                              onClick={() => onEditCustomTile(tile)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '36px',
-                                height: '36px',
-                                background: 'rgba(0, 149, 246, 0.1)',
-                                border: '1px solid rgba(0, 149, 246, 0.3)',
-                                borderRadius: '8px',
-                                color: '#0095f6',
-                                cursor: 'pointer',
-                              }}
-                              title="Edit tile"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                          )}
-                          {onDeleteCustomTile && (
-                            <button
-                              onClick={() => handleDeleteClick(tile.id, tile.name)}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '36px',
-                                height: '36px',
-                                background: 'rgba(239, 68, 68, 0.1)',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                borderRadius: '8px',
-                                color: '#ef4444',
-                                cursor: 'pointer',
-                              }}
-                              title="Delete permanently"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
+                        label={tile.name}
+                        color={tile.color}
+                        icon={<DynamicIcon name={tile.icon} size={20} strokeWidth={2.1} />}
+                        meta="Not on dashboard"
+                        warning
+                        restoreLabel="Add"
+                        onRestore={() => onRestoreTile(createCustomActivityName(tile.id))}
+                        onEdit={onEditCustomTile ? () => onEditCustomTile(tile) : undefined}
+                        onDelete={
+                          onDeleteCustomTile
+                            ? () => setDeleteConfirm({ tileId: tile.id, tileName: tile.name })
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </ul>
+                </section>
               )}
-            </div>
+            </>
           )}
         </div>
-      </div>
+      </Modal>
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'rgba(0, 0, 0, 0.6)',
-            backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10,
-            borderRadius: '24px',
-          }}
-          onClick={handleCancelDelete}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'var(--bg-primary)',
-              borderRadius: '16px',
-              padding: '24px',
-              width: '280px',
-              border: '1px solid var(--border)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
-              animation: 'scaleIn 0.2s ease-out',
-            }}
-          >
-            <style>{`
-                            @keyframes scaleIn {
-                                from {
-                                    opacity: 0;
-                                    transform: scale(0.9);
-                                }
-                                to {
-                                    opacity: 1;
-                                    transform: scale(1);
-                                }
-                            }
-                        `}</style>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-              }}
-            >
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  background: 'rgba(239, 68, 68, 0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '16px',
-                }}
-              >
-                <AlertTriangle size={24} color="#ef4444" />
-              </div>
-              <h3
-                style={{
-                  margin: '0 0 8px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                Delete Tile?
-              </h3>
-              <p
-                style={{
-                  margin: '0 0 20px',
-                  fontSize: '0.85rem',
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1.4,
-                }}
-              >
-                Are you sure you want to permanently delete{' '}
-                <strong style={{ color: 'var(--text-primary)' }}>"{deleteConfirm.tileName}"</strong>
-                ? This will also delete all activity data for this tile.
-              </p>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '12px',
-                  width: '100%',
-                }}
-              >
-                <button
-                  onClick={handleCancelDelete}
-                  style={{
-                    flex: 1,
-                    padding: '10px 16px',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '10px',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  style={{
-                    flex: 1,
-                    padding: '10px 16px',
-                    background: '#ef4444',
-                    border: 'none',
-                    borderRadius: '10px',
-                    color: 'white',
-                    fontSize: '0.85rem',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title={`Delete "${deleteConfirm.tileName}"?`}
+          description="This permanently deletes the tile and all the activity logged with it."
+          icon={<Trash2 size={22} strokeWidth={2.25} />}
+          tone="danger"
+          confirmLabel="Delete"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
       )}
-    </div>
+    </>
   );
 };
 

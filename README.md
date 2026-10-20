@@ -32,10 +32,10 @@ Growth Tracker helps you account for your day across meaningful categories like 
   <img src="frontend/public/screenshots/dashboard.jpg" width="280" alt="Dashboard"/>
 </p>
 
-### Analytics and notifications
+### Insights and notifications
 
 <p align="center">
-  <img src="frontend/public/screenshots/analytics.jpg" width="280" alt="Analytics"/>
+  <img src="frontend/public/screenshots/analytics.jpg" width="280" alt="Insights: weekly analytics"/>
   &nbsp;&nbsp;&nbsp;
   <img src="frontend/public/screenshots/notifications.jpg" width="280" alt="Notifications"/>
 </p>

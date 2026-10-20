@@ -1,0 +1,156 @@
+/**
+ * ConfirmDialog Styles
+ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--modal-overlay);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s var(--ease-default);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  background: var(--glass-panel-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-panel-border);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--glass-panel-shadow), var(--glass-panel-glow);
+  animation: dialogIn 0.32s var(--ease-spring);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-4);
+  border-radius: 20px;
+}
+
+.icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.brand {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.warning {
+  background: var(--warning-soft);
+  color: var(--color-text-warning);
+}
+
+.danger {
+  background: var(--error-soft);
+  color: var(--color-text-danger);
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: var(--font-bold);
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+.description {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.description strong {
+  color: var(--text-primary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2-5);
+  width: 100%;
+  margin-top: var(--space-5);
+}
+
+.action {
+  flex: 1;
+  min-height: 46px;
+}
+
+.dangerButton {
+  background: var(--error);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 3px 0 0 color-mix(in srgb, var(--error) 62%, black),
+    0 10px 22px -10px var(--error),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dangerButton:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.dangerButton:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--error) 62%, black);
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .dialog {
+    animation: none;
+  }
+
+  .spinner {
+    animation-duration: 2s;
+  }
+}

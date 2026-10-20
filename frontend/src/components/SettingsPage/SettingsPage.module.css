@@ -1,0 +1,54 @@
+/**
+ * SettingsPage Styles
+ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-4) var(--space-8);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.fileInput {
+  display: none;
+}
+
+.badgesCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-4);
+  background: var(--glass-surface-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-surface-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
+}
+
+.badgesSkeletonRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.themePicker {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    animation: none;
+  }
+}

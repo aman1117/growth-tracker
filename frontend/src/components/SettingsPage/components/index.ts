@@ -14,4 +14,6 @@ export { ProfilePictureDialog } from './ProfilePictureDialog';
 export { ProfileSection } from './ProfileSection';
 export { PushNotificationsSection } from './PushNotificationsSection';
 export { SettingsItem } from './SettingsItem';
+export { SettingsSection } from './SettingsSection';
+export { ThemePicker } from './ThemePicker';
 export { UsernameDialog } from './UsernameDialog';

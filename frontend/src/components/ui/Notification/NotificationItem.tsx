@@ -6,25 +6,13 @@
  * Supports clickable usernames and navigation to specific dates.
  */
 
-import {
-  AlertTriangle,
-  AtSign,
-  Camera,
-  Flame,
-  Heart,
-  Megaphone,
-  MessageCircle,
-  Reply,
-  Trophy,
-  UserCheck,
-  UserPlus,
-  X,
-} from 'lucide-react';
+import { X } from 'lucide-react';
 import React, { useCallback, useMemo } from 'react';
 
-import type { LikeMetadata, Notification, NotificationType } from '../../../types';
+import type { LikeMetadata, Notification } from '../../../types';
 import { formatNotificationTime } from '../../../types';
 import styles from './Notification.module.css';
+import { getNotificationVisual } from './notificationVisuals';
 
 /** Duration of the delete animation in milliseconds */
 const DELETE_ANIMATION_DURATION = 250;
@@ -40,22 +28,7 @@ interface NotificationItemProps {
   isDeleting?: boolean;
 }
 
-const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
-  like_received: <Heart size={16} className={styles.iconLike} />,
-  story_liked: <Heart size={16} className={styles.iconLike} />,
-  badge_unlocked: <Trophy size={16} className={styles.iconBadge} />,
-  streak_milestone: <Flame size={16} className={styles.iconStreak} />,
-  streak_at_risk: <AlertTriangle size={16} className={styles.iconWarning} />,
-  system_announcement: <Megaphone size={16} className={styles.iconSystem} />,
-  new_follower: <UserPlus size={16} className={styles.iconFollow} />,
-  follow_request: <UserPlus size={16} className={styles.iconFollow} />,
-  follow_accepted: <UserCheck size={16} className={styles.iconFollow} />,
-  photo_uploaded: <Camera size={16} className={styles.iconPhoto} />,
-  comment_received: <MessageCircle size={16} className={styles.iconFollow} />,
-  comment_reply: <Reply size={16} className={styles.iconFollow} />,
-  comment_mention: <AtSign size={16} className={styles.iconFollow} />,
-  comment_liked: <Heart size={16} className={styles.iconLike} />,
-};
+const ICON_SIZE = 17;
 
 /**
  * Type guard to check if metadata is LikeMetadata (for like_received or story_liked)
@@ -75,7 +48,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
   isDeleting = false,
 }) => {
   const isUnread = !notification.read_at;
-  const icon = NOTIFICATION_ICONS[notification.type] || <Megaphone size={16} />;
+  const { Icon: TypeIcon, toneClass } = getNotificationVisual(notification.type);
 
   // Extract username from metadata for like notifications (day likes and story likes)
   const likeMetadata = useMemo(() => {
@@ -188,7 +161,9 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
       role="button"
       tabIndex={0}
     >
-      <div className={styles.itemIcon}>{icon}</div>
+      <div className={`${styles.itemIcon} ${toneClass}`} aria-hidden="true">
+        <TypeIcon size={ICON_SIZE} />
+      </div>
 
       <div className={styles.itemContent}>
         <p className={styles.itemBody}>

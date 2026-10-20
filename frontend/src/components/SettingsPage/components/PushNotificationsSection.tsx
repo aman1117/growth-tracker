@@ -1,171 +1,108 @@
 /**
  * Push Notifications Section
  *
- * Push notification settings with toggle and blocked state handling.
+ * "Notifications" settings group: push switch with its preferences, the blocked-permission
+ * help, and an install hint on iOS Safari (where web push needs a Home Screen app).
  */
 
-import { Bell, BellOff, ChevronRight } from 'lucide-react';
-import React, { useState } from 'react';
+import { Bell, BellOff, Smartphone } from 'lucide-react';
+import React, { useId, useState } from 'react';
 
 import { usePushNotifications } from '../../../hooks/usePushNotifications';
 import { PushNotificationSettings } from '../../PushNotificationSettings';
+import { getPushPlatform } from '../../PushNotificationSettings/pushPlatform';
+import { Toggle } from '../../ui';
 import type { PushNotificationsSectionProps } from '../SettingsPage.types';
 import { NotificationsBlockedDialog } from './NotificationsBlockedDialog';
+import { SettingsItem } from './SettingsItem';
+import { SettingsSection } from './SettingsSection';
 
 export const PushNotificationsSection: React.FC<PushNotificationsSectionProps> = ({ onToast }) => {
   const { isSubscribed, isLoading, toggleSubscription, isSupported, permission } =
     usePushNotifications();
   const [showBlockedDialog, setShowBlockedDialog] = useState(false);
+  const controlId = useId();
 
-  // Don't show if not supported
+  const blockedDialog = (
+    <NotificationsBlockedDialog
+      isOpen={showBlockedDialog}
+      onClose={() => setShowBlockedDialog(false)}
+    />
+  );
+
   if (!isSupported) {
-    return null;
+    const { isIOS, isStandalone } = getPushPlatform();
+    // iOS Safari only supports web push for apps added to the Home Screen
+    if (!isIOS || isStandalone) return null;
+
+    return (
+      <SettingsSection title="Notifications">
+        {blockedDialog}
+        <SettingsItem
+          icon={<Smartphone size={18} strokeWidth={2.25} />}
+          tone="sky"
+          label="Push notifications"
+          value="Add Growth Tracker to your Home Screen to turn them on"
+          onClick={() => setShowBlockedDialog(true)}
+        />
+      </SettingsSection>
+    );
   }
 
-  // Show blocked message if permission denied
   if (permission === 'denied') {
     return (
-      <>
-        <NotificationsBlockedDialog
-          isOpen={showBlockedDialog}
-          onClose={() => setShowBlockedDialog(false)}
-        />
-        <div
+      <SettingsSection title="Notifications">
+        {blockedDialog}
+        <SettingsItem
+          icon={<BellOff size={18} strokeWidth={2.25} />}
+          tone="red"
+          label="Push notifications"
+          value="Blocked · Tap to see how to turn them on"
           onClick={() => setShowBlockedDialog(true)}
-          style={{
-            padding: '0.75rem 1rem',
-            borderBottom: '1px solid var(--border)',
-            cursor: 'pointer',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-            }}
-          >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--icon-bg-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-tertiary)',
-              }}
-            >
-              <BellOff size={16} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                Push Notifications
-              </div>
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-tertiary)',
-                  marginTop: '0.125rem',
-                }}
-              >
-                Blocked · Tap to learn how to enable
-              </div>
-            </div>
-            <ChevronRight size={16} style={{ color: 'var(--text-tertiary)' }} />
-          </div>
-        </div>
-      </>
+        />
+      </SettingsSection>
     );
   }
 
   const handleToggle = async () => {
+    const wasSubscribed = isSubscribed;
     const success = await toggleSubscription();
     if (success) {
-      onToast(isSubscribed ? 'Notifications disabled' : 'Notifications enabled', 'success');
+      onToast(wasSubscribed ? 'Notifications turned off' : 'Notifications turned on', 'success');
+      return;
     }
+    console.warn('[Settings] Push notification toggle failed', { wasSubscribed });
+    onToast(
+      wasSubscribed
+        ? "Couldn't turn off notifications. Try again."
+        : "Couldn't turn on notifications. Check your browser permissions.",
+      'error'
+    );
   };
 
   return (
-    <div
-      style={{
-        padding: '0.75rem 1rem',
-        borderBottom: '1px solid var(--border)',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-        }}
-      >
-        <div
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            backgroundColor: 'var(--icon-bg-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          <Bell size={16} />
-        </div>
-        <div
-          style={{
-            flex: 1,
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            color: 'var(--text-primary)',
-          }}
-        >
-          Push Notifications
-        </div>
-        <button
-          onClick={handleToggle}
-          disabled={isLoading}
-          style={{
-            width: '44px',
-            height: '24px',
-            borderRadius: '12px',
-            border: 'none',
-            backgroundColor: isSubscribed ? '#0095f6' : 'var(--border)',
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            position: 'relative',
-            transition: 'background-color 0.2s',
-            opacity: isLoading ? 0.6 : 1,
-          }}
-        >
-          <div
-            style={{
-              width: '18px',
-              height: '18px',
-              borderRadius: '50%',
-              backgroundColor: 'white',
-              position: 'absolute',
-              top: '3px',
-              left: isSubscribed ? '23px' : '3px',
-              transition: 'left 0.2s',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-            }}
+    <SettingsSection title="Notifications">
+      <SettingsItem
+        icon={<Bell size={18} strokeWidth={2.25} />}
+        tone="sky"
+        label="Push notifications"
+        value={
+          isSubscribed ? 'On for this device' : 'Likes, badges and streak reminders on this device'
+        }
+        controlId={controlId}
+        trailing={
+          <Toggle
+            id={controlId}
+            checked={isSubscribed}
+            onChange={handleToggle}
+            busy={isLoading}
+            aria-labelledby={`${controlId}-label`}
+            aria-describedby={`${controlId}-description`}
           />
-        </button>
-      </div>
-      {isSubscribed && (
-        <div style={{ marginTop: '0.75rem' }}>
-          <PushNotificationSettings onToast={onToast} />
-        </div>
-      )}
-    </div>
+        }
+      >
+        {isSubscribed && <PushNotificationSettings onToast={onToast} />}
+      </SettingsItem>
+    </SettingsSection>
   );
 };

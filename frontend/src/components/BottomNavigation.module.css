@@ -1,87 +1,112 @@
 /**
  * BottomNavigation CSS Module
  *
- * Replaces inline styles for bottom nav bar and nav items.
+ * Mobile/tablet: floating glass dock pinned above the home indicator.
+ * Desktop (≥1024px): vertical rail docked on the left under the header.
  */
 
 .nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: var(--header-bg);
-  backdrop-filter: blur(var(--tile-glass-blur, 20px));
-  -webkit-backdrop-filter: blur(var(--tile-glass-blur, 20px));
-  border-top: 1px solid var(--border);
+  left: 50%;
+  bottom: calc(var(--nav-dock-gap) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  width: min(440px, calc(100% - 20px));
   z-index: 50;
-  display: flex;
-  justify-content: center;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding: 6px;
+  border-radius: 26px;
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-floating-border);
+  box-shadow: var(--glass-floating-shadow), var(--glass-floating-glow);
 }
 
 .navInner {
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  width: 100%;
-  max-width: 560px;
-  padding: 0.5rem 1rem;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 4px;
+  height: calc(var(--nav-dock-height) - 12px);
 }
 
 .navItem {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  padding: 0.5rem 1rem;
-  min-width: 64px;
-  min-height: 48px;
-  background: none;
+  gap: 3px;
+  padding: 0 4px;
+  background: transparent;
   border: none;
-  border-radius: var(--radius-lg, 12px);
+  border-radius: 20px;
+  color: var(--nav-item-color);
   cursor: pointer;
-  outline: none;
   -webkit-tap-highlight-color: transparent;
   transition:
     color 0.2s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    background-color 0.25s var(--ease-default),
+    transform 0.15s var(--ease-default);
+}
+
+.navItem:hover {
+  color: var(--text-primary);
 }
 
 .navItem:focus-visible {
-  box-shadow: 0 0 0 var(--ring-width, 2px) var(--ring-color);
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .navItem:active {
   transform: scale(0.92);
 }
 
-.navItemActive {
-  color: var(--text-primary);
+.navItemActive,
+.navItemActive:hover {
+  color: var(--nav-item-active-color);
+  background: var(--nav-item-active-bg);
 }
 
-.navItemInactive {
-  color: var(--text-secondary);
-}
-
-.profileRing {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  padding: 1px;
+.icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.2s ease;
+  height: 26px;
+  transition: transform 0.3s var(--ease-bounce);
+}
+
+.navItemActive .icon {
+  transform: translateY(-1px) scale(1.06);
+}
+
+.caption {
+  font-size: 0.6875rem;
+  font-weight: var(--font-bold);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Profile avatar: gradient ring when active */
+.profileRing {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border-strong);
+  transition: background 0.2s ease;
 }
 
 .profileRingActive {
-  border: 2px solid var(--text-primary);
-}
-
-.profileRingInactive {
-  border: 2px solid transparent;
+  background: var(--gradient-ring);
 }
 
 .profileAvatar {
@@ -89,12 +114,13 @@
   height: 100%;
   border-radius: 50%;
   background-color: var(--avatar-bg);
+  border: 1.5px solid var(--bg-elevated);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  font-size: var(--type-label-size);
-  font-weight: var(--font-semibold);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
   text-transform: uppercase;
   color: var(--text-primary);
 }
@@ -105,23 +131,49 @@
   object-fit: cover;
 }
 
-.iconScale {
-  transition: transform 0.2s ease;
-}
+/* ============================================================================
+   Desktop: side rail
+   ============================================================================ */
 
-.iconScaleActive {
-  transform: scale(1.1);
+@media (min-width: 1024px) {
+  .nav {
+    left: max(20px, env(safe-area-inset-left, 0px));
+    top: calc(env(safe-area-inset-top, 0px) + var(--header-height) + 24px);
+    bottom: auto;
+    transform: none;
+    width: 88px;
+    padding: 8px;
+    border-radius: 28px;
+  }
+
+  .navInner {
+    flex-direction: column;
+    height: auto;
+    gap: 6px;
+  }
+
+  .navItem {
+    flex: none;
+    height: 66px;
+    gap: 6px;
+    border-radius: 20px;
+  }
+
+  .profileRing {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .navItem,
-  .iconScale,
+  .icon,
   .profileRing {
     transition: none;
   }
 
   .navItem:active,
-  .iconScaleActive {
+  .navItemActive .icon {
     transform: none;
   }
 }

@@ -1,16 +1,15 @@
 /**
  * UserCard Component
  *
- * Clean Instagram-style user row for follow lists.
+ * User row for follow lists: tappable identity (opens the profile) plus actions.
  */
 
-import { Loader2 } from 'lucide-react';
 import React from 'react';
 
 import { useOverlayAwareNavigate } from '../../../hooks/useOverlayAwareNavigate';
 import { useAuth } from '../../../store';
 import type { UserCardProps } from '../../../types/follow';
-import { Avatar, VerifiedBadge } from '../../ui';
+import { Avatar, Button, VerifiedBadge } from '../../ui';
 import { FollowButton } from '../FollowButton';
 import styles from './UserCard.module.css';
 
@@ -26,36 +25,33 @@ export const UserCard: React.FC<UserCardProps> = ({
   const { user: currentUser } = useAuth();
 
   const isOwnProfile = currentUser?.id === user.id;
+  const followsYou = !isOwnProfile && !!user.relationship_state?.followed_by;
+  const secondary = user.display_name || (followsYou && !showRemoveButton ? 'Follows you' : '');
 
   const handleUserClick = () => {
     navigate(`/user/${user.username}`);
     onUserClick?.(user.username);
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onRemove?.(user.id);
-  };
-
   return (
-    <div className={styles.card} onClick={handleUserClick}>
-      <Avatar
-        src={user.profile_pic}
-        thumbnailSrc={user.profile_pic_thumb}
-        name={user.username}
-        size="md"
-        className={styles.avatar}
-      />
-
-      <div className={styles.userInfo}>
-        <span className={styles.username}>
-          {user.username}
-          {user.is_verified && <VerifiedBadge size={12} />}
+    <div className={styles.card}>
+      <button type="button" className={styles.identity} onClick={handleUserClick}>
+        <Avatar
+          src={user.profile_pic}
+          thumbnailSrc={user.profile_pic_thumb}
+          name={user.username}
+          size="md"
+        />
+        <span className={styles.userInfo}>
+          <span className={styles.username}>
+            <span className={styles.usernameText}>{user.username}</span>
+            {user.is_verified && <VerifiedBadge size={13} />}
+          </span>
+          {secondary && <span className={styles.secondaryText}>{secondary}</span>}
         </span>
-        {user.display_name && <span className={styles.displayName}>{user.display_name}</span>}
-      </div>
+      </button>
 
-      <div className={styles.actions} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.actions}>
         {isOwnProfile ? (
           <span className={styles.youLabel}>You</span>
         ) : (
@@ -71,14 +67,16 @@ export const UserCard: React.FC<UserCardProps> = ({
             )}
 
             {showRemoveButton && (
-              <button
-                className={styles.removeButton}
-                onClick={handleRemove}
+              <Button
+                variant="glass"
+                size="xs"
+                onClick={() => onRemove?.(user.id)}
+                loading={isRemoving}
                 disabled={isRemoving}
-                title="Remove follower"
+                aria-label={`Remove ${user.username} from your followers`}
               >
-                {isRemoving ? <Loader2 size={14} className={styles.spinner} /> : 'Remove'}
-              </button>
+                Remove
+              </Button>
             )}
           </>
         )}

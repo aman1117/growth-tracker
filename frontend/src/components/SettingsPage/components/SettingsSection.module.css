@@ -1,0 +1,35 @@
+/**
+ * SettingsSection Styles
+ */
+
+.section {
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+}
+
+.card {
+  overflow: hidden;
+  background: var(--glass-surface-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-surface-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
+}
+
+.footnote {
+  margin: var(--space-2) 0 0;
+  padding: 0 var(--space-4);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-muted);
+}

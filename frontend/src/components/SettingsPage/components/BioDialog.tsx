@@ -1,41 +1,62 @@
 /**
  * Bio Dialog
  *
- * Dialog for editing user bio.
+ * Dialog for editing user bio. The limit is counted the way the server counts it
+ * (UTF-8 bytes), so emoji-heavy bios are never rejected after looking valid.
  */
 
-import { X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { PenLine } from 'lucide-react';
+import React, { useId, useState } from 'react';
 
+import { VALIDATION } from '../../../constants/validation';
 import { api } from '../../../services/api';
+import { Button, Modal } from '../../ui';
+import {
+  clampToUtf8Bytes,
+  getErrorCode,
+  getRequestErrorMessage,
+  utf8Length,
+} from '../settingsForm';
 import type { BioDialogProps } from '../SettingsPage.types';
-import { DialogWrapper } from './DialogWrapper';
+import styles from './SettingsDialogs.module.css';
+
+const MAX_BIO = VALIDATION.BIO_MAX_LENGTH;
 
 export const BioDialog: React.FC<BioDialogProps> = ({ isOpen, onClose, currentBio, onSuccess }) => {
+  const formId = useId();
+  const textareaId = useId();
+  const messageId = useId();
   const [bio, setBio] = useState(currentBio);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [wasOpen, setWasOpen] = useState(isOpen);
 
-  useEffect(() => {
+  // Start from the saved bio every time the dialog opens
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
     if (isOpen) {
       setBio(currentBio);
       setError('');
     }
-  }, [isOpen, currentBio]);
+  }
 
-  if (!isOpen) return null;
+  const used = utf8Length(bio.trim());
+  // Bytes exceed UTF-16 length only when the bio contains non-ASCII characters
+  const hasWideCharacters = used > bio.trim().length;
+  const counterClass =
+    used >= MAX_BIO ? styles.counterFull : used >= MAX_BIO - 15 ? styles.counterNear : '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
     const trimmedBio = bio.trim();
-
-    if (trimmedBio.length > 150) {
-      setError('Bio must be 150 characters or less');
+    if (utf8Length(trimmedBio) > MAX_BIO) {
+      setError(`Bio must be ${MAX_BIO} characters or less`);
       return;
     }
 
-    if (trimmedBio === currentBio) {
+    if (trimmedBio === currentBio.trim()) {
       onClose();
       return;
     }
@@ -47,128 +68,78 @@ export const BioDialog: React.FC<BioDialogProps> = ({ isOpen, onClose, currentBi
         onSuccess(res.bio || '');
         onClose();
       } else {
-        setError(res.error || 'Failed to update bio');
+        setError(res.error || "Couldn't update your bio. Try again.");
       }
-    } catch {
-      setError('Failed to update bio');
+    } catch (err) {
+      console.warn('[Settings] Bio update failed', { code: getErrorCode(err) });
+      setError(getRequestErrorMessage(err, "Couldn't update your bio. Try again."));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <DialogWrapper onClose={onClose}>
-      <form onSubmit={handleSubmit}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1rem',
-          }}
-        >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-            }}
-          >
-            Edit bio
-          </h3>
-          <button
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit bio"
+      subtitle="Tell people what you're growing"
+      icon={
+        <span className={`${styles.toneIcon} ${styles.tonePink}`}>
+          <PenLine size={20} strokeWidth={2.3} />
+        </span>
+      }
+      maxWidth="420px"
+      mobileLayout="dialog"
+      footer={
+        <>
+          <Button
             type="button"
+            variant="secondary"
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '0.25rem',
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div style={{ marginBottom: '0.75rem' }}>
-          <textarea
-            value={bio}
-            onChange={(e) => {
-              setBio(e.target.value);
-              setError('');
-            }}
-            placeholder="Write a short bio..."
-            maxLength={150}
-            autoFocus
-            rows={4}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              borderRadius: '8px',
-              border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
-              backgroundColor: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              fontSize: '16px',
-              outline: 'none',
-              resize: 'none',
-              fontFamily: 'inherit',
-            }}
-          />
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '0.5rem',
-            }}
-          >
-            <span
-              style={{
-                fontSize: '0.75rem',
-                color: bio.length > 150 ? '#ef4444' : 'var(--text-secondary)',
-              }}
-            >
-              {bio.length}/150
-            </span>
-            {error && (
-              <span
-                style={{
-                  color: '#ef4444',
-                  fontSize: '0.75rem',
-                }}
-              >
-                {error}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn btn-outline"
-            style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}
+            className={styles.footerButton}
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="btn btn-primary"
-            style={{
-              flex: 1,
-              padding: '0.6rem',
-              fontSize: '0.85rem',
-              opacity: isLoading ? 0.7 : 1,
+          </Button>
+          <Button type="submit" form={formId} loading={isLoading} className={styles.footerButton}>
+            {isLoading ? 'Saving…' : 'Save'}
+          </Button>
+        </>
+      }
+    >
+      <form id={formId} className={styles.form} onSubmit={handleSubmit} noValidate>
+        <div className={styles.field}>
+          <label htmlFor={textareaId} className="sr-only">
+            Bio
+          </label>
+          <textarea
+            id={textareaId}
+            className={`${styles.textarea} ${error ? styles.textareaError : ''}`}
+            value={bio}
+            onChange={(e) => {
+              setBio(clampToUtf8Bytes(e.target.value, MAX_BIO));
+              setError('');
             }}
-          >
-            {isLoading ? 'Saving...' : 'Save'}
-          </button>
+            placeholder="e.g. Reading 20 pages a day and learning to code 📚"
+            rows={4}
+            autoFocus
+            aria-invalid={error ? true : undefined}
+            aria-describedby={messageId}
+          />
+          <div className={styles.fieldMeta}>
+            <span
+              id={messageId}
+              className={`${styles.fieldMessage} ${error ? styles.fieldMessageError : ''}`}
+              role={error ? 'alert' : undefined}
+            >
+              {error || (hasWideCharacters ? 'Emoji and symbols count as more than one.' : '')}
+            </span>
+            <span className={`${styles.counter} ${counterClass}`} aria-hidden="true">
+              {used}/{MAX_BIO}
+            </span>
+          </div>
         </div>
       </form>
-    </DialogWrapper>
+    </Modal>
   );
 };

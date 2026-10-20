@@ -1,0 +1,49 @@
+/**
+ * Dashboard page styles
+ */
+
+/*
+ * Day summary collapses while customizing tiles. Animating grid rows (1fr → 0fr)
+ * follows the card's real height (no max-height guess that could clip content).
+ * The inner wrapper's padding/negative margin keeps the card's shadow unclipped.
+ */
+.summaryCollapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 0.35s var(--ease-default),
+    opacity 0.25s var(--ease-default),
+    transform 0.35s var(--ease-default),
+    visibility 0s;
+}
+
+.summaryCollapseInner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 4px 12px 16px;
+  margin: -4px -12px -16px;
+}
+
+.summaryCollapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.98);
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.35s var(--ease-default),
+    opacity 0.25s var(--ease-default),
+    transform 0.35s var(--ease-default),
+    visibility 0s linear 0.35s;
+}
+
+.readOnlyName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summaryCollapse,
+  .summaryCollapsed {
+    transition: none;
+  }
+}

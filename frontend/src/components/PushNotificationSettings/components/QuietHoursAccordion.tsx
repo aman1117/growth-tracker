@@ -5,10 +5,10 @@
  */
 
 import { ChevronDown } from 'lucide-react';
-import React from 'react';
+import React, { useId } from 'react';
 
 import type { PushPreferences } from '../../../types/push';
-import { styles } from '../PushNotificationSettings.styles';
+import styles from '../PushNotificationSettings.module.css';
 import { TIME_OPTIONS } from '../PushNotificationSettings.types';
 import { Toggle } from './Toggle';
 
@@ -33,68 +33,105 @@ export const QuietHoursAccordion: React.FC<QuietHoursAccordionProps> = ({
   onQuietHoursToggle,
   onQuietTimeChange,
 }) => {
-  const quietSummary = preferences?.quiet_hours_enabled
-    ? `${localQuietStart} – ${localQuietEnd}`
-    : 'Off';
+  const panelId = useId();
+  const toggleId = useId();
+  const startId = useId();
+  const endId = useId();
+  const isEnabled = preferences?.quiet_hours_enabled ?? false;
+  const quietSummary = isEnabled ? `${localQuietStart} – ${localQuietEnd}` : 'Off';
 
   return (
-    <div style={styles.expandedCard}>
-      <button type="button" onClick={onToggleExpand} style={styles.expandedCardHeader}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-          <span>Quiet Hours</span>
-          <span style={styles.accordionSummary}>{quietSummary}</span>
-        </div>
+    <div className={styles.panel}>
+      <button
+        type="button"
+        className={styles.panelHeader}
+        onClick={onToggleExpand}
+        aria-expanded={isExpanded}
+        aria-controls={panelId}
+      >
+        <span className={styles.panelTitle}>Quiet hours</span>
+        <span className={`${styles.panelSummary} ${isEnabled ? styles.panelSummaryOn : ''}`}>
+          {quietSummary}
+        </span>
         <ChevronDown
-          size={14}
-          style={{
-            color: 'var(--text-tertiary)',
-            transition: 'transform 0.2s',
-            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-          }}
+          size={16}
+          strokeWidth={2.4}
+          className={`${styles.chevron} ${isExpanded ? styles.chevronOpen : ''}`}
+          aria-hidden="true"
         />
       </button>
       {isExpanded && (
-        <div style={styles.expandedCardContent}>
-          <div style={styles.compactRow}>
-            <span style={styles.compactLabel}>Pause notifications</span>
+        <div id={panelId} className={styles.panelBody}>
+          <div className={styles.prefRow}>
+            <label htmlFor={toggleId} className={styles.prefText}>
+              <span id={`${toggleId}-label`} className={styles.prefLabel}>
+                Pause notifications
+              </span>
+              <span id={`${toggleId}-description`} className={styles.prefDescription}>
+                Hold them during the hours you pick
+              </span>
+            </label>
             <Toggle
-              enabled={preferences?.quiet_hours_enabled ?? false}
+              id={toggleId}
+              enabled={isEnabled}
               onChange={onQuietHoursToggle}
-              disabled={isLoading}
+              busy={isLoading}
+              aria-labelledby={`${toggleId}-label`}
+              aria-describedby={`${toggleId}-description`}
             />
           </div>
-          {preferences?.quiet_hours_enabled && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                paddingTop: '0.375rem',
-              }}
-            >
-              <select
-                value={localQuietStart}
-                onChange={(e) => onQuietTimeChange('start', e.target.value)}
-                style={styles.timeSelect}
-              >
-                {TIME_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <span style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>to</span>
-              <select
-                value={localQuietEnd}
-                onChange={(e) => onQuietTimeChange('end', e.target.value)}
-                style={styles.timeSelect}
-              >
-                {TIME_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+          {isEnabled && (
+            <div className={styles.timeRow}>
+              <div className={styles.timeField}>
+                <label htmlFor={startId} className={styles.timeLabel}>
+                  From
+                </label>
+                <span className={styles.selectWrap}>
+                  <select
+                    id={startId}
+                    value={localQuietStart}
+                    onChange={(e) => onQuietTimeChange('start', e.target.value)}
+                    className={styles.select}
+                  >
+                    {TIME_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={14}
+                    strokeWidth={2.4}
+                    className={styles.selectIcon}
+                    aria-hidden="true"
+                  />
+                </span>
+              </div>
+              <div className={styles.timeField}>
+                <label htmlFor={endId} className={styles.timeLabel}>
+                  To
+                </label>
+                <span className={styles.selectWrap}>
+                  <select
+                    id={endId}
+                    value={localQuietEnd}
+                    onChange={(e) => onQuietTimeChange('end', e.target.value)}
+                    className={styles.select}
+                  >
+                    {TIME_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={14}
+                    strokeWidth={2.4}
+                    className={styles.selectIcon}
+                    aria-hidden="true"
+                  />
+                </span>
+              </div>
             </div>
           )}
         </div>

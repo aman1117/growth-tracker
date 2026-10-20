@@ -13,6 +13,7 @@ import {
 } from './components/navigation';
 import { OfflineBanner } from './components/OfflineBanner';
 import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
+import { NoticeStack } from './components/ui';
 import { APP_ROUTES } from './constants/routes';
 import { api } from './services/api';
 import { useAuth, useThemeStore } from './store';
@@ -115,9 +116,12 @@ function App() {
       <GoodLogsProvider>
         <ThemeInitializer>
           <ProfileInitializer>
-            <OfflineBanner />
-            <EmailVerificationBanner />
-            <PWAUpdatePrompt />
+            {/* App-level notices stack under the header instead of covering it */}
+            <NoticeStack>
+              <OfflineBanner />
+              <EmailVerificationBanner />
+              <PWAUpdatePrompt />
+            </NoticeStack>
             <Router>
               <NavigationManager />
               <Layout>

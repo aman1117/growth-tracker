@@ -100,8 +100,10 @@ export default defineConfig({
         name: 'Growth Tracker',
         short_name: 'Growth Tracker',
         description: 'Track every hour of your day. Build better habits. Grow intentionally.',
-        theme_color: '#3b82f6',
-        background_color: '#ffffff',
+        // Matches the light canvas token (--bg-primary); the page's theme-color meta
+        // takes over at runtime and follows the user's light/dark choice.
+        theme_color: '#f6f5fb',
+        background_color: '#f6f5fb',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
@@ -145,7 +147,7 @@ export default defineConfig({
             sizes: '1080x1920',
             type: 'image/jpeg',
             form_factor: 'narrow',
-            label: 'Analytics - Monitor activities',
+            label: 'Insights - See your week at a glance',
           },
           {
             src: '/screenshots/settings.jpg',

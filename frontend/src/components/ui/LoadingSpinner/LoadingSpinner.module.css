@@ -1,3 +1,9 @@
+/**
+ * LoadingSpinner Styles
+ *
+ * A gradient "comet" ring in brand colors.
+ */
+
 .spinner {
   display: inline-flex;
   align-items: center;
@@ -11,34 +17,56 @@
 }
 
 .circle {
+  --ring: 3px;
+
   border-radius: 50%;
-  border-style: solid;
-  border-color: var(--border);
-  border-top-color: var(--accent);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--teal-500) 140deg,
+    var(--accent) 300deg,
+    var(--accent) 360deg
+  );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--ring)),
+    #000 calc(100% - var(--ring) + 0.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--ring)),
+    #000 calc(100% - var(--ring) + 0.5px)
+  );
   animation: spin 0.8s linear infinite;
 }
 
 /* Sizes */
 .sm .circle {
+  --ring: 2px;
   width: 16px;
   height: 16px;
-  border-width: 2px;
 }
 
 .md .circle {
+  --ring: 3px;
   width: 24px;
   height: 24px;
-  border-width: 3px;
 }
 
 .lg .circle {
+  --ring: 4px;
   width: 40px;
   height: 40px;
-  border-width: 4px;
 }
 
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circle {
+    animation-duration: 1.6s;
   }
 }

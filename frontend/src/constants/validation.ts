@@ -10,18 +10,21 @@ export const VALIDATION = {
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
   ALLOWED_IMAGE_EXTENSIONS: ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'],
 
+  // Limits below mirror backend/internal/constants (keep in sync)
+
   // Password
   PASSWORD_MIN_LENGTH: 8,
 
-  // Bio
-  BIO_MAX_LENGTH: 500,
+  // Bio — the server measures UTF-8 bytes, so emoji count as more than one
+  BIO_MAX_LENGTH: 150,
 
   // Notes
   NOTE_MAX_LENGTH: 500,
 
-  // Username
+  // Username — lowercase letters, numbers, _ and .
   USERNAME_MIN_LENGTH: 3,
-  USERNAME_MAX_LENGTH: 30,
+  USERNAME_MAX_LENGTH: 20,
+  USERNAME_PATTERN: /^[a-z0-9_.]+$/,
 };
 
 /**

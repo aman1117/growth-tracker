@@ -28,6 +28,18 @@ const getSystemTheme = (): ResolvedTheme => {
   return 'light';
 };
 
+/** Browser-chrome / PWA status-bar colors — must match the canvas tokens in tokens.css */
+const THEME_CHROME_COLORS: Record<ResolvedTheme, string> = {
+  light: '#f6f5fb',
+  dark: '#0b0a12',
+};
+
+/** Keeps the address bar / installed-PWA status bar in step with the in-app theme */
+const syncThemeColorMeta = (resolvedTheme: ResolvedTheme) => {
+  const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+  metas.forEach((meta) => meta.setAttribute('content', THEME_CHROME_COLORS[resolvedTheme]));
+};
+
 const applyTheme = (resolvedTheme: ResolvedTheme) => {
   if (typeof document !== 'undefined') {
     if (resolvedTheme === 'dark') {
@@ -35,8 +47,12 @@ const applyTheme = (resolvedTheme: ResolvedTheme) => {
     } else {
       document.documentElement.removeAttribute('data-theme');
     }
+    syncThemeColorMeta(resolvedTheme);
   }
 };
+
+// initializeTheme runs on rehydration and on mount; only one system listener is needed
+let systemThemeListenerAttached = false;
 
 const resolveTheme = (theme: ThemePreference): ResolvedTheme => {
   if (theme === 'system') {
@@ -97,7 +113,8 @@ export const useThemeStore = create<ThemeState>()(
         });
 
         // Listen for system theme changes
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && !systemThemeListenerAttached) {
+          systemThemeListenerAttached = true;
           const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
           mediaQuery.addEventListener('change', () => {
             const currentTheme = get().theme;

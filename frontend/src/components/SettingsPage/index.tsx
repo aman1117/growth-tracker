@@ -1,24 +1,12 @@
 /**
  * SettingsPage Component (Modular Version)
  *
- * Main settings page that composes modular components.
- * Handles profile management, account settings, privacy, and notifications.
+ * The "You" tab: profile card, badges and grouped settings (account, privacy & people,
+ * appearance, notifications, help) plus log out.
  */
 
-import {
-  ChevronRight,
-  HelpCircle,
-  Key,
-  Lock,
-  LogOut,
-  Monitor,
-  Moon,
-  Palette,
-  Sun,
-  User,
-  UserPlus,
-} from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { AtSign, HelpCircle, KeyRound, Lock, LogOut, Palette, UserPlus } from 'lucide-react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '../../constants/routes';
@@ -30,7 +18,7 @@ import type { Badge } from '../../types/api';
 import { BadgeShowcase } from '../BadgeShowcase';
 import { formatDateForApi } from '../Dashboard/Dashboard.constants';
 import { FollowListModal, FollowRequestsModal } from '../social';
-import { PageHeader, SnapToast } from '../ui';
+import { PageHeader, Skeleton, SnapToast, Toggle } from '../ui';
 import {
   BioDialog,
   FullscreenProfilePic,
@@ -40,10 +28,21 @@ import {
   ProfileSection,
   PushNotificationsSection,
   SettingsItem,
+  SettingsSection,
+  ThemePicker,
   UsernameDialog,
 } from './components';
+import { getErrorCode } from './settingsForm';
+import styles from './SettingsPage.module.css';
 import type { ToastData } from './SettingsPage.types';
 
+const HELP_URL = import.meta.env.PROD ? 'https://help.trackgrowth.in' : 'http://localhost:5174';
+
+const THEME_DESCRIPTIONS = {
+  light: 'Bright and airy',
+  dark: 'Easy on the eyes',
+  system: 'Follows your device setting',
+} as const;
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout, updateUsername, updateProfilePic, updateBio } = useAuth();
@@ -74,6 +73,10 @@ export const SettingsPage: React.FC = () => {
   // Privacy state
   const [isPrivate, setIsPrivate] = useState(false);
   const [isPrivacyLoading, setIsPrivacyLoading] = useState(false);
+  const privacyToggleId = useId();
+
+  // Verified badge (from /profile)
+  const [isVerified, setIsVerified] = useState(!!user?.isVerified);
 
   // Badges state
   const [badges, setBadges] = useState<Badge[]>([]);
@@ -103,6 +106,7 @@ export const SettingsPage: React.FC = () => {
           profile_pic?: string;
           profile_pic_thumb?: string;
           bio?: string;
+          is_verified?: boolean;
         }>('/profile')
         .then((res) => {
           if (res.success) {
@@ -112,6 +116,7 @@ export const SettingsPage: React.FC = () => {
             if (res.bio !== undefined) {
               updateBio(res.bio);
             }
+            setIsVerified(!!res.is_verified);
           }
         })
         .catch((err) => console.warn('[SettingsPage] Failed to load profile', err));
@@ -158,15 +163,25 @@ export const SettingsPage: React.FC = () => {
   }
 
   const togglePrivacy = async () => {
+    if (isPrivacyLoading) return;
     setIsPrivacyLoading(true);
+    const failureMessage = "Couldn't update your privacy setting. Try again.";
     try {
       const res = await api.post('/update-privacy', { is_private: !isPrivate });
       if (res.success) {
         gl.track('privacy_toggled', { properties: { isPrivate: res.is_private } });
         setIsPrivate(res.is_private);
+        setToast({
+          message: res.is_private ? 'Your account is now private' : 'Your account is now public',
+          type: 'success',
+        });
+      } else {
+        console.warn('[Settings] Privacy update rejected', { code: res.error_code });
+        setToast({ message: failureMessage, type: 'error' });
       }
-    } catch {
-      console.error('Failed to update privacy');
+    } catch (err) {
+      console.error('[Settings] Failed to update privacy', { code: getErrorCode(err) });
+      setToast({ message: failureMessage, type: 'error' });
     } finally {
       setIsPrivacyLoading(false);
     }
@@ -202,7 +217,8 @@ export const SettingsPage: React.FC = () => {
       } else {
         setToast({ message: res.error || 'Failed to upload image', type: 'error' });
       }
-    } catch {
+    } catch (err) {
+      console.warn('[Settings] Profile photo upload failed', { code: getErrorCode(err) });
       setToast({ message: 'Failed to upload image', type: 'error' });
     } finally {
       setIsUploadingPic(false);
@@ -224,7 +240,8 @@ export const SettingsPage: React.FC = () => {
       } else {
         setToast({ message: res.error || 'Failed to remove image', type: 'error' });
       }
-    } catch {
+    } catch (err) {
+      console.warn('[Settings] Profile photo removal failed', { code: getErrorCode(err) });
       setToast({ message: 'Failed to remove image', type: 'error' });
     } finally {
       setIsUploadingPic(false);
@@ -238,492 +255,228 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <>
-      <div
-        className="container"
-        style={{
-          maxWidth: '480px',
-          padding: '0.5rem 1rem',
-          paddingBottom: '2rem',
-          animation: 'fadeIn 0.2s ease-out',
-        }}
-      >
-        {/* Settings is a tab root (Profile tab) — title only, no Back button */}
-        <PageHeader title="Settings" />
+    <div className={styles.page}>
+      {/* Settings is a tab root (Profile tab) — title only, no Back button */}
+      <PageHeader title="Settings" />
 
-        {/* Profile Section */}
-        <ProfileSection
-          username={user.username}
-          bio={user.bio}
+      <ProfileSection
+        username={user.username}
+        bio={user.bio}
+        profilePic={user.profilePic}
+        profilePicThumb={user.profilePicThumb}
+        followersCount={followersCount}
+        followingCount={followingCount}
+        isUploadingPic={isUploadingPic}
+        isVerified={isVerified}
+        onProfilePicClick={() => {
+          if (user.profilePic) {
+            setShowFullscreenPic(true);
+          } else {
+            setShowPicDialog(true);
+          }
+        }}
+        onEditPicClick={() => setShowPicDialog(true)}
+        onBioClick={() => setShowBioDialog(true)}
+        onFollowersClick={() => setShowFollowListModal('followers')}
+        onFollowingClick={() => setShowFollowListModal('following')}
+      />
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        onChange={handleFileSelect}
+        className={styles.fileInput}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
+
+      {/* Badges */}
+      {badgesLoading ? (
+        <div className={styles.badgesCard} aria-hidden="true">
+          <Skeleton width="45%" height={18} radius="full" />
+          <div className={styles.badgesSkeletonRow}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} width={48} height={48} radius="full" />
+            ))}
+          </div>
+          <Skeleton height={8} radius="full" />
+        </div>
+      ) : (
+        badges.length > 0 && (
+          <div className={styles.badgesCard}>
+            <BadgeShowcase
+              badges={badges}
+              longestStreak={longestStreak}
+              showProgress={true}
+              size="sm"
+            />
+          </div>
+        )
+      )}
+
+      <SettingsSection title="Account">
+        <SettingsItem
+          icon={<AtSign size={18} strokeWidth={2.25} />}
+          tone="violet"
+          label="Username"
+          value={`@${user.username}`}
+          onClick={() => setShowUsernameDialog(true)}
+        />
+        <SettingsItem
+          icon={<KeyRound size={18} strokeWidth={2.25} />}
+          tone="amber"
+          label="Password"
+          value="Change your password"
+          onClick={() => setShowPasswordDialog(true)}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="Privacy & people">
+        <SettingsItem
+          icon={<Lock size={18} strokeWidth={2.25} />}
+          tone="teal"
+          label="Private account"
+          value={
+            isPrivate
+              ? 'Only approved followers can see your days and insights'
+              : 'Anyone can see your days and insights'
+          }
+          controlId={privacyToggleId}
+          trailing={
+            <Toggle
+              id={privacyToggleId}
+              checked={isPrivate}
+              onChange={togglePrivacy}
+              busy={isPrivacyLoading}
+              aria-labelledby={`${privacyToggleId}-label`}
+              aria-describedby={`${privacyToggleId}-description`}
+            />
+          }
+        />
+        <SettingsItem
+          icon={<UserPlus size={18} strokeWidth={2.25} />}
+          tone="pink"
+          label="Follow requests"
+          value={
+            pendingRequestsCount > 0
+              ? `${pendingRequestsCount} waiting for your answer`
+              : 'No pending requests'
+          }
+          badge={pendingRequestsCount}
+          onClick={() => setShowFollowRequestsModal(true)}
+        />
+      </SettingsSection>
+
+      <SettingsSection title="Appearance">
+        <SettingsItem
+          icon={<Palette size={18} strokeWidth={2.25} />}
+          tone="indigo"
+          label="Theme"
+          value={THEME_DESCRIPTIONS[theme]}
+        />
+        <div className={styles.themePicker}>
+          <ThemePicker value={theme} onChange={setTheme} />
+        </div>
+      </SettingsSection>
+
+      <PushNotificationsSection onToast={(message, type) => setToast({ message, type })} />
+
+      <SettingsSection title="Help">
+        <SettingsItem
+          icon={<HelpCircle size={18} strokeWidth={2.25} />}
+          tone="green"
+          label="FAQs & help"
+          value="Answers to common questions"
+          href={HELP_URL}
+          external
+        />
+      </SettingsSection>
+
+      <SettingsSection ariaLabel="Session">
+        <SettingsItem
+          icon={<LogOut size={18} strokeWidth={2.25} />}
+          label="Log out"
+          danger
+          onClick={() => setShowLogoutDialog(true)}
+        />
+      </SettingsSection>
+
+      {/* Dialogs */}
+      <ProfilePictureDialog
+        isOpen={showPicDialog}
+        onClose={() => setShowPicDialog(false)}
+        hasProfilePic={!!user.profilePic}
+        onUploadClick={() => fileInputRef.current?.click()}
+        onRemoveClick={handleRemovePicture}
+      />
+
+      <UsernameDialog
+        isOpen={showUsernameDialog}
+        onClose={() => setShowUsernameDialog(false)}
+        currentUsername={user.username}
+        onSuccess={(newUsername) => {
+          updateUsername(newUsername);
+          setToast({ message: 'Username updated!', type: 'success' });
+        }}
+      />
+
+      <PasswordDialog
+        isOpen={showPasswordDialog}
+        onClose={() => setShowPasswordDialog(false)}
+        onSuccess={() => {
+          setToast({ message: 'Password changed successfully!', type: 'success' });
+        }}
+      />
+
+      <BioDialog
+        isOpen={showBioDialog}
+        onClose={() => setShowBioDialog(false)}
+        currentBio={user.bio || ''}
+        onSuccess={(newBio) => {
+          updateBio(newBio || null);
+          setToast({ message: 'Bio updated!', type: 'success' });
+        }}
+      />
+
+      <LogoutDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={handleLogout}
+      />
+
+      {/* Fullscreen Profile Picture */}
+      {showFullscreenPic && user.profilePic && (
+        <FullscreenProfilePic
           profilePic={user.profilePic}
           profilePicThumb={user.profilePicThumb}
-          followersCount={followersCount}
-          followingCount={followingCount}
-          isUploadingPic={isUploadingPic}
-          onProfilePicClick={() => {
-            if (user.profilePic) {
-              setShowFullscreenPic(true);
-            } else {
-              setShowPicDialog(true);
-            }
-          }}
-          onEditPicClick={() => setShowPicDialog(true)}
-          onBioClick={() => setShowBioDialog(true)}
-          onFollowersClick={() => setShowFollowListModal('followers')}
-          onFollowingClick={() => setShowFollowListModal('following')}
+          username={user.username}
+          onClose={() => setShowFullscreenPic(false)}
         />
+      )}
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
+      {/* Toast */}
+      {toast && (
+        <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
+
+      {/* Follow Requests Modal */}
+      <FollowRequestsModal
+        isOpen={showFollowRequestsModal}
+        onClose={() => setShowFollowRequestsModal(false)}
+      />
+
+      {/* Follow List Modal (Followers/Following) */}
+      {showFollowListModal && (
+        <FollowListModal
+          isOpen={!!showFollowListModal}
+          onClose={() => setShowFollowListModal(null)}
+          userId={user.id}
+          username={user.username}
+          type={showFollowListModal}
         />
-
-        {/* Badges Section */}
-        {!badgesLoading && badges.length > 0 && (
-          <div
-            className="card"
-            style={{
-              padding: 0,
-              overflow: 'hidden',
-              border: '1px solid var(--border)',
-              marginBottom: '0.75rem',
-            }}
-          >
-            <div style={{ padding: '0.75rem 1rem' }}>
-              <BadgeShowcase
-                badges={badges}
-                longestStreak={longestStreak}
-                showProgress={true}
-                size="sm"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Account Settings */}
-        <div
-          className="card"
-          style={{ padding: 0, overflow: 'hidden', border: '1px solid var(--border)' }}
-        >
-          <SettingsItem
-            icon={<User size={18} />}
-            label="Username"
-            value={`@${user.username}`}
-            onClick={() => setShowUsernameDialog(true)}
-            showBorder
-            iconColor="var(--text-secondary)"
-            iconBg="var(--icon-bg-muted)"
-          />
-
-          <SettingsItem
-            icon={<Key size={18} />}
-            label="Password"
-            value="••••••••"
-            onClick={() => setShowPasswordDialog(true)}
-            showBorder
-            iconColor="var(--text-secondary)"
-            iconBg="var(--icon-bg-muted)"
-          />
-
-          {/* Privacy Toggle */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0.75rem 1rem',
-              gap: '0.75rem',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--icon-bg-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <Lock size={16} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                Private account
-              </div>
-            </div>
-            <button
-              onClick={togglePrivacy}
-              disabled={isPrivacyLoading}
-              style={{
-                width: '44px',
-                height: '24px',
-                borderRadius: '12px',
-                border: 'none',
-                backgroundColor: isPrivate ? 'var(--color-follow)' : 'var(--border)',
-                cursor: 'pointer',
-                position: 'relative',
-                transition: 'background-color 0.2s',
-              }}
-            >
-              <div
-                style={{
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '50%',
-                  backgroundColor: 'white',
-                  position: 'absolute',
-                  top: '3px',
-                  left: isPrivate ? '23px' : '3px',
-                  transition: 'left 0.2s',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                }}
-              />
-            </button>
-          </div>
-
-          {/* Follow Requests */}
-          <div
-            onClick={() => setShowFollowRequestsModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0.75rem 1rem',
-              gap: '0.75rem',
-              borderBottom: '1px solid var(--border)',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-          >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor:
-                  pendingRequestsCount > 0 ? 'rgba(245, 158, 11, 0.15)' : 'var(--icon-bg-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: pendingRequestsCount > 0 ? 'var(--color-warning)' : 'var(--text-secondary)',
-              }}
-            >
-              <UserPlus size={16} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                Follow requests
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {pendingRequestsCount > 0 && (
-                <span
-                  style={{
-                    backgroundColor: 'var(--color-warning)',
-                    color: 'white',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    padding: '0.125rem 0.5rem',
-                    borderRadius: '10px',
-                    minWidth: '20px',
-                    textAlign: 'center',
-                  }}
-                >
-                  {pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}
-                </span>
-              )}
-              <ChevronRight size={18} color="var(--text-tertiary)" />
-            </div>
-          </div>
-
-          {/* Theme Selection */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0.75rem 1rem',
-              gap: '0.75rem',
-              borderBottom: '1px solid var(--border)',
-            }}
-          >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--icon-bg-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <Palette size={16} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                Theme
-              </div>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                gap: '0.5rem',
-                backgroundColor: 'var(--bg-secondary)',
-                padding: '0.25rem',
-                borderRadius: '10px',
-              }}
-            >
-              <button
-                onClick={() => setTheme('light')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: theme === 'light' ? 'var(--bg-primary)' : 'transparent',
-                  boxShadow: theme === 'light' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  color: theme === 'light' ? 'var(--accent)' : 'var(--text-secondary)',
-                }}
-                title="Light theme"
-              >
-                <Sun size={16} />
-              </button>
-              <button
-                onClick={() => setTheme('dark')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: theme === 'dark' ? 'var(--bg-primary)' : 'transparent',
-                  boxShadow: theme === 'dark' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  color: theme === 'dark' ? 'var(--accent)' : 'var(--text-secondary)',
-                }}
-                title="Dark theme"
-              >
-                <Moon size={16} />
-              </button>
-              <button
-                onClick={() => setTheme('system')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0.5rem',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: theme === 'system' ? 'var(--bg-primary)' : 'transparent',
-                  boxShadow: theme === 'system' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  color: theme === 'system' ? 'var(--accent)' : 'var(--text-secondary)',
-                }}
-                title="System theme"
-              >
-                <Monitor size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Push Notifications */}
-          <PushNotificationsSection onToast={(message, type) => setToast({ message, type })} />
-
-          {/* FAQs */}
-          <a
-            href={import.meta.env.PROD ? 'https://help.trackgrowth.in' : 'http://localhost:5174'}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0.75rem 1rem',
-              gap: '0.75rem',
-              borderBottom: '1px solid var(--border)',
-              textDecoration: 'none',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-secondary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-          >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'var(--icon-bg-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <HelpCircle size={16} />
-            </div>
-            <span
-              style={{
-                flex: 1,
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: 'var(--text-primary)',
-              }}
-            >
-              FAQs
-            </span>
-            <ChevronRight size={18} style={{ color: 'var(--text-muted)' }} />
-          </a>
-
-          {/* Log Out */}
-          <button
-            onClick={() => setShowLogoutDialog(true)}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0.75rem 1rem',
-              gap: '0.75rem',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
-          >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--error)',
-              }}
-            >
-              <LogOut size={16} />
-            </div>
-            <span
-              style={{
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: 'var(--error)',
-              }}
-            >
-              Log out
-            </span>
-          </button>
-        </div>
-
-        {/* Dialogs */}
-        <ProfilePictureDialog
-          isOpen={showPicDialog}
-          onClose={() => setShowPicDialog(false)}
-          hasProfilePic={!!user.profilePic}
-          onUploadClick={() => fileInputRef.current?.click()}
-          onRemoveClick={handleRemovePicture}
-        />
-
-        <UsernameDialog
-          isOpen={showUsernameDialog}
-          onClose={() => setShowUsernameDialog(false)}
-          currentUsername={user.username}
-          onSuccess={(newUsername) => {
-            updateUsername(newUsername);
-            setToast({ message: 'Username updated!', type: 'success' });
-          }}
-        />
-
-        <PasswordDialog
-          isOpen={showPasswordDialog}
-          onClose={() => setShowPasswordDialog(false)}
-          onSuccess={() => {
-            setToast({ message: 'Password changed successfully!', type: 'success' });
-          }}
-        />
-
-        <BioDialog
-          isOpen={showBioDialog}
-          onClose={() => setShowBioDialog(false)}
-          currentBio={user.bio || ''}
-          onSuccess={(newBio) => {
-            updateBio(newBio || null);
-            setToast({ message: 'Bio updated!', type: 'success' });
-          }}
-        />
-
-        <LogoutDialog
-          isOpen={showLogoutDialog}
-          onClose={() => setShowLogoutDialog(false)}
-          onConfirm={handleLogout}
-        />
-
-        {/* Fullscreen Profile Picture */}
-        {showFullscreenPic && user.profilePic && (
-          <FullscreenProfilePic
-            profilePic={user.profilePic}
-            profilePicThumb={user.profilePicThumb}
-            username={user.username}
-            onClose={() => setShowFullscreenPic(false)}
-          />
-        )}
-
-        {/* Toast */}
-        {toast && (
-          <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
-        )}
-
-        {/* Follow Requests Modal */}
-        <FollowRequestsModal
-          isOpen={showFollowRequestsModal}
-          onClose={() => setShowFollowRequestsModal(false)}
-        />
-
-        {/* Follow List Modal (Followers/Following) */}
-        {showFollowListModal && (
-          <FollowListModal
-            isOpen={!!showFollowListModal}
-            onClose={() => setShowFollowListModal(null)}
-            userId={user.id}
-            username={user.username}
-            type={showFollowListModal}
-          />
-        )}
-      </div>
-    </>
+      )}
+    </div>
   );
 };

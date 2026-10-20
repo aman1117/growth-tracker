@@ -31,6 +31,17 @@ const getInitials = (name: string): string => {
   return name.charAt(0).toUpperCase();
 };
 
+const INITIALS_TONES = 6;
+
+/** Stable tone per name so the same user always gets the same fallback color */
+const getToneIndex = (name: string): number => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (hash * 31 + name.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) % INITIALS_TONES;
+};
+
 export const Avatar: React.FC<AvatarProps> = ({
   src,
   thumbnailSrc,
@@ -53,6 +64,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   const classNames = [
     styles.avatar,
     styles[size],
+    showImage ? '' : styles[`tone${getToneIndex(name)}`],
     onClick ? styles.clickable : '',
     zoomable ? styles.zoomable : '',
     className,

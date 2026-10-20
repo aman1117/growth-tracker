@@ -20,8 +20,6 @@ export interface PullToRefreshIndicatorProps {
 
 /** Animation duration in ms for settle animation */
 const ANIMATION_DURATION = 200;
-/** Header height offset for positioning */
-const HEADER_OFFSET = 56;
 
 export const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
   state,
@@ -51,9 +49,10 @@ export const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
     if (isSettling && !isAnimatingOutRef.current) {
       isAnimatingOutRef.current = true;
 
-      // Get current visual position
+      // Current visual offset relative to the container's CSS anchor (below the header + safe area)
       const rect = container.getBoundingClientRect();
-      const startY = rect.top - HEADER_OFFSET;
+      const anchorTop = parseFloat(getComputedStyle(container).top) || 0;
+      const startY = rect.top - anchorTop;
 
       // Cancel any existing animation
       if (animationRef.current) {
@@ -125,15 +124,23 @@ export const PullToRefreshIndicator: React.FC<PullToRefreshIndicatorProps> = ({
       role="status"
       aria-label={ariaLabel}
     >
-      {isRefreshing ? (
-        <Loader2 size={24} className={`${styles.spinner} ${styles.spinning}`} strokeWidth={2.5} />
-      ) : (
-        <ArrowDown
-          size={24}
-          strokeWidth={2.5}
-          style={{ transform: `rotate(${arrowRotation}deg)` }}
-        />
-      )}
+      <div className={`${styles.puck} ${isArmed || isRefreshing ? styles.armed : ''}`}>
+        {isRefreshing ? (
+          <Loader2
+            size={20}
+            className={`${styles.spinner} ${styles.spinning}`}
+            strokeWidth={2.75}
+            aria-hidden="true"
+          />
+        ) : (
+          <ArrowDown
+            size={20}
+            strokeWidth={2.75}
+            style={{ transform: `rotate(${arrowRotation}deg)` }}
+            aria-hidden="true"
+          />
+        )}
+      </div>
     </div>
   );
 };

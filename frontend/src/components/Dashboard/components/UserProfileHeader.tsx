@@ -11,7 +11,7 @@ import React from 'react';
 import type { ActivityPhoto } from '../../../types';
 import { formatLastLogged } from '../../../types';
 import { FollowButton, FollowStats, MutualFollowers } from '../../social';
-import { ProtectedImage, VerifiedBadge } from '../../ui';
+import { Avatar, VerifiedBadge } from '../../ui';
 import styles from './UserProfileHeader.module.css';
 
 interface UserProfileHeaderProps {
@@ -48,25 +48,36 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
   // Check if user has viewable stories (not private, has photos, and photos belong to current user)
   const hasStories =
     !isPrivateAccount && targetUserPhotos.length > 0 && targetUserPhotosOwnerId === targetUserId;
+  const isAvatarInteractive = hasStories || !!targetProfilePic;
+
+  const avatar = (
+    <Avatar
+      src={targetProfilePic}
+      thumbnailSrc={targetProfilePicThumb}
+      name={targetUsername}
+      size="xl"
+      className={styles.avatar}
+    />
+  );
 
   return (
-    <div className={styles.container}>
+    <section className={styles.container} aria-label={`${targetUsername}'s profile`}>
       {/* Row 1: Avatar + Stats */}
       <div className={styles.avatarRow}>
-        <div
-          onClick={onAvatarClick}
-          className={`${styles.avatar} ${hasStories ? styles.avatarWithStory : styles.avatarDefault} ${hasStories || targetProfilePic ? styles.avatarClickable : ''}`}
-        >
-          {targetProfilePic ? (
-            <ProtectedImage
-              src={targetProfilePicThumb || targetProfilePic}
-              alt={targetUsername}
-              className={styles.avatarImage}
-            />
-          ) : (
-            targetUsername.charAt(0)
-          )}
-        </div>
+        {isAvatarInteractive ? (
+          <button
+            type="button"
+            onClick={onAvatarClick}
+            className={`${styles.avatarRing} ${hasStories ? styles.avatarWithStory : ''}`}
+            aria-label={
+              hasStories ? `View ${targetUsername}'s stories` : `View ${targetUsername}'s photo`
+            }
+          >
+            {avatar}
+          </button>
+        ) : (
+          <div className={styles.avatarRing}>{avatar}</div>
+        )}
         <div className={styles.statsCol}>
           {targetUserId && (
             <FollowStats
@@ -83,13 +94,13 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
       <div className={styles.infoCol}>
         <span className={styles.usernameRow}>
           {targetUsername}
-          {targetIsVerified && <VerifiedBadge size={14} />}
+          {targetIsVerified && <VerifiedBadge size={16} />}
         </span>
-        {!isPrivateAccount && targetBio && <span className={styles.bio}>{targetBio}</span>}
+        {!isPrivateAccount && targetBio && <p className={styles.bio}>{targetBio}</p>}
         {/* Last logged - only shown when available (privacy-aware from backend) */}
         {targetLastLoggedAt && (
           <span className={styles.lastLogged}>
-            <Clock size={12} />
+            <Clock size={12} strokeWidth={2.5} aria-hidden="true" />
             Last logged {formatLastLogged(targetLastLoggedAt)}
           </span>
         )}
@@ -105,21 +116,24 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
               userId={targetUserId}
               username={targetUsername}
               isPrivate={targetIsPrivate}
-              size="md"
+              size="lg"
               fullWidth
             />
           </div>
         )}
         {!isPrivateAccount && (
           <button
+            type="button"
             onClick={onAnalyticsClick}
-            className={`secondary-button ${styles.analyticsButton}`}
+            className={styles.analyticsButton}
             title="View Analytics"
+            aria-label={`View ${targetUsername}'s insights`}
           >
-            <BarChart3 size={16} />
+            <BarChart3 size={16} strokeWidth={2.5} aria-hidden="true" />
+            <span>Insights</span>
           </button>
         )}
       </div>
-    </div>
+    </section>
   );
 };

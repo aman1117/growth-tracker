@@ -1,0 +1,167 @@
+/**
+ * TileGrid Styles
+ */
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: 100px;
+  gap: 10px;
+  padding: 4px 0 8px;
+}
+
+.slideOutLeft {
+  animation: slideOutLeft 0.15s ease-out forwards;
+}
+
+.slideOutRight {
+  animation: slideOutRight 0.15s ease-out forwards;
+}
+
+.slideInLeft {
+  animation: slideInLeft 0.25s var(--ease-out) forwards;
+}
+
+.slideInRight {
+  animation: slideInRight 0.25s var(--ease-out) forwards;
+}
+
+/* Add tile (edit mode) */
+.addTile {
+  grid-column: span 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 100px;
+  padding: 8px 4px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-tile);
+  background: transparent;
+  color: var(--accent-text);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast) var(--ease-default),
+    background-color var(--transition-fast) var(--ease-default),
+    transform 0.15s var(--ease-default);
+}
+
+.addTile:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.addTile:active {
+  transform: scale(0.96);
+}
+
+.addIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 13px;
+  background: var(--accent-soft);
+}
+
+.addLabel {
+  font-size: 0.6875rem;
+  font-weight: var(--font-bold);
+  color: var(--text-secondary);
+}
+
+/* Drag overlay: the tile "lifted" under the finger */
+.dragOverlay {
+  --tile-color: var(--accent);
+
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: var(--radius-tile);
+  background:
+    radial-gradient(120% 85% at 0% 0%, rgba(255, 255, 255, 0.3), transparent 55%),
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--tile-color) 84%, #ffffff) 0%,
+      var(--tile-color) 50%,
+      color-mix(in srgb, var(--tile-color) 82%, #000000) 100%
+    );
+  box-shadow:
+    0 0 0 3px var(--bg-primary),
+    0 0 0 6px var(--accent),
+    var(--shadow-floating);
+  transform: scale(1.04) rotate(-1.5deg);
+  cursor: grabbing;
+}
+
+.dragLabel {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: var(--font-extrabold);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slideOutLeft,
+  .slideOutRight,
+  .slideInLeft,
+  .slideInRight {
+    animation-duration: 0.01ms;
+  }
+
+  .dragOverlay {
+    transform: none;
+  }
+}

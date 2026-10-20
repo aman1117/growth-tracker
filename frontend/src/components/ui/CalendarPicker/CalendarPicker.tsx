@@ -50,6 +50,21 @@ const MONTHS = [
 
 const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
+const HEAT_LEGEND_KEYS = [
+  'heatLevel1',
+  'heatLevel2',
+  'heatLevel3',
+  'heatLevel4',
+  'heatComplete',
+] as const;
+
+const dayLabelFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
+
 const isSameDay = (a: Date, b: Date) => {
   return (
     a.getDate() === b.getDate() &&
@@ -269,6 +284,16 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
     return `${hours}/24 hours logged`;
   };
 
+  // Full accessible name, e.g. "Monday, October 5, 2026, 12/24 hours logged, selected"
+  const getDayAriaLabel = (day: { date: Date; isToday: boolean; isSelected: boolean }) => {
+    const parts = [dayLabelFormatter.format(day.date)];
+    const tooltip = getDayTooltip(day.date);
+    if (tooltip) parts.push(tooltip);
+    if (day.isToday) parts.push('today');
+    if (day.isSelected) parts.push('selected');
+    return parts.join(', ');
+  };
+
   if (!isOpen) return null;
 
   const getDayClassName = (day: {
@@ -283,7 +308,6 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
       !day.isCurrentMonth && styles.outside,
       day.isToday && styles.today,
       day.isSelected && styles.selected,
-      day.isDisabled && styles.disabled,
       getHeatLevelClass(day.date),
     ]
       .filter(Boolean)
@@ -296,6 +320,9 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
         ref={calendarRef}
         className={`${styles.modal} ${isClosing ? styles.closing : ''}`}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Choose a date"
       >
         {/* Header */}
         <div className={styles.header}>
@@ -303,23 +330,36 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
             className={styles.navButton}
             onClick={() => (view === 'days' ? navigateMonth(-1) : setView('years'))}
             disabled={view === 'years'}
+            aria-label={view === 'days' ? 'Previous month' : 'Choose year'}
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={18} strokeWidth={2.25} aria-hidden="true" />
           </button>
 
-          <div className={styles.titleGroup}>
+          <div className={styles.titleGroup} aria-live="polite">
             {view === 'days' && (
               <>
-                <button className={styles.titleButton} onClick={() => setView('months')}>
+                <button
+                  className={styles.titleButton}
+                  onClick={() => setView('months')}
+                  aria-label={`${MONTHS[viewDate.getMonth()]}, choose month`}
+                >
                   {MONTHS[viewDate.getMonth()]}
                 </button>
-                <button className={styles.titleButton} onClick={() => setView('years')}>
+                <button
+                  className={styles.titleButton}
+                  onClick={() => setView('years')}
+                  aria-label={`${viewDate.getFullYear()}, choose year`}
+                >
                   {viewDate.getFullYear()}
                 </button>
               </>
             )}
             {view === 'months' && (
-              <button className={styles.titleButton} onClick={() => setView('years')}>
+              <button
+                className={styles.titleButton}
+                onClick={() => setView('years')}
+                aria-label={`${viewDate.getFullYear()}, choose year`}
+              >
                 {viewDate.getFullYear()}
               </button>
             )}
@@ -330,15 +370,16 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
             className={styles.navButton}
             onClick={() => (view === 'days' ? navigateMonth(1) : null)}
             disabled={view !== 'days' || !canGoNext()}
+            aria-label="Next month"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={18} strokeWidth={2.25} aria-hidden="true" />
           </button>
         </div>
 
         {/* Days View */}
         {view === 'days' && (
           <div className={styles.body}>
-            <div className={styles.weekdays}>
+            <div className={styles.weekdays} aria-hidden="true">
               {WEEKDAYS.map((day) => (
                 <div key={day} className={styles.weekday}>
                   {day}
@@ -353,6 +394,8 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
                   onClick={() => !day.isDisabled && handleDateClick(day.date)}
                   disabled={day.isDisabled}
                   title={getDayTooltip(day.date)}
+                  aria-label={getDayAriaLabel(day)}
+                  aria-current={day.isToday ? 'date' : undefined}
                 >
                   {day.date.getDate()}
                 </button>
@@ -370,7 +413,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
               return (
                 <button
                   key={month}
-                  className={`${styles.gridButton} ${viewDate.getMonth() === idx ? styles.selected : ''} ${isDisabled ? styles.disabled : ''}`}
+                  className={`${styles.gridButton} ${viewDate.getMonth() === idx ? styles.selected : ''}`}
                   onClick={() => !isDisabled && handleMonthSelect(idx)}
                   disabled={isDisabled}
                 >
@@ -398,6 +441,15 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
 
         {/* Footer */}
         <div className={styles.footer}>
+          {completionData && view === 'days' && (
+            <div className={styles.legend} aria-hidden="true">
+              <span>Less</span>
+              {HEAT_LEGEND_KEYS.map((key) => (
+                <i key={key} className={`${styles.legendSwatch} ${styles[key]}`} />
+              ))}
+              <span>More</span>
+            </div>
+          )}
           <button className={styles.todayButton} onClick={handleGoToToday}>
             Today
           </button>

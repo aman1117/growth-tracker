@@ -40,20 +40,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 24px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
   margin-bottom: var(--space-2);
 }
 
 .sm .icon {
-  font-size: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 18px;
+  font-size: 1.5rem;
 }
 
 .md .icon {
-  font-size: 2.5rem;
+  font-size: 2rem;
 }
 
 .lg .icon {
-  font-size: 3rem;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 28px;
+  font-size: 2.5rem;
 }
 
 /* ============================================================================
@@ -61,7 +71,8 @@
    ============================================================================ */
 
 .title {
-  font-weight: var(--font-semibold);
+  font-family: var(--font-display);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
   margin: 0;
   letter-spacing: var(--tracking-tight);

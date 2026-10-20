@@ -42,6 +42,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
   const [liked, setLiked] = useState(initialLiked ?? false);
   const [count, setCount] = useState(initialCount ?? 0);
   const [loading, setLoading] = useState(false);
+  const [popping, setPopping] = useState(false);
   const [showLikersModal, setShowLikersModal] = useState(false);
   const [initialized, setInitialized] = useState(
     initialCount !== undefined && initialLiked !== undefined
@@ -90,6 +91,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
       const newCount = newLiked ? count + 1 : Math.max(0, count - 1);
       setLiked(newLiked);
       setCount(newCount);
+      setPopping(newLiked);
 
       try {
         const response = newLiked
@@ -144,18 +146,35 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
     <>
       <div className={containerClasses}>
         <button
+          type="button"
           onClick={handleClick}
           disabled={loading}
           className={buttonClasses}
           title={liked ? 'Unlike this day' : 'Like this day'}
+          aria-label={liked ? 'Unlike this day' : 'Like this day'}
+          aria-pressed={liked}
         >
-          <Heart size={iconSize} fill={liked ? 'currentColor' : 'none'} className={styles.icon} />
+          <Heart
+            size={iconSize}
+            fill={liked ? 'currentColor' : 'none'}
+            className={popping ? `${styles.icon} ${styles.pop}` : styles.icon}
+            onAnimationEnd={() => setPopping(false)}
+            aria-hidden="true"
+          />
         </button>
-        {showCount && (
-          <span onClick={handleCountClick} className={countClasses}>
-            {count}
-          </span>
-        )}
+        {showCount &&
+          (count > 0 ? (
+            <button
+              type="button"
+              onClick={handleCountClick}
+              className={countClasses}
+              aria-label={`See ${count} ${count === 1 ? 'like' : 'likes'}`}
+            >
+              {count}
+            </button>
+          ) : (
+            <span className={countClasses}>{count}</span>
+          ))}
       </div>
 
       <LikersModal

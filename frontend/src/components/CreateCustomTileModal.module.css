@@ -1,0 +1,214 @@
+/**
+ * CreateCustomTileModal Styles
+ */
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-3) var(--space-5) var(--space-2);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--error-soft);
+  color: var(--error);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+  animation: shake 0.3s ease-in-out;
+}
+
+.error svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.identityRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+/* Live preview — mirrors the logged state of ActivityTile */
+.preview {
+  --tile-color: var(--accent);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  padding: 8px 6px;
+  border-radius: var(--radius-tile);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    radial-gradient(120% 85% at 0% 0%, rgba(255, 255, 255, 0.3), transparent 55%),
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--tile-color) 84%, #ffffff) 0%,
+      var(--tile-color) 50%,
+      color-mix(in srgb, var(--tile-color) 82%, #000000) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 14px 26px -12px color-mix(in srgb, var(--tile-color) 80%, transparent);
+  transition:
+    background 0.3s var(--ease-default),
+    box-shadow 0.3s var(--ease-default);
+}
+
+.onLight {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(10, 8, 30, 0.22);
+}
+
+.onDark {
+  color: var(--text-ink);
+}
+
+.previewIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.onDark .previewIcon {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.previewName {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  font-weight: var(--font-semibold);
+  line-height: 1.2;
+  opacity: 0.94;
+}
+
+.previewHours {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: var(--font-extrabold);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.previewUnit {
+  margin-left: 1px;
+  font-size: 0.78em;
+  font-weight: var(--font-bold);
+}
+
+.nameField {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.label,
+.sectionLabel {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.nameInput {
+  width: 100%;
+  height: var(--input-height-md);
+  padding: 0 var(--input-padding-x);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--input-radius);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  /* 16px prevents iOS Safari auto-zoom */
+  font-size: 16px;
+  transition:
+    border-color var(--transition-fast) var(--ease-default),
+    box-shadow var(--transition-fast) var(--ease-default);
+}
+
+.nameInput::placeholder {
+  color: var(--input-placeholder);
+}
+
+.nameInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.nameInput[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.counter {
+  align-self: flex-end;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.footerButton {
+  flex: 1;
+}
+
+@media (max-width: 360px) {
+  .form {
+    padding-inline: var(--space-4);
+  }
+
+  .identityRow {
+    gap: var(--space-3);
+  }
+
+  .preview {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .error {
+    animation: none;
+  }
+}

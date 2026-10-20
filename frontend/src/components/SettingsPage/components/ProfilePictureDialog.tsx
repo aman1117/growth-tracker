@@ -1,14 +1,18 @@
 /**
  * Profile Picture Dialog
  *
- * Dialog for uploading or removing profile picture.
+ * Action sheet for uploading, replacing or removing the profile picture.
  */
 
-import { Camera, Trash2, X } from 'lucide-react';
+import { Camera, ImagePlus, Trash2 } from 'lucide-react';
 import React from 'react';
 
+import { VALIDATION } from '../../../constants/validation';
+import { Modal } from '../../ui';
 import type { ProfilePictureDialogProps } from '../SettingsPage.types';
-import { DialogWrapper } from './DialogWrapper';
+import styles from './SettingsDialogs.module.css';
+
+const MAX_MB = VALIDATION.MAX_FILE_SIZE / (1024 * 1024);
 
 export const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
   isOpen,
@@ -16,93 +20,55 @@ export const ProfilePictureDialog: React.FC<ProfilePictureDialogProps> = ({
   hasProfilePic,
   onUploadClick,
   onRemoveClick,
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <DialogWrapper onClose={onClose}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '1rem',
+}) => (
+  <Modal
+    isOpen={isOpen}
+    onClose={onClose}
+    title="Profile photo"
+    subtitle="Show people who's behind the streak"
+    icon={
+      <span className={`${styles.toneIcon} ${styles.toneSky}`}>
+        <Camera size={20} strokeWidth={2.3} />
+      </span>
+    }
+    maxWidth="400px"
+  >
+    <div className={styles.actions}>
+      <button
+        type="button"
+        className={styles.action}
+        onClick={() => {
+          // Must run inside the tap so the browser allows opening the file picker
+          onUploadClick();
+          onClose();
         }}
       >
-        <h3
-          style={{
-            margin: 0,
-            fontSize: '1.125rem',
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-          }}
-        >
-          Profile photo
-        </h3>
+        <span className={styles.actionIcon} aria-hidden="true">
+          <ImagePlus size={20} strokeWidth={2.25} />
+        </span>
+        <span className={styles.actionText}>
+          <span className={styles.actionTitle}>
+            {hasProfilePic ? 'Choose a new photo' : 'Upload a photo'}
+          </span>
+          <span className={styles.actionHint}>JPG, PNG, WebP or HEIC · up to {MAX_MB} MB</span>
+        </span>
+      </button>
+
+      {hasProfilePic && (
         <button
           type="button"
-          onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            padding: '0.25rem',
-          }}
+          className={`${styles.action} ${styles.actionDanger}`}
+          onClick={onRemoveClick}
         >
-          <X size={20} />
+          <span className={styles.actionIcon} aria-hidden="true">
+            <Trash2 size={20} strokeWidth={2.25} />
+          </span>
+          <span className={styles.actionText}>
+            <span className={styles.actionTitle}>Remove photo</span>
+            <span className={styles.actionHint}>Your initial will show instead</span>
+          </span>
         </button>
-      </div>
-
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <button
-          onClick={() => {
-            onUploadClick();
-            onClose();
-          }}
-          style={{
-            flex: 1,
-            padding: '0.625rem 1.25rem',
-            borderRadius: '8px',
-            border: 'none',
-            backgroundColor: '#0095f6',
-            color: '#ffffff',
-            fontSize: '0.875rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem',
-            fontWeight: 500,
-          }}
-        >
-          <Camera size={16} />
-          {hasProfilePic ? 'Change' : 'Upload'}
-        </button>
-        {hasProfilePic && (
-          <button
-            onClick={onRemoveClick}
-            style={{
-              flex: 1,
-              padding: '0.625rem 1.25rem',
-              borderRadius: '8px',
-              border: '1px solid #ef4444',
-              backgroundColor: 'transparent',
-              color: '#ef4444',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem',
-              fontWeight: 500,
-            }}
-          >
-            <Trash2 size={16} />
-            Remove
-          </button>
-        )}
-      </div>
-    </DialogWrapper>
-  );
-};
+      )}
+    </div>
+  </Modal>
+);

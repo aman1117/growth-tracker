@@ -20,6 +20,25 @@
   cursor: not-allowed;
 }
 
+/* Saving: dimmed with a breathing thumb, still focusable */
+.busy .track {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.busy .thumb {
+  animation: thumbPulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes thumbPulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.55;
+  }
+}
+
 /* ============================================================================
    Track
    ============================================================================ */
@@ -33,7 +52,9 @@
   border: none;
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: background-color var(--transition-fast) var(--ease-default);
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    box-shadow var(--transition-fast) var(--ease-default);
 }
 
 .track:focus-visible {
@@ -42,7 +63,10 @@
 }
 
 .track.checked {
-  background: var(--accent);
+  background: var(--gradient-primary);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 4px 12px -4px var(--accent-glow);
 }
 
 /* ============================================================================
@@ -53,8 +77,10 @@
   position: absolute;
   background: white;
   border-radius: var(--radius-full);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast) var(--ease-default);
+  box-shadow:
+    0 1px 2px rgba(23, 20, 44, 0.2),
+    0 2px 6px rgba(23, 20, 44, 0.12);
+  transition: transform 0.28s var(--ease-bounce);
 }
 
 /* ============================================================================
@@ -159,5 +185,9 @@
   .track,
   .thumb {
     transition: none;
+  }
+
+  .busy .thumb {
+    animation: none;
   }
 }

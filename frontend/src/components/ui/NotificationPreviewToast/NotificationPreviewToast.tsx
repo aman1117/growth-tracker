@@ -15,42 +15,13 @@
  * - Escape key to dismiss
  */
 
-import {
-  AlertTriangle,
-  AtSign,
-  Camera,
-  Flame,
-  Heart,
-  Megaphone,
-  MessageCircle,
-  Reply,
-  Trophy,
-  UserCheck,
-  UserPlus,
-  X,
-} from 'lucide-react';
+import { X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 
-import type { Notification, NotificationType } from '../../../types';
+import type { Notification } from '../../../types';
+import { getNotificationVisual } from '../Notification/notificationVisuals';
 import styles from './NotificationPreviewToast.module.css';
-
-const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
-  like_received: <Heart size={16} className={styles.iconLike} />,
-  story_liked: <Heart size={16} className={styles.iconLike} />,
-  badge_unlocked: <Trophy size={16} className={styles.iconBadge} />,
-  streak_milestone: <Flame size={16} className={styles.iconStreak} />,
-  streak_at_risk: <AlertTriangle size={16} className={styles.iconWarning} />,
-  system_announcement: <Megaphone size={16} className={styles.iconSystem} />,
-  new_follower: <UserPlus size={16} className={styles.iconFollow} />,
-  follow_request: <UserPlus size={16} className={styles.iconFollow} />,
-  follow_accepted: <UserCheck size={16} className={styles.iconFollow} />,
-  photo_uploaded: <Camera size={16} className={styles.iconPhoto} />,
-  comment_received: <MessageCircle size={16} className={styles.iconFollow} />,
-  comment_reply: <Reply size={16} className={styles.iconFollow} />,
-  comment_mention: <AtSign size={16} className={styles.iconFollow} />,
-  comment_liked: <Heart size={16} className={styles.iconLike} />,
-};
 
 export interface NotificationPreviewToastProps {
   notification: Notification;
@@ -151,7 +122,7 @@ export const NotificationPreviewToast: React.FC<NotificationPreviewToastProps> =
     [onClick, notification, onClose]
   );
 
-  const icon = NOTIFICATION_ICONS[notification.type] || <Megaphone size={16} />;
+  const { Icon: TypeIcon, toneClass } = getNotificationVisual(notification.type);
 
   const toastStyle: React.CSSProperties = isDragging
     ? {
@@ -173,10 +144,12 @@ export const NotificationPreviewToast: React.FC<NotificationPreviewToastProps> =
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      role="alert"
+      role="status"
       aria-live="polite"
     >
-      <div className={styles.iconWrapper}>{icon}</div>
+      <div className={`${styles.iconWrapper} ${toneClass}`} aria-hidden="true">
+        <TypeIcon size={18} />
+      </div>
 
       <div className={styles.content}>
         <p className={styles.title}>{notification.title}</p>
@@ -191,7 +164,7 @@ export const NotificationPreviewToast: React.FC<NotificationPreviewToastProps> =
         }}
         aria-label="Dismiss notification"
       >
-        <X size={14} />
+        <X size={14} strokeWidth={2.5} aria-hidden="true" />
       </button>
     </div>
   );

@@ -1,88 +1,114 @@
 /**
  * Button Component Styles
- * 
- * Uses design tokens for consistent sizing across the app.
+ *
+ * Aurora "tactile" buttons: solid variants sit on a soft ledge and press down
+ * on click. Uses design tokens for consistent sizing across the app.
  * Supports: primary, secondary, danger, ghost, outline, glass variants
  * Sizes: xs, sm, md, lg
  */
 
 .button {
+  --btn-ledge: transparent;
+  --btn-ledge-size: 0px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  font-weight: var(--font-black);
-  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: var(--font-bold);
+  letter-spacing: -0.005em;
+  border-radius: var(--btn-md-radius);
   cursor: pointer;
   transition:
     background-color var(--transition-fast) var(--ease-default),
     border-color var(--transition-fast) var(--ease-default),
     color var(--transition-fast) var(--ease-default),
     box-shadow var(--transition-fast) var(--ease-default),
-    transform var(--transition-fast) var(--ease-default);
+    filter var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
   border: 1px solid transparent;
+  box-shadow: 0 var(--btn-ledge-size) 0 0 var(--btn-ledge);
   outline: none;
   position: relative;
   white-space: nowrap;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .button:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none !important;
 }
 
 .button:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+  box-shadow:
+    0 var(--btn-ledge-size) 0 0 var(--btn-ledge),
+    0 0 0 var(--ring-width) var(--ring-color);
 }
 
+/* Press: the button sinks onto its ledge */
 .button:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: translateY(calc(var(--btn-ledge-size) - 1px));
+  box-shadow: 0 1px 0 0 var(--btn-ledge);
 }
 
 /* ============================================================================
    Variants
    ============================================================================ */
 
-/* Primary - Accent color button */
+/* Primary - brand violet with ledge + glow */
 .primary {
-  background-color: var(--accent);
-  color: white;
-  border-color: var(--accent);
+  --btn-ledge: var(--accent-ledge);
+  --btn-ledge-size: 3px;
+  background: var(--gradient-primary);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 var(--btn-ledge-size) 0 0 var(--btn-ledge),
+    var(--shadow-glow-accent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  text-shadow: 0 1px 1px rgba(30, 10, 90, 0.25);
 }
 
 .primary:hover:not(:disabled) {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-hover);
+  filter: brightness(1.06) saturate(1.05);
 }
 
-/* Secondary - Subtle background button */
+/* Secondary - soft control surface */
 .secondary {
-  background-color: var(--bg-secondary);
+  --btn-ledge: var(--control-ledge);
+  --btn-ledge-size: 2px;
+  background: var(--control-bg);
   color: var(--text-primary);
-  border-color: var(--border);
+  border-color: var(--control-border);
 }
 
 .secondary:hover:not(:disabled) {
-  background-color: var(--bg-tertiary);
+  background: var(--control-bg-hover);
   border-color: var(--border-strong);
 }
 
-/* Danger - Destructive action button */
+/* Danger - destructive action */
 .danger {
-  background-color: var(--error);
-  color: white;
-  border-color: var(--error);
+  --btn-ledge: color-mix(in srgb, var(--error) 62%, black);
+  --btn-ledge-size: 3px;
+  background: var(--error);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 var(--btn-ledge-size) 0 0 var(--btn-ledge),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .danger:hover:not(:disabled) {
-  background-color: color-mix(in srgb, var(--error) 85%, black);
-  border-color: color-mix(in srgb, var(--error) 85%, black);
+  filter: brightness(1.06);
 }
 
-/* Ghost - Minimal button */
+/* Ghost - minimal */
 .ghost {
   background-color: transparent;
   color: var(--text-secondary);
@@ -90,30 +116,32 @@
 }
 
 .ghost:hover:not(:disabled) {
-  background-color: var(--bg-secondary);
+  background-color: var(--chip-bg);
   color: var(--text-primary);
 }
 
-/* Outline - Border button */
+/* Outline - bordered control */
 .outline {
-  background-color: transparent;
+  --btn-ledge: var(--control-ledge);
+  --btn-ledge-size: 2px;
+  background: transparent;
   color: var(--text-primary);
-  border-color: var(--border);
+  border-color: var(--control-border);
 }
 
 .outline:hover:not(:disabled) {
-  background-color: var(--bg-secondary);
+  background: var(--control-bg);
   border-color: var(--border-strong);
 }
 
-/* Glass - Glassmorphism button */
+/* Glass - frosted surface */
 .glass {
   background: var(--glass-surface-bg);
   color: var(--text-primary);
   border-color: var(--glass-surface-border);
   box-shadow: var(--shadow-sm), var(--glass-surface-glow);
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
 }
 
 .glass:hover:not(:disabled) {
@@ -131,6 +159,7 @@
   height: var(--btn-xs-height);
   padding: 0 var(--btn-xs-padding-x);
   font-size: var(--btn-xs-font-size);
+  border-radius: var(--btn-xs-radius);
   gap: var(--space-1);
 }
 
@@ -144,6 +173,7 @@
   height: var(--btn-sm-height);
   padding: 0 var(--btn-sm-padding-x);
   font-size: var(--btn-sm-font-size);
+  border-radius: var(--btn-sm-radius);
   gap: var(--space-1-5);
 }
 
@@ -157,6 +187,7 @@
   height: var(--btn-md-height);
   padding: 0 var(--btn-md-padding-x);
   font-size: var(--btn-md-font-size);
+  border-radius: var(--btn-md-radius);
 }
 
 .md .icon,
@@ -169,6 +200,7 @@
   height: var(--btn-lg-height);
   padding: 0 var(--btn-lg-padding-x);
   font-size: var(--btn-lg-font-size);
+  border-radius: var(--btn-lg-radius);
   gap: var(--space-2-5);
 }
 
@@ -216,10 +248,11 @@
 .spinner {
   width: 1em;
   height: 1em;
-  border: 2px solid transparent;
-  border-top-color: currentColor;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
   border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  opacity: 0.85;
+  animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {
@@ -250,9 +283,11 @@
 
 /* Hover variant - danger on hover */
 .hoverDanger:hover:not(:disabled) {
-  background-color: var(--error);
-  color: white;
+  --btn-ledge: color-mix(in srgb, var(--error) 62%, black);
+  background: var(--error);
+  color: #ffffff;
   border-color: var(--error);
+  filter: none;
 }
 
 /* ============================================================================
@@ -282,9 +317,11 @@
     transition: none;
   }
 
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+
   .spinner {
     animation: none;
-    border-top-color: transparent;
-    border-left-color: currentColor;
   }
 }

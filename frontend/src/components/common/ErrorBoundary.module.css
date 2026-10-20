@@ -1,0 +1,106 @@
+/**
+ * ErrorBoundary Styles
+ */
+
+.container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: calc(100vh - 160px);
+  padding: 12vh 1.25rem 2rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  padding: 2rem 1.5rem 1.5rem;
+  border-radius: var(--radius-3xl);
+  background: var(--glass-surface-bg);
+  border: 1px solid var(--glass-surface-border);
+  box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  animation: rise 0.35s var(--ease-spring) both;
+}
+
+.iconChip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 1.25rem;
+  border-radius: 24px;
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.message {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 1.25rem;
+}
+
+.details {
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+}
+
+.errorText {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  color: var(--color-text-danger);
+  overflow: auto;
+  max-height: 150px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.actions > button {
+  flex: 1;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}

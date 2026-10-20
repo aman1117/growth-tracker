@@ -9,9 +9,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { API_ROUTES } from '../../../constants/routes';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import { apiClient } from '../../../services/api';
 import { Avatar } from '../Avatar';
 import { VerifiedBadge } from '../VerifiedBadge';
+import styles from './CommentInput.module.css';
 
 interface AutocompleteSuggestion {
   text: string;
@@ -77,64 +79,25 @@ export const MentionAutocomplete: React.FC<MentionAutocompleteProps> = ({
     [onSelect]
   );
 
-  // Close on Escape
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [onClose]);
+  // Close on Escape (claims the key before the comment sheet while suggestions show)
+  useEscapeKey(!!debouncedQuery && suggestions.length > 0, onClose);
 
   if (!debouncedQuery || suggestions.length === 0) {
     return null;
   }
 
   return (
-    <div
-      style={{
-        padding: 'var(--space-1) 0',
-        background: 'var(--bg-secondary)',
-        borderTop: '1px solid var(--glass-border)',
-        maxHeight: '200px',
-        overflowY: 'auto',
-      }}
-    >
+    <div className={styles.mentionList} role="group" aria-label="Mention suggestions">
       {suggestions.map((suggestion) => (
         <button
           key={suggestion.text}
+          type="button"
+          className={styles.mentionOption}
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => handleSelect(suggestion.text)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-3)',
-            width: '100%',
-            padding: 'var(--space-2) var(--space-4)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            textAlign: 'left',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-primary)',
-            transition: 'background 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'var(--glass-hover-bg)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = 'none';
-          }}
         >
           <Avatar name={suggestion.text} src={suggestion.meta.profilePic} size="xs" />
-          <span
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontWeight: 'var(--font-medium)' as React.CSSProperties['fontWeight'],
-            }}
-          >
+          <span className={styles.mentionName}>
             {suggestion.text}
             {suggestion.meta.isVerified && <VerifiedBadge size={14} />}
           </span>

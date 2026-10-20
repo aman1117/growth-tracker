@@ -5,28 +5,28 @@
  */
 
 .card {
-  background: var(--bg-primary);
-  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-card);
   border: 1px solid var(--border);
   transition:
     background-color var(--transition-normal) var(--ease-default),
     border-color var(--transition-normal) var(--ease-default),
     box-shadow var(--transition-normal) var(--ease-default),
-    transform var(--transition-normal) var(--ease-default);
+    transform var(--transition-normal) var(--ease-spring);
 }
 
 /* Glass variant - uses glass utility tokens */
 .glass {
   background: var(--glass-surface-bg);
-  backdrop-filter: blur(var(--glass-blur-sm));
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
   border-color: var(--glass-surface-border);
 }
 
 /* Elevated variant */
 .elevated {
-  background: var(--bg-primary);
+  background: var(--bg-elevated);
   box-shadow: var(--shadow-elevated);
   border-color: transparent;
 }

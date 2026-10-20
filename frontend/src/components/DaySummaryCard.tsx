@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Flame, Trophy } from 'lucide-react';
+import { CalendarDays, Check, ChevronLeft, ChevronRight, Flame, Trophy } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../services/api';
@@ -7,7 +7,14 @@ import { useCommentStore } from '../store/useCommentStore';
 import type { Badge } from '../types/api';
 import { renderBadgeIcon } from '../utils/badgeIcons';
 import s from './DaySummaryCard.module.css';
-import { CalendarPicker, CommentButton, CommentPreview, CommentSheet, LikeButton } from './ui';
+import {
+  CalendarPicker,
+  CommentButton,
+  CommentPreview,
+  CommentSheet,
+  LikeButton,
+  Skeleton,
+} from './ui';
 import type { CompletionData } from './ui/CalendarPicker';
 
 interface DaySummaryCardProps {
@@ -30,6 +37,11 @@ interface StreakData {
   longest: number;
   new_badges?: Badge[];
 }
+
+const MAX_HOURS = 24;
+
+/** Avoid float noise (e.g. 20.999999) in the hours counter */
+const formatHours = (hours: number) => Number(hours.toFixed(2));
 
 export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
   username,
@@ -158,10 +170,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
     });
   };
 
-  const isToday = () => {
-    const today = new Date();
-    return currentDate.toDateString() === today.toDateString();
-  };
+  const viewingToday = currentDate.toDateString() === new Date().toDateString();
 
   const handleGoToToday = () => {
     onDateChange(new Date());
@@ -173,10 +182,11 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
   }, [username, date, fetchPreviewComments]);
 
   // Hours calculation
-  const totalHours = Object.values(activities).reduce<number>((sum, hours) => sum + hours, 0);
-  const maxHours = 24;
-  const percentage = Math.min((totalHours / maxHours) * 100, 100);
-  const isComplete = totalHours >= maxHours;
+  const totalHours = formatHours(
+    Object.values(activities).reduce<number>((sum, hours) => sum + hours, 0)
+  );
+  const percentage = Math.min((totalHours / MAX_HOURS) * 100, 100);
+  const isComplete = totalHours >= MAX_HOURS;
 
   // Badge counts
   const earnedBadges = badges.filter((b) => b.earned);
@@ -187,99 +197,126 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
       : null;
 
   if (loading || streakLoading || badgesLoading) {
-    return <div className={`skeleton-glass ${s.skeleton}`} />;
+    return (
+      <div className={`${s.card} ${s.cardDefault}`} aria-busy="true" aria-label="Loading day">
+        <div className={s.headerRow}>
+          <Skeleton width={148} height={34} radius="full" />
+          <Skeleton width={64} height={26} radius="md" />
+        </div>
+        <Skeleton height={10} radius="full" />
+        <div className={s.chipRow}>
+          <Skeleton width={96} height={30} radius="full" />
+          <Skeleton width={84} height={30} radius="full" />
+        </div>
+      </div>
+    );
   }
 
+  const dateLabel = formatDate(currentDate);
+
   return (
-    <div className={`${s.card} ${isComplete ? s.cardComplete : s.cardDefault}`}>
-      {/* Row 1: Date Navigation + Hours */}
-      <div className={s.row}>
-        {/* Date Navigation */}
-        <div className={s.rowStart}>
-          <button onClick={onPrev} className={s.navButton}>
-            <ChevronLeft size={18} />
+    <section
+      className={`${s.card} ${isComplete ? s.cardComplete : s.cardDefault}`}
+      aria-label={`${dateLabel} summary`}
+    >
+      {/* Header: date navigation + hours */}
+      <div className={s.headerRow}>
+        <div className={s.dateNav}>
+          <button onClick={onPrev} className={s.navButton} aria-label="Previous day">
+            <ChevronLeft size={18} strokeWidth={2.5} aria-hidden="true" />
           </button>
-          <button onClick={() => setIsCalendarOpen(true)} className={s.dateButton}>
-            {formatDate(currentDate)}
+          <button
+            onClick={() => setIsCalendarOpen(true)}
+            className={s.dateButton}
+            aria-label={`${dateLabel}, open calendar`}
+            aria-haspopup="dialog"
+          >
+            <CalendarDays size={15} strokeWidth={2.25} aria-hidden="true" />
+            {dateLabel}
           </button>
           <button
             onClick={onNext}
             disabled={isNextDisabled}
-            className={`${s.navButton} ${isNextDisabled ? s.navButtonDisabled : ''}`}
+            className={s.navButton}
+            aria-label="Next day"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={18} strokeWidth={2.5} aria-hidden="true" />
           </button>
-          {!isToday() && (
+          {!viewingToday && (
             <button onClick={handleGoToToday} className={s.todayButton} title="Go to today">
               Today
             </button>
           )}
         </div>
 
-        {/* Hours Display */}
-        <div className={s.rowCenter}>
-          <span className={`${s.hoursValue} ${isComplete ? s.hoursComplete : ''}`}>
-            {isComplete && '✓ '}
-            {totalHours}/{maxHours}h
-          </span>
+        <div className={`${s.hours} ${isComplete ? s.hoursComplete : ''}`}>
+          {isComplete && (
+            <span className={s.completeBadge} aria-hidden="true">
+              <Check size={12} strokeWidth={3.5} />
+            </span>
+          )}
+          <span className={s.hoursValue}>{totalHours}</span>
+          <span className={s.hoursMax}>/{MAX_HOURS}h</span>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className={s.progressTrack}>
+      {/* Progress */}
+      <div
+        className={s.progressTrack}
+        role="progressbar"
+        aria-label="Hours logged"
+        aria-valuemin={0}
+        aria-valuemax={MAX_HOURS}
+        aria-valuenow={Math.min(totalHours, MAX_HOURS)}
+        aria-valuetext={isComplete ? 'Day complete' : `${totalHours} of ${MAX_HOURS} hours logged`}
+      >
         <div
-          className={s.progressFill}
-          style={{
-            width: `${percentage}%`,
-            backgroundColor: totalHours >= maxHours ? 'var(--success)' : 'var(--accent)',
-            boxShadow:
-              percentage >= 75
-                ? `0 0 8px ${totalHours >= maxHours ? 'rgba(34, 197, 94, 0.4)' : 'rgba(99, 102, 241, 0.3)'}`
-                : 'none',
-          }}
+          className={`${s.progressFill} ${isComplete ? s.progressComplete : ''}`}
+          style={
+            {
+              width: `${percentage}%`,
+              '--pct': Math.max(percentage, 0.01),
+            } as React.CSSProperties
+          }
         />
       </div>
 
-      {/* Row 2: Streaks + Likes */}
-      <div className={s.streakRow}>
-        {/* Streaks */}
-        <div className={s.streakGroup}>
-          {/* Current Streak - only show on Today */}
-          {isToday() && (
-            <div className={s.streakItem}>
-              <Flame
-                size={18}
-                fill="var(--color-like-light)"
-                color="var(--color-like)"
-                style={{ display: 'block' }}
-              />
-              <span className={s.streakValue}>{streak.current}</span>
-              <span className={s.streakLabel}>streak</span>
-            </div>
-          )}
-
-          {/* Best Streak */}
-          <div className={s.streakItem}>
-            <Trophy
-              size={18}
+      {/* Stat chips (wrap on narrow screens) */}
+      <div className={s.chipRow}>
+        {/* Current Streak - only show on Today */}
+        {viewingToday && (
+          <span className={`${s.chip} ${s.chipStreak}`}>
+            <Flame
+              size={15}
               fill="var(--color-streak-light)"
               color="var(--color-streak)"
-              style={{ display: 'block' }}
+              aria-hidden="true"
             />
-            <span className={s.streakValue}>{streak.longest}</span>
-            <span className={s.streakLabel}>best</span>
-          </div>
+            <span className={s.chipValue}>{streak.current}</span>
+            <span className={s.chipLabel}>day streak</span>
+          </span>
+        )}
 
-          {/* Current Badge */}
-          {currentBadge && (
-            <div className={s.streakItem}>
-              {renderBadgeIcon(currentBadge.icon, currentBadge.color)}
-              <span className={s.streakLabel}>{currentBadge.name}</span>
-            </div>
-          )}
-        </div>
+        {/* Best Streak */}
+        <span className={`${s.chip} ${s.chipBest}`}>
+          <Trophy size={15} fill="var(--amber-400)" color="var(--amber-600)" aria-hidden="true" />
+          <span className={s.chipValue}>{streak.longest}</span>
+          <span className={s.chipLabel}>best</span>
+        </span>
 
-        {/* Like & Comment */}
+        {/* Current Badge */}
+        {currentBadge && (
+          <span
+            className={s.chip}
+            style={{ '--chip-tone': currentBadge.color } as React.CSSProperties}
+            title={`Current badge: ${currentBadge.name}`}
+          >
+            {renderBadgeIcon(currentBadge.icon, currentBadge.color, 15)}
+            <span className={s.chipName}>{currentBadge.name}</span>
+          </span>
+        )}
+
+        {/* Like & Comment (pushed to the end of the row; wraps gracefully) */}
         <div className={s.actionGroup}>
           <LikeButton username={username} date={date} size="sm" showCount={true} />
           <CommentButton
@@ -294,7 +331,7 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
         </div>
       </div>
 
-      {/* Comment Preview */}
+      {/* Comment previews (renders nothing when there are no comments) */}
       <CommentPreview
         username={username}
         date={date}
@@ -319,6 +356,6 @@ export const DaySummaryCard: React.FC<DaySummaryCardProps> = ({
         username={username}
         date={date}
       />
-    </div>
+    </section>
   );
 };

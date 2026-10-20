@@ -1,0 +1,204 @@
+/**
+ * Story ring styles
+ *
+ * Shared by StoryCirclesRow and StoryCircle: an avatar/photo inside a ring.
+ * Unseen = aurora gradient ring with a soft glow; viewed = neutral ring;
+ * empty = dashed invitation ring. The ring lives on ::before so it can spin
+ * while uploading without rotating the content.
+ */
+
+@keyframes itemIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 76px;
+  animation: itemIn 0.42s var(--ease-bounce) backwards;
+}
+
+.item:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.item:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.item:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.item:nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.item:nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+
+.ring {
+  --ring-size: 68px;
+  --ring-bg: var(--border-strong);
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  width: var(--ring-size);
+  height: var(--ring-size);
+  padding: 3px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s var(--ease-bounce);
+}
+
+.ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--ring-bg);
+}
+
+@media (hover: hover) {
+  .ring:hover:not(:disabled) {
+    transform: scale(1.06);
+  }
+}
+
+.ring:active:not(:disabled) {
+  transform: scale(0.93);
+}
+
+.ring:disabled {
+  cursor: default;
+}
+
+.ring:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.small {
+  --ring-size: 56px;
+}
+
+.large {
+  --ring-size: 80px;
+}
+
+.ringUnseen {
+  --ring-bg: var(--gradient-ring);
+}
+
+/* Soft aurora glow behind unseen rings */
+.ringUnseen::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  z-index: -2;
+  border-radius: 50%;
+  background: var(--gradient-ring);
+  filter: blur(7px);
+  opacity: 0.45;
+}
+
+.ringOwn {
+  --ring-bg: var(--gradient-brand);
+}
+
+.ringViewed {
+  --ring-bg: var(--border-strong);
+}
+
+.ringEmpty {
+  --ring-bg: transparent;
+}
+
+.ringEmpty::before {
+  border: 2px dashed var(--border-strong);
+}
+
+.ringUploading::before {
+  background: var(--gradient-ring);
+  animation: spin 1.1s linear infinite;
+}
+
+/* Gap between ring and content */
+.ringContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 2.5px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+/* Lets the shared Avatar fill the ring regardless of its size preset */
+.ringContent > .avatarFill {
+  width: 100%;
+  height: 100%;
+  border: none;
+  box-shadow: none;
+  font-size: 1.375rem;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  font-weight: var(--font-bold);
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.labelViewed {
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    animation: none;
+  }
+
+  .ringUploading::before {
+    animation-duration: 3s;
+  }
+}

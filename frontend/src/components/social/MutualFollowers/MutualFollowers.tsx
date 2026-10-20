@@ -93,6 +93,7 @@ export const MutualFollowers: React.FC<MutualFollowersProps> = ({
               thumbnailSrc={mutual.profile_pic_thumb}
               name={mutual.username}
               size="xs"
+              className={styles.avatar}
             />
           </div>
         ))}

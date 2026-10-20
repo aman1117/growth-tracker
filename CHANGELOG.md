@@ -54,6 +54,8 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
 - A crashed screen now recovers when navigating to another tab.
 - Expired sessions are cleared on load instead of flashing protected screens.
 - Push deep links `/profile/badges` and `/notifications` no longer dead-end.
+- "Followed by" avatars on other users' profiles were cropped off-center on phones (the photo sat
+  2px down and to the right inside its ring) and showed a doubled ring on larger screens.
 - Longest-streak lookup in Settings used the UTC date instead of the local date.
 - Insights: overlapping weekday labels, best-streak dates shown a day early west of UTC, an
   unreadable chart when filtered, a filter menu unreachable by keyboard, and no state for unknown

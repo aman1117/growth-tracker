@@ -327,6 +327,14 @@
   --accent-soft-strong: rgba(100, 71, 242, 0.16);
   --accent-glow: rgba(100, 71, 242, 0.4);
 
+  /* Brand logo: solid fills only (keep in sync with frontend/scripts/brand-assets.mjs) */
+  --brand-leaf: var(--violet-600);
+  --brand-sprout: var(--green-500);
+  --brand-wordmark: var(--text-primary);
+  --brand-tile: var(--violet-600);
+  --brand-tile-leaf: #ffffff;
+  --brand-tile-sprout: var(--lime-400);
+
   /* Status */
   --success: var(--green-600);
   --success-soft: rgba(22, 163, 74, 0.12);
@@ -612,6 +620,11 @@
   --accent-soft: rgba(138, 114, 255, 0.16);
   --accent-soft-strong: rgba(138, 114, 255, 0.24);
   --accent-glow: rgba(115, 87, 255, 0.5);
+
+  /* Brand logo: lighter leaf + lime sprout for dark canvases; the app-icon tile is unchanged */
+  --brand-leaf: #a594ff;
+  --brand-sprout: var(--lime-400);
+  --brand-wordmark: var(--text-primary);
 
   /* Status */
   --success: var(--green-400);

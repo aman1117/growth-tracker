@@ -88,18 +88,10 @@
 }
 
 .help-header-logo {
+  display: block;
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  transition: none !important;
-}
-
-.help-header-logo svg {
-  transition: none !important;
 }
 
 .help-header-title {

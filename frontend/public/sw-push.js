@@ -26,7 +26,7 @@ self.addEventListener('push', (event) => {
     title = 'Growth Tracker',
     body = '',
     icon = '/pwa-192x192.png',
-    badge = '/pwa-192x192.png',
+    badge = '/badge-96x96.png',
     tag,
     deepLink,
     data = {},

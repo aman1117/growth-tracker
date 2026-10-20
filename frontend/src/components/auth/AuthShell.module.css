@@ -23,15 +23,6 @@
   }
 }
 
-@keyframes drawLine {
-  from {
-    stroke-dashoffset: 40;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
 @keyframes popIn {
   0% {
     transform: scale(0.6);
@@ -70,44 +61,15 @@
   animation: riseIn 0.5s var(--ease-spring) both;
 }
 
+/* Solid app-icon tile (BrandLogo variant="icon"); the radius matches the icon's 23% corners */
 .emblem {
-  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 68px;
-  height: 68px;
   margin-bottom: var(--space-2);
-  border-radius: 22px;
-  background: linear-gradient(225deg, #6447f2 0%, #14b8a6 55%, #22c55e 100%);
+  border-radius: 23%;
   box-shadow:
     0 14px 30px -12px rgba(100, 71, 242, 0.55),
-    0 6px 16px -8px rgba(20, 184, 166, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    0 6px 14px -8px rgba(23, 20, 44, 0.3);
   animation: emblemFloat 5s ease-in-out infinite;
-}
-
-/* Soft glow halo behind the emblem */
-.emblem::before {
-  content: '';
-  position: absolute;
-  inset: -14px;
-  z-index: -1;
-  border-radius: 32px;
-  background: radial-gradient(closest-side, var(--aurora-1), transparent);
-  filter: blur(6px);
-}
-
-.emblemMark {
-  width: 40px;
-  height: 40px;
-  fill: none;
-  stroke: #ffffff;
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 40;
-  animation: drawLine 0.9s 0.2s var(--ease-out) both;
 }
 
 .statusIcon {
@@ -217,7 +179,6 @@
   .actions,
   .footer,
   .emblem,
-  .emblemMark,
   .statusIcon {
     animation: none;
   }

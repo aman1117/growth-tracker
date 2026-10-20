@@ -1,62 +1,122 @@
 /**
  * BrandLogo Styles
  *
- * logo.png is 2379×446 (≈5.33:1). It is used purely as an alpha mask.
+ * Solid brand fills from tokens (--brand-* in tokens.css); no gradients anywhere.
+ * The SVG keeps the viewBox aspect ratio, so only the height is set here.
  */
 
 .logo {
-  --logo-height: 28px;
+  --logo-height: 30px;
 
-  display: inline-block;
+  display: block;
   flex-shrink: 0;
+  width: auto;
   height: var(--logo-height);
-  aspect-ratio: 2379 / 446;
-  background: var(--gradient-brand);
-  background-size: 160% 100%;
-  background-position: 0% 50%;
-  -webkit-mask: url('/logo.png') left center / contain no-repeat;
-  mask: url('/logo.png') left center / contain no-repeat;
+  overflow: visible;
 }
 
 .sm {
-  --logo-height: 22px;
+  --logo-height: 24px;
 }
 
 .md {
-  --logo-height: 28px;
+  --logo-height: 30px;
 }
 
 .lg {
   --logo-height: 40px;
 }
 
-.animated {
-  animation: auroraDrift 10s ease-in-out infinite;
+.xl {
+  --logo-height: 68px;
 }
 
-/* Local copy: CSS Modules scope keyframe names to this file */
-@keyframes auroraDrift {
-  0%,
-  100% {
-    background-position: 0% 50%;
+/* ============================================================================
+   Fills
+   ============================================================================ */
+
+.leafLong {
+  fill: var(--brand-leaf);
+}
+
+.leafShort {
+  fill: var(--brand-sprout);
+}
+
+.wordmark {
+  fill: var(--brand-wordmark);
+}
+
+/* App-icon tile: identical in both themes, like the installed app icon */
+.tile {
+  fill: var(--brand-tile);
+}
+
+.icon .leafLong {
+  fill: var(--brand-tile-leaf);
+}
+
+.icon .leafShort {
+  fill: var(--brand-tile-sprout);
+}
+
+/* ============================================================================
+   Sprout animation (opt-in via `animated`)
+   ============================================================================ */
+
+.leaves {
+  transform-box: fill-box;
+}
+
+.animated .leaves {
+  animation: sprout 0.75s var(--ease-spring) 0.15s both;
+}
+
+.animated .leafShort {
+  transform-box: fill-box;
+  transform-origin: 100% 100%;
+  animation: unfurl 0.6s var(--ease-out) 0.4s both;
+}
+
+/* Local copies: CSS Modules scope keyframe names to this file */
+@keyframes sprout {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
   }
-  50% {
-    background-position: 100% 50%;
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes unfurl {
+  from {
+    transform: rotate(20deg) scale(0.7);
+  }
+  to {
+    transform: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animated {
+  .animated .leaves,
+  .animated .leafShort {
     animation: none;
   }
 }
 
-/* Very old engines without mask support: fall back to a solid wordmark color */
-@supports not ((mask-image: url('')) or (-webkit-mask-image: url(''))) {
-  .logo {
-    background: none;
-    background-image: url('/logo.png');
-    background-size: contain;
-    background-repeat: no-repeat;
+/* Windows High Contrast and other forced-color modes */
+@media (forced-colors: active) {
+  .leafLong,
+  .leafShort,
+  .wordmark,
+  .tile {
+    fill: CanvasText;
+  }
+
+  .icon .leafLong,
+  .icon .leafShort {
+    fill: Canvas;
   }
 }

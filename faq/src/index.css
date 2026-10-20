@@ -21,8 +21,6 @@
     sans-serif;
   --header-bg: rgba(255, 255, 255, 0.85);
   --icon-bg-muted: rgba(0, 0, 0, 0.04);
-  --logo-bg: #eab308;
-  --logo-color: #422006;
 }
 
 [data-theme='dark'] {

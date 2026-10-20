@@ -23,39 +23,29 @@
   padding-left: 2px;
 }
 
+/* Sizing + stacking slot only: no border or clipping, so nothing can crop the avatar off-center */
 .avatarWrapper {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid var(--bg-primary);
   margin-left: -10px;
   cursor: pointer;
-  background: var(--bg-secondary);
 }
 
 .avatarWrapper:first-child {
   margin-left: 0;
 }
 
-.avatar {
+/*
+ * The shared Avatar is a fixed 24px at size "xs"; make it fill whatever slot size the
+ * breakpoint sets and draw the single overlap ring itself so the photo stays centered.
+ * Two classes so this always beats the Avatar's own size classes regardless of CSS order.
+ */
+.avatarWrapper .avatar {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-.avatarPlaceholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--avatar-bg);
-  color: var(--text-primary);
-  font-size: 11px;
-  font-weight: var(--font-semibold);
-  border-radius: 50%;
+  border: 2px solid var(--bg-elevated);
+  box-shadow: none;
 }
 
 .text {
@@ -98,9 +88,5 @@
 
   .text {
     font-size: 11px;
-  }
-
-  .avatarPlaceholder {
-    font-size: 9px;
   }
 }

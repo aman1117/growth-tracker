@@ -10,6 +10,7 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 
+import { BrandLogo } from '../ui/BrandLogo';
 import styles from './AuthShell.module.css';
 
 export type AuthShellTone = 'brand' | 'success' | 'danger' | 'info';
@@ -35,13 +36,10 @@ export interface AuthShellProps {
   live?: boolean;
 }
 
-/** The app mark: aurora tile with a rising trend line (mirrors the favicon) */
+/** The app mark: the brand app-icon tile (mirrors the installed app icon) */
 const BrandEmblem: React.FC = () => (
   <span className={styles.emblem} aria-hidden="true">
-    <svg viewBox="0 0 32 32" className={styles.emblemMark}>
-      <path d="M7 21.5 L12.5 16 L17 19 L25 10.5" />
-      <path d="M19.5 10.5 H25 V16" />
-    </svg>
+    <BrandLogo variant="icon" size="xl" animated label="" />
   </span>
 );
 

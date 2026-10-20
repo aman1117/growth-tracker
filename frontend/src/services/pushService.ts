@@ -305,7 +305,7 @@ class PushService {
     await registration.showNotification('Test Notification', {
       body: 'Push notifications are working!',
       icon: '/pwa-192x192.png',
-      badge: '/pwa-192x192.png',
+      badge: '/badge-96x96.png',
       tag: 'test',
       data: {
         url: '/',

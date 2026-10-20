@@ -23,8 +23,15 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
 - Shared UI building blocks: `ConfirmDialog`, `Notice`, `BrandLogo`, `PasswordInput`, a Settings
   `ThemePicker`, `useEscapeKey` (only the top-most overlay handles Escape) and `useBodyScrollLock`
   (one reference-counted scroll lock shared by all overlays).
+- `npm run brand:assets` regenerates every logo asset (favicons, PWA/Apple/maskable icons, push
+  badge, Android TWA icons and splash, help-center icon, README lockups) from the same geometry the
+  in-app `BrandLogo` draws.
 
 ### Changed
+- New original logo: a "leaf check" mark (two leaves forming a check — growth you can track) with a
+  Bricolage Grotesque wordmark, in solid brand colours with no gradients. It replaces the script
+  wordmark everywhere: app header, sign-in, favicon, installed-app icons, Android TWA, help center
+  and README.
 - Reworked the root README for public contributor onboarding.
 - Marked android and twa as inactive development surfaces.
 - Settings (Profile tab) and own Analytics are tab roots: the bottom tab bar is always visible and
@@ -55,6 +62,9 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   privacy and push failures were silent; switches lost keyboard focus while saving.
 - PWA manifest screenshots were declared as 1080×1920 but were smaller, so install prompts
   ignored them.
+- App icons were a black wordmark on a transparent background, which disappeared on dark home
+  screens and on iOS; Android push notifications used the full-colour icon as the status-bar
+  badge instead of a monochrome silhouette.
 
 ## [0.1.0] - 2026-03-28
 

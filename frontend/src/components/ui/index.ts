@@ -8,7 +8,12 @@
 // Layout & Structure
 export { Autocomplete, type AutocompleteProps } from './Autocomplete';
 export { Avatar, type AvatarProps, type AvatarSize } from './Avatar';
-export { BrandLogo, type BrandLogoProps, type BrandLogoSize } from './BrandLogo';
+export {
+  BrandLogo,
+  type BrandLogoProps,
+  type BrandLogoSize,
+  type BrandLogoVariant,
+} from './BrandLogo';
 export { Card, type CardProps } from './Card';
 export { ConfirmDialog, type ConfirmDialogProps, type ConfirmDialogTone } from './ConfirmDialog';
 export { Modal, type ModalMobileLayout, type ModalProps, type ModalSize } from './Modal';

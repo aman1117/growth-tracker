@@ -1,14 +1,18 @@
 /**
  * Profile Section Component
  *
- * User profile card with avatar, bio, and follow counts.
+ * Profile card for the "You" tab: avatar (view / change photo), username, bio and follow counts.
  */
 
-import { Camera, Pencil } from 'lucide-react';
+import { Camera, Pencil, Plus } from 'lucide-react';
 import React from 'react';
 
-import { ProtectedImage } from '../../ui';
+import { Avatar, LoadingSpinner, VerifiedBadge } from '../../ui';
 import type { ProfileSectionProps } from '../SettingsPage.types';
+import styles from './ProfileSection.module.css';
+
+const formatCount = (count: number): string =>
+  count >= 10000 ? `${(count / 1000).toFixed(count >= 100000 ? 0 : 1)}k` : count.toLocaleString();
 
 export const ProfileSection: React.FC<ProfileSectionProps> = ({
   username,
@@ -18,200 +22,91 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   followersCount,
   followingCount,
   isUploadingPic,
+  isVerified = false,
   onProfilePicClick,
   onEditPicClick,
   onBioClick,
   onFollowersClick,
   onFollowingClick,
 }) => {
-  return (
-    <div className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        {/* Profile Picture */}
-        <div style={{ position: 'relative' }}>
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--avatar-bg)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '1.5rem',
-              color: 'var(--text-primary)',
-              textTransform: 'uppercase',
-              overflow: 'hidden',
-              cursor: profilePic ? 'zoom-in' : 'pointer',
-              border: '2px solid var(--border)',
-              transition: 'border-color 0.2s',
-            }}
-            onClick={onProfilePicClick}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
-          >
-            {isUploadingPic ? (
-              <div
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  border: '2px solid var(--text-secondary)',
-                  borderTopColor: 'var(--accent)',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite',
-                }}
-              />
-            ) : profilePic ? (
-              <ProtectedImage
-                src={profilePicThumb || profilePic}
-                alt={username}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
-              />
-            ) : (
-              username.charAt(0)
-            )}
-          </div>
+  const trimmedBio = bio?.trim();
 
-          {/* Camera icon overlay */}
+  return (
+    <section className={styles.card} aria-label="Your profile">
+      <div className={styles.top}>
+        <div className={styles.avatarWrap}>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditPicClick();
-            }}
-            style={{
-              position: 'absolute',
-              bottom: '-2px',
-              right: '-2px',
-              width: '22px',
-              height: '22px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--accent)',
-              border: '2px solid var(--bg-primary)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-            }}
+            type="button"
+            className={`${styles.ring} ${profilePic ? styles.ringZoom : ''}`}
+            onClick={onProfilePicClick}
+            aria-label={profilePic ? 'View profile photo' : 'Add a profile photo'}
+            disabled={isUploadingPic}
           >
-            <Camera size={10} color="white" />
+            <span className={styles.ringInner}>
+              <Avatar
+                src={profilePic}
+                thumbnailSrc={profilePicThumb}
+                name={username}
+                size="xl"
+                className={styles.avatar}
+              />
+              {isUploadingPic && (
+                <span className={styles.uploading} role="status">
+                  <LoadingSpinner size="sm" />
+                  <span className="sr-only">Uploading photo…</span>
+                </span>
+              )}
+            </span>
+          </button>
+          <button
+            type="button"
+            className={styles.cameraButton}
+            onClick={onEditPicClick}
+            aria-label={profilePic ? 'Change profile photo' : 'Add a profile photo'}
+            disabled={isUploadingPic}
+          >
+            <Camera size={14} strokeWidth={2.4} aria-hidden="true" />
           </button>
         </div>
 
-        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-          <h2
-            style={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-              margin: 0,
-            }}
-          >
-            {username}
+        <div className={styles.identity}>
+          <h2 className={styles.username}>
+            <span className={styles.usernameText}>{username}</span>
+            {isVerified && <VerifiedBadge size={18} />}
           </h2>
-          <div
+          <button
+            type="button"
+            className={styles.bioButton}
             onClick={onBioClick}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              marginTop: '0.25rem',
-              cursor: 'pointer',
-              maxWidth: '100%',
-            }}
+            aria-label={trimmedBio ? `Edit bio: ${trimmedBio}` : 'Add a bio'}
           >
-            <p
-              style={{
-                fontSize: '0.8rem',
-                color: bio ? 'var(--text-secondary)' : 'var(--accent)',
-                margin: 0,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                flex: 1,
-                minWidth: 0,
-              }}
-            >
-              {bio || '+ Add bio'}
-            </p>
-            <Pencil size={12} color="var(--accent)" style={{ flexShrink: 0 }} />
-          </div>
-
-          {/* Followers / Following Stats */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '1rem',
-              marginTop: '0.5rem',
-            }}
-          >
-            <button
-              onClick={onFollowersClick}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {followersCount}
+            {trimmedBio ? (
+              <>
+                <span className={styles.bioText}>{trimmedBio}</span>
+                <Pencil size={13} strokeWidth={2.4} className={styles.bioIcon} aria-hidden="true" />
+              </>
+            ) : (
+              <span className={styles.bioEmpty}>
+                <Plus size={14} strokeWidth={2.6} aria-hidden="true" />
+                Add a bio
               </span>
-              <span
-                style={{
-                  fontSize: '0.8rem',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                Followers
-              </span>
-            </button>
-            <button
-              onClick={onFollowingClick}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {followingCount}
-              </span>
-              <span
-                style={{
-                  fontSize: '0.8rem',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                Following
-              </span>
-            </button>
-          </div>
+            )}
+          </button>
         </div>
       </div>
-    </div>
+
+      <div className={styles.stats}>
+        <button type="button" className={styles.stat} onClick={onFollowersClick}>
+          <span className={styles.statValue}>{formatCount(followersCount)}</span>
+          <span className={styles.statLabel}>
+            {followersCount === 1 ? 'Follower' : 'Followers'}
+          </span>
+        </button>
+        <button type="button" className={styles.stat} onClick={onFollowingClick}>
+          <span className={styles.statValue}>{formatCount(followingCount)}</span>
+          <span className={styles.statLabel}>Following</span>
+        </button>
+      </div>
+    </section>
   );
 };

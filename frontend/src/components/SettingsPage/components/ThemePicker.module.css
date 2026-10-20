@@ -1,0 +1,205 @@
+/**
+ * ThemePicker Styles
+ *
+ * Mini app previews are drawn with fixed colors on purpose: each one depicts its theme
+ * regardless of the theme currently applied.
+ */
+
+.picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2-5);
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.option:focus-visible {
+  outline: none;
+}
+
+.option:focus-visible .preview {
+  box-shadow:
+    0 0 0 2px var(--bg-elevated),
+    0 0 0 calc(2px + var(--ring-width)) var(--ring-color);
+}
+
+/* ============================================================================
+   Preview
+   ============================================================================ */
+
+.preview {
+  --p-bg: #f7f5ff;
+  --p-bar: #ffffff;
+  --p-logo: #c9bfff;
+  --p-tile-1: #22c55e;
+  --p-tile-2: #7c5cff;
+  --p-tile-3: #f59e0b;
+  --p-track: rgba(23, 20, 44, 0.08);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 7%;
+  aspect-ratio: 4 / 3;
+  padding: 0 0 12%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--p-bg);
+  transition:
+    transform 0.2s var(--ease-spring),
+    box-shadow 0.2s var(--ease-default);
+}
+
+.option:hover .preview {
+  transform: translateY(-2px);
+}
+
+.option:active .preview {
+  transform: scale(0.97);
+}
+
+.previewLight {
+  --p-bg: #f7f5ff;
+}
+
+.previewDark {
+  --p-bg: #141225;
+  --p-bar: #221f36;
+  --p-logo: #5b4ccc;
+  --p-tile-1: #4ade80;
+  --p-tile-2: #8b74ff;
+  --p-tile-3: #fbbf24;
+  --p-track: rgba(255, 255, 255, 0.1);
+
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.previewAuto {
+  --p-bar: rgba(255, 255, 255, 0.55);
+  --p-track: rgba(124, 92, 255, 0.25);
+
+  background: linear-gradient(135deg, #f7f5ff 0%, #f7f5ff 49.5%, #141225 50.5%, #141225 100%);
+}
+
+.previewBar {
+  display: flex;
+  align-items: center;
+  height: 20%;
+  padding: 0 9%;
+  background: var(--p-bar);
+}
+
+.previewLogo {
+  width: 34%;
+  height: 34%;
+  border-radius: 999px;
+  background: var(--p-logo);
+}
+
+.previewTiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7%;
+  flex: 1;
+  padding: 0 9%;
+}
+
+.previewTiles > span {
+  border-radius: 6px;
+  opacity: 0.9;
+}
+
+.previewTiles > span:nth-child(1) {
+  background: var(--p-tile-1);
+}
+
+.previewTiles > span:nth-child(2) {
+  background: var(--p-tile-2);
+}
+
+.previewTiles > span:nth-child(3) {
+  background: var(--p-tile-3);
+}
+
+.previewProgress {
+  position: relative;
+  height: 7%;
+  margin: 0 9%;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--p-track);
+}
+
+.previewProgress::after {
+  content: '';
+  position: absolute;
+  inset: 0 35% 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #14b8a6, #7c5cff);
+}
+
+.check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: #ffffff;
+  box-shadow: 0 3px 8px -2px rgba(100, 71, 242, 0.6);
+}
+
+/* ============================================================================
+   Selection + label
+   ============================================================================ */
+
+.selected .preview {
+  border-color: transparent;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 10px 20px -12px var(--accent-glow);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+}
+
+.selected .label {
+  color: var(--accent-text);
+  font-weight: var(--font-bold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview {
+    transition: none;
+  }
+
+  .option:hover .preview,
+  .option:active .preview {
+    transform: none;
+  }
+}

@@ -1,7 +1,8 @@
 /**
  * CalendarPicker Styles
  *
- * Calendar date picker using design tokens and glassmorphism.
+ * Glass date picker with an Aurora heat map: low → high activity mirrors the
+ * green → teal → violet progress gradient, and a full 24h day earns the gradient.
  */
 
 /* Animations */
@@ -14,56 +15,40 @@
   }
 }
 
-@keyframes slideIn {
+@keyframes dialogIn {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(-12px);
+    transform: translateY(10px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 @keyframes dayPop {
-  0% {
-    transform: scale(0.85);
+  from {
+    transform: scale(0.88);
     opacity: 0;
   }
-  60% {
-    transform: scale(1.03);
-  }
-  100% {
+  to {
     transform: scale(1);
     opacity: 1;
-  }
-}
-
-@keyframes todayPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 var(--color-primary-alpha-40);
-  }
-  50% {
-    box-shadow: 0 0 0 4px var(--color-primary-alpha-0);
   }
 }
 
 /* Overlay */
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: var(--z-modal);
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: 12vh;
+  padding: 12vh var(--space-4) var(--space-4);
   background: var(--modal-overlay);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   animation: fadeIn var(--transition-normal) var(--ease-default);
 }
 
@@ -74,21 +59,23 @@
 
 /* Modal Container */
 .modal {
+  width: min(360px, 100%);
   background: var(--glass-panel-bg);
-  backdrop-filter: blur(var(--glass-blur-lg));
-  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-panel-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-3xl);
   box-shadow: var(--glass-panel-shadow), var(--glass-panel-glow);
-  padding: var(--space-5);
-  min-width: 320px;
-  animation: slideIn var(--transition-normal) var(--ease-bounce);
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  animation: dialogIn 0.32s var(--ease-spring);
 }
 
 .modal.closing {
-  transform: scale(0.95) translateY(-8px);
+  transform: translateY(6px) scale(0.97);
   opacity: 0;
-  transition: all var(--transition-fast) var(--ease-default);
+  transition:
+    transform var(--transition-fast) var(--ease-default),
+    opacity var(--transition-fast) var(--ease-default);
 }
 
 /* Header */
@@ -96,311 +83,251 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   gap: var(--space-2);
 }
 
 .navButton {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-full);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--transition-fast) var(--ease-default);
+  box-shadow: 0 2px 0 0 var(--control-ledge);
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
   flex-shrink: 0;
 }
 
 .navButton:hover:not(:disabled) {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-  transform: scale(1.05);
+  background: var(--control-bg-hover);
+  color: var(--accent-text);
 }
 
 .navButton:active:not(:disabled) {
-  transform: scale(0.95);
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 0 var(--control-ledge);
 }
 
 .navButton:disabled {
-  opacity: 0.3;
+  opacity: 0.35;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .titleGroup {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
+  gap: 2px;
   flex: 1;
+  min-width: 0;
 }
 
 .titleButton {
   background: none;
   border: none;
-  font-size: var(--text-base);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
   font-weight: var(--font-bold);
+  letter-spacing: -0.01em;
   color: var(--text-primary);
   cursor: pointer;
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-md);
-  transition: all var(--transition-fast) var(--ease-default);
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default);
 }
 
 .titleButton:hover {
-  background: var(--bg-secondary);
-  color: var(--color-primary);
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
 .titleText {
-  font-size: var(--text-base);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
   font-weight: var(--font-bold);
   color: var(--text-primary);
 }
 
 /* Calendar Body */
 .body {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   animation: fadeIn var(--transition-normal) var(--ease-default);
 }
 
 /* Weekday Headers */
 .weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--space-1);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .weekday {
-  font-size: var(--text-xs);
+  font-size: var(--text-2xs);
   font-weight: var(--font-bold);
   color: var(--text-muted);
   text-align: center;
   padding: var(--space-1) 0;
   text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
+  letter-spacing: 0.06em;
 }
 
 /* Days Grid */
 .days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: var(--space-1);
 }
 
+/*
+ * Each day paints two layers: a hover/selection tint on top of its heat color.
+ * Heat classes only set --day-bg so every state composes without !important.
+ */
 .day {
+  --day-bg: transparent;
+  --day-tint: transparent;
+
+  position: relative;
   aspect-ratio: 1;
+  min-width: 0;
+  min-height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
+  font-variant-numeric: tabular-nums;
   color: var(--text-primary);
-  background: transparent;
+  background: linear-gradient(var(--day-tint), var(--day-tint)), var(--day-bg);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-fast) var(--ease-default);
   padding: 0;
-  min-width: 38px;
-  min-height: 38px;
-  animation: dayPop 0.25s var(--ease-out) backwards;
+  transition:
+    transform 0.15s var(--ease-default),
+    box-shadow var(--transition-fast) var(--ease-default);
+  animation: dayPop 0.24s var(--ease-out) backwards;
 }
 
-/* Staggered animation for days */
-.day:nth-child(7n + 1) {
-  animation-delay: 0.02s;
-}
+/* Staggered entrance per column */
 .day:nth-child(7n + 2) {
-  animation-delay: 0.03s;
+  animation-delay: 0.015s;
 }
 .day:nth-child(7n + 3) {
-  animation-delay: 0.04s;
+  animation-delay: 0.03s;
 }
 .day:nth-child(7n + 4) {
-  animation-delay: 0.05s;
+  animation-delay: 0.045s;
 }
 .day:nth-child(7n + 5) {
   animation-delay: 0.06s;
 }
 .day:nth-child(7n + 6) {
-  animation-delay: 0.07s;
+  animation-delay: 0.075s;
 }
 .day:nth-child(7n + 7) {
-  animation-delay: 0.08s;
+  animation-delay: 0.09s;
 }
 
-.day:hover:not(.disabled):not(.selected) {
-  background: var(--bg-secondary);
-  transform: scale(1.1);
+.day:hover:not(:disabled) {
+  --day-tint: var(--chip-bg);
+  transform: translateY(-1px);
 }
 
-.day:active:not(.disabled):not(.selected) {
-  transform: scale(0.95);
+.day:active:not(:disabled) {
+  transform: scale(0.94);
 }
 
 .day.outside {
   color: var(--text-muted);
-  opacity: 0.4;
+  opacity: 0.45;
 }
 
-.day.today:not(.selected) {
-  /* No background - let heat map show through */
-  color: var(--color-primary);
-  font-weight: var(--font-bold);
-  box-shadow: inset 0 0 0 2px var(--color-primary);
-  animation: todayPulse 2s infinite;
+/* Heat levels (hours logged) */
+.heatLevel1 {
+  --day-bg: var(--heat-1);
 }
 
-:global(:root:not([data-theme='dark'])) .day.today:not(.selected) {
-  color: var(--text-primary);
+.heatLevel2 {
+  --day-bg: var(--heat-2);
 }
 
-.day.selected {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  font-weight: var(--font-bold);
-  box-shadow:
-    inset 0 0 0 2px rgba(59, 130, 246, 0.65),
-    0 0 8px rgba(59, 130, 246, 0.25);
-  transform: scale(1.05);
+.heatLevel3 {
+  --day-bg: var(--heat-3);
 }
 
-:global(:root:not([data-theme='dark'])) .day.selected {
-  background: var(--bg-secondary);
-  box-shadow:
-    inset 0 0 0 2px rgba(59, 130, 246, 0.6),
-    0 0 8px rgba(59, 130, 246, 0.22);
-  color: var(--text-primary);
+.heatLevel4 {
+  --day-bg: var(--heat-4);
 }
 
-:global([data-theme='dark']) .day.selected {
-  background: var(--bg-secondary);
-  box-shadow:
-    inset 0 0 0 2px rgba(96, 165, 250, 0.6),
-    0 0 10px rgba(96, 165, 250, 0.25);
-  color: var(--text-primary);
+.heatComplete {
+  --day-bg: var(--heat-complete);
 }
 
-.day.selected:hover {
-  background: var(--bg-tertiary);
-  transform: scale(1.1);
-}
-
-.day.disabled {
-  opacity: 0.25;
-  cursor: not-allowed;
-}
-
-/* ============================================================================
-   Heat Map Styles
-   ============================================================================ */
-
-/*
- * Heat map uses direct background colors on the .day element.
- * Using !important to ensure heat map always shows through other states.
- */
-
-/* Level 1: 1-6 hours - Lightest */
-.day.heatLevel1 {
-  background-color: rgba(59, 130, 246, 0.12) !important;
-}
-
-/* Level 2: 6-12 hours */
-.day.heatLevel2 {
-  background-color: rgba(59, 130, 246, 0.22) !important;
-}
-
-/* Level 3: 12-18 hours */
-.day.heatLevel3 {
-  background-color: rgba(59, 130, 246, 0.35) !important;
-}
-
-/* Level 4: 18-24 hours */
-.day.heatLevel4 {
-  background-color: rgba(59, 130, 246, 0.5) !important;
-}
-
-/* Complete: 24 hours - Full intensity */
 .day.heatComplete {
-  background-color: rgba(59, 130, 246, 0.65) !important;
+  color: #ffffff;
+  font-weight: var(--font-bold);
+  text-shadow: 0 1px 1px rgba(10, 20, 40, 0.25);
 }
 
-/* Outside month with heat map - reduced opacity */
-.day.outside.heatLevel1,
-.day.outside.heatLevel2,
-.day.outside.heatLevel3,
-.day.outside.heatLevel4,
-.day.outside.heatComplete {
-  opacity: 0.5;
+/* Today: bold + a small dot, no distracting pulse */
+.day.today {
+  font-weight: var(--font-extrabold);
 }
 
-/* Selected state overrides everything */
-.day.selected.heatLevel1,
-.day.selected.heatLevel2,
-.day.selected.heatLevel3,
-.day.selected.heatLevel4,
-.day.selected.heatComplete {
-  background: rgba(59, 130, 246, 0.18) !important;
-  color: var(--text-primary);
+.day.today:not(.heatLevel1):not(.heatLevel2):not(.heatLevel3):not(.heatLevel4):not(.heatComplete) {
+  color: var(--accent-text);
+}
+
+.day.today::after {
+  content: '';
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Selected: a crisp accent ring that keeps the heat color visible inside */
+.day.selected {
   box-shadow:
-    inset 0 0 0 2px rgba(59, 130, 246, 0.65),
-    0 0 8px rgba(59, 130, 246, 0.35);
+    inset 0 0 0 2px var(--accent),
+    inset 0 0 0 4px var(--bg-elevated);
+  font-weight: var(--font-bold);
 }
 
-:global(:root:not([data-theme='dark'])) .day.selected.heatLevel1,
-:global(:root:not([data-theme='dark'])) .day.selected.heatLevel2,
-:global(:root:not([data-theme='dark'])) .day.selected.heatLevel3,
-:global(:root:not([data-theme='dark'])) .day.selected.heatLevel4,
-:global(:root:not([data-theme='dark'])) .day.selected.heatComplete {
-  background: rgba(59, 130, 246, 0.16) !important;
-  box-shadow:
-    inset 0 0 0 2px rgba(59, 130, 246, 0.6),
-    0 0 8px rgba(59, 130, 246, 0.28);
+.day.selected:not(.heatLevel1):not(.heatLevel2):not(.heatLevel3):not(.heatLevel4):not(
+    .heatComplete
+  ) {
+  --day-bg: var(--accent-soft);
+  color: var(--accent-text);
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
-:global([data-theme='dark']) .day.selected.heatLevel1,
-:global([data-theme='dark']) .day.selected.heatLevel2,
-:global([data-theme='dark']) .day.selected.heatLevel3,
-:global([data-theme='dark']) .day.selected.heatLevel4,
-:global([data-theme='dark']) .day.selected.heatComplete {
-  background: rgba(96, 165, 250, 0.18) !important;
-  box-shadow:
-    inset 0 0 0 2px rgba(96, 165, 250, 0.6),
-    0 0 10px rgba(96, 165, 250, 0.35);
-}
-
-/* Dark mode - increase heat map visibility */
-:global([data-theme='dark']) .day.heatLevel1 {
-  background-color: rgba(96, 165, 250, 0.15) !important;
-}
-
-:global([data-theme='dark']) .day.heatLevel2 {
-  background-color: rgba(96, 165, 250, 0.25) !important;
-}
-
-:global([data-theme='dark']) .day.heatLevel3 {
-  background-color: rgba(96, 165, 250, 0.38) !important;
-}
-
-:global([data-theme='dark']) .day.heatLevel4 {
-  background-color: rgba(96, 165, 250, 0.52) !important;
-}
-
-:global([data-theme='dark']) .day.heatComplete {
-  background-color: rgba(96, 165, 250, 0.68) !important;
+.day:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
 }
 
 /* Grid Views - Months & Years */
 .grid {
   display: grid;
   gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   animation: fadeIn var(--transition-normal) var(--ease-default);
 }
 
@@ -410,23 +337,9 @@
 
 .yearsGrid {
   grid-template-columns: repeat(3, 1fr);
-  max-height: 220px;
+  max-height: 232px;
   overflow-y: auto;
-  padding-right: var(--space-1);
-}
-
-.yearsGrid::-webkit-scrollbar {
-  width: 4px;
-}
-
-.yearsGrid::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xs);
-}
-
-.yearsGrid::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: var(--radius-xs);
+  padding: 2px var(--space-1) 2px 2px;
 }
 
 .gridButton {
@@ -434,65 +347,127 @@
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--text-primary);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-control);
   cursor: pointer;
-  transition: all var(--transition-fast) var(--ease-default);
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    border-color var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
 }
 
-.gridButton:hover:not(.disabled) {
-  background: var(--color-primary-alpha-10);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  transform: scale(1.02);
+.gridButton:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent-soft-strong);
+  color: var(--accent-text);
 }
 
-.gridButton:active:not(.disabled) {
+.gridButton:active:not(:disabled) {
   transform: scale(0.97);
 }
 
 .gridButton.selected {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: #ffffff;
   font-weight: var(--font-bold);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-glow-accent);
 }
 
-.gridButton.disabled {
-  opacity: 0.3;
+.gridButton:disabled {
+  opacity: 0.32;
   cursor: not-allowed;
 }
 
 /* Footer */
 .footer {
   padding-top: var(--space-3);
-  border-top: 1px solid var(--border-default);
+  border-top: 1px solid var(--divider);
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+}
+
+.legend span:first-child {
+  margin-right: 2px;
+}
+
+.legend span:last-child {
+  margin-left: 2px;
+}
+
+.legendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--day-bg);
+  box-shadow: inset 0 0 0 1px var(--divider);
 }
 
 .todayButton {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-5);
+  margin-left: auto;
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-4);
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  color: var(--color-primary);
+  color: var(--accent-text);
   cursor: pointer;
-  transition: all var(--transition-fast) var(--ease-default);
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
+}
+
+.todayButton:only-child {
+  margin: 0 auto;
 }
 
 .todayButton:hover {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
-  box-shadow: var(--shadow-md);
-  transform: scale(1.02);
+  background: var(--accent-soft-strong);
 }
 
 .todayButton:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
+}
+
+@media (max-width: 360px) {
+  .modal {
+    padding: var(--space-4) var(--space-3) var(--space-3);
+  }
+
+  .days,
+  .weekdays {
+    gap: 3px;
+  }
+
+  .legend span:first-child,
+  .legend span:last-child {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal,
+  .day,
+  .body,
+  .grid {
+    animation: none;
+  }
+
+  .day:hover:not(:disabled) {
+    transform: none;
+  }
 }

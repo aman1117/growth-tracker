@@ -46,8 +46,8 @@ export const PageHeader: FC<PageHeaderProps> = ({
     <div className={`${styles.pageHeader} ${className ?? ''}`}>
       {onBack && (
         <IconButton
-          variant="ghost"
-          size="md"
+          variant="glass"
+          size="lg"
           icon={<ArrowLeft size={20} />}
           onClick={onBack}
           aria-label={backLabel}

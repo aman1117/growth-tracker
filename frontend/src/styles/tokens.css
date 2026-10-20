@@ -1,13 +1,24 @@
 /**
- * Design Tokens
- * 
- * Centralized design system tokens for consistent UI across the application.
- * All components should reference these tokens instead of hardcoded values.
+ * Design Tokens — "Aurora" design language
+ *
+ * Single source of truth for the visual system. Components must reference these
+ * tokens (never raw hex values) so light/dark mode and future re-themes stay consistent.
+ *
+ * Personality: fun, colorful and optimistic (aurora brand gradient, tactile buttons,
+ * soft rounded geometry) while staying calm and professional (violet-tinted neutrals,
+ * restrained glass, accessible contrast — every text pair meets WCAG AA).
+ *
+ * Structure:
+ *   1. Scales (spacing, radius, type, motion, z-index) — theme independent
+ *   2. Brand primitives (raw palette) — theme independent
+ *   3. Semantic + component tokens — light theme (default)
+ *   4. Dark theme overrides ([data-theme='dark'])
+ *   5. Legacy aliases — keep older component code working
  */
 
 :root {
   /* ============================================================================
-     Spacing Scale
+     1. Spacing Scale
      ============================================================================ */
   --space-0: 0;
   --space-px: 1px;
@@ -31,20 +42,35 @@
   --space-16: 4rem; /* 64px */
 
   /* ============================================================================
-     Border Radius Scale
+     Border Radius — soft, friendly "squircle" geometry
      ============================================================================ */
   --radius-none: 0;
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
-  --radius-3xl: 24px;
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
   --radius-full: 9999px;
 
+  /* Semantic radii */
+  --radius-card: var(--radius-2xl);
+  --radius-tile: 22px;
+  --radius-sheet: var(--radius-3xl);
+  --radius-control: 14px;
+
   /* ============================================================================
-     Typography Scale
+     Typography
      ============================================================================ */
+  --font-sans:
+    'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display:
+    'Bricolage Grotesque', 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
   /* Font Sizes */
   --text-2xs: 0.625rem; /* 10px */
   --text-xs: 0.75rem; /* 12px */
@@ -65,19 +91,20 @@
   --leading-relaxed: 1.625;
   --leading-loose: 2;
 
-  /* Font Weights */
+  /* Font Weights (Plus Jakarta Sans tops out at 800) */
   --font-normal: 400;
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
   --font-extrabold: 800;
-  --font-black: 900;
+  --font-black: 800;
 
   /* Letter Spacing */
-  --tracking-tighter: -0.05em;
-  --tracking-tight: -0.025em;
+  --tracking-tighter: -0.04em;
+  --tracking-tight: -0.02em;
   --tracking-normal: 0;
   --tracking-wide: 0.025em;
+  --tracking-wider: 0.08em;
 
   /* ============================================================================
      Semantic Typography Roles
@@ -87,7 +114,7 @@
   --type-display-size: var(--text-4xl);
   --type-display-weight: var(--font-bold);
   --type-display-leading: var(--leading-tight);
-  --type-display-tracking: var(--tracking-tight);
+  --type-display-tracking: var(--tracking-tighter);
 
   /* Page Title — h1 headings */
   --type-page-title-size: var(--text-3xl);
@@ -101,11 +128,11 @@
   --type-section-title-leading: var(--leading-snug);
   --type-section-title-tracking: var(--tracking-tight);
 
-  /* Card Title — modal titles, card headers, FAQ question triggers */
+  /* Card Title — modal titles, card headers */
   --type-card-title-size: var(--text-md);
-  --type-card-title-weight: var(--font-semibold);
+  --type-card-title-weight: var(--font-bold);
   --type-card-title-leading: var(--leading-snug);
-  --type-card-title-tracking: var(--tracking-normal);
+  --type-card-title-tracking: -0.01em;
 
   /* Title Small — notification titles, setting labels, small card titles */
   --type-title-sm-size: var(--text-base);
@@ -119,7 +146,7 @@
   --type-body-lg-leading: var(--leading-relaxed);
   --type-body-lg-tracking: var(--tracking-normal);
 
-  /* Body — default body text, FAQ answers */
+  /* Body — default body text */
   --type-body-size: var(--text-base);
   --type-body-weight: var(--font-normal);
   --type-body-leading: var(--leading-normal);
@@ -133,158 +160,42 @@
 
   /* Label — form labels, timestamps, metadata */
   --type-label-size: var(--text-xs);
-  --type-label-weight: var(--font-medium);
+  --type-label-weight: var(--font-semibold);
   --type-label-leading: var(--leading-tight);
-  --type-label-tracking: var(--tracking-wide);
+  --type-label-tracking: 0.01em;
 
   /* Label Small — overline-style labels, badge counters */
   --type-label-sm-size: var(--text-2xs);
-  --type-label-sm-weight: var(--font-semibold);
+  --type-label-sm-weight: var(--font-bold);
   --type-label-sm-leading: var(--leading-tight);
   --type-label-sm-tracking: 0.05em;
 
   /* Caption — helper text, item counts, footer text */
   --type-caption-size: var(--text-xs);
-  --type-caption-weight: var(--font-normal);
+  --type-caption-weight: var(--font-medium);
   --type-caption-leading: var(--leading-snug);
   --type-caption-tracking: var(--tracking-normal);
 
   /* Button — button text (MD) */
   --type-button-size: var(--text-base);
-  --type-button-weight: var(--font-semibold);
+  --type-button-weight: var(--font-bold);
   --type-button-leading: var(--leading-none);
-  --type-button-tracking: var(--tracking-normal);
+  --type-button-tracking: -0.005em;
 
   /* Button Small — button text (XS/SM) */
   --type-button-sm-size: var(--text-xs);
-  --type-button-sm-weight: var(--font-semibold);
+  --type-button-sm-weight: var(--font-bold);
   --type-button-sm-leading: var(--leading-none);
   --type-button-sm-tracking: var(--tracking-normal);
 
   /* Overline — uppercase category headers */
   --type-overline-size: var(--text-2xs);
-  --type-overline-weight: var(--font-semibold);
+  --type-overline-weight: var(--font-bold);
   --type-overline-leading: var(--leading-none);
-  --type-overline-tracking: 0.05em;
+  --type-overline-tracking: var(--tracking-wider);
 
   /* ============================================================================
-     Shadow Tokens
-     ============================================================================ */
-  --shadow-none: none;
-  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-floating: 0 12px 28px rgba(0, 0, 0, 0.12), 0 8px 12px rgba(0, 0, 0, 0.08);
-
-  /* Focus Ring */
-  --ring-width: 3px;
-  --ring-offset: 2px;
-  --ring-color: rgba(59, 130, 246, 0.4);
-
-  /* ============================================================================
-     Glass Effect Tokens (Light Theme)
-     ============================================================================ */
-  /* Blur amounts */
-  --glass-blur-sm: 8px;
-  --glass-blur-md: 12px;
-  --glass-blur-lg: 16px;
-  --glass-blur-xl: 24px;
-
-  /* Surface (cards, containers) */
-  --glass-surface-bg: rgba(255, 255, 255, 0.7);
-  --glass-surface-border: rgba(0, 0, 0, 0.06);
-  --glass-surface-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --glass-surface-glow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-
-  /* Panel (sidebars, modals) */
-  --glass-panel-bg: rgba(255, 255, 255, 0.85);
-  --glass-panel-border: rgba(0, 0, 0, 0.08);
-  --glass-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  --glass-panel-glow: inset 0 1px 0 rgba(255, 255, 255, 1);
-
-  /* Floating (popovers, dropdowns, toasts) */
-  --glass-floating-bg: rgba(255, 255, 255, 0.92);
-  --glass-floating-border: rgba(0, 0, 0, 0.1);
-  --glass-floating-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
-  --glass-floating-glow: inset 0 1px 0 rgba(255, 255, 255, 1);
-
-  /* Interactive states */
-  --glass-hover-bg: rgba(255, 255, 255, 0.8);
-  --glass-active-bg: rgba(255, 255, 255, 0.6);
-
-  /* ============================================================================
-     Semantic Colors (Light Theme)
-     ============================================================================ */
-  /* Like/Heart */
-  --color-like: #ef4444;
-  --color-like-light: #fca5a5;
-  --color-like-bg: rgba(239, 68, 68, 0.1);
-
-  /* Badge/Achievement */
-  --color-badge: #1d9bf0;
-  --color-badge-light: #60a5fa;
-  --color-badge-bg: rgba(29, 155, 240, 0.1);
-  --verified-check-color: #ffffff;
-
-  /* Streak/Fire */
-  --color-streak: #f97316;
-  --color-streak-light: #fdba74;
-  --color-streak-bg: rgba(249, 115, 22, 0.1);
-
-  /* Warning */
-  --color-warning: #eab308;
-  --color-warning-light: #fde047;
-  --color-warning-bg: rgba(234, 179, 8, 0.1);
-
-  /* Follow/Social */
-  --color-follow: #0095f6;
-  --color-follow-light: #60a5fa;
-  --color-follow-bg: rgba(0, 149, 246, 0.1);
-
-  /* Info */
-  --color-info: #3b82f6;
-  --color-info-light: #93c5fd;
-  --color-info-bg: rgba(59, 130, 246, 0.1);
-
-  /* Success */
-  --color-success-bg: rgba(34, 197, 94, 0.1);
-
-  /* ============================================================================
-     Button Tokens
-     ============================================================================ */
-  /* Size: XS */
-  --btn-xs-height: 1.75rem; /* 28px */
-  --btn-xs-padding-x: 0.5rem; /* 8px */
-  --btn-xs-font-size: var(--text-xs);
-  --btn-xs-icon-size: 0.875rem; /* 14px */
-  --btn-xs-radius: var(--radius-md);
-
-  /* Size: SM */
-  --btn-sm-height: 2rem; /* 32px */
-  --btn-sm-padding-x: 0.75rem; /* 12px */
-  --btn-sm-font-size: var(--text-xs);
-  --btn-sm-icon-size: 1rem; /* 16px */
-  --btn-sm-radius: var(--radius-md);
-
-  /* Size: MD (default) */
-  --btn-md-height: 2.25rem; /* 36px */
-  --btn-md-padding-x: 1rem; /* 16px */
-  --btn-md-font-size: var(--text-base);
-  --btn-md-icon-size: 1.125rem; /* 18px */
-  --btn-md-radius: var(--radius-md);
-
-  /* Size: LG */
-  --btn-lg-height: 2.75rem; /* 44px */
-  --btn-lg-padding-x: 1.5rem; /* 24px */
-  --btn-lg-font-size: var(--text-md);
-  --btn-lg-icon-size: 1.25rem; /* 20px */
-  --btn-lg-radius: var(--radius-md);
-
-  /* ============================================================================
-     Transition Tokens
+     Motion
      ============================================================================ */
   --transition-fast: 150ms;
   --transition-normal: 200ms;
@@ -313,76 +224,547 @@
   --z-max: 9999;
 
   /* ============================================================================
+     Layout
+     ============================================================================ */
+  --content-max: 720px;
+  --header-height: 60px;
+  --nav-dock-height: 64px;
+  --nav-dock-gap: 10px;
+  /* Space the floating dock occupies at the bottom of the viewport (mobile/tablet) */
+  --nav-clearance: calc(
+    var(--nav-dock-height) + var(--nav-dock-gap) + env(safe-area-inset-bottom, 0px) + 16px
+  );
+
+  /* ============================================================================
+     2. Brand Primitives (theme independent)
+     ============================================================================ */
+  /* Violet — primary */
+  --violet-50: #f3f0ff;
+  --violet-100: #e9e4ff;
+  --violet-200: #d3c9ff;
+  --violet-300: #b4a5ff;
+  --violet-400: #9a85ff;
+  --violet-500: #7a61ff;
+  --violet-600: #6447f2;
+  --violet-700: #5236d4;
+  --violet-800: #4126b8;
+  --violet-900: #2c1b7d;
+
+  /* Aurora hues */
+  --lime-400: #a3e635;
+  --lime-500: #84cc16;
+  --green-400: #4ade80;
+  --green-500: #22c55e;
+  --green-600: #16a34a;
+  --green-700: #15803d;
+  --teal-400: #2dd4bf;
+  --teal-500: #14b8a6;
+  --teal-600: #0d9488;
+  --sky-400: #38bdf8;
+  --sky-500: #0ea5e9;
+  --pink-400: #f472b6;
+  --pink-500: #ec4899;
+
+  /* Warm accents */
+  --amber-400: #fbbf24;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-700: #c2410c;
+  --rose-400: #fb7185;
+  --rose-500: #f43f5e;
+  --rose-600: #e11d48;
+  --red-400: #ff6b72;
+  --red-600: #cc2b37;
+
+  /* Ink — violet-tinted neutrals */
+  --ink-950: #0b0a12;
+  --ink-900: #14121c;
+  --ink-850: #17151f;
+  --ink-800: #1e1b2a;
+  --ink-700: #282538;
+  --ink-600: #3a3650;
+  --ink-500: #686482;
+  --ink-400: #8b87a3;
+  --ink-300: #b3afc9;
+  --ink-200: #e4e1ee;
+  --ink-100: #efedf7;
+  --ink-50: #f6f5fb;
+
+  /* ============================================================================
+     3. Semantic Colors — Light Theme (default)
+     ============================================================================ */
+  color-scheme: light;
+
+  /* Canvas & surfaces */
+  --bg-primary: var(--ink-50);
+  --bg-elevated: #ffffff;
+  --bg-secondary: #efedf7;
+  --bg-tertiary: #e7e4f2;
+  --bg-inset: #f3f1fa;
+
+  /* Text */
+  --text-primary: #17142c;
+  --text-secondary: #4d4966;
+  --text-muted: #686482;
+  --text-faint: #8e8aa6;
+  --text-on-color: #ffffff;
+  --text-ink: #15122a;
+
+  /* Lines */
+  --border: #e4e1ee;
+  --border-strong: #cfcadf;
+  --divider: rgba(23, 20, 44, 0.07);
+
+  /* Primary (brand violet) */
+  --accent: var(--violet-600);
+  --accent-hover: var(--violet-700);
+  --accent-text: #5b3fe6;
+  --accent-ledge: var(--violet-800);
+  --accent-soft: rgba(100, 71, 242, 0.1);
+  --accent-soft-strong: rgba(100, 71, 242, 0.16);
+  --accent-glow: rgba(100, 71, 242, 0.4);
+
+  /* Status */
+  --success: var(--green-600);
+  --success-soft: rgba(22, 163, 74, 0.12);
+  --error: var(--red-600);
+  --error-soft: rgba(204, 43, 55, 0.1);
+  --warning: var(--amber-500);
+  --warning-soft: rgba(245, 158, 11, 0.14);
+
+  /* Brand gradients */
+  --gradient-brand: linear-gradient(118deg, #16a34a 0%, #0d9488 40%, #6447f2 100%);
+  --gradient-primary: linear-gradient(180deg, #7457ff 0%, #5c3eeb 100%);
+  --gradient-progress: linear-gradient(90deg, #22c55e 0%, #14b8a6 45%, #6447f2 100%);
+  --gradient-success: linear-gradient(90deg, #22c55e 0%, #10b981 100%);
+  --gradient-ring: conic-gradient(
+    from 210deg,
+    #22c55e,
+    #14b8a6,
+    #6447f2,
+    #ec4899,
+    #f59e0b,
+    #22c55e
+  );
+  --gradient-warm: linear-gradient(135deg, #fb923c 0%, #f43f5e 100%);
+
+  /* Aurora canvas glows (fixed page background) */
+  --aurora-1: rgba(122, 97, 255, 0.16);
+  --aurora-2: rgba(20, 184, 166, 0.13);
+  --aurora-3: rgba(132, 204, 22, 0.1);
+  --aurora-4: rgba(251, 146, 60, 0.08);
+
+  /* Shadows — violet tinted for a softer, branded depth */
+  --shadow-none: none;
+  --shadow-subtle: 0 1px 2px rgba(23, 20, 44, 0.05);
+  --shadow-sm: 0 1px 2px rgba(23, 20, 44, 0.06), 0 2px 6px -2px rgba(76, 58, 160, 0.1);
+  --shadow-md: 0 4px 12px -2px rgba(76, 58, 160, 0.14), 0 2px 4px rgba(23, 20, 44, 0.05);
+  --shadow-lg: 0 14px 30px -10px rgba(76, 58, 160, 0.22), 0 4px 8px rgba(23, 20, 44, 0.05);
+  --shadow-xl: 0 24px 50px -16px rgba(52, 36, 128, 0.3), 0 6px 12px rgba(23, 20, 44, 0.06);
+  --shadow-elevated: 0 8px 24px -8px rgba(76, 58, 160, 0.2), 0 2px 6px rgba(23, 20, 44, 0.05);
+  --shadow-floating: 0 20px 44px -12px rgba(52, 36, 128, 0.32), 0 6px 14px rgba(23, 20, 44, 0.08);
+  --shadow-glow-accent: 0 10px 24px -8px var(--accent-glow);
+
+  /* Focus Ring */
+  --ring-width: 3px;
+  --ring-offset: 2px;
+  --ring-color: rgba(100, 71, 242, 0.35);
+
+  /* ============================================================================
+     Glass Effect Tokens (Light)
+     ============================================================================ */
+  --glass-blur-sm: 10px;
+  --glass-blur-md: 16px;
+  --glass-blur-lg: 22px;
+  --glass-blur-xl: 28px;
+  --glass-saturate: 160%;
+
+  /* Surface (cards, containers) */
+  --glass-surface-bg: rgba(255, 255, 255, 0.72);
+  --glass-surface-border: rgba(23, 20, 44, 0.07);
+  --glass-surface-shadow:
+    0 1px 2px rgba(23, 20, 44, 0.04), 0 10px 30px -14px rgba(76, 58, 160, 0.2);
+  --glass-surface-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  /* Panel (sheets, modals) */
+  --glass-panel-bg: rgba(255, 255, 255, 0.9);
+  --glass-panel-border: rgba(23, 20, 44, 0.08);
+  --glass-panel-shadow: 0 28px 60px -20px rgba(52, 36, 128, 0.32), 0 2px 6px rgba(23, 20, 44, 0.06);
+  --glass-panel-glow: inset 0 1px 0 rgba(255, 255, 255, 1);
+
+  /* Floating (popovers, dropdowns, toasts, dock) */
+  --glass-floating-bg: rgba(255, 255, 255, 0.92);
+  --glass-floating-border: rgba(23, 20, 44, 0.09);
+  --glass-floating-shadow:
+    0 18px 44px -12px rgba(52, 36, 128, 0.3), 0 4px 12px rgba(23, 20, 44, 0.08);
+  --glass-floating-glow: inset 0 1px 0 rgba(255, 255, 255, 1);
+
+  /* Interactive states */
+  --glass-hover-bg: rgba(255, 255, 255, 0.92);
+  --glass-active-bg: rgba(239, 237, 247, 0.92);
+
+  /* ============================================================================
+     Component Tokens (Light)
+     ============================================================================ */
+  /* Header & navigation */
+  --header-bg: rgba(246, 245, 251, 0.78);
+  --nav-bg: rgba(255, 255, 255, 0.86);
+  --nav-item-active-bg: var(--accent-soft);
+  --nav-item-active-color: var(--accent-text);
+  --nav-item-color: var(--text-muted);
+
+  /* Overlays */
+  --modal-overlay: rgba(23, 20, 44, 0.4);
+  --scrim-strong: rgba(10, 8, 22, 0.86);
+
+  /* Controls */
+  --control-bg: rgba(255, 255, 255, 0.85);
+  --control-bg-hover: #ffffff;
+  --control-border: rgba(23, 20, 44, 0.1);
+  --control-ledge: rgba(23, 20, 44, 0.08);
+  --input-bg: #ffffff;
+  --input-border: #dcd8e8;
+  --input-placeholder: var(--text-faint);
+
+  /* Chips (soft tinted pills) */
+  --chip-bg: rgba(23, 20, 44, 0.05);
+  --chip-border: rgba(23, 20, 44, 0.06);
+  /* Raised segment inside a chip-tinted track (segmented controls) */
+  --segment-active-bg: #ffffff;
+
+  /* Avatars & misc */
+  --avatar-bg: #e7e4f2;
+  --skeleton-bg: rgba(207, 202, 223, 0.45);
+  --skeleton-shine: rgba(255, 255, 255, 0.65);
+  --progress-track: rgba(23, 20, 44, 0.08);
+  /* Calendar heat map: low → high mirrors the progress gradient (green → teal → violet) */
+  --heat-1: rgba(34, 197, 94, 0.2);
+  --heat-2: rgba(20, 184, 166, 0.3);
+  --heat-3: rgba(100, 71, 242, 0.26);
+  --heat-4: rgba(100, 71, 242, 0.44);
+  --heat-complete: linear-gradient(135deg, #0f766e 0%, #6447f2 100%);
+  --icon-bg-muted: rgba(23, 20, 44, 0.05);
+  --icon-btn-bg: rgba(23, 20, 44, 0.05);
+  --icon-btn-color: var(--text-secondary);
+  --toggle-off-bg: rgba(23, 20, 44, 0.16);
+  --logo-bg: #17142c;
+  --logo-color: #ffffff;
+  --logo-filter: none;
+
+  /* Activity tiles */
+  --tile-glass-bg: rgba(255, 255, 255, 0.78);
+  --tile-glass-bg-active: rgba(255, 255, 255, 0.92);
+  --tile-glass-border: rgba(23, 20, 44, 0.06);
+  --tile-glass-border-active: rgba(23, 20, 44, 0.1);
+  --tile-glass-shadow: 0 1px 2px rgba(23, 20, 44, 0.04), 0 8px 18px -10px rgba(76, 58, 160, 0.2);
+  --tile-glass-shadow-active: 0 12px 26px -12px rgba(76, 58, 160, 0.28);
+  --tile-glass-blur: 16px;
+  --tile-glass-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --tile-glass-inner-glow-active: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  /* How strongly an inactive tile's icon chip is tinted with the activity color */
+  --tile-tint-strength: 13%;
+  /* Mix target for activity colors used as text/icons on the canvas */
+  --tile-ink-mix: #17142c;
+  --tile-ink-strength: 18%;
+
+  /* ============================================================================
+     Semantic Colors — social / status accents (Light)
+     ============================================================================ */
+  /* Like/Heart */
+  --color-like: var(--rose-500);
+  --color-like-light: #fda4af;
+  --color-like-bg: rgba(244, 63, 94, 0.1);
+
+  /* Badge/Verified */
+  --color-badge: var(--violet-600);
+  --color-badge-light: var(--violet-300);
+  --color-badge-bg: rgba(100, 71, 242, 0.1);
+  --verified-check-color: #ffffff;
+  --verified-from: #8b6cff;
+  --verified-to: #2fa8f0;
+
+  /* Streak/Fire */
+  --color-streak: var(--orange-500);
+  --color-streak-light: #fdba74;
+  --color-streak-bg: rgba(249, 115, 22, 0.12);
+
+  /* Warning */
+  --color-warning: var(--amber-500);
+  --color-warning-light: #fde68a;
+  --color-warning-bg: rgba(245, 158, 11, 0.14);
+
+  /* Follow/Social */
+  --color-follow: var(--violet-600);
+  --color-follow-light: var(--violet-300);
+  --color-follow-bg: rgba(100, 71, 242, 0.1);
+
+  /* Info */
+  --color-info: #2563eb;
+  --color-info-light: #93c5fd;
+  --color-info-bg: rgba(37, 99, 235, 0.1);
+
+  /* Success */
+  --color-success-bg: rgba(22, 163, 74, 0.12);
+
+  /* Semantic Text Colors */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-muted);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: #ffffff;
+  --color-text-disabled: var(--text-faint);
+  --color-text-link: var(--accent-text);
+  --color-text-link-hover: var(--accent-hover);
+  --color-text-success: var(--green-700);
+  --color-text-warning: var(--amber-700);
+  --color-text-danger: var(--red-600);
+  --color-text-info: #1d4ed8;
+
+  /* ============================================================================
+     Button Tokens
+     ============================================================================ */
+  --btn-xs-height: 1.75rem; /* 28px */
+  --btn-xs-padding-x: 0.625rem;
+  --btn-xs-font-size: var(--text-xs);
+  --btn-xs-icon-size: 0.875rem;
+  --btn-xs-radius: 10px;
+
+  --btn-sm-height: 2.125rem; /* 34px */
+  --btn-sm-padding-x: 0.875rem;
+  --btn-sm-font-size: var(--text-sm);
+  --btn-sm-icon-size: 1rem;
+  --btn-sm-radius: 12px;
+
+  --btn-md-height: 2.5rem; /* 40px */
+  --btn-md-padding-x: 1.125rem;
+  --btn-md-font-size: var(--text-base);
+  --btn-md-icon-size: 1.125rem;
+  --btn-md-radius: var(--radius-control);
+
+  --btn-lg-height: 3rem; /* 48px */
+  --btn-lg-padding-x: 1.5rem;
+  --btn-lg-font-size: var(--text-md);
+  --btn-lg-icon-size: 1.25rem;
+  --btn-lg-radius: var(--radius-lg);
+
+  /* ============================================================================
      Input Tokens
      ============================================================================ */
-  --input-height-sm: 2rem; /* 32px */
-  --input-height-md: 2.5rem; /* 40px */
+  --input-height-sm: 2.25rem; /* 36px */
+  --input-height-md: 2.75rem; /* 44px */
   --input-height-lg: 3rem; /* 48px */
-  --input-padding-x: var(--space-3);
-  --input-radius: var(--radius-md);
+  --input-padding-x: var(--space-3-5);
+  --input-radius: var(--radius-control);
+
+  /* ============================================================================
+     5. Legacy aliases (referenced by older components)
+     ============================================================================ */
+  --text-tertiary: var(--text-muted);
+  --color-primary: var(--accent);
+  --color-primary-alpha-0: rgba(100, 71, 242, 0);
+  --color-primary-alpha-10: var(--accent-soft);
+  --color-primary-alpha-40: rgba(100, 71, 242, 0.4);
+  --accent-rgb: 100, 71, 242;
+  --border-color: var(--border);
+  --border-default: var(--border);
+  --surface-elevated: var(--bg-elevated);
+  --card-bg: var(--glass-surface-bg);
+  --hover-bg: var(--bg-secondary);
+  --glass-bg: var(--glass-surface-bg);
+  --glass-border: var(--glass-surface-border);
+  --glass-shadow: var(--glass-surface-shadow);
+  --shadow-color-sm: rgba(23, 20, 44, 0.06);
+  --shadow-color-md: rgba(23, 20, 44, 0.12);
 }
 
 /* ============================================================================
-   Dark Theme Overrides
+   4. Dark Theme Overrides
    ============================================================================ */
 [data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Canvas & surfaces */
+  --bg-primary: var(--ink-950);
+  --bg-elevated: var(--ink-850);
+  --bg-secondary: var(--ink-900);
+  --bg-tertiary: var(--ink-800);
+  --bg-inset: #12101a;
+
+  /* Text */
+  --text-primary: #f3f1ff;
+  --text-secondary: var(--ink-300);
+  --text-muted: var(--ink-400);
+  --text-faint: #6f6b88;
+
+  /* Lines */
+  --border: var(--ink-700);
+  --border-strong: var(--ink-600);
+  --divider: rgba(255, 255, 255, 0.07);
+
+  /* Primary */
+  --accent: #7357ff;
+  --accent-hover: #8a72ff;
+  --accent-text: #a594ff;
+  --accent-ledge: #3e26a6;
+  --accent-soft: rgba(138, 114, 255, 0.16);
+  --accent-soft-strong: rgba(138, 114, 255, 0.24);
+  --accent-glow: rgba(115, 87, 255, 0.5);
+
+  /* Status */
+  --success: var(--green-400);
+  --success-soft: rgba(74, 222, 128, 0.14);
+  --error: var(--red-400);
+  --error-soft: rgba(255, 107, 114, 0.14);
+  --warning: var(--amber-400);
+  --warning-soft: rgba(251, 191, 36, 0.14);
+
+  /* Brand gradients — brighter aurora for dark canvases */
+  --gradient-brand: linear-gradient(118deg, #a3e635 0%, #2dd4bf 42%, #a78bfa 100%);
+  --gradient-primary: linear-gradient(180deg, #7d62ff 0%, #6447f2 100%);
+  --gradient-progress: linear-gradient(90deg, #a3e635 0%, #2dd4bf 45%, #8b74ff 100%);
+  --gradient-success: linear-gradient(90deg, #4ade80 0%, #2dd4bf 100%);
+  --gradient-ring: conic-gradient(
+    from 210deg,
+    #a3e635,
+    #2dd4bf,
+    #8b74ff,
+    #f472b6,
+    #fbbf24,
+    #a3e635
+  );
+
+  /* Aurora canvas glows */
+  --aurora-1: rgba(115, 87, 255, 0.22);
+  --aurora-2: rgba(45, 212, 191, 0.1);
+  --aurora-3: rgba(163, 230, 53, 0.06);
+  --aurora-4: rgba(244, 114, 182, 0.06);
+
   /* Shadows */
-  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4), 0 10px 10px rgba(0, 0, 0, 0.2);
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-floating: 0 12px 28px rgba(0, 0, 0, 0.4), 0 8px 12px rgba(0, 0, 0, 0.3);
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 14px -4px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 32px -12px rgba(0, 0, 0, 0.65), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 26px 54px -16px rgba(0, 0, 0, 0.75), 0 6px 12px rgba(0, 0, 0, 0.35);
+  --shadow-elevated: 0 10px 28px -10px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-floating: 0 22px 48px -12px rgba(0, 0, 0, 0.75), 0 6px 14px rgba(0, 0, 0, 0.4);
 
   /* Focus Ring */
-  --ring-color: rgba(96, 165, 250, 0.5);
+  --ring-color: rgba(149, 128, 255, 0.5);
 
-  /* Glass Surface */
-  --glass-surface-bg: rgba(30, 30, 30, 0.6);
-  --glass-surface-border: rgba(255, 255, 255, 0.08);
-  --glass-surface-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  /* Glass */
+  --glass-saturate: 140%;
+  --glass-surface-bg: rgba(26, 24, 38, 0.66);
+  --glass-surface-border: rgba(255, 255, 255, 0.07);
+  --glass-surface-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 32px -16px rgba(0, 0, 0, 0.7);
   --glass-surface-glow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 
-  /* Glass Panel */
-  --glass-panel-bg: rgba(20, 20, 20, 0.85);
-  --glass-panel-border: rgba(255, 255, 255, 0.1);
-  --glass-panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --glass-panel-glow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-panel-bg: rgba(22, 20, 33, 0.94);
+  --glass-panel-border: rgba(255, 255, 255, 0.09);
+  --glass-panel-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.85);
+  --glass-panel-glow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 
-  /* Glass Floating */
-  --glass-floating-bg: rgba(25, 25, 25, 0.95);
-  --glass-floating-border: rgba(255, 255, 255, 0.12);
-  --glass-floating-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
-  --glass-floating-glow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --glass-floating-bg: rgba(29, 27, 42, 0.96);
+  --glass-floating-border: rgba(255, 255, 255, 0.1);
+  --glass-floating-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.45);
+  --glass-floating-glow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
-  /* Interactive states */
-  --glass-hover-bg: rgba(50, 50, 50, 0.7);
-  --glass-active-bg: rgba(40, 40, 40, 0.8);
+  --glass-hover-bg: rgba(40, 37, 56, 0.85);
+  --glass-active-bg: rgba(32, 29, 46, 0.92);
 
-  /* Semantic Colors (adjusted for dark mode) */
-  --color-like: #f87171;
-  --color-like-light: #fca5a5;
-  --color-like-bg: rgba(248, 113, 113, 0.15);
+  /* Header & navigation */
+  --header-bg: rgba(11, 10, 18, 0.74);
+  --nav-bg: rgba(24, 22, 35, 0.88);
 
-  --color-badge: #1d9bf0;
-  --color-badge-light: #60a5fa;
-  --color-badge-bg: rgba(29, 155, 240, 0.15);
-  --verified-check-color: #1a1a1a;
+  /* Overlays */
+  --modal-overlay: rgba(3, 2, 8, 0.66);
 
-  --color-streak: #fb923c;
-  --color-streak-light: #fdba74;
+  /* Controls */
+  --control-bg: rgba(255, 255, 255, 0.06);
+  --control-bg-hover: rgba(255, 255, 255, 0.1);
+  --control-border: rgba(255, 255, 255, 0.1);
+  --control-ledge: rgba(0, 0, 0, 0.45);
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: rgba(255, 255, 255, 0.12);
+
+  /* Chips */
+  --chip-bg: rgba(255, 255, 255, 0.06);
+  --chip-border: rgba(255, 255, 255, 0.06);
+  --segment-active-bg: rgba(255, 255, 255, 0.13);
+
+  /* Avatars & misc */
+  --avatar-bg: var(--ink-800);
+  --skeleton-bg: rgba(58, 54, 80, 0.45);
+  --skeleton-shine: rgba(255, 255, 255, 0.06);
+  --progress-track: rgba(255, 255, 255, 0.08);
+  --heat-1: rgba(74, 222, 128, 0.16);
+  --heat-2: rgba(45, 212, 191, 0.24);
+  --heat-3: rgba(139, 116, 255, 0.3);
+  --heat-4: rgba(139, 116, 255, 0.5);
+  --heat-complete: linear-gradient(135deg, #0f766e 0%, #6e52ff 100%);
+  --icon-bg-muted: rgba(255, 255, 255, 0.06);
+  --icon-btn-bg: rgba(255, 255, 255, 0.07);
+  --icon-btn-color: var(--text-secondary);
+  --toggle-off-bg: rgba(255, 255, 255, 0.18);
+  --logo-bg: #f3f1ff;
+  --logo-color: #0b0a12;
+
+  /* Activity tiles */
+  --tile-glass-bg: rgba(27, 25, 39, 0.8);
+  --tile-glass-bg-active: rgba(40, 37, 56, 0.9);
+  --tile-glass-border: rgba(255, 255, 255, 0.06);
+  --tile-glass-border-active: rgba(255, 255, 255, 0.12);
+  --tile-glass-shadow: 0 10px 22px -14px rgba(0, 0, 0, 0.8);
+  --tile-glass-shadow-active: 0 14px 30px -14px rgba(0, 0, 0, 0.85);
+  --tile-glass-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --tile-glass-inner-glow-active: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --tile-tint-strength: 20%;
+  --tile-ink-mix: #ffffff;
+  --tile-ink-strength: 28%;
+
+  /* Social / status accents */
+  --color-like: var(--rose-400);
+  --color-like-light: #fecdd3;
+  --color-like-bg: rgba(251, 113, 133, 0.15);
+
+  --color-badge: var(--violet-400);
+  --color-badge-light: var(--violet-300);
+  --color-badge-bg: rgba(154, 133, 255, 0.16);
+  --verified-check-color: #ffffff;
+  --verified-from: #a08bff;
+  --verified-to: #38bdf8;
+
+  --color-streak: var(--orange-400);
+  --color-streak-light: #fed7aa;
   --color-streak-bg: rgba(251, 146, 60, 0.15);
 
-  --color-warning: #facc15;
+  --color-warning: var(--amber-400);
   --color-warning-light: #fef08a;
-  --color-warning-bg: rgba(250, 204, 21, 0.15);
+  --color-warning-bg: rgba(251, 191, 36, 0.15);
 
-  --color-follow: #60a5fa;
-  --color-follow-light: #93c5fd;
-  --color-follow-bg: rgba(96, 165, 250, 0.15);
+  --color-follow: var(--violet-400);
+  --color-follow-light: var(--violet-300);
+  --color-follow-bg: rgba(154, 133, 255, 0.16);
 
   --color-info: #60a5fa;
   --color-info-light: #93c5fd;
   --color-info-bg: rgba(96, 165, 250, 0.15);
+
+  --color-success-bg: rgba(74, 222, 128, 0.14);
+
+  /* Semantic Text Colors */
+  --color-text-inverse: #0b0a12;
+  --color-text-success: var(--green-400);
+  --color-text-warning: var(--amber-400);
+  --color-text-danger: var(--red-400);
+  --color-text-info: #93c5fd;
+
+  /* Legacy aliases */
+  --color-primary-alpha-0: rgba(115, 87, 255, 0);
+  --color-primary-alpha-40: rgba(115, 87, 255, 0.4);
+  --accent-rgb: 115, 87, 255;
+  --shadow-color-sm: rgba(0, 0, 0, 0.3);
+  --shadow-color-md: rgba(0, 0, 0, 0.45);
 }

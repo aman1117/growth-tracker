@@ -7,12 +7,15 @@
  * Same animation pattern as NotificationPanel.
  */
 
-import { RefreshCw, X } from 'lucide-react';
+import { MessageCircle, RefreshCw, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { useBackDismiss } from '../../../hooks/useBackDismiss';
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock';
+import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import { useCommentStore } from '../../../store/useCommentStore';
+import { Skeleton } from '../Skeleton';
 import { CommentInput } from './CommentInput';
 import { CommentItem } from './CommentItem';
 import styles from './CommentSheet.module.css';
@@ -25,6 +28,7 @@ interface CommentSheetProps {
 }
 
 const CLOSE_ANIMATION_MS = 200;
+const SKELETON_ROWS = 3;
 
 export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, username, date }) => {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -86,28 +90,19 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, use
         onClose();
       }
     };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
     }
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
 
-  // Prevent body scroll when open on mobile
-  useEffect(() => {
-    if (isOpen && isMobile) {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }
-  }, [isOpen, isMobile]);
+  // Escape closes the sheet unless an inner control (mentions, reply, edit) claims it first
+  useEscapeKey(isOpen, onClose);
+
+  // Prevent body scroll while the sheet is open on mobile
+  useBodyScrollLock(isOpen && isMobile);
 
   // System Back gesture / button closes the sheet instead of leaving the page
   useBackDismiss(isOpen, onClose);
@@ -176,17 +171,22 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, use
         className={panelClasses}
         onTouchStart={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="comment-sheet-title"
       >
         {/* Drag handle (mobile only) */}
         {isMobile && (
-          <div className={styles.dragHandle}>
+          <div className={styles.dragHandle} aria-hidden="true">
             <div className={styles.dragBar} />
           </div>
         )}
 
         {/* Header */}
         <div className={styles.header}>
-          <h3 className={styles.title}>Comments</h3>
+          <h3 className={styles.title} id="comment-sheet-title">
+            Comments
+          </h3>
           <div className={styles.headerActions}>
             <button
               className={styles.headerButton}
@@ -194,7 +194,7 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, use
               title="Refresh"
               aria-label="Refresh comments"
             >
-              <RefreshCw size={16} />
+              <RefreshCw size={16} strokeWidth={2.25} aria-hidden="true" />
             </button>
             <button
               className={styles.headerButton}
@@ -202,22 +202,24 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, use
               title="Close"
               aria-label="Close comments"
             >
-              <X size={18} />
+              <X size={18} strokeWidth={2.25} aria-hidden="true" />
             </button>
           </div>
         </div>
 
         {/* Sort Toggle */}
-        <div className={styles.sortRow}>
+        <div className={styles.sortRow} role="group" aria-label="Sort comments">
           <button
             className={`${styles.sortButton} ${sort === 'top' ? styles.sortButtonActive : ''}`}
             onClick={() => handleSortChange('top')}
+            aria-pressed={sort === 'top'}
           >
             Top
           </button>
           <button
             className={`${styles.sortButton} ${sort === 'newest' ? styles.sortButtonActive : ''}`}
             onClick={() => handleSortChange('newest')}
+            aria-pressed={sort === 'newest'}
           >
             Newest
           </button>
@@ -230,12 +232,22 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, use
           onScroll={handleScroll}
         >
           {loading && comments.length === 0 ? (
-            <div className={styles.loading}>
-              <RefreshCw size={18} className={styles.spinning} />
-              <span>Loading comments...</span>
+            <div className={styles.loading} aria-busy="true" aria-label="Loading comments">
+              {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+                <div key={i} className={styles.skeletonRow}>
+                  <Skeleton width={32} height={32} radius="full" />
+                  <div className={styles.skeletonLines}>
+                    <Skeleton width="34%" height={12} radius="sm" />
+                    <Skeleton width={i === 1 ? '62%' : '86%'} height={12} radius="sm" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : comments.length === 0 ? (
             <div className={styles.emptyState}>
+              <span className={styles.emptyIcon} aria-hidden="true">
+                <MessageCircle size={26} strokeWidth={2} />
+              </span>
               <p className={styles.emptyTitle}>No comments yet</p>
               <p className={styles.emptySubtitle}>Start the conversation.</p>
             </div>

@@ -1,8 +1,7 @@
 /**
  * NotificationPreviewToast Styles
  *
- * Glassmorphism floating card for notification previews.
- * Consistent with SnapToast animation patterns and Notification icon styling.
+ * Floating glass card that drops in under the header when a live notification arrives.
  */
 
 /* ============================================================================
@@ -11,57 +10,48 @@
 
 .previewToast {
   position: fixed;
-  top: calc(env(safe-area-inset-top, 0px) + 60px);
+  top: calc(env(safe-area-inset-top, 0px) + var(--header-height, 60px) + 8px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  max-width: min(400px, calc(100vw - 2rem));
+  padding: 0.75rem 0.75rem 0.75rem 0.875rem;
+  max-width: min(420px, calc(100vw - 1.5rem));
   width: 100%;
   cursor: pointer;
+  overflow: hidden;
 
-  /* Glassmorphism - floating tier */
   background: var(--glass-floating-bg);
-  backdrop-filter: blur(var(--glass-blur-lg, 16px));
-  -webkit-backdrop-filter: blur(var(--glass-blur-lg, 16px));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-floating-border);
-  border-radius: 16px;
-  box-shadow: var(--glass-floating-shadow);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-floating-shadow), var(--glass-floating-glow);
 
   z-index: var(--z-toast, 800);
 
-  /* Spring animation */
-  animation: previewSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: previewSlideIn 0.42s var(--ease-spring);
 
-  /* Touch */
   touch-action: pan-y;
   user-select: none;
 }
 
-/* Inner glow highlight */
-.previewToast::after {
+/* Brand accent strip */
+.previewToast::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 16px 16px 0 0;
-  pointer-events: none;
-}
-
-[data-theme='dark'] .previewToast::after {
-  background: rgba(255, 255, 255, 0.08);
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gradient-progress);
 }
 
 .previewToast:hover {
-  background: var(--glass-floating-bg-hover, var(--glass-floating-bg));
   box-shadow:
     var(--glass-floating-shadow),
-    0 0 0 1px var(--glass-floating-border);
+    0 0 0 1px var(--accent-soft-strong);
 }
 
 .previewToast:active {
@@ -75,11 +65,7 @@
 @keyframes previewSlideIn {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-30px) scale(0.95);
-  }
-  60% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(4px) scale(1.01);
+    transform: translateX(-50%) translateY(-24px) scale(0.95);
   }
   100% {
     opacity: 1;
@@ -107,47 +93,19 @@
 }
 
 /* ============================================================================
-   Icon
+   Icon chip (tone set by NotificationTone.module.css)
    ============================================================================ */
 
 .iconWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--tile-glass-bg, var(--bg-tertiary));
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--tone-soft, var(--accent-soft));
+  color: var(--tone, var(--accent-text));
   flex-shrink: 0;
-}
-
-/* Type-specific icon colors — matching NotificationItem */
-.iconLike {
-  color: var(--color-like, #ef4444);
-}
-
-.iconBadge {
-  color: var(--color-badge, #1d9bf0);
-}
-
-.iconStreak {
-  color: var(--color-streak, #f97316);
-}
-
-.iconWarning {
-  color: var(--color-warning, #f59e0b);
-}
-
-.iconSystem {
-  color: var(--accent, #3b82f6);
-}
-
-.iconFollow {
-  color: var(--color-follow, #0095f6);
-}
-
-.iconPhoto {
-  color: var(--accent);
 }
 
 /* ============================================================================
@@ -163,8 +121,8 @@
 }
 
 .title {
-  font-size: 0.8125rem;
-  font-weight: var(--font-semibold, 600);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
   color: var(--text-primary);
   margin: 0;
   white-space: nowrap;
@@ -173,12 +131,13 @@
 }
 
 .body {
-  font-size: 0.75rem;
+  font-size: var(--text-xs);
   color: var(--text-secondary);
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -188,33 +147,37 @@
    ============================================================================ */
 
 .closeButton {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: transparent;
+  background: var(--chip-bg);
   color: var(--text-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.closeButton::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
 }
 
 .closeButton:hover {
-  background: var(--bg-tertiary);
+  background: var(--accent-soft);
   color: var(--text-primary);
 }
 
-/* ============================================================================
-   Responsive
-   ============================================================================ */
-
-@media (max-width: 480px) {
+@media (prefers-reduced-motion: reduce) {
   .previewToast {
-    max-width: calc(100vw - 1.5rem);
-    border-radius: 12px;
+    animation-duration: 0.01ms;
   }
 }

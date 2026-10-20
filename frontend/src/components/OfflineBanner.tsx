@@ -1,17 +1,23 @@
 /**
  * Offline Banner Component
  *
- * Shows a banner when the user is offline.
- * Shows green "Back online" message with fade animation when connection restored.
+ * Shows a notice while the user is offline, then a brief "Back online"
+ * confirmation that fades away once the connection is restored.
  * Works on all platforms including iOS Safari.
  */
 
-import { Wifi, WifiOff, X } from 'lucide-react';
+import { Wifi, WifiOff } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useOfflineStatus } from '../hooks/useOfflineStatus';
+import { Notice } from './ui';
 
 type BannerState = 'hidden' | 'offline' | 'online' | 'fading';
+
+/** How long "Back online" stays fully visible before fading */
+const ONLINE_VISIBLE_MS = 1500;
+/** Must match the Notice exit transition */
+const FADE_MS = 500;
 
 export const OfflineBanner: React.FC = () => {
   const isOffline = useOfflineStatus();
@@ -30,15 +36,8 @@ export const OfflineBanner: React.FC = () => {
       wasOfflineRef.current = false;
       setBannerState('online');
 
-      // Start fade after showing "Back online" for 1.5s
-      const fadeTimer = setTimeout(() => {
-        setBannerState('fading');
-      }, 1500);
-
-      // Hide completely after fade animation (0.5s)
-      const hideTimer = setTimeout(() => {
-        setBannerState('hidden');
-      }, 2000);
+      const fadeTimer = setTimeout(() => setBannerState('fading'), ONLINE_VISIBLE_MS);
+      const hideTimer = setTimeout(() => setBannerState('hidden'), ONLINE_VISIBLE_MS + FADE_MS);
 
       return () => {
         clearTimeout(fadeTimer);
@@ -52,7 +51,7 @@ export const OfflineBanner: React.FC = () => {
       setIsDismissed(true);
     } else {
       setBannerState('fading');
-      setTimeout(() => setBannerState('hidden'), 500);
+      setTimeout(() => setBannerState('hidden'), FADE_MS);
     }
   };
 
@@ -61,59 +60,24 @@ export const OfflineBanner: React.FC = () => {
   }
 
   const isOnlineState = bannerState === 'online' || bannerState === 'fading';
-  const backgroundColor = isOnlineState ? '#22c55e' : '#ef4444';
-  const Icon = isOnlineState ? Wifi : WifiOff;
-  const message = isOnlineState
-    ? "You're back online!"
-    : "You're offline. Some features may be unavailable.";
 
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        backgroundColor,
-        color: 'white',
-        padding: '6px 40px 6px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '6px',
-        fontSize: '12px',
-        fontWeight: 500,
-        zIndex: 9999,
-        fontFamily: "'Nunito Sans', sans-serif",
-        transition: 'background-color 0.3s ease, opacity 0.5s ease, transform 0.5s ease',
-        opacity: bannerState === 'fading' ? 0 : 1,
-        transform: bannerState === 'fading' ? 'translateY(-100%)' : 'translateY(0)',
-      }}
-    >
-      <Icon size={14} />
-      <span style={{ textAlign: 'center' }}>{message}</span>
-      <button
-        onClick={handleDismiss}
-        style={{
-          position: 'absolute',
-          right: '8px',
-          background: 'none',
-          border: 'none',
-          color: 'white',
-          cursor: 'pointer',
-          padding: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '4px',
-          opacity: 0.8,
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.8')}
-        aria-label="Dismiss notification"
-      >
-        <X size={16} />
-      </button>
-    </div>
+  return isOnlineState ? (
+    <Notice
+      tone="success"
+      icon={<Wifi size={18} />}
+      title="You're back online!"
+      leaving={bannerState === 'fading'}
+      onDismiss={handleDismiss}
+      dismissLabel="Dismiss notification"
+    />
+  ) : (
+    <Notice
+      tone="warning"
+      icon={<WifiOff size={18} />}
+      title="You're offline"
+      description="Some features may be unavailable until you reconnect."
+      onDismiss={handleDismiss}
+      dismissLabel="Dismiss notification"
+    />
   );
 };

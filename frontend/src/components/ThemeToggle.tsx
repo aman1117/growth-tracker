@@ -3,6 +3,7 @@ import React from 'react';
 
 import { gl } from '../services/goodlogs';
 import { useTheme } from '../store';
+import styles from './ThemeToggle.module.css';
 
 export const ThemeToggle: React.FC = () => {
   const { isDark, toggleTheme } = useTheme();
@@ -12,55 +13,22 @@ export const ThemeToggle: React.FC = () => {
     toggleTheme();
   };
 
+  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+
   return (
     <button
+      type="button"
       onClick={handleToggle}
-      style={{
-        width: '36px',
-        height: '36px',
-        borderRadius: '50%',
-        backgroundColor: 'var(--avatar-bg)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontWeight: 700,
-        fontSize: '0.9rem',
-        color: 'var(--text-primary)',
-        border: 'none',
-        cursor: 'pointer',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'background-color 0.3s ease',
-      }}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      className={`${styles.toggle} ${isDark ? styles.dark : ''}`}
+      aria-label={label}
+      title={label}
     >
-      <div
-        style={{
-          position: 'absolute',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          transform: isDark ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0)',
-          opacity: isDark ? 1 : 0,
-        }}
-      >
-        <Sun size={16} strokeWidth={2} />
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          transform: isDark ? 'rotate(90deg) scale(0)' : 'rotate(0deg) scale(1)',
-          opacity: isDark ? 0 : 1,
-        }}
-      >
-        <Moon size={16} strokeWidth={2} />
-      </div>
+      <span className={`${styles.icon} ${styles.sun}`} aria-hidden="true">
+        <Sun size={18} strokeWidth={2} />
+      </span>
+      <span className={`${styles.icon} ${styles.moon}`} aria-hidden="true">
+        <Moon size={18} strokeWidth={2} />
+      </span>
     </button>
   );
 };

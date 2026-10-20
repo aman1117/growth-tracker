@@ -1,21 +1,22 @@
 /**
  * LikersModal Component
  *
- * A modal that displays all users who liked a specific day.
- * Clicking on a user navigates to their dashboard.
+ * Lists everyone who liked a specific day. Clicking a user opens their profile.
+ * Built on the shared Modal (focus/escape/back-gesture/scroll-lock handled there).
  */
 
-import { Heart, User as UserIcon, X } from 'lucide-react';
+import { Heart, RefreshCw } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 
 import { APP_ROUTES } from '../../../constants/routes';
-import { useBackDismiss } from '../../../hooks/useBackDismiss';
 import { useOverlayAwareNavigate } from '../../../hooks/useOverlayAwareNavigate';
 import { likeApi } from '../../../services/api';
 import type { LikerDTO } from '../../../types/api';
-import { ProtectedImage } from '../ProtectedImage';
+import { Avatar } from '../Avatar';
+import { Modal } from '../Modal';
+import { Skeleton } from '../Skeleton';
 import { VerifiedBadge } from '../VerifiedBadge';
+import styles from './LikersModal.module.css';
 
 export interface LikersModalProps {
   /** Username of the profile being viewed */
@@ -28,33 +29,47 @@ export interface LikersModalProps {
   onClose: () => void;
 }
 
+type LoadStatus = 'loading' | 'ready' | 'error';
+
+const SKELETON_ROWS = 3;
+
 export const LikersModal: React.FC<LikersModalProps> = ({ username, date, isOpen, onClose }) => {
   const navigate = useOverlayAwareNavigate();
   const [likers, setLikers] = useState<LikerDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // System Back gesture / button closes the modal instead of leaving the page
-  useBackDismiss(isOpen, onClose);
+  const [status, setStatus] = useState<LoadStatus>('loading');
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!isOpen) return;
 
+    // Ignore responses that arrive after the modal closed or the day changed
+    let cancelled = false;
+
     const fetchLikers = async () => {
-      setLoading(true);
+      setStatus('loading');
       try {
         const response = await likeApi.getLikes(username, date);
+        if (cancelled) return;
         if (response.success) {
           setLikers(response.data || []);
+          setStatus('ready');
+        } else {
+          console.warn('[LikersModal] getLikes returned unsuccessful response', { date });
+          setStatus('error');
         }
       } catch (error) {
-        console.error('Failed to fetch likers:', error);
-      } finally {
-        setLoading(false);
+        if (cancelled) return;
+        console.error('[LikersModal] Failed to fetch likers; showing retry', { date, error });
+        setStatus('error');
       }
     };
 
     fetchLikers();
-  }, [username, date, isOpen]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [username, date, isOpen, reloadKey]);
 
   const handleUserClick = (likerUsername: string) => {
     // Navigate first so the modal's history entry is replaced by the profile
@@ -62,206 +77,75 @@ export const LikersModal: React.FC<LikersModalProps> = ({ username, date, isOpen
     onClose();
   };
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Likes" size="small" maxWidth="360px">
+      {status === 'loading' && (
+        <div className={styles.list} aria-busy="true" aria-label="Loading likes">
+          {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+            <div key={i} className={styles.skeletonRow}>
+              <Skeleton width={40} height={40} radius="full" />
+              <Skeleton width={i === 1 ? '42%' : '58%'} height={14} radius="sm" />
+            </div>
+          ))}
+        </div>
+      )}
 
-  if (!isOpen) return null;
-
-  return createPortal(
-    <div
-      onClick={handleBackdropClick}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        zIndex: 100,
-        padding: '1rem',
-        paddingTop: '15vh',
-        overflowY: 'auto',
-      }}
-    >
-      <style>{`
-        @keyframes modalSlideIn {
-          from {
-            opacity: 0;
-            transform: translateY(-10px) scale(0.98);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
-        }
-        .liker-row:hover {
-          background-color: var(--hover-bg) !important;
-        }
-      `}</style>
-
-      <div
-        className="card"
-        style={{
-          width: '100%',
-          maxWidth: '320px',
-          maxHeight: '50vh',
-          display: 'flex',
-          flexDirection: 'column',
-          animation: 'modalSlideIn 0.2s ease-out',
-          overflow: 'hidden',
-          padding: '0.5rem 0',
-          position: 'relative',
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0.5rem 1rem 0.75rem',
-            borderBottom: '1px solid var(--tile-glass-border)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Heart size={16} color="#ef4444" fill="#ef4444" />
-            <span
-              style={{
-                fontWeight: 600,
-                fontSize: '0.95rem',
-                color: 'var(--text-primary)',
-              }}
-            >
-              Likes
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '0.25rem',
-              color: 'var(--text-secondary)',
-              display: 'flex',
-              alignItems: 'center',
-              transition: 'color 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--text-secondary)';
-            }}
-          >
-            <X size={18} />
+      {status === 'error' && (
+        <div className={styles.state} role="alert">
+          <span className={`${styles.stateIcon} ${styles.stateIconError}`} aria-hidden="true">
+            <Heart size={22} />
+          </span>
+          <p className={styles.stateTitle}>Couldn't load likes</p>
+          <p className={styles.stateText}>Check your connection and try again.</p>
+          <button className={styles.retry} onClick={() => setReloadKey((key) => key + 1)}>
+            <RefreshCw size={14} strokeWidth={2.5} aria-hidden="true" />
+            Try again
           </button>
         </div>
+      )}
 
-        {/* Content */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-          }}
-        >
-          {loading ? (
-            <div
-              style={{
-                padding: '2rem',
-                textAlign: 'center',
-                color: 'var(--text-secondary)',
-                fontSize: '0.875rem',
-              }}
-            >
-              Loading...
-            </div>
-          ) : likers.length === 0 ? (
-            <div
-              style={{
-                padding: '2rem',
-                textAlign: 'center',
-                color: 'var(--text-secondary)',
-                fontSize: '0.875rem',
-              }}
-            >
-              No likes yet
-            </div>
-          ) : (
-            likers.map((liker, index) => (
-              <div
-                key={liker.id}
-                className="liker-row"
+      {status === 'ready' && likers.length === 0 && (
+        <div className={styles.state}>
+          <span className={styles.stateIcon} aria-hidden="true">
+            <Heart size={22} />
+          </span>
+          <p className={styles.stateTitle}>No likes yet</p>
+          <p className={styles.stateText}>Likes on this day will show up here.</p>
+        </div>
+      )}
+
+      {status === 'ready' && likers.length > 0 && (
+        <ul className={styles.list}>
+          {likers.map((liker) => (
+            <li key={liker.id}>
+              <button
+                type="button"
+                className={styles.row}
                 onClick={() => handleUserClick(liker.username)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  transition: 'background-color 0.15s ease',
-                  borderBottom:
-                    index < likers.length - 1 ? '1px solid var(--tile-glass-border)' : 'none',
-                }}
+                aria-label={`Open ${liker.username}'s profile`}
               >
-                {/* Avatar */}
-                <div
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--avatar-bg)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    flexShrink: 0,
-                  }}
-                >
-                  {liker.profile_pic ? (
-                    <ProtectedImage
-                      src={liker.profile_pic}
-                      alt={liker.username}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  ) : (
-                    <UserIcon size={16} color="var(--text-secondary)" />
-                  )}
-                </div>
-
-                {/* Username with Verified Badge */}
-                <span
-                  style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: 'var(--text-primary)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                  }}
-                >
-                  {liker.username}
+                <Avatar
+                  src={liker.profile_pic}
+                  thumbnailSrc={liker.profile_pic_thumb}
+                  name={liker.username}
+                  size="md"
+                />
+                <span className={styles.name}>
+                  <span className={styles.username}>{liker.username}</span>
                   {liker.is_verified && <VerifiedBadge size={14} />}
                 </span>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body
+                <Heart
+                  size={16}
+                  className={styles.rowHeart}
+                  fill="currentColor"
+                  aria-hidden="true"
+                />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Modal>
   );
 };
 

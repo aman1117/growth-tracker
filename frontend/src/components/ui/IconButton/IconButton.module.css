@@ -1,19 +1,21 @@
 /**
  * IconButton Styles
  *
- * Circular button for icon-only actions with design tokens.
+ * Circular button for icon-only actions.
  */
 
 .iconButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   border-radius: var(--radius-full);
   cursor: pointer;
-  border: none;
+  border: 1px solid transparent;
   outline: none;
   transition:
     background-color var(--transition-fast) var(--ease-default),
+    border-color var(--transition-fast) var(--ease-default),
     color var(--transition-fast) var(--ease-default),
     transform var(--transition-fast) var(--ease-default),
     box-shadow var(--transition-fast) var(--ease-default);
@@ -31,7 +33,7 @@
 }
 
 .iconButton:active:not(:disabled) {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
 /* ============================================================================
@@ -44,8 +46,8 @@
 }
 
 .default:hover:not(:disabled) {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
+  background: var(--accent-soft);
+  color: var(--accent-text);
 }
 
 .ghost {
@@ -54,22 +56,23 @@
 }
 
 .ghost:hover:not(:disabled) {
-  background: var(--bg-secondary);
+  background: var(--chip-bg);
   color: var(--text-primary);
 }
 
 .glass {
-  background: var(--glass-surface-bg);
+  background: var(--control-bg);
   color: var(--text-primary);
-  border: 1px solid var(--glass-surface-border);
-  box-shadow: var(--shadow-sm), var(--glass-surface-glow);
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-  backdrop-filter: blur(var(--glass-blur-sm));
+  border-color: var(--control-border);
+  box-shadow: var(--shadow-subtle);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
 }
 
 .glass:hover:not(:disabled) {
-  background: var(--glass-hover-bg);
-  box-shadow: var(--shadow-md), var(--glass-surface-glow);
+  background: var(--control-bg-hover);
+  border-color: var(--border-strong);
+  color: var(--accent-text);
 }
 
 .danger {
@@ -78,8 +81,8 @@
 }
 
 .danger:hover:not(:disabled) {
-  background: var(--color-like-bg);
-  color: var(--color-like);
+  background: var(--error-soft);
+  color: var(--error);
 }
 
 /* ============================================================================
@@ -105,8 +108,8 @@
 }
 
 .lg {
-  width: var(--btn-lg-height);
-  height: var(--btn-lg-height);
+  width: 2.75rem;
+  height: 2.75rem;
   font-size: var(--btn-lg-icon-size);
 }
 
@@ -143,6 +146,6 @@
   }
 
   .spinner {
-    animation: none;
+    animation-duration: 1.6s;
   }
 }

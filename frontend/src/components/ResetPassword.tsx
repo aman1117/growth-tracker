@@ -1,10 +1,11 @@
-import { CheckCircle, Loader2, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, KeyRound, Link2Off, Loader2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
 import { api, ApiError } from '../services/api';
-import { SnapToast } from './ui';
+import { AuthShell, authStyles } from './auth';
+import { PasswordInput, SnapToast } from './ui';
 
 export const ResetPassword: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -29,9 +30,13 @@ export const ResetPassword: React.FC = () => {
       }
 
       try {
-        const res = await api.get(`/auth/reset-password/validate?token=${token}`);
+        // Encode so tokens containing '+', '/' or '=' survive the query string intact
+        const res = await api.get(
+          `/auth/reset-password/validate?token=${encodeURIComponent(token)}`
+        );
         setIsValidToken(res.valid === true);
-      } catch {
+      } catch (error) {
+        console.warn('[ResetPassword] Token validation failed; showing expired-link state', error);
         setIsValidToken(false);
       } finally {
         setIsValidating(false);
@@ -41,8 +46,11 @@ export const ResetPassword: React.FC = () => {
     validateToken();
   }, [token]);
 
+  const passwordsMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
 
     if (newPassword !== confirmPassword) {
       setToast({ message: 'Passwords do not match', type: 'error' });
@@ -77,132 +85,112 @@ export const ResetPassword: React.FC = () => {
     }
   };
 
+  const backToLogin = (
+    <Link to={APP_ROUTES.LOGIN} className={authStyles.backLink}>
+      <ArrowLeft size={16} strokeWidth={2.5} aria-hidden="true" />
+      Back to log in
+    </Link>
+  );
+
   // Loading state
   if (isValidating) {
     return (
-      <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
-        <div className="card text-center">
-          <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
-            <Loader2
-              size={24}
-              color="var(--text-muted)"
-              style={{ animation: 'spin 1s linear infinite' }}
-            />
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-            Validating reset link...
-          </p>
-        </div>
-      </div>
+      <AuthShell
+        icon={<Loader2 size={30} className={authStyles.spinner} />}
+        tone="info"
+        title="Checking your link…"
+        subtitle="Hang tight, this only takes a moment."
+        live
+      />
     );
   }
 
   // Invalid or expired token
   if (!isValidToken) {
     return (
-      <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
-        <div className="card text-center">
-          <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
-            <XCircle size={32} color="#ef4444" />
-          </div>
-          <h2 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Invalid or Expired Link</h2>
-          <p
-            style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.8rem' }}
-          >
-            This reset link is invalid or has expired.
-          </p>
-          <Link to={APP_ROUTES.FORGOT_PASSWORD} style={{ textDecoration: 'none' }}>
-            <button className="btn btn-primary">Request New Link</button>
+      <AuthShell
+        icon={<Link2Off size={30} strokeWidth={2} />}
+        tone="danger"
+        title="This link has expired"
+        subtitle="Reset links are valid for 15 minutes. Request a fresh one and you'll be back in no time."
+        live
+        actions={
+          <Link to={APP_ROUTES.FORGOT_PASSWORD} className="btn btn-primary">
+            Request a new link
           </Link>
-        </div>
-      </div>
+        }
+        footer={backToLogin}
+      />
     );
   }
 
   // Success state
   if (success) {
     return (
-      <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
-        <div className="card text-center">
-          <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
-            <CheckCircle size={32} color="#22c55e" />
-          </div>
-          <h2 style={{ marginBottom: '0.5rem', fontSize: '1rem' }}>Password Reset!</h2>
-          <p
-            style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.8rem' }}
-          >
-            You can now log in with your new password.
-          </p>
+      <AuthShell
+        icon={<CheckCircle2 size={30} strokeWidth={2} />}
+        tone="success"
+        title="Password updated!"
+        subtitle="You can now log in with your new password."
+        live
+        actions={
           <button className="btn btn-primary" onClick={() => navigate(APP_ROUTES.LOGIN)}>
-            Go to Login
+            Go to log in
           </button>
-        </div>
-      </div>
+        }
+      />
     );
   }
 
   // Reset form
   return (
-    <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
-      <div className="card">
-        <h2 className="text-center" style={{ marginBottom: '0.35rem', fontSize: '1.1rem' }}>
-          Set New Password
-        </h2>
-        <p
-          className="text-center"
-          style={{ color: 'var(--text-secondary)', marginBottom: '0.75rem', fontSize: '0.75rem' }}
-        >
-          Enter your new password below
-        </p>
+    <>
+      <AuthShell
+        icon={<KeyRound size={30} strokeWidth={2} />}
+        title="Set a new password"
+        subtitle="Choose something you haven't used before, at least 8 characters."
+        footer={backToLogin}
+      >
+        <form onSubmit={handleSubmit} className={authStyles.form}>
+          <PasswordInput
+            id="reset-new-password"
+            label="New password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="At least 8 characters"
+            autoComplete="new-password"
+            required
+            minLength={8}
+          />
 
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label className="input-label">New Password</label>
-            <input
-              type="password"
-              className="input-field"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password"
-              required
-              minLength={8}
-            />
-          </div>
+          <PasswordInput
+            id="reset-confirm-password"
+            label="Confirm password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Type it again"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            error={passwordsMismatch ? "Passwords don't match yet" : undefined}
+            aria-invalid={passwordsMismatch || undefined}
+          />
 
-          <div className="input-group">
-            <label className="input-label">Confirm Password</label>
-            <input
-              type="password"
-              className="input-field"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              required
-              minLength={8}
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Resetting...' : 'Reset Password'}
+          <button
+            type="submit"
+            className={`btn btn-primary ${authStyles.submit}`}
+            disabled={loading}
+            aria-busy={loading}
+          >
+            {loading && <Loader2 size={18} className={authStyles.spinner} aria-hidden="true" />}
+            {loading ? 'Saving…' : 'Reset password'}
           </button>
         </form>
+      </AuthShell>
 
-        <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
-          <Link
-            to={APP_ROUTES.LOGIN}
-            style={{
-              fontSize: '0.75rem',
-              color: 'var(--text-secondary)',
-              textDecoration: 'none',
-            }}
-          >
-            ← Back to Login
-          </Link>
-        </div>
-      </div>
       {toast && (
         <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
-    </div>
+    </>
   );
 };

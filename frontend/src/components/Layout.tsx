@@ -20,7 +20,7 @@ import { BottomNavigation } from './BottomNavigation';
 import styles from './Layout.module.css';
 import { UserSearchAutocomplete } from './search';
 import { ThemeToggle } from './ThemeToggle';
-import { NotificationCenter, NotificationPreviewToast } from './ui';
+import { BrandLogo, NotificationCenter, NotificationPreviewToast } from './ui';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -69,10 +69,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     overlayNavigate(APP_ROUTES.HOME);
   }, [overlayNavigate]);
 
-  // Auth flow pages - render minimal layout without header/footer
+  // Auth flow pages - minimal layout: just the wordmark (no navigation) so email-link
+  // landings still feel branded without offering exits mid-flow
   if (isAuthFlowRoute(location.pathname)) {
     return (
       <div className={styles.wrapper}>
+        <div className={styles.brandBar}>
+          <BrandLogo />
+        </div>
         <main id="main-content" className={`${styles.main} ${styles.mainNoNav}`}>
           {children}
         </main>
@@ -92,7 +96,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               onClick={handleLogoClick}
               aria-label={`${APP_NAME} home`}
             >
-              <img src="/logo.png" alt="" className={styles.logoImage} />
+              <BrandLogo label="" />
             </button>
           )}
 
@@ -106,10 +110,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <button
                   type="button"
                   onClick={openSearch}
-                  className={styles.searchButton}
+                  className={styles.iconButton}
                   aria-label="Search users"
                 >
-                  <Search size={22} strokeWidth={1.8} aria-hidden="true" />
+                  <Search size={20} strokeWidth={2} aria-hidden="true" />
                 </button>
               ) : (
                 <div className={styles.searchExpanded}>

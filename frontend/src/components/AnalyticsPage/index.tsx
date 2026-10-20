@@ -1,36 +1,42 @@
 /**
- * AnalyticsPage Component
+ * AnalyticsPage Component ("Insights")
  *
  * Displays weekly analytics with charts, activity breakdown, and streak stats.
  * Supports viewing own analytics or another user's (if not private).
  */
 
 import {
-  ArrowUpDown,
+  AlertTriangle,
+  BarChart3,
   Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Flame,
   Lock,
+  RefreshCw,
   TrendingDown,
   TrendingUp,
   Trophy,
   Users,
+  UserX,
   X,
 } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { getActivityConfig, STORAGE_KEYS } from '../../constants';
 import { APP_ROUTES } from '../../constants/routes';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useSmartBack } from '../../hooks/useSmartBack';
 import { api, ApiError, userApi } from '../../services/api';
 import { useAuth } from '../../store';
-import type { ActivityName, CustomTile, WeekAnalyticsResponse } from '../../types';
+import type { ActivityName, CustomTile, DayAnalytics, WeekAnalyticsResponse } from '../../types';
 import type { AutocompleteSuggestion } from '../../types/autocomplete';
-import { PageHeader, VerifiedBadge } from '../ui';
+import { EmptyState, PageHeader, Skeleton, VerifiedBadge } from '../ui';
 import { Autocomplete } from '../ui/Autocomplete';
+import styles from './AnalyticsPage.module.css';
 import { ActivityRow, DayBar } from './components';
 
 // Utility functions
@@ -61,104 +67,64 @@ const formatWeekRange = (weekStart: Date): string => {
   const year = weekEnd.getFullYear();
 
   if (startMonth === endMonth) {
-    return `${startMonth} ${startDay} - ${endDay}, ${year}`;
+    return `${startMonth} ${startDay} – ${endDay}, ${year}`;
   }
-  return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
+  return `${startMonth} ${startDay} – ${endMonth} ${endDay}, ${year}`;
 };
 
-// CSS Styles
-const ANALYTICS_STYLES = `
-  @keyframes slideInFromRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+/**
+ * Parses a backend calendar date ("YYYY-MM-DD", optionally with a time part) as a local date.
+ * `new Date('2025-03-03')` is UTC midnight, which shows the previous day west of UTC.
+ */
+const parseCalendarDate = (value: string): Date | null => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (match) return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+/** Compact streak range: "Mar 3 – 9", "Feb 27 – Mar 4" or "Mar 3" */
+const formatStreakRange = (start?: string, end?: string): string | null => {
+  if (!start || !end) return null;
+  const startDate = parseCalendarDate(start);
+  const endDate = parseCalendarDate(end);
+  if (!startDate || !endDate) return null;
+
+  const startMonth = startDate.toLocaleDateString('en-US', { month: 'short' });
+  const endMonth = endDate.toLocaleDateString('en-US', { month: 'short' });
+  if (startDate.getTime() === endDate.getTime()) {
+    return `${startMonth} ${startDate.getDate()}`;
   }
-  @keyframes slideOutToRight {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
+  if (startMonth === endMonth && startDate.getFullYear() === endDate.getFullYear()) {
+    return `${startMonth} ${startDate.getDate()} – ${endDate.getDate()}`;
   }
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes countUp {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  @keyframes barGrow {
-    from { height: 0; }
-    to { height: var(--target-height); }
-  }
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-  @keyframes dropdownSlide {
-    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  .stat-card {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-  }
-  .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-  .glass-card {
-    background: var(--tile-glass-bg) !important;
-    backdrop-filter: blur(var(--tile-glass-blur)) !important;
-    -webkit-backdrop-filter: blur(var(--tile-glass-blur)) !important;
-    border: 1px solid var(--tile-glass-border) !important;
-    box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow) !important;
-    border-radius: 20px !important;
-  }
-  .glass-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--tile-glass-shadow-active), var(--tile-glass-inner-glow) !important;
-  }
-  .bar-segment {
-    transition: opacity 0.2s ease, transform 0.2s ease;
-  }
-  .bar-segment:hover {
-    opacity: 0.85;
-    transform: scaleX(1.02);
-  }
-  .activity-row {
-    transition: background-color 0.2s ease, transform 0.15s ease;
-  }
-  .activity-row:hover {
-    background-color: var(--bg-secondary);
-    transform: translateX(4px);
-  }
-  .skeleton {
-    background: var(--tile-glass-bg);
-    backdrop-filter: blur(var(--tile-glass-blur));
-    -webkit-backdrop-filter: blur(var(--tile-glass-blur));
-    border: 1px solid var(--tile-glass-border);
-    box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
-    border-radius: 20px;
-    position: relative;
-    overflow: hidden;
-  }
-  .skeleton::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-    background-size: 200% 100%;
-    animation: shimmer 2s ease-in-out infinite;
-  }
-`;
+  return `${startMonth} ${startDate.getDate()} – ${endMonth} ${endDate.getDate()}`;
+};
+
+const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+
+/** "This week", "Last week" or "3 weeks ago" relative to the current week */
+const getWeekBadge = (weekStart: Date): string => {
+  const weeksAgo = Math.round(
+    (getWeekStart(new Date()).getTime() - weekStart.getTime()) / MS_PER_WEEK
+  );
+  if (weeksAgo <= 0) return 'This week';
+  if (weeksAgo === 1) return 'Last week';
+  return `${weeksAgo} weeks ago`;
+};
+
+const MAX_DAY_HOURS = 24;
+/** Y-axis maxima (split into 4 equal steps); the smallest one that fits the tallest bar wins */
+const CHART_SCALES = [2, 4, 8, 12, 16, 20, MAX_DAY_HOURS];
+const CHART_STEPS = 4;
+
+const getChartScale = (maxHours: number): number =>
+  CHART_SCALES.find((scale) => maxHours <= scale) ?? MAX_DAY_HOURS;
+
+const getChartTicks = (scaleMax: number): number[] =>
+  Array.from({ length: CHART_STEPS + 1 }, (_, i) => (scaleMax * (CHART_STEPS - i)) / CHART_STEPS);
+
+type LoadError = 'not_found' | 'failed';
 
 export const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -170,16 +136,25 @@ export const AnalyticsPage: React.FC = () => {
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [analytics, setAnalytics] = useState<WeekAnalyticsResponse | null>(null);
   const [isPrivateAccount, setIsPrivateAccount] = useState(false);
+  const [loadError, setLoadError] = useState<LoadError | null>(null);
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
   const [activityFilter, setActivityFilter] = useState<string[]>([]);
   const [showActivityFilter, setShowActivityFilter] = useState(false);
   const activityFilterRef = useRef<HTMLDivElement>(null);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
   const [animateStats, setAnimateStats] = useState(false);
   const [animateBars, setAnimateBars] = useState(false);
+
+  const filterPanelId = useId();
+  const chartTitleId = useId();
+  const breakdownTitleId = useId();
 
   // User selector state
   const [showUserSelector, setShowUserSelector] = useState(false);
   const userSelectorRef = useRef<HTMLDivElement>(null);
+  const userButtonRef = useRef<HTMLButtonElement>(null);
+  // Set when the search is dismissed with Escape so focus can return to the switcher
+  const selectorEscapedRef = useRef(false);
 
   // Target username and verification status
   const targetUsername = searchParams.get('user') || routeUsername || user?.username || '';
@@ -272,6 +247,28 @@ export const AnalyticsPage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const closeActivityFilter = useCallback((restoreFocus: boolean) => {
+    setShowActivityFilter(false);
+    if (restoreFocus) filterButtonRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  useEscapeKey(showActivityFilter, () => closeActivityFilter(true));
+
+  // Keyboard users tabbing out of the filter panel close it (pointer users are handled above)
+  const handleFilterBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    const next = e.relatedTarget as Node | null;
+    if (next && !e.currentTarget.contains(next)) closeActivityFilter(false);
+  };
+
+  const handleUserSearchBlur = () => {
+    setShowUserSelector(false);
+    if (selectorEscapedRef.current) {
+      selectorEscapedRef.current = false;
+      // Wait for the switcher button to re-mount before focusing it
+      requestAnimationFrame(() => userButtonRef.current?.focus({ preventScroll: true }));
+    }
+  };
+
   // Autocomplete fetch function
   const fetchSuggestions = useCallback(
     async (query: string, signal: AbortSignal): Promise<AutocompleteSuggestion[]> => {
@@ -302,9 +299,12 @@ export const AnalyticsPage: React.FC = () => {
     setAnimateStats(false);
     setAnimateBars(false);
     setIsPrivateAccount(false);
+    setLoadError(null);
+
+    const weekStartParam = formatDateForApi(weekStart);
 
     try {
-      const res = await api.getWeekAnalytics(targetUsername, formatDateForApi(weekStart));
+      const res = await api.getWeekAnalytics(targetUsername, weekStartParam);
       if (isStale()) return;
       if (res.success) {
         const analyticsData = res as WeekAnalyticsResponse;
@@ -319,13 +319,18 @@ export const AnalyticsPage: React.FC = () => {
           return validActivities;
         });
 
-        // Trigger animations after data loads
-        setTimeout(() => setAnimateStats(true), 100);
-        setTimeout(() => setAnimateBars(true), 300);
+        // Trigger animations after data loads (skipped if a newer request took over)
+        setTimeout(() => !isStale() && setAnimateStats(true), 100);
+        setTimeout(() => !isStale() && setAnimateBars(true), 300);
       } else if (res.error_code === 'ACCOUNT_PRIVATE') {
         setIsPrivateAccount(true);
         setAnalytics(null);
       } else {
+        console.warn('[Insights] Week analytics request failed', {
+          week: weekStartParam,
+          code: res.error_code,
+        });
+        setLoadError(res.error_code === 'USER_NOT_FOUND' ? 'not_found' : 'failed');
         setAnalytics(null);
       }
     } catch (err) {
@@ -334,7 +339,16 @@ export const AnalyticsPage: React.FC = () => {
         setIsPrivateAccount(true);
         setAnalytics(null);
       } else {
-        console.error('Failed to fetch analytics', err);
+        const isNotFound = err instanceof ApiError && err.errorCode === 'USER_NOT_FOUND';
+        if (isNotFound) {
+          console.warn('[Insights] Target user not found', { week: weekStartParam });
+        } else {
+          console.error('[Insights] Failed to fetch week analytics; showing retry', {
+            week: weekStartParam,
+            error: err,
+          });
+        }
+        setLoadError(isNotFound ? 'not_found' : 'failed');
         setAnalytics(null);
       }
     } finally {
@@ -415,9 +429,19 @@ export const AnalyticsPage: React.FC = () => {
     handleUserSelect(suggestion.text);
   };
 
-  const toggleSortOrder = () => {
-    setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+  const toggleActivity = (name: string) => {
+    setActivityFilter((prev) =>
+      prev.includes(name) ? prev.filter((a) => a !== name) : [...prev, name]
+    );
   };
+
+  // Hours a day contributes to the chart under the current activity filter
+  const getVisibleDayHours = (day: DayAnalytics): number =>
+    activityFilter.length === 0
+      ? day.total_hours
+      : day.activities
+          .filter((a) => activityFilter.includes(a.name))
+          .reduce((sum, a) => sum + a.hours, 0);
 
   const sortedActivitySummary = analytics?.activity_summary
     ? [...analytics.activity_summary].sort((a, b) =>
@@ -445,805 +469,497 @@ export const AnalyticsPage: React.FC = () => {
   const calculateAverage = () => {
     if (!analytics) return 0;
     const divisor = getWeekDivisor();
-    if (activityFilter.length === 0) {
-      return analytics.daily_breakdown.reduce((sum, d) => sum + d.total_hours, 0) / divisor;
-    }
+    return analytics.daily_breakdown.reduce((sum, d) => sum + getVisibleDayHours(d), 0) / divisor;
+  };
+
+  const isCurrentWeek = isNextDisabled();
+  const todayKey = formatDateForApi(new Date());
+  const showWeekCard = loading || !!analytics || loadError === 'failed';
+
+  const filterLabel =
+    activityFilter.length === 0
+      ? 'All activities'
+      : activityFilter.length === 1
+        ? getActivityConfig(activityFilter[0] as ActivityName, customTiles, tileColors).label
+        : `${activityFilter.length} activities`;
+
+  const summaryTotalHours = sortedActivitySummary.reduce((sum, a) => sum + a.total_hours, 0);
+  const maxActivityHours = sortedActivitySummary.reduce(
+    (max, a) => Math.max(max, a.total_hours),
+    0
+  );
+
+  const renderWeekSummary = (data: WeekAnalyticsResponse) => {
+    const isCurrent = data.is_current_week ?? true;
+    const change = Math.round(
+      (isCurrent ? data.percentage_change : data.percentage_vs_current) ?? 0
+    );
+    const trendClass =
+      change > 0 ? styles.trendUp : change < 0 ? styles.trendDown : styles.trendFlat;
+    const TrendIcon = change < 0 ? TrendingDown : TrendingUp;
+    const bestRange = formatStreakRange(data.streak.longest_start, data.streak.longest_end);
+    const dayUnit = (count: number) => (count === 1 ? 'day' : 'days');
+
     return (
-      analytics.daily_breakdown.reduce((sum, d) => {
-        const filteredHours = d.activities
-          .filter((a) => activityFilter.includes(a.name))
-          .reduce((h, a) => h + a.hours, 0);
-        return sum + filteredHours;
-      }, 0) / divisor
+      <div className={`${styles.summary} ${styles.reveal} ${animateStats ? styles.revealed : ''}`}>
+        <div className={styles.hero}>
+          <span className={styles.heroIcon} aria-hidden="true">
+            <Clock size={22} strokeWidth={2.3} />
+          </span>
+          <div className={styles.heroText}>
+            <span className={styles.heroValue}>
+              {data.total_hours_this_week.toFixed(1)}
+              <span className={styles.heroUnit}>h</span>
+            </span>
+            <span className={styles.heroLabel}>
+              {isCurrent ? 'Logged this week' : 'Logged that week'}
+            </span>
+          </div>
+          <div className={styles.heroTrend}>
+            <span className={`${styles.trend} ${trendClass}`}>
+              {change !== 0 && <TrendIcon size={12} strokeWidth={2.6} aria-hidden="true" />}
+              {change > 0 ? '+' : ''}
+              {change}%
+            </span>
+            <span className={styles.trendCaption}>
+              {isCurrent ? 'vs last week' : 'vs this week'}
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.streaks}>
+          <div className={`${styles.stat} ${styles.statStreak}`}>
+            <span className={styles.statIcon} aria-hidden="true">
+              <Flame size={18} strokeWidth={2.3} />
+            </span>
+            <div className={styles.statText}>
+              <span className={styles.statValue}>
+                {data.streak.current}
+                <span className={styles.statUnit}>{dayUnit(data.streak.current)}</span>
+              </span>
+              <span className={styles.statLabel}>Current streak</span>
+            </div>
+          </div>
+
+          <div className={`${styles.stat} ${styles.statBest}`}>
+            <span className={styles.statIcon} aria-hidden="true">
+              <Trophy size={18} strokeWidth={2.3} />
+            </span>
+            <div className={styles.statText}>
+              <span className={styles.statValue}>
+                {data.streak.longest}
+                <span className={styles.statUnit}>{dayUnit(data.streak.longest)}</span>
+              </span>
+              <span className={styles.statLabel}>Best streak</span>
+              {bestRange && <span className={styles.statMeta}>{bestRange}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSummarySkeleton = () => (
+    <div className={styles.summary} aria-hidden="true">
+      <Skeleton height={72} radius="xl" />
+      <div className={styles.skeletonStreaks}>
+        <Skeleton height={58} radius="xl" />
+        <Skeleton height={58} radius="xl" />
+      </div>
+    </div>
+  );
+
+  const renderLoadingCards = () => (
+    <div aria-hidden="true">
+      <div className={`${styles.card} ${styles.skeletonCard}`}>
+        <Skeleton width="42%" height={18} radius="full" />
+        <Skeleton height={190} radius="xl" />
+      </div>
+      <div className={`${styles.card} ${styles.skeletonCard}`}>
+        <Skeleton width="48%" height={18} radius="full" />
+        {[0, 1, 2].map((row) => (
+          <div key={row} className={styles.skeletonRow}>
+            <Skeleton width={38} height={38} radius="lg" />
+            <div className={styles.skeletonRowText}>
+              <Skeleton width={`${70 - row * 15}%`} height={12} radius="full" />
+              <Skeleton height={8} radius="full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderChartCard = (data: WeekAnalyticsResponse) => {
+    const avgHours = calculateAverage();
+    const scaleMax = getChartScale(Math.max(0, ...data.daily_breakdown.map(getVisibleDayHours)));
+    const avgPos = Math.min(avgHours / scaleMax, 1) * 100;
+    const hasActivities = data.activity_summary.length > 0;
+
+    return (
+      <section
+        className={`${styles.card} ${styles.chartCard} ${styles.reveal} ${
+          animateBars ? styles.revealed : ''
+        }`}
+        aria-labelledby={chartTitleId}
+      >
+        <div className={styles.cardHeader}>
+          <h2 id={chartTitleId} className={styles.cardTitle}>
+            Weekly overview
+          </h2>
+
+          {hasActivities && (
+            <div ref={activityFilterRef} className={styles.filter} onBlur={handleFilterBlur}>
+              <button
+                ref={filterButtonRef}
+                type="button"
+                className={`${styles.filterButton} ${
+                  activityFilter.length > 0 ? styles.filterButtonActive : ''
+                }`}
+                onClick={() => setShowActivityFilter((open) => !open)}
+                aria-expanded={showActivityFilter}
+                aria-controls={filterPanelId}
+                aria-label={`Filter chart: ${filterLabel}`}
+              >
+                <span className={styles.filterButtonLabel}>{filterLabel}</span>
+                <ChevronDown
+                  size={14}
+                  strokeWidth={2.4}
+                  className={`${styles.chevron} ${showActivityFilter ? styles.chevronOpen : ''}`}
+                  aria-hidden="true"
+                />
+              </button>
+
+              {showActivityFilter && (
+                <div
+                  id={filterPanelId}
+                  className={styles.filterMenu}
+                  role="group"
+                  aria-label="Activities shown in the chart"
+                >
+                  <button
+                    type="button"
+                    className={styles.filterOption}
+                    aria-pressed={activityFilter.length === 0}
+                    onClick={() => setActivityFilter([])}
+                  >
+                    <span className={styles.filterOptionLabel}>All activities</span>
+                    {activityFilter.length === 0 && (
+                      <Check
+                        size={16}
+                        strokeWidth={2.6}
+                        className={styles.allCheck}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
+                  {activityFilter.length > 0 && (
+                    <button
+                      type="button"
+                      className={`${styles.filterOption} ${styles.filterOptionMuted}`}
+                      onClick={() => setActivityFilter([])}
+                    >
+                      <X size={14} strokeWidth={2.4} aria-hidden="true" />
+                      <span className={styles.filterOptionLabel}>
+                        Clear selection ({activityFilter.length})
+                      </span>
+                    </button>
+                  )}
+                  <div className={styles.filterDivider} role="separator" />
+                  {data.activity_summary.map((activity) => {
+                    const config = getActivityConfig(
+                      activity.name as ActivityName,
+                      customTiles,
+                      tileColors
+                    );
+                    const isSelected = activityFilter.includes(activity.name);
+                    return (
+                      <button
+                        key={activity.name}
+                        type="button"
+                        className={styles.filterOption}
+                        style={{ '--option-color': config.color } as React.CSSProperties}
+                        aria-pressed={isSelected}
+                        onClick={() => toggleActivity(activity.name)}
+                      >
+                        <span
+                          className={`${styles.checkbox} ${isSelected ? styles.checkboxChecked : ''}`}
+                          aria-hidden="true"
+                        >
+                          {isSelected && <Check size={12} strokeWidth={3.2} />}
+                        </span>
+                        <span className={styles.filterOptionLabel}>
+                          {config.label || activity.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.chart}>
+          {getChartTicks(scaleMax).map((hours) => {
+            const pos = { '--pos': (hours / scaleMax) * 100 } as React.CSSProperties;
+            return (
+              <React.Fragment key={hours}>
+                <span className={styles.yLabel} style={pos} aria-hidden="true">
+                  {Number.isInteger(hours) ? hours : hours.toFixed(1)}h
+                </span>
+                <span className={styles.gridLine} style={pos} aria-hidden="true" />
+              </React.Fragment>
+            );
+          })}
+
+          {avgHours > 0 && (
+            <div className={styles.avgLine} style={{ '--avg': avgPos } as React.CSSProperties}>
+              <span className={styles.avgLabel} aria-hidden="true">
+                avg {avgHours.toFixed(1)}h
+              </span>
+              <span className="sr-only">Daily average: {avgHours.toFixed(1)} hours</span>
+            </div>
+          )}
+
+          <div className={styles.bars}>
+            {data.daily_breakdown.map((day, index) => (
+              <DayBar
+                key={day.date}
+                day={day}
+                animate={animateBars}
+                delay={index * 0.05}
+                activityFilter={activityFilter}
+                customTiles={customTiles}
+                tileColors={tileColors}
+                isToday={day.date === todayKey}
+                scaleMax={scaleMax}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  const renderBreakdownCard = () => (
+    <section
+      className={`${styles.card} ${styles.reveal} ${animateBars ? styles.revealedLate : ''}`}
+      aria-labelledby={breakdownTitleId}
+    >
+      <div className={styles.cardHeader}>
+        <h2 id={breakdownTitleId} className={styles.cardTitle}>
+          Activity breakdown
+        </h2>
+        {sortedActivitySummary.length > 1 && (
+          <div className={styles.sortToggle} role="group" aria-label="Sort activities">
+            <button
+              type="button"
+              className={`${styles.sortOption} ${sortOrder === 'desc' ? styles.sortOptionActive : ''}`}
+              aria-pressed={sortOrder === 'desc'}
+              onClick={() => setSortOrder('desc')}
+            >
+              Most
+            </button>
+            <button
+              type="button"
+              className={`${styles.sortOption} ${sortOrder === 'asc' ? styles.sortOptionActive : ''}`}
+              aria-pressed={sortOrder === 'asc'}
+              onClick={() => setSortOrder('asc')}
+            >
+              Least
+            </button>
+          </div>
+        )}
+      </div>
+
+      {sortedActivitySummary.length > 0 ? (
+        <ul className={styles.list}>
+          {sortedActivitySummary.map((activity, index) => (
+            <ActivityRow
+              key={activity.name}
+              activity={activity}
+              maxHours={maxActivityHours}
+              delay={index * 0.03}
+              animate={animateBars}
+              customTiles={customTiles}
+              tileColors={tileColors}
+              totalHours={summaryTotalHours}
+            />
+          ))}
+        </ul>
+      ) : (
+        <EmptyState
+          size="sm"
+          icon={<BarChart3 size={26} />}
+          title={isCurrentWeek ? 'Nothing logged this week' : 'Nothing logged that week'}
+          description={
+            isViewingOwnAnalytics
+              ? 'Activities you log on your dashboard will show up here.'
+              : `@${targetUsername} didn't log any activities this week.`
+          }
+          action={
+            isViewingOwnAnalytics && isCurrentWeek
+              ? { label: 'Log an activity', onClick: () => navigate(APP_ROUTES.HOME) }
+              : undefined
+          }
+        />
+      )}
+    </section>
+  );
+
+  const renderStateCard = () => {
+    if (isPrivateAccount) {
+      return (
+        <section className={`${styles.card} ${styles.stateCard}`}>
+          <EmptyState
+            icon={<Lock size={26} />}
+            title="This account is private"
+            description={`Only approved followers can see @${targetUsername}'s insights.`}
+            action={{
+              label: 'View profile',
+              variant: 'secondary',
+              onClick: () => navigate(APP_ROUTES.USER_PROFILE(targetUsername)),
+            }}
+          />
+        </section>
+      );
+    }
+
+    if (loadError === 'not_found') {
+      return (
+        <section className={`${styles.card} ${styles.stateCard}`}>
+          <EmptyState
+            icon={<UserX size={26} />}
+            title="User not found"
+            description={`We couldn't find @${targetUsername}. They may have changed their username.`}
+            action={
+              isViewingOwnAnalytics
+                ? undefined
+                : {
+                    label: 'Back to my insights',
+                    variant: 'secondary',
+                    onClick: () => navigate(APP_ROUTES.ANALYTICS, { replace: true }),
+                  }
+            }
+          />
+        </section>
+      );
+    }
+
+    return (
+      <section className={`${styles.card} ${styles.stateCard}`} role="alert">
+        <EmptyState
+          icon={<AlertTriangle size={26} />}
+          title="Couldn't load insights"
+          description="Check your connection and try again."
+          action={{
+            label: 'Try again',
+            icon: <RefreshCw size={16} />,
+            onClick: () => void fetchAnalytics(),
+          }}
+        />
+      </section>
     );
   };
 
   return (
-    <>
-      <style>{ANALYTICS_STYLES}</style>
+    <div
+      className={`${styles.page} ${isViewingOwnAnalytics ? '' : styles.pagePushed}`}
+      aria-busy={loading}
+    >
+      <PageHeader title="Insights" onBack={isViewingOwnAnalytics ? undefined : smartBack} />
 
+      {/* User switcher */}
       <div
-        className="container"
-        style={{
-          maxWidth: '600px',
-          padding: '0.5rem 1rem',
-          paddingBottom: '2rem',
-          // Own analytics is a tab root (fade); another user's analytics is a pushed screen
-          animation: isViewingOwnAnalytics
-            ? 'fadeIn 0.2s ease-out'
-            : 'slideInFromRight 0.25s ease-out',
+        ref={userSelectorRef}
+        className={styles.userSwitcher}
+        onKeyDownCapture={(e) => {
+          if (e.key === 'Escape') selectorEscapedRef.current = true;
         }}
       >
-        <PageHeader title="Analytics" onBack={isViewingOwnAnalytics ? undefined : smartBack} />
-
-        {/* User Selector */}
-        <div ref={userSelectorRef} style={{ position: 'relative', marginBottom: '1rem' }}>
-          {showUserSelector ? (
-            <Autocomplete
-              placeholder="Search users..."
-              onSelect={handleAutocompleteSelect}
-              fetchSuggestions={fetchSuggestions}
-              minChars={1}
-              debounceMs={150}
-              autoFocus
-              onBlur={() => setShowUserSelector(false)}
-            />
-          ) : (
-            <button
-              onClick={() => setShowUserSelector(true)}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                background: 'var(--tile-glass-bg)',
-                backdropFilter: 'blur(var(--tile-glass-blur))',
-                WebkitBackdropFilter: 'blur(var(--tile-glass-blur))',
-                border: '1px solid var(--tile-glass-border)',
-                boxShadow: 'var(--tile-glass-shadow), var(--tile-glass-inner-glow)',
-                borderRadius: 'var(--radius-full)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Users size={18} color="var(--text-secondary)" />
-                <span
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '2px',
-                    color: 'var(--text-primary)',
-                    fontWeight: 700,
-                    fontSize: '0.95rem',
-                  }}
-                >
-                  {targetUsername}
-                  {targetIsVerified && <VerifiedBadge size={14} />}
-                </span>
-              </div>
-              <ChevronDown size={16} color="var(--text-secondary)" />
-            </button>
-          )}
-        </div>
-
-        {/* Week Navigator */}
-        <div
-          className="card glass-card"
-          style={{
-            padding: '0.75rem 1rem',
-            marginBottom: '1rem',
-            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
-          {/* Date Navigation Row */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingBottom: loading ? '0' : '0.75rem',
-              borderBottom: loading ? 'none' : '1px solid var(--border)',
-            }}
-          >
-            <button
-              onClick={handlePrevWeek}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                padding: '0.5rem',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
-                e.currentTarget.style.color = 'var(--text-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = 'var(--text-secondary)';
-              }}
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <span
-              style={{
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                fontSize: '0.9rem',
-              }}
-            >
-              {formatWeekRange(weekStart)}
-            </span>
-            <button
-              onClick={handleNextWeek}
-              disabled={isNextDisabled()}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: isNextDisabled() ? 'var(--text-tertiary)' : 'var(--text-secondary)',
-                cursor: isNextDisabled() ? 'not-allowed' : 'pointer',
-                padding: '0.5rem',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                opacity: isNextDisabled() ? 0.4 : 1,
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                if (!isNextDisabled()) {
-                  e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = isNextDisabled()
-                  ? 'var(--text-tertiary)'
-                  : 'var(--text-secondary)';
-              }}
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-
-          {/* Stats Row */}
-          {!loading && analytics && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '0.5rem',
-                paddingTop: '0.75rem',
-                animation: animateStats ? 'fadeInUp 0.4s ease-out forwards' : 'none',
-                opacity: animateStats ? 1 : 0,
-              }}
-            >
-              {/* Total Hours */}
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div
-                  style={{
-                    fontSize: '0.95rem',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.25rem',
-                  }}
-                >
-                  {analytics.total_hours_this_week.toFixed(1)}h
-                  {(analytics.is_current_week ?? true) ? (
-                    <span
-                      style={{
-                        fontSize: '0.65rem',
-                        color:
-                          (analytics.percentage_change ?? 0) >= 0
-                            ? 'var(--success)'
-                            : 'var(--error)',
-                        fontWeight: 500,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.1rem',
-                      }}
-                    >
-                      {(analytics.percentage_change ?? 0) >= 0 ? (
-                        <TrendingUp size={10} color="var(--success)" />
-                      ) : (
-                        <TrendingDown size={10} color="var(--error)" />
-                      )}
-                      {(analytics.percentage_change ?? 0) >= 0 ? '+' : ''}
-                      {(analytics.percentage_change ?? 0).toFixed(0)}%
-                    </span>
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: '0.65rem',
-                        color:
-                          (analytics.percentage_vs_current ?? 0) >= 0
-                            ? 'var(--success)'
-                            : 'var(--error)',
-                        fontWeight: 500,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.1rem',
-                      }}
-                    >
-                      {(analytics.percentage_vs_current ?? 0) >= 0 ? (
-                        <TrendingUp size={10} color="var(--success)" />
-                      ) : (
-                        <TrendingDown size={10} color="var(--error)" />
-                      )}
-                      {(analytics.percentage_vs_current ?? 0) >= 0 ? '+' : ''}
-                      {(analytics.percentage_vs_current ?? 0).toFixed(0)}%
-                    </span>
-                  )}
-                </div>
-                <div
-                  style={{
-                    fontSize: '0.65rem',
-                    color: 'var(--text-tertiary)',
-                    marginTop: '0.2rem',
-                  }}
-                >
-                  {(analytics.is_current_week ?? true) ? 'vs last week' : 'vs this week'}
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div style={{ width: '1px', height: '32px', backgroundColor: 'var(--border)' }} />
-
-              {/* Current Streak */}
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div
-                  style={{
-                    fontSize: '0.95rem',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.25rem',
-                  }}
-                >
-                  <Flame size={16} fill="var(--color-like-light)" color="var(--color-like)" />
-                  {analytics.streak.current}
-                </div>
-                <div
-                  style={{
-                    fontSize: '0.65rem',
-                    color: 'var(--text-tertiary)',
-                    marginTop: '0.2rem',
-                  }}
-                >
-                  Current Streak
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div style={{ width: '1px', height: '32px', backgroundColor: 'var(--border)' }} />
-
-              {/* Longest Streak */}
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div
-                  style={{
-                    fontSize: '0.95rem',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.25rem',
-                  }}
-                >
-                  <Trophy size={16} fill="#fbbf24" color="#f59e0b" />
-                  {analytics.streak.longest}
-                </div>
-                <div
-                  style={{
-                    fontSize: '0.65rem',
-                    color: 'var(--text-tertiary)',
-                    marginTop: '0.2rem',
-                  }}
-                >
-                  {analytics.streak.longest_start && analytics.streak.longest_end ? (
-                    <span>
-                      {new Date(analytics.streak.longest_start).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}{' '}
-                      -{' '}
-                      {new Date(analytics.streak.longest_end).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  ) : (
-                    'Best Streak'
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {loading ? (
-          // Skeleton Loaders
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div className="skeleton" style={{ height: '70px' }} />
-            <div className="skeleton" style={{ height: '240px' }} />
-            <div className="skeleton" style={{ height: '200px' }} />
-          </div>
-        ) : analytics ? (
-          <>
-            {/* Weekly Bar Chart */}
-            <div
-              className="card glass-card"
-              style={{
-                padding: '1rem',
-                marginBottom: '1rem',
-                animation: animateBars ? 'fadeInUp 0.4s ease-out forwards' : 'none',
-                opacity: animateBars ? 1 : 0,
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                overflow: 'visible',
-                position: 'relative',
-                zIndex: 10,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '1rem',
-                }}
-              >
-                <h3
-                  style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    margin: 0,
-                  }}
-                >
-                  Weekly Overview
-                </h3>
-                <div ref={activityFilterRef} style={{ position: 'relative' }}>
-                  <button
-                    onClick={() => setShowActivityFilter(!showActivityFilter)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      padding: '0.3rem 0.5rem',
-                      background: 'var(--tile-glass-bg)',
-                      backdropFilter: 'blur(8px)',
-                      WebkitBackdropFilter: 'blur(8px)',
-                      border: '1px solid var(--tile-glass-border)',
-                      borderRadius: '10px',
-                      cursor: 'pointer',
-                      fontSize: '0.7rem',
-                      color: 'var(--text-secondary)',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {activityFilter.length === 0
-                      ? 'All Activities'
-                      : activityFilter.length === 1
-                        ? getActivityConfig(
-                            activityFilter[0] as ActivityName,
-                            customTiles,
-                            tileColors
-                          ).label
-                        : `${activityFilter.length} Activities`}
-                    <ChevronDown
-                      size={12}
-                      style={{
-                        transition: 'transform 0.2s',
-                        transform: showActivityFilter ? 'rotate(180deg)' : 'rotate(0deg)',
-                      }}
-                    />
-                  </button>
-                  {showActivityFilter && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '100%',
-                        right: 0,
-                        marginTop: '0.25rem',
-                        background: 'var(--tile-glass-bg)',
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        border: '1px solid var(--tile-glass-border)',
-                        borderRadius: '12px',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-                        zIndex: 9999,
-                        minWidth: '160px',
-                        maxHeight: '250px',
-                        overflowY: 'auto',
-                      }}
-                    >
-                      <div
-                        onClick={() => {
-                          setActivityFilter([]);
-                        }}
-                        style={{
-                          padding: '0.5rem 0.75rem',
-                          fontSize: '0.75rem',
-                          color:
-                            activityFilter.length === 0 ? 'var(--accent)' : 'var(--text-primary)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          transition: 'background 0.15s',
-                          borderBottom: '1px solid var(--tile-glass-border)',
-                        }}
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.backgroundColor = 'transparent')
-                        }
-                      >
-                        All Activities
-                        {activityFilter.length === 0 && <Check size={12} />}
-                      </div>
-                      {activityFilter.length > 0 && (
-                        <div
-                          onClick={() => {
-                            setActivityFilter([]);
-                          }}
-                          style={{
-                            padding: '0.4rem 0.75rem',
-                            fontSize: '0.7rem',
-                            color: 'var(--text-tertiary)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.25rem',
-                            transition: 'background 0.15s',
-                            borderBottom: '1px solid var(--tile-glass-border)',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
-                            e.currentTarget.style.color = 'var(--text-secondary)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.color = 'var(--text-tertiary)';
-                          }}
-                        >
-                          <X size={10} />
-                          Clear selection ({activityFilter.length})
-                        </div>
-                      )}
-                      {analytics.activity_summary.map((activity) => {
-                        const config = getActivityConfig(
-                          activity.name as ActivityName,
-                          customTiles,
-                          tileColors
-                        );
-                        const isSelected = activityFilter.includes(activity.name);
-                        return (
-                          <div
-                            key={activity.name}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActivityFilter((prev) => {
-                                if (prev.includes(activity.name)) {
-                                  return prev.filter((a) => a !== activity.name);
-                                } else {
-                                  return [...prev, activity.name];
-                                }
-                              });
-                            }}
-                            style={{
-                              padding: '0.5rem 0.75rem',
-                              fontSize: '0.75rem',
-                              color: isSelected ? 'var(--accent)' : 'var(--text-primary)',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: '0.5rem',
-                              transition: 'background 0.15s',
-                            }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor = 'transparent')
-                            }
-                          >
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <span
-                                style={{
-                                  width: '14px',
-                                  height: '14px',
-                                  borderRadius: '3px',
-                                  backgroundColor: isSelected ? config.color : 'transparent',
-                                  border: `2px solid ${config.color}`,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  transition: 'all 0.15s',
-                                }}
-                              >
-                                {isSelected && <Check size={10} color="white" strokeWidth={3} />}
-                              </span>
-                              {config.label || activity.name}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Chart Area */}
-              {(() => {
-                const avgHours = calculateAverage();
-                const barAreaBottom = 30;
-                const barAreaHeight = 140;
-                const avgLinePosition = barAreaBottom + (avgHours / 24) * barAreaHeight;
-
-                return (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-end',
-                      justifyContent: 'space-between',
-                      height: '180px',
-                      gap: '0.5rem',
-                      paddingTop: '1.5rem',
-                      position: 'relative',
-                    }}
-                  >
-                    {/* Y-axis labels */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: 0,
-                        bottom: '24px',
-                        width: '30px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      {[24, 18, 12, 6, 0].map((h) => (
-                        <span
-                          key={h}
-                          style={{
-                            fontSize: '0.65rem',
-                            color: 'var(--text-tertiary)',
-                            textAlign: 'right',
-                            paddingRight: '4px',
-                          }}
-                        >
-                          {h}h
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Average line */}
-                    {avgHours > 0 && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          left: '30px',
-                          right: 0,
-                          bottom: `${avgLinePosition}px`,
-                          height: '1px',
-                          background:
-                            'repeating-linear-gradient(to right, rgba(234, 179, 8, 0.6) 0px, rgba(234, 179, 8, 0.6) 8px, transparent 8px, transparent 12px)',
-                          pointerEvents: 'none',
-                          zIndex: 10,
-                        }}
-                      >
-                        <span
-                          style={{
-                            position: 'absolute',
-                            right: 0,
-                            top: '-14px',
-                            fontSize: '0.55rem',
-                            color: '#eab308',
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                            backdropFilter: 'blur(8px)',
-                            WebkitBackdropFilter: 'blur(8px)',
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontWeight: 500,
-                            border: '1px solid rgba(234, 179, 8, 0.2)',
-                          }}
-                        >
-                          avg {avgHours.toFixed(1)}h
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Bars */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        justifyContent: 'space-around',
-                        flex: 1,
-                        marginLeft: '30px',
-                        height: '100%',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      {analytics.daily_breakdown.map((day, index) => (
-                        <DayBar
-                          key={day.date}
-                          day={day}
-                          animate={animateBars}
-                          delay={index * 0.05}
-                          activityFilter={activityFilter}
-                          customTiles={customTiles}
-                          tileColors={tileColors}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* Activity Summary List */}
-            <div
-              className="card glass-card"
-              style={{
-                padding: '1rem',
-                animation: animateBars ? 'fadeInUp 0.4s ease-out 0.1s forwards' : 'none',
-                opacity: animateBars ? 1 : 0,
-                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '0.75rem',
-                }}
-              >
-                <h3
-                  style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    margin: 0,
-                  }}
-                >
-                  Activity Breakdown
-                </h3>
-                <button
-                  onClick={toggleSortOrder}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                    padding: '0.375rem 0.625rem',
-                    background: 'var(--tile-glass-bg)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
-                    border: '1px solid var(--tile-glass-border)',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    fontSize: '0.75rem',
-                    color: 'var(--text-secondary)',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.borderColor = 'var(--accent)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.borderColor = 'var(--tile-glass-border)';
-                  }}
-                >
-                  <ArrowUpDown size={12} />
-                  {sortOrder === 'desc' ? 'High to Low' : 'Low to High'}
-                </button>
-              </div>
-
-              {sortedActivitySummary.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  {sortedActivitySummary.map((activity, index) => (
-                    <ActivityRow
-                      key={activity.name}
-                      activity={activity}
-                      maxHours={Math.max(...sortedActivitySummary.map((a) => a.total_hours))}
-                      delay={index * 0.03}
-                      animate={animateBars}
-                      customTiles={customTiles}
-                      tileColors={tileColors}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div
-                  style={{
-                    padding: '2rem',
-                    textAlign: 'center',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  No activities logged this week
-                </div>
-              )}
-            </div>
-          </>
-        ) : isPrivateAccount ? (
-          <div
-            className="card glass-card"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '2rem 1.5rem',
-              textAlign: 'center',
-            }}
-          >
-            <div
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                background:
-                  'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-                border: '2px solid var(--tile-glass-border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '12px',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <Lock size={24} style={{ color: 'var(--text-secondary)' }} />
-            </div>
-            <h3
-              style={{
-                margin: '0 0 4px 0',
-                fontSize: '1rem',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-              }}
-            >
-              Private Account
-            </h3>
-            <p
-              style={{
-                margin: 0,
-                fontSize: '0.8rem',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              @{targetUsername}'s analytics are hidden
-            </p>
-          </div>
+        {showUserSelector ? (
+          <Autocomplete
+            placeholder="Search people…"
+            onSelect={handleAutocompleteSelect}
+            fetchSuggestions={fetchSuggestions}
+            minChars={1}
+            debounceMs={150}
+            autoFocus
+            onBlur={handleUserSearchBlur}
+          />
         ) : (
-          <div className="card glass-card" style={{ padding: '3rem', textAlign: 'center' }}>
-            <p style={{ color: 'var(--text-secondary)' }}>Unable to load analytics</p>
-          </div>
+          <button
+            ref={userButtonRef}
+            type="button"
+            className={styles.userButton}
+            onClick={() => setShowUserSelector(true)}
+          >
+            <span className={styles.userIcon} aria-hidden="true">
+              <Users size={18} strokeWidth={2.3} />
+            </span>
+            <span className={styles.userText}>
+              <span className={styles.userEyebrow}>
+                {isViewingOwnAnalytics ? 'Your insights' : 'Viewing insights for'}
+              </span>
+              <span className={styles.userName}>
+                <span className={styles.userNameText}>{targetUsername}</span>
+                {targetIsVerified && <VerifiedBadge size={14} />}
+              </span>
+            </span>
+            <span className={styles.userSwitchHint}>
+              Switch
+              <ChevronDown size={14} strokeWidth={2.4} aria-hidden="true" />
+            </span>
+          </button>
         )}
       </div>
-    </>
+
+      {showWeekCard && (
+        <section className={styles.card} aria-label="Week summary">
+          <div className={styles.weekNav}>
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={handlePrevWeek}
+              aria-label="Previous week"
+            >
+              <ChevronLeft size={20} strokeWidth={2.4} />
+            </button>
+            <div className={styles.weekLabel} aria-live="polite">
+              <span className={styles.weekRange}>{formatWeekRange(weekStart)}</span>
+              <span
+                className={`${styles.weekBadge} ${isCurrentWeek ? styles.weekBadgeCurrent : ''}`}
+              >
+                {getWeekBadge(weekStart)}
+              </span>
+            </div>
+            <button
+              type="button"
+              className={styles.navButton}
+              onClick={handleNextWeek}
+              disabled={isCurrentWeek}
+              aria-label="Next week"
+            >
+              <ChevronRight size={20} strokeWidth={2.4} />
+            </button>
+          </div>
+
+          {loading ? renderSummarySkeleton() : analytics && renderWeekSummary(analytics)}
+        </section>
+      )}
+
+      {loading ? (
+        renderLoadingCards()
+      ) : analytics ? (
+        <>
+          {renderChartCard(analytics)}
+          {renderBreakdownCard()}
+        </>
+      ) : (
+        renderStateCard()
+      )}
+    </div>
   );
 };
-
 export default AnalyticsPage;

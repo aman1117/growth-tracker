@@ -1,3 +1,4 @@
+import { ArrowRight, AtSign, Loader2, Mail, User } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -6,7 +7,17 @@ import { api, ApiError } from '../services/api';
 import { useAuth } from '../store';
 import { decodeAccessToken } from '../utils/jwt';
 import { getSafeRedirectPath, type RedirectState } from '../utils/navigation';
-import { SnapToast } from './ui';
+import { AuthShell, authStyles } from './auth';
+import { Input, PasswordInput, SnapToast, Tabs } from './ui';
+
+type AuthMode = 'login' | 'register';
+
+const MODE_TABS = [
+  { id: 'login', label: 'Log in' },
+  { id: 'register', label: 'Sign up' },
+];
+
+const FIELD_ICON_PROPS = { size: 18, strokeWidth: 2.25, 'aria-hidden': true } as const;
 
 export const AuthForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -28,6 +39,12 @@ export const AuthForm: React.FC = () => {
 
   // Sanitize input by trimming whitespace
   const sanitizeInput = (value: string) => value.trim();
+
+  const switchMode = (mode: AuthMode) => {
+    if (loading) return;
+    setIsLogin(mode === 'login');
+    setToast(null);
+  };
 
   /**
    * Stores the session from a login response and leaves the auth screen.
@@ -105,124 +122,124 @@ export const AuthForm: React.FC = () => {
     }
   };
 
-  return (
-    <div className="container" style={{ maxWidth: '320px', marginTop: '2.5rem' }}>
-      <div className="card">
-        <h2 className="text-center" style={{ marginBottom: '0.75rem', fontSize: 'var(--text-lg)' }}>
-          {isLogin ? 'Welcome Back' : 'Create Account'}
-        </h2>
+  const submitLabel = loading
+    ? isLogin
+      ? 'Logging in…'
+      : 'Creating account…'
+    : isLogin
+      ? 'Log in'
+      : 'Create account';
 
-        <form onSubmit={handleSubmit}>
+  return (
+    <>
+      <AuthShell
+        title={isLogin ? 'Welcome back' : 'Start growing'}
+        subtitle={
+          isLogin
+            ? 'Log in to keep your streak glowing.'
+            : 'Track your hours, build streaks and cheer on friends.'
+        }
+      >
+        <Tabs
+          tabs={MODE_TABS}
+          activeTab={isLogin ? 'login' : 'register'}
+          onTabChange={(id) => switchMode(id as AuthMode)}
+          fullWidth
+          size="lg"
+          className={authStyles.modeSwitch}
+        />
+
+        <form onSubmit={handleSubmit} className={authStyles.form}>
           {!isLogin && (
-            <div className="input-group">
-              <label className="input-label" htmlFor="auth-email">
-                Email
-              </label>
-              <input
-                id="auth-email"
-                type="email"
-                className="input-field"
-                value={email}
-                onChange={(e) => setEmail(e.target.value.trimStart())}
-                onBlur={(e) => setEmail(e.target.value.trim())}
-                autoComplete="email"
-                required
-              />
-            </div>
+            <Input
+              id="auth-email"
+              label="Email"
+              type="email"
+              icon={<Mail {...FIELD_ICON_PROPS} />}
+              value={email}
+              onChange={(e) => setEmail(e.target.value.trimStart())}
+              onBlur={(e) => setEmail(e.target.value.trim())}
+              autoComplete="email"
+              placeholder="you@example.com"
+              required
+            />
           )}
 
-          <div className="input-group">
-            <label className="input-label" htmlFor="auth-identifier">
-              {isLogin ? 'Username or email' : 'Username'}
-            </label>
-            {isLogin ? (
-              // Backend accepts either a username or an email address as the login identifier
-              <input
-                id="auth-identifier"
-                type="text"
-                className="input-field"
-                value={username}
-                onChange={(e) => {
-                  const value = e.target.value.trimStart();
-                  setUsername(value.includes('@') ? value : value.toLowerCase());
-                }}
-                onBlur={(e) => setUsername(e.target.value.trim())}
-                autoComplete="username"
-                autoCapitalize="none"
-                spellCheck={false}
-                required
-              />
-            ) : (
-              <input
-                id="auth-identifier"
-                type="text"
-                className="input-field"
-                value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().trimStart())}
-                onBlur={(e) => setUsername(e.target.value.trim())}
-                autoComplete="username"
-                autoCapitalize="none"
-                spellCheck={false}
-                required
-                pattern="[a-z0-9_.]+"
-                title="Only lowercase letters, numbers, underscore and dot allowed"
-                placeholder="e.g. john_doe"
-              />
-            )}
-          </div>
-
-          <div className="input-group">
-            <label className="input-label" htmlFor="auth-password">
-              Password
-            </label>
-            <input
-              id="auth-password"
-              type="password"
-              className="input-field"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={isLogin ? 'current-password' : 'new-password'}
+          {isLogin ? (
+            // Backend accepts either a username or an email address as the login identifier
+            <Input
+              id="auth-identifier"
+              label="Username or email"
+              type="text"
+              icon={<User {...FIELD_ICON_PROPS} />}
+              value={username}
+              onChange={(e) => {
+                const value = e.target.value.trimStart();
+                setUsername(value.includes('@') ? value : value.toLowerCase());
+              }}
+              onBlur={(e) => setUsername(e.target.value.trim())}
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               required
-              minLength={8}
             />
-          </div>
+          ) : (
+            <Input
+              id="auth-identifier"
+              label="Username"
+              type="text"
+              icon={<AtSign {...FIELD_ICON_PROPS} />}
+              value={username}
+              onChange={(e) => setUsername(e.target.value.toLowerCase().trimStart())}
+              onBlur={(e) => setUsername(e.target.value.trim())}
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              required
+              pattern="[a-z0-9_.]+"
+              title="Only lowercase letters, numbers, underscore and dot allowed"
+              placeholder="e.g. john_doe"
+              helperText="Lowercase letters, numbers, _ and . only"
+            />
+          )}
 
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Processing...' : isLogin ? 'Login' : 'Register'}
-          </button>
+          <PasswordInput
+            id="auth-password"
+            label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
+            required
+            minLength={8}
+            helperText={isLogin ? undefined : 'At least 8 characters'}
+          />
 
           {isLogin && (
-            <div style={{ marginTop: '0.75rem', textAlign: 'center' }}>
-              <Link
-                to={APP_ROUTES.FORGOT_PASSWORD}
-                style={{
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--text-muted)',
-                  textDecoration: 'none',
-                }}
-              >
+            <div className={authStyles.fieldAside}>
+              <Link to={APP_ROUTES.FORGOT_PASSWORD} className={authStyles.textLink}>
                 Forgot password?
               </Link>
             </div>
           )}
-        </form>
 
-        <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
           <button
-            className="btn-outline"
-            style={{ border: 'none', fontSize: '0.75rem', color: 'var(--text-secondary)' }}
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setToast(null);
-            }}
+            type="submit"
+            className={`btn btn-primary ${authStyles.submit}`}
+            disabled={loading}
+            aria-busy={loading}
           >
-            {isLogin ? "Don't have an account? Register" : 'Already have an account? Login'}
+            {loading ? (
+              <Loader2 size={18} className={authStyles.spinner} aria-hidden="true" />
+            ) : null}
+            {submitLabel}
+            {!loading && <ArrowRight size={18} strokeWidth={2.5} aria-hidden="true" />}
           </button>
-        </div>
-      </div>
+        </form>
+      </AuthShell>
+
       {toast && (
         <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
-    </div>
+    </>
   );
 };

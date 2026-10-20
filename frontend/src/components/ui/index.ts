@@ -8,8 +8,10 @@
 // Layout & Structure
 export { Autocomplete, type AutocompleteProps } from './Autocomplete';
 export { Avatar, type AvatarProps, type AvatarSize } from './Avatar';
+export { BrandLogo, type BrandLogoProps, type BrandLogoSize } from './BrandLogo';
 export { Card, type CardProps } from './Card';
-export { Modal, type ModalProps, type ModalSize } from './Modal';
+export { ConfirmDialog, type ConfirmDialogProps, type ConfirmDialogTone } from './ConfirmDialog';
+export { Modal, type ModalMobileLayout, type ModalProps, type ModalSize } from './Modal';
 
 // Form Controls
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './Button';
@@ -19,7 +21,7 @@ export {
   type IconButtonSize,
   type IconButtonVariant,
 } from './IconButton';
-export { Input, type InputProps } from './Input';
+export { Input, type InputProps, PasswordInput, type PasswordInputProps } from './Input';
 export { Toggle, type ToggleProps } from './Toggle';
 
 // Navigation
@@ -29,6 +31,13 @@ export { type Tab, Tabs, type TabsProps } from './Tabs';
 // Feedback & Status
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { LoadingSpinner, type LoadingSpinnerProps, type SpinnerSize } from './LoadingSpinner';
+export {
+  Notice,
+  type NoticeAction,
+  type NoticeProps,
+  NoticeStack,
+  type NoticeTone,
+} from './Notice';
 export {
   Skeleton,
   SkeletonAvatar,

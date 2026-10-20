@@ -4,12 +4,28 @@
  * Dialog for changing username with validation.
  */
 
-import { X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { AtSign } from 'lucide-react';
+import React, { useId, useState } from 'react';
 
+import { VALIDATION } from '../../../constants/validation';
 import { api } from '../../../services/api';
+import { Button, Input, Modal } from '../../ui';
+import { getErrorCode, getRequestErrorMessage } from '../settingsForm';
 import type { UsernameDialogProps } from '../SettingsPage.types';
-import { DialogWrapper } from './DialogWrapper';
+import styles from './SettingsDialogs.module.css';
+
+const validateUsername = (value: string): string | null => {
+  if (
+    value.length < VALIDATION.USERNAME_MIN_LENGTH ||
+    value.length > VALIDATION.USERNAME_MAX_LENGTH
+  ) {
+    return `Username must be ${VALIDATION.USERNAME_MIN_LENGTH}-${VALIDATION.USERNAME_MAX_LENGTH} characters`;
+  }
+  if (!VALIDATION.USERNAME_PATTERN.test(value)) {
+    return 'Only lowercase letters, numbers, _ and . allowed';
+  }
+  return null;
+};
 
 export const UsernameDialog: React.FC<UsernameDialogProps> = ({
   isOpen,
@@ -17,164 +33,103 @@ export const UsernameDialog: React.FC<UsernameDialogProps> = ({
   currentUsername,
   onSuccess,
 }) => {
+  const formId = useId();
   const [username, setUsername] = useState(currentUsername);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [wasOpen, setWasOpen] = useState(isOpen);
 
-  useEffect(() => {
+  // Start from a fresh form every time the dialog opens
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
     if (isOpen) {
       setUsername(currentUsername);
       setError('');
     }
-  }, [isOpen, currentUsername]);
-
-  if (!isOpen) return null;
-
-  const validateUsername = (value: string): string | null => {
-    if (value.length < 3 || value.length > 20) {
-      return 'Username must be 3-20 characters';
-    }
-    if (!/^[a-z0-9_.]+$/.test(value)) {
-      return 'Only lowercase letters, numbers, _ and . allowed';
-    }
-    return null;
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
 
-    const validationError = validateUsername(username);
+    const value = username.trim();
+    const validationError = validateUsername(value);
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    if (username === currentUsername) {
+    if (value === currentUsername) {
       onClose();
       return;
     }
 
     setIsLoading(true);
     try {
-      const res = await api.post('/update-username', { new_username: username });
+      const res = await api.post('/update-username', { new_username: value });
       if (res.success) {
         onSuccess(res.new_username);
         onClose();
       } else {
-        setError(res.error || 'Failed to update username');
+        setError(res.error || "Couldn't update your username. Try again.");
       }
-    } catch {
-      setError('Failed to update username');
+    } catch (err) {
+      console.warn('[Settings] Username update failed', { code: getErrorCode(err) });
+      setError(getRequestErrorMessage(err, "Couldn't update your username. Try again."));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <DialogWrapper onClose={onClose}>
-      <form onSubmit={handleSubmit}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1rem',
-          }}
-        >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              color: 'var(--text-primary)',
-            }}
-          >
-            Change username
-          </h3>
-          <button
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Change username"
+      subtitle="This is how people find and mention you"
+      icon={
+        <span className={`${styles.toneIcon} ${styles.toneViolet}`}>
+          <AtSign size={20} strokeWidth={2.3} />
+        </span>
+      }
+      maxWidth="400px"
+      mobileLayout="dialog"
+      footer={
+        <>
+          <Button
             type="button"
+            variant="secondary"
             onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              padding: '0.25rem',
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label
-            style={{
-              fontSize: '0.875rem',
-              color: 'var(--text-secondary)',
-              display: 'block',
-              marginBottom: '0.5rem',
-            }}
-          >
-            Username
-          </label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value.toLowerCase());
-              setError('');
-            }}
-            placeholder="Enter new username"
-            autoFocus
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              borderRadius: '8px',
-              border: `1px solid ${error ? '#ef4444' : 'var(--border)'}`,
-              backgroundColor: 'var(--bg-secondary)',
-              color: 'var(--text-primary)',
-              fontSize: '16px', // Prevents iOS auto-zoom
-              outline: 'none',
-            }}
-          />
-          {error && (
-            <p
-              style={{
-                color: '#ef4444',
-                fontSize: '0.75rem',
-                marginTop: '0.5rem',
-                margin: '0.5rem 0 0 0',
-              }}
-            >
-              {error}
-            </p>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn btn-outline"
-            style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem' }}
+            className={styles.footerButton}
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="btn btn-primary"
-            style={{
-              flex: 1,
-              padding: '0.6rem',
-              fontSize: '0.85rem',
-              opacity: isLoading ? 0.7 : 1,
-            }}
-          >
-            {isLoading ? 'Saving...' : 'Save'}
-          </button>
-        </div>
+          </Button>
+          <Button type="submit" form={formId} loading={isLoading} className={styles.footerButton}>
+            {isLoading ? 'Saving…' : 'Save'}
+          </Button>
+        </>
+      }
+    >
+      <form id={formId} className={styles.form} onSubmit={handleSubmit} noValidate>
+        <Input
+          label="Username"
+          value={username}
+          onChange={(e) => {
+            setUsername(e.target.value.toLowerCase());
+            setError('');
+          }}
+          placeholder="your.username"
+          icon={<AtSign size={18} strokeWidth={2.25} aria-hidden="true" />}
+          error={error || undefined}
+          helperText={`${VALIDATION.USERNAME_MIN_LENGTH}–${VALIDATION.USERNAME_MAX_LENGTH} characters: lowercase letters, numbers, _ and .`}
+          autoFocus
+          autoCapitalize="none"
+          autoCorrect="off"
+          autoComplete="username"
+          spellCheck={false}
+          enterKeyHint="done"
+        />
       </form>
-    </DialogWrapper>
+    </Modal>
   );
 };

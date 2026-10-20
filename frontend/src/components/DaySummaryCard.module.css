@@ -1,196 +1,361 @@
 /**
  * DaySummaryCard CSS Module
  *
- * Replaces 40+ inline styles with token-backed classes.
+ * The "today" hero card: date navigation, hours progress, motivation chips and
+ * the social footer (likes, comments, previews).
  */
+
+@keyframes progressSheen {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 
 /* Card Container */
 .card {
-  backdrop-filter: blur(var(--tile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
-  border-radius: 20px;
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-  overflow: hidden;
+  position: relative;
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-3);
+  border-radius: var(--radius-card);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
 }
 
 .cardDefault {
-  background: var(--tile-glass-bg);
-  border: 1px solid var(--tile-glass-border);
-  box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
+  background: var(--glass-surface-bg);
+  border: 1px solid var(--glass-surface-border);
+  box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
 }
 
 .cardComplete {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background:
+    linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(20, 184, 166, 0.06) 100%),
+    var(--glass-surface-bg);
+  border: 1px solid rgba(34, 197, 94, 0.32);
   box-shadow:
-    var(--tile-glass-shadow),
-    var(--tile-glass-inner-glow),
-    0 0 20px rgba(34, 197, 94, 0.1);
+    var(--glass-surface-shadow),
+    var(--glass-surface-glow),
+    0 10px 30px -14px rgba(34, 197, 94, 0.45);
 }
 
-/* Skeleton loader */
-.skeleton {
-  height: 88px;
-  margin-bottom: 1rem;
-  border-radius: 20px;
-  background: var(--tile-glass-bg);
-  backdrop-filter: blur(var(--tile-glass-blur));
-  -webkit-backdrop-filter: blur(var(--tile-glass-blur));
-  border: 1px solid var(--tile-glass-border);
-  box-shadow: var(--tile-glass-shadow), var(--tile-glass-inner-glow);
-}
+/* ============================================================================
+   Header row
+   ============================================================================ */
 
-/* Row layouts */
-.row {
+.headerRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
-.rowStart {
+.dateNav {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 2px;
+  min-width: 0;
 }
 
-.rowCenter {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Navigation buttons */
 .navButton {
-  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  padding: 0;
   border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 0.25rem;
-  display: flex;
-  align-items: center;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
 }
 
-.navButtonDisabled {
+.navButton:hover:not(:disabled) {
+  background: var(--chip-bg);
+  color: var(--text-primary);
+}
+
+.navButton:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.navButton:disabled {
   cursor: not-allowed;
   opacity: 0.3;
 }
 
-/* Date button */
 .dateButton {
-  font-size: var(--type-body-size);
-  font-weight: var(--font-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  min-width: 0;
+  height: 36px;
+  padding: 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: var(--font-bold);
+  letter-spacing: -0.01em;
   color: var(--text-primary);
-  background: var(--tile-glass-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--tile-glass-border);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  padding: 0.35rem 0.75rem;
-  border-radius: 8px;
-  transition: all 0.2s ease;
   white-space: nowrap;
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 0 0 var(--control-ledge);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    border-color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
 }
 
-/* Today button */
+.dateButton svg {
+  color: var(--accent-text);
+  flex-shrink: 0;
+}
+
+.dateButton:hover {
+  background: var(--control-bg-hover);
+  border-color: var(--border-strong);
+}
+
+.dateButton:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 0 var(--control-ledge);
+}
+
 .todayButton {
-  font-size: var(--type-body-sm-size);
-  font-weight: var(--font-medium);
-  color: var(--text-primary);
-  background: var(--tile-glass-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--tile-glass-border);
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  padding: 0.3rem 0.6rem;
-  margin-left: 0.25rem;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: var(--space-1);
+  height: 30px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--accent-text);
   white-space: nowrap;
+  background: var(--accent-soft);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
 }
 
 .todayButton:hover {
-  background: var(--tile-glass-bg-active);
-  border-color: var(--tile-glass-border-active);
-  transform: translateY(-1px);
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: var(--accent-soft-strong);
 }
 
-/* Hours display */
-.hoursValue {
-  font-size: var(--type-body-size);
-  font-weight: var(--font-medium);
-  color: var(--text-primary);
+.todayButton:active {
+  transform: scale(0.95);
+}
+
+/* Hours counter */
+.hours {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  flex-shrink: 0;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-.hoursComplete {
+.hoursValue {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: var(--font-extrabold);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
+.hoursMax {
+  font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--success);
+  color: var(--text-muted);
 }
 
-/* Progress bar */
+.hoursComplete .hoursValue,
+.hoursComplete .hoursMax {
+  color: var(--color-text-success);
+}
+
+.completeBadge {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: var(--space-1-5);
+  border-radius: var(--radius-full);
+  background: var(--gradient-success);
+  color: #ffffff;
+  box-shadow: 0 4px 10px -4px rgba(22, 163, 74, 0.7);
+  animation: popIn 0.4s var(--ease-spring) both;
+}
+
+/* ============================================================================
+   Progress
+   ============================================================================ */
+
 .progressTrack {
+  position: relative;
   width: 100%;
-  height: 6px;
+  height: 10px;
   background-color: var(--progress-track);
-  border-radius: 3px;
+  border-radius: var(--radius-full);
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .progressFill {
+  position: relative;
   height: 100%;
-  border-radius: 3px;
-  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: inherit;
+  background: var(--gradient-progress);
+  /*
+   * Size the gradient to the whole track (fill width = pct% of track), so the
+   * fill *reveals* green → teal → violet as the day fills up.
+   */
+  background-size: calc(10000% / var(--pct, 100)) 100%;
+  overflow: hidden;
+  transition: width 0.6s var(--ease-spring);
 }
 
-/* Streak row */
-.streakRow {
+/* Gentle sheen sweeping across the filled part */
+.progressFill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: progressSheen 3.2s ease-in-out 1s infinite;
+}
+
+.progressComplete {
+  background: var(--gradient-success);
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.45);
+}
+
+/* ============================================================================
+   Stat chips
+   ============================================================================ */
+
+.chipRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  padding-top: 0.25rem;
+  gap: var(--space-2);
 }
 
-.streakGroup {
-  display: flex;
+.chip {
+  --chip-tone: var(--accent);
+
+  display: inline-flex;
   align-items: center;
-  gap: 1rem;
+  gap: 5px;
+  height: 28px;
+  max-width: 100%;
+  padding: 0 var(--space-2-5) 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--chip-tone) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--chip-tone) 18%, transparent);
+  font-size: 0.8125rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.streakItem {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+.chip svg {
+  display: block;
+  flex-shrink: 0;
 }
 
-.streakValue {
-  font-size: var(--type-body-size);
+.chipStreak {
+  --chip-tone: var(--orange-500);
+}
+
+.chipBest {
+  --chip-tone: var(--amber-500);
+}
+
+.chipValue {
+  font-weight: var(--font-extrabold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.chipLabel {
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+}
+
+.chipName {
   font-weight: var(--font-bold);
   color: var(--text-primary);
-  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.streakLabel {
-  font-size: var(--type-label-size);
-  color: var(--text-muted);
-  line-height: 1;
-}
+/* ============================================================================
+   Social actions (share the chip row, pushed to its end)
+   ============================================================================ */
 
 .actionGroup {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-4);
+  height: 28px;
+  margin-left: auto;
+  padding: 0 2px 0 var(--space-2);
+}
+
+@media (max-width: 360px) {
+  .card {
+    padding: var(--space-3);
+  }
+
+  .dateButton {
+    padding: 0 var(--space-2-5);
+  }
+
+  .hoursValue {
+    font-size: 1.3125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressFill::after,
+  .completeBadge {
+    animation: none;
+  }
+
+  .progressFill::after {
+    display: none;
+  }
 }

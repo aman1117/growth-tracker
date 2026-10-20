@@ -1,7 +1,7 @@
 /**
  * CommentInput Styles
  *
- * Fixed bottom input bar for commenting, with reply mode and mention autocomplete.
+ * Bottom composer with reply chip, mention suggestions and a gradient send button.
  */
 
 /* ============================================================================
@@ -9,8 +9,11 @@
    ============================================================================ */
 
 .container {
-  background: var(--bg-secondary);
   flex-shrink: 0;
+  border-top: 1px solid var(--divider);
+  background: var(--glass-panel-bg);
+  /* Keep the composer above the iOS home indicator in the mobile sheet */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ============================================================================
@@ -21,35 +24,45 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background: var(--glass-surface-bg);
+  margin: var(--space-2) var(--space-3) 0;
+  padding: var(--space-1-5) var(--space-1-5) var(--space-1-5) var(--space-3);
+  background: var(--accent-soft);
+  border-radius: var(--radius-full);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .replyChipText {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .replyChipUsername {
   font-weight: var(--font-bold);
-  color: var(--text-secondary);
+  color: var(--accent-text);
 }
 
 .replyChipCancel {
-  background: none;
+  width: 24px;
+  height: 24px;
+  background: var(--segment-active-bg);
   border: none;
   cursor: pointer;
-  padding: var(--space-1);
-  color: var(--text-muted);
+  padding: 0;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
+  justify-content: center;
   border-radius: var(--radius-full);
-  transition: background var(--transition-fast) var(--ease-default);
+  flex-shrink: 0;
+  transition: color var(--transition-fast) var(--ease-default);
 }
 
 .replyChipCancel:hover {
-  background: var(--glass-hover-bg);
+  color: var(--text-primary);
 }
 
 /* ============================================================================
@@ -60,34 +73,41 @@
   display: flex;
   align-items: flex-end;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-3) var(--space-2-5);
   position: relative;
 }
 
 .textarea {
   flex: 1;
   resize: none;
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--text-sm);
+  border: 1.5px solid var(--input-border);
+  border-radius: 22px;
+  padding: 0.5625rem var(--space-4);
+  font-size: 16px; /* Prevents iOS auto-zoom on focus */
   font-family: inherit;
-  line-height: 1.4;
-  background: var(--glass-surface-bg);
+  line-height: 1.35;
+  background: var(--input-bg);
   color: var(--text-primary);
   outline: none;
   max-height: 120px;
-  min-height: 36px;
+  min-height: 42px;
   overflow: hidden;
-  transition: border-color var(--transition-fast) var(--ease-default);
+  transition:
+    border-color var(--transition-fast) var(--ease-default),
+    box-shadow var(--transition-fast) var(--ease-default);
 }
 
 .textarea::placeholder {
-  color: var(--text-muted);
+  color: var(--input-placeholder);
 }
 
 .textarea:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.textarea:disabled {
+  opacity: 0.7;
 }
 
 /* ============================================================================
@@ -98,20 +118,43 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  width: 42px;
+  height: 42px;
   border: none;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  color: var(--accent);
-  font-size: var(--text-sm);
-  font-weight: var(--font-black);
-  padding: var(--space-2);
+  background: var(--gradient-primary);
+  color: #ffffff;
+  padding: 0;
   flex-shrink: 0;
-  opacity: 1;
-  transition: opacity var(--transition-fast) var(--ease-default);
+  box-shadow:
+    0 2px 0 0 var(--accent-ledge),
+    0 6px 14px -6px var(--accent-glow);
+  transition:
+    transform 0.12s var(--ease-default),
+    box-shadow var(--transition-fast) var(--ease-default),
+    background var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default);
+}
+
+.sendButton svg {
+  margin-left: -2px;
+  margin-bottom: -1px;
+}
+
+.sendButton:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.sendButton:active:not(:disabled) {
+  transform: translateY(1px) scale(0.96);
+  box-shadow: 0 1px 0 0 var(--accent-ledge);
 }
 
 .sendButton:disabled {
-  opacity: 0.4;
+  background: var(--chip-bg);
+  color: var(--text-faint);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -120,13 +163,61 @@
    ============================================================================ */
 
 .charCounter {
-  font-size: 10px;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-semibold);
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   text-align: right;
-  padding: 0 var(--space-4) var(--space-1);
+  padding: 0 calc(var(--space-3) + 50px) var(--space-1-5) 0;
   line-height: 1;
 }
 
 .charCounterWarning {
-  color: var(--color-like);
+  color: var(--color-text-danger);
+}
+
+/* ============================================================================
+   Mention suggestions
+   ============================================================================ */
+
+.mentionList {
+  margin: var(--space-2) var(--space-3) 0;
+  padding: var(--space-1);
+  background: var(--glass-floating-bg);
+  border: 1px solid var(--glass-floating-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-floating-shadow);
+  max-height: 200px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mentionOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-1-5) var(--space-3);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  transition: background-color var(--transition-fast) var(--ease-default);
+}
+
+.mentionOption:hover,
+.mentionOption:focus-visible {
+  background: var(--accent-soft);
+}
+
+.mentionName {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
 }

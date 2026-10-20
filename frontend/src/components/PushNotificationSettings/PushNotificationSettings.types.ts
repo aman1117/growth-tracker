@@ -22,6 +22,11 @@ export interface ToggleProps {
   enabled: boolean;
   onChange: (enabled: boolean) => void;
   disabled?: boolean;
+  /** Saving: ignores input but keeps focus (unlike `disabled`) */
+  busy?: boolean;
+  id?: string;
+  'aria-labelledby'?: string;
+  'aria-describedby'?: string;
 }
 
 export interface NotificationsBlockedGuideProps {
@@ -46,12 +51,12 @@ export const NOTIFICATION_TYPES: NotificationTypeConfig[] = [
   },
   {
     type: 'streak_milestone',
-    label: 'Streak Milestones',
+    label: 'Streak milestones',
     description: 'When you or someone you follow reaches a milestone',
   },
   {
     type: 'streak_at_risk',
-    label: 'Streak Reminders',
+    label: 'Streak reminders',
     description: 'When your streak is at risk',
   },
 ];

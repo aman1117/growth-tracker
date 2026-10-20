@@ -5,19 +5,21 @@
  * Supports navigation, deletion (own photos), likes, and "seen by" / "liked by" combined list.
  */
 
-import './StoryViewer.css';
-
 import { AlertCircle, ChevronLeft, ChevronRight, Eye, Heart, Trash2, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { getActivityConfig } from '../../constants';
 import { useBackDismiss } from '../../hooks/useBackDismiss';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { activityPhotoApi } from '../../services/api';
 import { gl } from '../../services/goodlogs';
 import type { ActivityName } from '../../types';
 import type { ActivityPhoto, PhotoInteraction } from '../../types/story';
 import { DynamicIcon } from '../DynamicIcon';
-import { Avatar, SnapToast } from '../ui';
+import { Avatar, ConfirmDialog, EmptyState, Modal, Skeleton, SnapToast } from '../ui';
+import styles from './StoryViewer.module.css';
 
 export interface StoryViewerProps {
   /** Whether the viewer is open */
@@ -89,20 +91,8 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     setLocalPhotos(photos);
   }, [photos]);
 
-  // Lock body scroll when viewer is open
-  useEffect(() => {
-    if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      const originalTouchAction = document.body.style.touchAction;
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.style.touchAction = originalTouchAction;
-      };
-    }
-  }, [isOpen]);
+  // Lock page scroll and touch gestures while the viewer is open
+  useBodyScrollLock(isOpen, { blockTouch: true });
 
   // Reset state when opening (but not on every photos change)
   const prevIsOpenRef = useRef(false);
@@ -329,23 +319,15 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     }
   }, [currentIndex, isAnimating, animateTo]);
 
-  // Keyboard navigation
+  // Keyboard navigation (Escape is handled by the shared overlay stack below)
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isAnimating) return; // Ignore keys during animation
+      // Ignore keys during animation or while a sheet/dialog sits on top
+      if (isAnimating || showDeleteConfirm || showInteractions) return;
 
       switch (e.key) {
-        case 'Escape':
-          if (showDeleteConfirm) {
-            setShowDeleteConfirm(false);
-          } else if (showInteractions) {
-            setShowInteractions(false);
-          } else {
-            handleClose();
-          }
-          break;
         case 'ArrowLeft':
           goPrev();
           break;
@@ -368,13 +350,16 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     isOpen,
     showDeleteConfirm,
     showInteractions,
-    handleClose,
     goNext,
     goPrev,
     isAnimating,
     isOwnStory,
     handleLikeToggle,
   ]);
+
+  // Escape closes the viewer; the delete dialog / activity sheet register later
+  // so they close first when open
+  useEscapeKey(isOpen, handleClose);
 
   // Touch/Swipe gesture handlers
   const handleTouchStart = useCallback(
@@ -461,6 +446,9 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   const handleDelete = async () => {
     if (!currentPhoto) return;
 
+    // Dismiss the confirmation right away; the delete itself is optimistic
+    setShowDeleteConfirm(false);
+
     const photoIdToDelete = currentPhoto.id;
     const newPhotos = localPhotos.filter((p) => p.id !== photoIdToDelete);
 
@@ -491,8 +479,6 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     } catch (err) {
       console.error('Delete failed:', err);
     }
-
-    setShowDeleteConfirm(false);
   };
 
   // Early return if not open
@@ -501,13 +487,11 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   // If no photos (deleted last one), show toast briefly then nothing
   if (!currentPhoto) {
     return toastMessage ? (
-      <div className="story-viewer-overlay">
-        <SnapToast
-          message={toastMessage}
-          type={toastMessage.includes('Failed') ? 'error' : 'success'}
-          onClose={() => setToastMessage(null)}
-        />
-      </div>
+      <SnapToast
+        message={toastMessage}
+        type={toastMessage.includes('Failed') ? 'error' : 'success'}
+        onClose={() => setToastMessage(null)}
+      />
     ) : null;
   }
 
@@ -546,96 +530,145 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   };
 
   const activityInfo = getActivityInfo(currentPhoto);
+  const isLiked = !!likeStatus.get(currentPhoto.id)?.liked;
 
-  return (
+  return createPortal(
     <div
-      className="story-viewer-overlay"
+      className={styles.overlay}
       onClick={handleClose}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${ownerUsername}'s story`}
     >
-      <div className="story-viewer-container">
-        {/* Header */}
-        <div className="story-viewer-header" onClick={(e) => e.stopPropagation()}>
-          <div
-            className={`story-viewer-user ${onProfileClick ? 'story-viewer-user-clickable' : ''}`}
-            onClick={() => {
-              if (onProfileClick) {
-                onProfileClick(ownerUsername);
-              }
-            }}
-            role={onProfileClick ? 'button' : undefined}
-            tabIndex={onProfileClick ? 0 : undefined}
-            onKeyDown={(e) => {
-              if (onProfileClick && (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault();
-                onProfileClick(ownerUsername);
-              }
-            }}
-          >
-            <Avatar src={ownerProfilePic} name={ownerUsername} size="sm" />
-            <div className="story-viewer-user-info">
-              <div className="story-viewer-user-top">
-                <span className="story-viewer-username">{ownerUsername}</span>
-                <span className="story-viewer-activity-dot">•</span>
-                <div
-                  className="story-viewer-activity-badge"
-                  style={{ backgroundColor: activityInfo.color }}
-                >
-                  {activityInfo.icon && (
-                    <DynamicIcon name={activityInfo.icon} size={12} color="white" />
-                  )}
-                </div>
-                <span className="story-viewer-activity">{activityInfo.label}</span>
-              </div>
-              <span className="story-viewer-date">{formatDate(currentPhoto.photo_date)}</span>
-            </div>
-          </div>
+      {/* Ambient backdrop: blurred copy of the current photo */}
+      {!failedImages.has(currentPhoto.id) && (
+        <img
+          key={currentPhoto.id}
+          src={currentPhoto.thumbnail_url || currentPhoto.photo_url}
+          alt=""
+          aria-hidden="true"
+          className={styles.ambient}
+          draggable={false}
+        />
+      )}
 
-          <div className="story-viewer-actions">
-            {isOwnStory && (
+      <div className={styles.container}>
+        {/* Top: progress segments + header */}
+        <div className={styles.top} onClick={(e) => e.stopPropagation()}>
+          {localPhotos.length > 1 && (
+            <div className={styles.segments}>
+              {localPhotos.map((photo, idx) => (
+                <button
+                  key={photo.id}
+                  type="button"
+                  className={`${styles.segment} ${
+                    idx === currentIndex
+                      ? styles.segmentActive
+                      : idx < currentIndex
+                        ? styles.segmentSeen
+                        : ''
+                  }`}
+                  onClick={() => setCurrentIndex(idx)}
+                  aria-label={`Go to photo ${idx + 1} of ${localPhotos.length}`}
+                  aria-current={idx === currentIndex ? 'step' : undefined}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className={styles.header}>
+            <div
+              className={`${styles.user} ${onProfileClick ? styles.userClickable : ''}`}
+              onClick={() => {
+                if (onProfileClick) {
+                  onProfileClick(ownerUsername);
+                }
+              }}
+              role={onProfileClick ? 'button' : undefined}
+              tabIndex={onProfileClick ? 0 : undefined}
+              onKeyDown={(e) => {
+                if (onProfileClick && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  onProfileClick(ownerUsername);
+                }
+              }}
+            >
+              <span className={styles.avatarRing}>
+                <Avatar src={ownerProfilePic} name={ownerUsername} size="sm" />
+              </span>
+              <div className={styles.userInfo}>
+                <div className={styles.userTop}>
+                  <span className={styles.username}>{ownerUsername}</span>
+                  <span
+                    className={styles.activityChip}
+                    style={{ '--activity-color': activityInfo.color } as React.CSSProperties}
+                  >
+                    <span className={styles.activityIcon} aria-hidden="true">
+                      {activityInfo.icon && (
+                        <DynamicIcon name={activityInfo.icon} size={10} color="white" />
+                      )}
+                    </span>
+                    {activityInfo.label}
+                  </span>
+                </div>
+                <span className={styles.date}>{formatDate(currentPhoto.photo_date)}</span>
+              </div>
+            </div>
+
+            <div className={styles.actions}>
+              {isOwnStory && (
+                <button
+                  type="button"
+                  className={`${styles.iconButton} ${styles.deleteButton}`}
+                  onClick={() => setShowDeleteConfirm(true)}
+                  aria-label="Delete photo"
+                >
+                  <Trash2 size={18} strokeWidth={2.25} aria-hidden="true" />
+                </button>
+              )}
               <button
-                className="story-viewer-btn story-viewer-delete-btn"
-                onClick={() => setShowDeleteConfirm(true)}
-                aria-label="Delete photo"
+                type="button"
+                className={styles.iconButton}
+                onClick={handleClose}
+                aria-label="Close"
               >
-                <Trash2 size={20} />
+                <X size={22} strokeWidth={2.25} aria-hidden="true" />
               </button>
-            )}
-            <button className="story-viewer-btn" onClick={handleClose} aria-label="Close">
-              <X size={24} />
-            </button>
+            </div>
           </div>
         </div>
 
         {/* Main image */}
-        <div ref={containerRef} className="story-viewer-content" onClick={handleImageTap}>
+        <div ref={containerRef} className={styles.content} onClick={handleImageTap}>
           {/* Double-tap like animation */}
           {showLikeAnimation && (
-            <div className="story-viewer-like-animation">
-              <Heart size={100} fill="white" color="white" />
+            <div className={styles.likeBurst} aria-hidden="true">
+              <Heart size={104} fill="currentColor" color="white" strokeWidth={1.25} />
             </div>
           )}
 
           {/* Navigation arrows */}
           {currentIndex > 0 && (
             <button
-              className="story-viewer-nav story-viewer-nav-prev"
+              type="button"
+              className={`${styles.nav} ${styles.navPrev}`}
               onClick={(e) => {
                 e.stopPropagation();
                 goPrev();
               }}
               aria-label="Previous photo"
             >
-              <ChevronLeft size={32} />
+              <ChevronLeft size={26} strokeWidth={2.25} aria-hidden="true" />
             </button>
           )}
 
           <div
             ref={trackRef}
-            className={`story-viewer-track ${isAnimating ? 'animating' : isSwiping ? 'swiping' : ''}`}
+            className={`${styles.track} ${isAnimating ? styles.trackAnimating : ''}`}
             onClick={(e) => e.stopPropagation()}
             style={{
               transform: `translateX(${swipeOffset}px)`,
@@ -647,27 +680,31 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
               if (!photo) return null;
 
               const position = offset === 0 ? 'prev' : offset === 1 ? 'current' : 'next';
+              const positionClass =
+                position === 'prev'
+                  ? styles.slidePrev
+                  : position === 'next'
+                    ? styles.slideNext
+                    : '';
               const isError = failedImages.has(photo.id);
 
               return (
-                <div key={`${photo.id}-${position}`} className={`story-viewer-slide ${position}`}>
+                <div
+                  key={`${photo.id}-${position}`}
+                  className={`${styles.slide} ${positionClass}`}
+                  aria-hidden={position !== 'current' || undefined}
+                >
                   {isError ? (
-                    <div className="story-viewer-image-error">
-                      <AlertCircle size={48} />
+                    <div className={styles.imageError}>
+                      <AlertCircle size={44} aria-hidden="true" />
                       <span>Failed to load photo</span>
                     </div>
                   ) : (
                     <img
                       src={photo.photo_url}
                       alt={`${ownerUsername}'s ${photo.activity_name} activity`}
-                      className="story-viewer-image"
+                      className={styles.image}
                       onError={() => setFailedImages((prev) => new Set(prev).add(photo.id))}
-                      style={{
-                        WebkitUserSelect: 'none',
-                        userSelect: 'none',
-                        pointerEvents: 'none',
-                        WebkitTouchCallout: 'none',
-                      }}
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
                     />
@@ -679,45 +716,36 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
 
           {currentIndex < localPhotos.length - 1 && (
             <button
-              className="story-viewer-nav story-viewer-nav-next"
+              type="button"
+              className={`${styles.nav} ${styles.navNext}`}
               onClick={(e) => {
                 e.stopPropagation();
                 goNext();
               }}
               aria-label="Next photo"
             >
-              <ChevronRight size={32} />
+              <ChevronRight size={26} strokeWidth={2.25} aria-hidden="true" />
             </button>
           )}
         </div>
 
-        {/* Progress dots */}
-        {localPhotos.length > 1 && (
-          <div className="story-viewer-progress" onClick={(e) => e.stopPropagation()}>
-            {localPhotos.map((_, idx) => (
-              <button
-                key={idx}
-                className={`story-viewer-dot ${idx === currentIndex ? 'active' : ''}`}
-                onClick={() => setCurrentIndex(idx)}
-                aria-label={`Go to photo ${idx + 1}`}
-              />
-            ))}
-          </div>
-        )}
-
         {/* Footer */}
-        <div className="story-viewer-footer-container" onClick={(e) => e.stopPropagation()}>
+        <div className={styles.footer} onClick={(e) => e.stopPropagation()}>
           {/* Like button (non-own stories) - no count shown, only owner sees counts */}
-          {!isOwnStory && currentPhoto && (
+          {!isOwnStory && (
             <button
-              className={`story-viewer-like-btn ${likeStatus.get(currentPhoto.id)?.liked ? 'liked' : ''}`}
+              type="button"
+              className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}
               onClick={handleLikeToggle}
               disabled={likePending}
-              aria-label={likeStatus.get(currentPhoto.id)?.liked ? 'Unlike photo' : 'Like photo'}
+              aria-label={isLiked ? 'Unlike photo' : 'Like photo'}
+              aria-pressed={isLiked}
             >
               <Heart
                 size={24}
-                fill={likeStatus.get(currentPhoto.id)?.liked ? 'currentColor' : 'none'}
+                strokeWidth={2.25}
+                fill={isLiked ? 'currentColor' : 'none'}
+                aria-hidden="true"
               />
             </button>
           )}
@@ -725,104 +753,106 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           {/* Interactions button (own stories) */}
           {isOwnStory && (
             <button
-              className="story-viewer-footer"
+              type="button"
+              className={styles.seenBy}
               onClick={(e) => {
                 e.stopPropagation();
                 gl.track('story_interactions_viewed', { properties: { photoId: currentPhoto.id } });
                 setShowInteractions(true);
               }}
             >
-              <Eye size={16} />
+              <Eye size={16} strokeWidth={2.25} aria-hidden="true" />
               <span>Seen by {interactionsTotal > 0 ? interactionsTotal : '—'}</span>
             </button>
           )}
         </div>
-
-        {/* Delete confirmation dialog */}
-        {showDeleteConfirm && (
-          <div
-            className="story-viewer-dialog-overlay"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent closing the main viewer
-              setShowDeleteConfirm(false);
-            }}
-          >
-            <div className="story-viewer-dialog" onClick={(e) => e.stopPropagation()}>
-              <h3>Delete Photo?</h3>
-              <p>This photo will be permanently deleted.</p>
-              <div className="story-viewer-dialog-actions">
-                <button
-                  className="story-viewer-dialog-btn story-viewer-dialog-cancel"
-                  onClick={() => setShowDeleteConfirm(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="story-viewer-dialog-btn story-viewer-dialog-delete"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Interactions panel (combined views + likes) */}
-        {showInteractions && (
-          <div
-            className="story-viewer-viewers-overlay"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent closing the main viewer
-              setShowInteractions(false);
-            }}
-          >
-            <div className="story-viewer-viewers-panel" onClick={(e) => e.stopPropagation()}>
-              <div className="story-viewer-viewers-header">
-                <h3>Activity</h3>
-                <button onClick={() => setShowInteractions(false)} aria-label="Close">
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="story-viewer-viewers-list">
-                {loadingInteractions ? (
-                  <div className="story-viewer-viewers-loading">Loading...</div>
-                ) : interactions.length === 0 ? (
-                  <div className="story-viewer-viewers-empty">No activity yet</div>
-                ) : (
-                  interactions.map((interaction) => (
-                    <div key={interaction.user_id} className="story-viewer-viewer-item">
-                      <Avatar src={interaction.profile_pic} name={interaction.username} size="sm" />
-                      <span className="story-viewer-viewer-name">{interaction.username}</span>
-                      <div className="story-viewer-interaction-icons">
-                        {(interaction.interaction_type === 'view' ||
-                          interaction.interaction_type === 'both') && (
-                          <Eye size={14} className="story-viewer-icon-view" />
-                        )}
-                        {(interaction.interaction_type === 'like' ||
-                          interaction.interaction_type === 'both') && (
-                          <Heart size={14} fill="currentColor" className="story-viewer-icon-like" />
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Toast notification */}
-        {toastMessage && (
-          <SnapToast
-            message={toastMessage}
-            type={toastMessage.includes('Failed') ? 'error' : 'success'}
-            onClose={() => setToastMessage(null)}
-          />
-        )}
       </div>
-    </div>
+
+      {/* Delete confirmation dialog (portal; stopPropagation keeps the viewer open) */}
+      <div onClick={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          title="Delete this photo?"
+          description="It will be removed from your story permanently."
+          icon={<Trash2 size={22} strokeWidth={2.25} />}
+          tone="danger"
+          confirmLabel="Delete"
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+
+        {/* Interactions sheet (combined views + likes) */}
+        <Modal
+          isOpen={showInteractions}
+          onClose={() => setShowInteractions(false)}
+          title="Story activity"
+          subtitle={
+            interactionsTotal > 0
+              ? `${interactionsTotal} ${interactionsTotal === 1 ? 'person' : 'people'}`
+              : undefined
+          }
+          icon={<Eye size={19} strokeWidth={2.25} />}
+          maxWidth="440px"
+        >
+          {loadingInteractions ? (
+            <div aria-busy="true" aria-label="Loading">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={styles.interactionSkeleton}>
+                  <Skeleton width={32} height={32} radius="full" />
+                  <Skeleton width="45%" height={12} radius="full" />
+                </div>
+              ))}
+            </div>
+          ) : interactions.length === 0 ? (
+            <EmptyState
+              icon={<Eye size={24} strokeWidth={2} />}
+              title="No views yet"
+              description="When friends see or like this photo, they'll show up here."
+              size="sm"
+            />
+          ) : (
+            <ul className={styles.interactionList}>
+              {interactions.map((interaction) => {
+                const viewed =
+                  interaction.interaction_type === 'view' ||
+                  interaction.interaction_type === 'both';
+                const liked =
+                  interaction.interaction_type === 'like' ||
+                  interaction.interaction_type === 'both';
+                return (
+                  <li key={interaction.user_id} className={styles.interactionRow}>
+                    <Avatar src={interaction.profile_pic} name={interaction.username} size="sm" />
+                    <span className={styles.interactionName}>{interaction.username}</span>
+                    <span className={styles.interactionIcons}>
+                      {viewed && (
+                        <span className={`${styles.iconChip} ${styles.iconView}`} title="Viewed">
+                          <Eye size={14} strokeWidth={2.25} aria-label="Viewed" />
+                        </span>
+                      )}
+                      {liked && (
+                        <span className={`${styles.iconChip} ${styles.iconLike}`} title="Liked">
+                          <Heart size={13} fill="currentColor" aria-label="Liked" />
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Modal>
+      </div>
+
+      {/* Toast notification */}
+      {toastMessage && (
+        <SnapToast
+          message={toastMessage}
+          type={toastMessage.includes('Failed') ? 'error' : 'success'}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
+    </div>,
+    document.body
   );
 };
-
 export default StoryViewer;

@@ -86,17 +86,24 @@ export const CommentButton: React.FC<CommentButtonProps> = ({
           onClick={handleClick}
           className={`${styles.button} ${hasComments ? styles.hasComments : ''}`}
           title="View comments"
-          aria-label={`${count} comments`}
+          aria-label={`${count} ${count === 1 ? 'comment' : 'comments'}`}
         >
-          <MessageCircle size={iconSize} fill={hasComments ? 'currentColor' : 'none'} />
+          <MessageCircle
+            size={iconSize}
+            fill={hasComments ? 'currentColor' : 'none'}
+            fillOpacity={hasComments ? 0.18 : undefined}
+            aria-hidden="true"
+          />
         </button>
         {showCount && (
-          <span
+          <button
+            type="button"
             onClick={handleClick}
             className={`${styles.count} ${hasComments ? styles.hasComments : ''}`}
+            aria-label={`Open ${count} ${count === 1 ? 'comment' : 'comments'}`}
           >
             {count}
-          </span>
+          </button>
         )}
       </div>
 

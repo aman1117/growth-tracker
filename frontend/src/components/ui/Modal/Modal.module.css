@@ -1,27 +1,8 @@
 /**
  * Modal Styles
  *
- * Modal component using design tokens and glass utilities.
+ * Glass dialog on larger screens, bottom sheet on phones.
  */
-
-.backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--modal-overlay);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  z-index: var(--z-modal);
-  padding: var(--space-4);
-  padding-top: 15vh;
-  overflow-y: auto;
-  animation: fadeIn var(--transition-normal) var(--ease-default);
-}
 
 @keyframes fadeIn {
   from {
@@ -32,10 +13,10 @@
   }
 }
 
-@keyframes slideIn {
+@keyframes dialogIn {
   from {
     opacity: 0;
-    transform: translateY(-10px) scale(0.98);
+    transform: translateY(12px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -43,62 +24,136 @@
   }
 }
 
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--modal-overlay);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: var(--z-modal);
+  padding: 12vh var(--space-4) var(--space-4);
+  overflow-y: auto;
+  animation: fadeIn var(--transition-normal) var(--ease-default);
+}
+
 .modal {
   width: 100%;
-  max-height: 50vh;
+  max-width: var(--modal-max-width, var(--modal-size, 440px));
+  max-height: min(72vh, 640px);
   display: flex;
   flex-direction: column;
-  overflow: visible;
-  padding: var(--space-2) 0;
+  overflow: hidden;
   position: relative;
-  animation: slideIn var(--transition-normal) var(--ease-out);
+  animation: dialogIn 0.32s var(--ease-spring);
 
-  /* Glass panel styling */
   background: var(--glass-panel-bg);
-  backdrop-filter: blur(var(--glass-blur-md));
-  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
   border: 1px solid var(--glass-panel-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-3xl);
   box-shadow: var(--glass-panel-shadow), var(--glass-panel-glow);
+}
+
+.modal:focus,
+.modal:focus-visible {
+  outline: none;
 }
 
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-2) var(--space-4) var(--space-3);
-  border-bottom: 1px solid var(--glass-surface-border);
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--divider);
   flex-shrink: 0;
+}
+
+.headerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.headerText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.subtitle {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+  color: var(--text-secondary);
 }
 
 .title {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: var(--font-bold);
+  letter-spacing: -0.015em;
   color: var(--text-primary);
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .closeButton {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
   border: none;
-  background: none;
+  background: var(--chip-bg);
   color: var(--text-secondary);
   cursor: pointer;
-  padding: var(--space-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   transition:
     color var(--transition-fast) var(--ease-default),
-    background-color var(--transition-fast) var(--ease-default);
+    background-color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
 }
 
 .closeButton:hover {
   color: var(--text-primary);
-  background: var(--bg-secondary);
+  background: var(--accent-soft);
+}
+
+.closeButton:active {
+  transform: scale(0.92);
 }
 
 .closeButton:focus-visible {
@@ -108,13 +163,15 @@
 
 .content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  overflow-x: visible;
+  overscroll-behavior: contain;
+  padding: var(--space-2) 0;
 }
 
 .footer {
   padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--glass-surface-border);
+  border-top: 1px solid var(--divider);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
@@ -122,47 +179,84 @@
 
 /* Size Variants */
 .small {
-  max-width: 320px;
+  --modal-size: 320px;
 }
 
 .medium {
-  max-width: 440px;
+  --modal-size: 440px;
 }
 
 .large {
-  max-width: 600px;
+  --modal-size: 600px;
 }
 
 .fullscreen {
-  max-width: 100%;
-  max-height: calc(100vh - var(--space-8));
+  --modal-size: 100%;
+  max-height: calc(100dvh - var(--space-8));
   height: 100%;
 }
 
 /* ============================================================================
-   Mobile Responsive
+   Phones: bottom sheet
    ============================================================================ */
 
 @media (max-width: 480px) {
   .backdrop {
-    padding: var(--space-3);
-    padding-top: 10vh;
+    align-items: flex-end;
+    padding: 0;
   }
 
   .modal {
-    max-height: 70vh;
+    max-width: 100%;
+    max-height: min(86dvh, 720px);
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+    border-bottom: none;
+    animation: sheetUp 0.36s var(--ease-spring);
   }
 
   .header {
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-4) var(--space-4) var(--space-3);
   }
 
-  .title {
-    font-size: var(--text-sm);
+  .content {
+    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
   }
 
   .footer {
-    padding: var(--space-2) var(--space-3);
+    padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
     gap: var(--space-2);
+  }
+
+  /* With a footer, the footer owns the safe-area padding */
+  .content:has(+ .footer) {
+    padding-bottom: var(--space-2);
+  }
+
+  /* Opt-out: keep a floating, top-anchored dialog (keyboard-friendly forms) */
+  .dialogOnMobile {
+    align-items: flex-start;
+    padding: calc(env(safe-area-inset-top, 0px) + 7vh) var(--space-3) var(--space-3);
+  }
+
+  .dialogOnMobile .modal {
+    max-height: calc(100dvh - 7vh - var(--space-6) - env(safe-area-inset-top, 0px));
+    border-radius: var(--radius-3xl);
+    border-bottom: 1px solid var(--glass-panel-border);
+    animation: dialogIn 0.32s var(--ease-spring);
+  }
+
+  .dialogOnMobile .content {
+    padding-bottom: var(--space-2);
+  }
+
+  .dialogOnMobile .footer {
+    padding-bottom: var(--space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .modal {
+    animation: none;
   }
 }

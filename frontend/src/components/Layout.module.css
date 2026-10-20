@@ -1,11 +1,12 @@
 /**
  * Layout CSS Module
  *
- * Replaces inline styles for header, main content, and search backdrop.
+ * App shell: glass header, main content area and the search backdrop.
  */
 
 .wrapper {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   /* Keep content clear of notches / rounded corners (viewport-fit=cover) */
@@ -14,15 +15,15 @@
 }
 
 .header {
-  border-bottom: 1px solid var(--border);
-  padding: 0.75rem 0;
-  padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
-  background-color: var(--header-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
-  z-index: 50;
+  /* Layering: header (60) > search backdrop (55) > bottom nav (50) */
+  z-index: 60;
+  padding-top: env(safe-area-inset-top, 0px);
+  background-color: var(--header-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  border-bottom: 1px solid var(--divider);
   transition:
     background-color 0.3s ease,
     border-color 0.3s ease;
@@ -32,43 +33,35 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-3);
+  height: var(--header-height);
   padding: 0 1rem;
-  max-width: 560px;
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
   flex-shrink: 0;
-  padding: 0.25rem;
-  margin-left: -0.25rem;
+  padding: 0.375rem 0.375rem;
+  margin-left: -0.375rem;
   background: none;
   border: none;
-  border-radius: var(--radius-md, 8px);
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-default);
 }
 
-.logo:focus-visible,
-.searchButton:focus-visible {
-  box-shadow: 0 0 0 var(--ring-width, 2px) var(--ring-color);
-}
-
-.logoImage {
-  height: 28px;
-  width: auto;
-  filter: var(--logo-filter);
+.logo:active {
+  transform: scale(0.97);
 }
 
 .rightIcons {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-2);
   justify-content: flex-end;
-  transition: margin-left 0.3s ease;
 }
 
 .rightIconsExpanded {
@@ -76,19 +69,42 @@
   margin-left: 0;
 }
 
-.searchButton {
+/* Round glass icon button shared by header actions */
+.iconButton {
+  position: relative;
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
+  flex-shrink: 0;
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-full);
   color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-subtle);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.iconButton:hover {
+  background: var(--control-bg-hover);
+  border-color: var(--border-strong);
+  color: var(--accent-text);
+}
+
+.iconButton:active {
+  transform: scale(0.94);
+}
+
+.logo:focus-visible,
+.iconButton:focus-visible {
   outline: none;
-  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
 }
 
 .searchExpanded {
@@ -97,14 +113,12 @@
 
 .backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 40;
+  inset: 0;
+  background-color: var(--modal-overlay);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  /* Above the bottom nav so search focuses the whole screen */
+  z-index: 55;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -114,12 +128,34 @@
 }
 
 .mainWithNav {
-  /* Clears the fixed tab bar, including the iOS home-indicator inset */
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  /* Clears the floating dock, including the iOS home-indicator inset */
+  padding-bottom: var(--nav-clearance);
 }
 
 .mainNoNav {
-  padding-bottom: 0.5rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Minimal brand bar for auth-flow pages (no navigation) */
+.brandBar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: var(--header-height);
+  margin-top: env(safe-area-inset-top, 0px);
+}
+
+/* Desktop: navigation becomes a side rail, so no bottom clearance is needed */
+@media (min-width: 1024px) {
+  .mainWithNav {
+    padding-bottom: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop {
+    animation: none;
+  }
 }
 
 @keyframes fadeIn {

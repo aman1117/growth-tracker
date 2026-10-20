@@ -40,16 +40,51 @@ export type SpacingKey = keyof typeof SPACING;
 
 export const RADII = {
   none: '0',
-  sm: '4px',
-  md: '8px',
-  lg: '12px',
-  xl: '16px',
-  '2xl': '20px',
-  '3xl': '24px',
+  xs: '6px',
+  sm: '8px',
+  md: '12px',
+  lg: '16px',
+  xl: '20px',
+  '2xl': '24px',
+  '3xl': '28px',
   full: '9999px',
+  card: '24px',
+  tile: '22px',
+  control: '14px',
 } as const;
 
 export type RadiiKey = keyof typeof RADII;
+
+// ============================================================================
+// Brand ("Aurora" design language)
+// ============================================================================
+
+export const FONTS = {
+  sans: "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  display: "'Bricolage Grotesque', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif",
+} as const;
+
+export const BRAND = {
+  violet: {
+    300: '#b4a5ff',
+    400: '#9a85ff',
+    500: '#7a61ff',
+    600: '#6447f2',
+    700: '#5236d4',
+    800: '#4126b8',
+  },
+  canvas: { light: '#f6f5fb', dark: '#0b0a12' },
+  gradient: {
+    brand: {
+      light: 'linear-gradient(118deg, #16a34a 0%, #0d9488 40%, #6447f2 100%)',
+      dark: 'linear-gradient(118deg, #a3e635 0%, #2dd4bf 42%, #a78bfa 100%)',
+    },
+    progress: {
+      light: 'linear-gradient(90deg, #22c55e 0%, #14b8a6 45%, #6447f2 100%)',
+      dark: 'linear-gradient(90deg, #a3e635 0%, #2dd4bf 45%, #8b74ff 100%)',
+    },
+  },
+} as const;
 
 // ============================================================================
 // Typography
@@ -86,23 +121,24 @@ export const FONT_WEIGHT = {
   medium: 500,
   semibold: 600,
   bold: 700,
+  extrabold: 800,
 } as const;
 
 export type FontWeightKey = keyof typeof FONT_WEIGHT;
 
 // ============================================================================
-// Shadows
+// Shadows (violet-tinted in light mode)
 // ============================================================================
 
 export const SHADOWS = {
   none: 'none',
-  subtle: '0 1px 2px rgba(0, 0, 0, 0.04)',
-  sm: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04)',
-  md: '0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05)',
-  lg: '0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04)',
-  xl: '0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04)',
-  elevated: '0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
-  floating: '0 12px 28px rgba(0, 0, 0, 0.12), 0 8px 12px rgba(0, 0, 0, 0.08)',
+  subtle: '0 1px 2px rgba(23, 20, 44, 0.05)',
+  sm: '0 1px 2px rgba(23, 20, 44, 0.06), 0 2px 6px -2px rgba(76, 58, 160, 0.1)',
+  md: '0 4px 12px -2px rgba(76, 58, 160, 0.14), 0 2px 4px rgba(23, 20, 44, 0.05)',
+  lg: '0 14px 30px -10px rgba(76, 58, 160, 0.22), 0 4px 8px rgba(23, 20, 44, 0.05)',
+  xl: '0 24px 50px -16px rgba(52, 36, 128, 0.3), 0 6px 12px rgba(23, 20, 44, 0.06)',
+  elevated: '0 8px 24px -8px rgba(76, 58, 160, 0.2), 0 2px 6px rgba(23, 20, 44, 0.05)',
+  floating: '0 20px 44px -12px rgba(52, 36, 128, 0.32), 0 6px 14px rgba(23, 20, 44, 0.08)',
 } as const;
 
 export type ShadowKey = keyof typeof SHADOWS;
@@ -110,13 +146,13 @@ export type ShadowKey = keyof typeof SHADOWS;
 // Dark mode shadow variants
 export const SHADOWS_DARK = {
   none: 'none',
-  subtle: '0 1px 2px rgba(0, 0, 0, 0.2)',
-  sm: '0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2)',
-  md: '0 4px 6px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15)',
-  lg: '0 10px 15px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2)',
-  xl: '0 20px 25px rgba(0, 0, 0, 0.4), 0 10px 10px rgba(0, 0, 0, 0.2)',
-  elevated: '0 4px 16px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2)',
-  floating: '0 12px 28px rgba(0, 0, 0, 0.4), 0 8px 12px rgba(0, 0, 0, 0.3)',
+  subtle: '0 1px 2px rgba(0, 0, 0, 0.3)',
+  sm: '0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px -2px rgba(0, 0, 0, 0.4)',
+  md: '0 6px 14px -4px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3)',
+  lg: '0 16px 32px -12px rgba(0, 0, 0, 0.65), 0 4px 8px rgba(0, 0, 0, 0.3)',
+  xl: '0 26px 54px -16px rgba(0, 0, 0, 0.75), 0 6px 12px rgba(0, 0, 0, 0.35)',
+  elevated: '0 10px 28px -10px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.3)',
+  floating: '0 22px 48px -12px rgba(0, 0, 0, 0.75), 0 6px 14px rgba(0, 0, 0, 0.4)',
 } as const;
 
 // ============================================================================
@@ -125,51 +161,51 @@ export const SHADOWS_DARK = {
 
 export const GLASS = {
   blur: {
-    sm: '8px',
-    md: '12px',
-    lg: '16px',
-    xl: '24px',
+    sm: '10px',
+    md: '16px',
+    lg: '22px',
+    xl: '28px',
   },
   surface: {
     light: {
-      bg: 'rgba(255, 255, 255, 0.7)',
-      border: 'rgba(0, 0, 0, 0.06)',
-      shadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-      glow: 'inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+      bg: 'rgba(255, 255, 255, 0.72)',
+      border: 'rgba(23, 20, 44, 0.07)',
+      shadow: '0 1px 2px rgba(23, 20, 44, 0.04), 0 10px 30px -14px rgba(76, 58, 160, 0.2)',
+      glow: 'inset 0 1px 0 rgba(255, 255, 255, 0.9)',
     },
     dark: {
-      bg: 'rgba(30, 30, 30, 0.6)',
-      border: 'rgba(255, 255, 255, 0.08)',
-      shadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+      bg: 'rgba(26, 24, 38, 0.66)',
+      border: 'rgba(255, 255, 255, 0.07)',
+      shadow: '0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 32px -16px rgba(0, 0, 0, 0.7)',
       glow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
     },
   },
   panel: {
     light: {
-      bg: 'rgba(255, 255, 255, 0.85)',
-      border: 'rgba(0, 0, 0, 0.08)',
-      shadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+      bg: 'rgba(255, 255, 255, 0.9)',
+      border: 'rgba(23, 20, 44, 0.08)',
+      shadow: '0 28px 60px -20px rgba(52, 36, 128, 0.32), 0 2px 6px rgba(23, 20, 44, 0.06)',
       glow: 'inset 0 1px 0 rgba(255, 255, 255, 1)',
     },
     dark: {
-      bg: 'rgba(20, 20, 20, 0.85)',
-      border: 'rgba(255, 255, 255, 0.1)',
-      shadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
-      glow: 'inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+      bg: 'rgba(22, 20, 33, 0.94)',
+      border: 'rgba(255, 255, 255, 0.09)',
+      shadow: '0 30px 70px -20px rgba(0, 0, 0, 0.85)',
+      glow: 'inset 0 1px 0 rgba(255, 255, 255, 0.07)',
     },
   },
   floating: {
     light: {
       bg: 'rgba(255, 255, 255, 0.92)',
-      border: 'rgba(0, 0, 0, 0.1)',
-      shadow: '0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08)',
+      border: 'rgba(23, 20, 44, 0.09)',
+      shadow: '0 18px 44px -12px rgba(52, 36, 128, 0.3), 0 4px 12px rgba(23, 20, 44, 0.08)',
       glow: 'inset 0 1px 0 rgba(255, 255, 255, 1)',
     },
     dark: {
-      bg: 'rgba(25, 25, 25, 0.95)',
-      border: 'rgba(255, 255, 255, 0.12)',
-      shadow: '0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4)',
-      glow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+      bg: 'rgba(29, 27, 42, 0.96)',
+      border: 'rgba(255, 255, 255, 0.1)',
+      shadow: '0 20px 50px -12px rgba(0, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.45)',
+      glow: 'inset 0 1px 0 rgba(255, 255, 255, 0.08)',
     },
   },
 } as const;
@@ -180,36 +216,36 @@ export const GLASS = {
 
 export const SEMANTIC_COLORS = {
   like: {
-    light: '#ef4444',
-    dark: '#f87171',
+    light: '#f43f5e',
+    dark: '#fb7185',
   },
   badge: {
-    light: '#f59e0b',
-    dark: '#fbbf24',
+    light: '#6447f2',
+    dark: '#9a85ff',
   },
   streak: {
     light: '#f97316',
     dark: '#fb923c',
   },
   warning: {
-    light: '#eab308',
-    dark: '#facc15',
+    light: '#f59e0b',
+    dark: '#fbbf24',
   },
   follow: {
-    light: '#0095f6',
-    dark: '#60a5fa',
+    light: '#6447f2',
+    dark: '#9a85ff',
   },
   info: {
-    light: '#3b82f6',
+    light: '#2563eb',
     dark: '#60a5fa',
   },
   success: {
-    light: '#22c55e',
+    light: '#16a34a',
     dark: '#4ade80',
   },
   error: {
-    light: '#ef4444',
-    dark: '#f87171',
+    light: '#cc2b37',
+    dark: '#ff6b72',
   },
 } as const;
 
@@ -222,31 +258,31 @@ export type SemanticColorKey = keyof typeof SEMANTIC_COLORS;
 export const BUTTON_SIZES = {
   xs: {
     height: '1.75rem', // 28px
-    paddingX: '0.5rem', // 8px
+    paddingX: '0.625rem', // 10px
     fontSize: '0.75rem', // 12px
     iconSize: '0.875rem', // 14px
-    radius: '8px',
+    radius: '10px',
   },
   sm: {
-    height: '2rem', // 32px
-    paddingX: '0.75rem', // 12px
-    fontSize: '0.75rem', // 12px
+    height: '2.125rem', // 34px
+    paddingX: '0.875rem', // 14px
+    fontSize: '0.8125rem', // 13px
     iconSize: '1rem', // 16px
-    radius: '8px',
+    radius: '12px',
   },
   md: {
-    height: '2.25rem', // 36px
-    paddingX: '1rem', // 16px
+    height: '2.5rem', // 40px
+    paddingX: '1.125rem', // 18px
     fontSize: '0.875rem', // 14px
     iconSize: '1.125rem', // 18px
-    radius: '8px',
+    radius: '14px',
   },
   lg: {
-    height: '2.75rem', // 44px
+    height: '3rem', // 48px
     paddingX: '1.5rem', // 24px
     fontSize: '1rem', // 16px
     iconSize: '1.25rem', // 20px
-    radius: '8px',
+    radius: '16px',
   },
 } as const;
 
@@ -300,20 +336,20 @@ export type ZIndexKey = keyof typeof Z_INDEX;
 // ============================================================================
 
 export const TYPOGRAPHY_ROLES = {
-  display: { size: '2.25rem', weight: 700, lineHeight: 1.25, letterSpacing: '-0.025em' },
-  pageTitle: { size: '1.875rem', weight: 700, lineHeight: 1.25, letterSpacing: '-0.025em' },
-  sectionTitle: { size: '1.25rem', weight: 700, lineHeight: 1.375, letterSpacing: '-0.025em' },
-  cardTitle: { size: '1rem', weight: 600, lineHeight: 1.375, letterSpacing: '0' },
+  display: { size: '2.25rem', weight: 700, lineHeight: 1.25, letterSpacing: '-0.04em' },
+  pageTitle: { size: '1.875rem', weight: 700, lineHeight: 1.25, letterSpacing: '-0.02em' },
+  sectionTitle: { size: '1.25rem', weight: 700, lineHeight: 1.375, letterSpacing: '-0.02em' },
+  cardTitle: { size: '1rem', weight: 700, lineHeight: 1.375, letterSpacing: '-0.01em' },
   titleSm: { size: '0.875rem', weight: 600, lineHeight: 1.375, letterSpacing: '-0.01em' },
   bodyLg: { size: '1rem', weight: 400, lineHeight: 1.625, letterSpacing: '0' },
   body: { size: '0.875rem', weight: 400, lineHeight: 1.5, letterSpacing: '0' },
   bodySm: { size: '0.8125rem', weight: 400, lineHeight: 1.5, letterSpacing: '0' },
-  label: { size: '0.75rem', weight: 500, lineHeight: 1.25, letterSpacing: '0.025em' },
-  labelSm: { size: '0.625rem', weight: 600, lineHeight: 1.25, letterSpacing: '0.05em' },
-  caption: { size: '0.75rem', weight: 400, lineHeight: 1.375, letterSpacing: '0' },
-  button: { size: '0.875rem', weight: 600, lineHeight: 1, letterSpacing: '0' },
-  buttonSm: { size: '0.75rem', weight: 600, lineHeight: 1, letterSpacing: '0' },
-  overline: { size: '0.625rem', weight: 600, lineHeight: 1, letterSpacing: '0.05em' },
+  label: { size: '0.75rem', weight: 600, lineHeight: 1.25, letterSpacing: '0.01em' },
+  labelSm: { size: '0.625rem', weight: 700, lineHeight: 1.25, letterSpacing: '0.05em' },
+  caption: { size: '0.75rem', weight: 500, lineHeight: 1.375, letterSpacing: '0' },
+  button: { size: '0.875rem', weight: 700, lineHeight: 1, letterSpacing: '-0.005em' },
+  buttonSm: { size: '0.75rem', weight: 700, lineHeight: 1, letterSpacing: '0' },
+  overline: { size: '0.625rem', weight: 700, lineHeight: 1, letterSpacing: '0.08em' },
 } as const;
 
 export type TypographyRoleKey = keyof typeof TYPOGRAPHY_ROLES;
@@ -404,6 +440,8 @@ const tokens = {
   FONT_SIZE,
   LINE_HEIGHT,
   FONT_WEIGHT,
+  FONTS,
+  BRAND,
   SHADOWS,
   SHADOWS_DARK,
   GLASS,

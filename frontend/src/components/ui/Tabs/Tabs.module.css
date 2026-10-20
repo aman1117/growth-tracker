@@ -18,6 +18,7 @@
 
 .fullWidth .tab {
   flex: 1;
+  min-width: 0;
 }
 
 /* ============================================================================
@@ -29,7 +30,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-1-5);
-  font-weight: var(--font-medium);
+  font-weight: var(--font-semibold);
   color: var(--text-secondary);
   background: transparent;
   border: none;
@@ -59,6 +60,13 @@
   cursor: not-allowed;
 }
 
+/* Long labels truncate instead of overflowing narrow full-width tab bars */
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ============================================================================
    Sizes
    ============================================================================ */
@@ -83,10 +91,10 @@
    ============================================================================ */
 
 .default {
-  background: var(--glass-surface-bg);
+  background: var(--chip-bg);
   border-radius: var(--radius-lg);
   padding: var(--space-1);
-  border: 1px solid var(--glass-surface-border);
+  border: 1px solid var(--chip-border);
 }
 
 .default .tab {
@@ -94,7 +102,8 @@
 }
 
 .default .tab.active {
-  background: var(--bg-primary);
+  background: var(--segment-active-bg);
+  color: var(--text-primary);
   box-shadow: var(--shadow-sm);
 }
 
@@ -107,12 +116,13 @@
 }
 
 .pills .tab.active {
-  background: var(--accent);
+  background: var(--gradient-primary);
   color: white;
+  box-shadow: var(--shadow-glow-accent);
 }
 
 .pills .tab:hover:not(:disabled):not(.active) {
-  background: var(--bg-secondary);
+  background: var(--chip-bg);
 }
 
 /* ============================================================================
@@ -120,7 +130,7 @@
    ============================================================================ */
 
 .underline {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--divider);
   gap: 0;
 }
 
@@ -130,19 +140,19 @@
 }
 
 .underline .tab.active {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .indicator {
   position: absolute;
   bottom: -1px;
   left: 0;
-  height: 2px;
-  background: var(--accent);
+  height: 3px;
+  background: var(--gradient-progress);
   border-radius: var(--radius-full);
   transition:
-    transform var(--transition-normal) var(--ease-default),
-    width var(--transition-normal) var(--ease-default);
+    transform var(--transition-normal) var(--ease-spring),
+    width var(--transition-normal) var(--ease-spring);
 }
 
 /* ============================================================================

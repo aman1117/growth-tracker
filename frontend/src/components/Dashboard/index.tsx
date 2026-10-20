@@ -44,6 +44,7 @@ import {
   UserProfileHeader,
 } from './components';
 import { formatDateForApi, saveTileSizes, UNDO_TIMEOUT_DURATION } from './Dashboard.constants';
+import dashboardStyles from './Dashboard.module.css';
 import type { StoryViewerState } from './Dashboard.types';
 import {
   useActivityData,
@@ -614,9 +615,7 @@ export const Dashboard: React.FC = () => {
           <PageHeader
             title={
               <>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {targetUsername}
-                </span>
+                <span className={dashboardStyles.readOnlyName}>{targetUsername}</span>
                 {targetIsVerified && <VerifiedBadge size={16} />}
               </>
             }
@@ -643,33 +642,31 @@ export const Dashboard: React.FC = () => {
           />
         )}
 
-        {/* Day Summary Card - hidden during edit mode with animation */}
+        {/* Day Summary Card - collapses during edit mode */}
         {!isPrivateAccount && (
           <div
-            style={{
-              overflow: 'hidden',
-              transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-              maxHeight: isEditMode ? '0px' : '200px',
-              opacity: isEditMode ? 0 : 1,
-              transform: isEditMode ? 'translateY(-10px) scale(0.98)' : 'translateY(0) scale(1)',
-              marginBottom: isEditMode ? '0px' : undefined,
-            }}
+            className={`${dashboardStyles.summaryCollapse} ${
+              isEditMode ? dashboardStyles.summaryCollapsed : ''
+            }`}
+            aria-hidden={isEditMode || undefined}
           >
-            <DaySummaryCard
-              username={targetUsername || ''}
-              currentDate={currentDate}
-              onPrev={handlePrevDay}
-              onNext={handleNextDay}
-              onDateChange={handleDateChange}
-              isNextDisabled={isNextDisabled()}
-              activities={activities}
-              loading={loading}
-              onNewBadges={(badges) => {
-                setNewBadges(badges);
-                setShowBadgeUnlockModal(true);
-              }}
-              onCalendarOpenChange={setIsCalendarOpen}
-            />
+            <div className={dashboardStyles.summaryCollapseInner}>
+              <DaySummaryCard
+                username={targetUsername || ''}
+                currentDate={currentDate}
+                onPrev={handlePrevDay}
+                onNext={handleNextDay}
+                onDateChange={handleDateChange}
+                isNextDisabled={isNextDisabled()}
+                activities={activities}
+                loading={loading}
+                onNewBadges={(badges) => {
+                  setNewBadges(badges);
+                  setShowBadgeUnlockModal(true);
+                }}
+                onCalendarOpenChange={setIsCalendarOpen}
+              />
+            </div>
           </div>
         )}
 
@@ -760,6 +757,9 @@ export const Dashboard: React.FC = () => {
           currentHours={selectedActivity ? activities[selectedActivity] || 0 : 0}
           currentNote={selectedActivity ? activityNotes[selectedActivity] : undefined}
           customTiles={customTiles}
+          colorOverrides={tileColors}
+          date={currentDate}
+          dayTotalHours={Object.values(activities).reduce((sum, h) => sum + h, 0)}
         />
 
         <BadgeUnlockModal

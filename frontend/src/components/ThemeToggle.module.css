@@ -1,0 +1,78 @@
+/**
+ * ThemeToggle Styles
+ *
+ * Round glass button that swaps a sun/moon with a playful spin.
+ */
+
+.toggle {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  box-shadow: var(--shadow-subtle);
+  color: var(--text-primary);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.12s ease;
+}
+
+.toggle:hover {
+  background: var(--control-bg-hover);
+  border-color: var(--border-strong);
+}
+
+.toggle:active {
+  transform: scale(0.94);
+}
+
+.toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.icon {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.35s var(--ease-spring),
+    opacity 0.25s ease;
+}
+
+/* Light mode shows the moon (switch to dark); dark mode shows the sun */
+.sun {
+  color: var(--amber-400);
+  transform: rotate(-90deg) scale(0);
+  opacity: 0;
+}
+
+.moon {
+  color: var(--accent-text);
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+}
+
+.dark .sun {
+  transform: rotate(0deg) scale(1);
+  opacity: 1;
+}
+
+.dark .moon {
+  transform: rotate(90deg) scale(0);
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon {
+    transition: opacity 0.15s ease;
+  }
+}

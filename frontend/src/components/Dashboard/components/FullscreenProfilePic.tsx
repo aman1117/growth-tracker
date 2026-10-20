@@ -2,12 +2,18 @@
  * FullscreenProfilePic Component
  *
  * Displays a fullscreen view of a user's profile picture.
+ * Closes on tap outside, Escape, or the system Back gesture.
  */
 
 import { X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
+import { useBackDismiss } from '../../../hooks/useBackDismiss';
+import { useBodyScrollLock } from '../../../hooks/useBodyScrollLock';
+import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import { ProtectedImage } from '../../ui';
+import styles from './FullscreenProfilePic.module.css';
 
 interface FullscreenProfilePicProps {
   profilePic: string;
@@ -23,6 +29,17 @@ export const FullscreenProfilePic: React.FC<FullscreenProfilePicProps> = ({
   onClose,
 }) => {
   const [fullLoaded, setFullLoaded] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Mounted only while open: Back closes the photo instead of leaving the profile
+  useBackDismiss(true, onClose);
+  useEscapeKey(true, onClose);
+  useBodyScrollLock(true);
+
+  // Focus the close button for keyboard users
+  useEffect(() => {
+    closeButtonRef.current?.focus({ preventScroll: true });
+  }, []);
 
   // Preload full image in background
   useEffect(() => {
@@ -34,102 +51,46 @@ export const FullscreenProfilePic: React.FC<FullscreenProfilePicProps> = ({
       img.onload = null;
     };
   }, [profilePic, profilePicThumb]);
-  return (
+
+  const showThumb = !!profilePicThumb && !fullLoaded;
+
+  return createPortal(
     <div
+      className={styles.overlay}
       onClick={onClose}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 10000,
-        cursor: 'zoom-out',
-        animation: 'fadeIn 0.2s ease-out',
-      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${username}'s profile photo`}
     >
       <button
+        ref={closeButtonRef}
+        type="button"
+        className={styles.closeButton}
         onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: '20px',
-          right: '20px',
-          width: '40px',
-          height: '40px',
-          borderRadius: '50%',
-          border: 'none',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          color: 'white',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        aria-label="Close photo"
       >
-        <X size={24} />
+        <X size={22} strokeWidth={2.25} aria-hidden="true" />
       </button>
-      <div
-        style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {profilePicThumb && !fullLoaded && (
+
+      <div className={styles.frame} onClick={(e) => e.stopPropagation()}>
+        {showThumb && profilePicThumb && (
           <ProtectedImage
             src={profilePicThumb}
-            alt={username}
-            style={{
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              objectFit: 'contain',
-              borderRadius: '8px',
-              cursor: 'default',
-              filter: 'blur(10px)',
-              transform: 'scale(1.05)',
-              animation: 'scaleIn 0.2s ease-out',
-            }}
+            alt=""
+            className={`${styles.image} ${styles.thumb}`}
           />
         )}
         <ProtectedImage
           src={profilePic}
           alt={username}
-          style={{
-            maxWidth: '90vw',
-            maxHeight: '90vh',
-            objectFit: 'contain',
-            borderRadius: '8px',
-            cursor: 'default',
-            animation: 'scaleIn 0.2s ease-out',
-            ...(profilePicThumb
-              ? {
-                  position: fullLoaded ? 'relative' : 'absolute',
-                  top: 0,
-                  left: 0,
-                  opacity: fullLoaded ? 1 : 0,
-                  transition: 'opacity 0.3s ease',
-                }
-              : {}),
-          }}
+          className={`${styles.image} ${profilePicThumb ? styles.progressive : ''} ${
+            fullLoaded || !profilePicThumb ? styles.loaded : ''
+          }`}
         />
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '30px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          color: 'white',
-          fontSize: '1rem',
-          fontWeight: 700,
-          padding: '8px 16px',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          borderRadius: '20px',
-        }}
-      >
-        {username}
-      </div>
-    </div>
+
+      <div className={styles.caption}>{username}</div>
+    </div>,
+    document.body
   );
 };

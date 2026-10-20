@@ -277,6 +277,8 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   const handleEditKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // Claim Escape so the surrounding sheet stays open
+        e.preventDefault();
         setEditing(false);
         setEditBody('');
       }

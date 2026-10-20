@@ -125,8 +125,8 @@ export const getRouteTitle = (
   const analyticsUser = getAnalyticsUsername(pathname, search);
   if (pathname === APP_ROUTES.ANALYTICS || analyticsUser) {
     return analyticsUser && !isSameUser(analyticsUser, ownUsername)
-      ? withApp(`@${analyticsUser} · Analytics`)
-      : withApp('Analytics');
+      ? withApp(`@${analyticsUser} · Insights`)
+      : withApp('Insights');
   }
 
   const profileUsername = getProfileUsername(pathname);

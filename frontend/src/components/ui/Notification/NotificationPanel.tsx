@@ -10,7 +10,7 @@
  * - Connection status indicator
  */
 
-import { Check, RefreshCw, X } from 'lucide-react';
+import { BellRing, Check, RefreshCw, X } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -159,6 +159,8 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
       <div
         ref={panelRef}
         className={panelClasses}
+        role="dialog"
+        aria-label="Notifications"
         onTouchStart={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
       >
@@ -176,8 +178,9 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
               onClick={handleRefresh}
               disabled={isLoading}
               title="Refresh"
+              aria-label="Refresh notifications"
             >
-              <RefreshCw size={14} className={isLoading ? styles.spinning : ''} />
+              <RefreshCw size={15} className={isLoading ? styles.spinning : ''} />
             </button>
 
             {/* Mark All Read */}
@@ -186,15 +189,21 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
                 className={styles.headerButton}
                 onClick={handleMarkAllAsRead}
                 title="Mark all as read"
+                aria-label="Mark all as read"
               >
-                <Check size={14} />
+                <Check size={15} />
               </button>
             )}
 
             {/* Close button for mobile */}
             {isMobile && (
-              <button className={styles.headerButton} onClick={onClose} title="Close">
-                <X size={14} />
+              <button
+                className={styles.headerButton}
+                onClick={onClose}
+                title="Close"
+                aria-label="Close notifications"
+              >
+                <X size={15} />
               </button>
             )}
           </div>
@@ -209,9 +218,12 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
             </div>
           ) : notifications.length === 0 ? (
             <div className={styles.emptyState}>
-              <p className={styles.emptyTitle}>No notifications yet</p>
+              <div className={styles.emptyIcon} aria-hidden="true">
+                <BellRing size={28} />
+              </div>
+              <p className={styles.emptyTitle}>You're all caught up</p>
               <p className={styles.emptySubtitle}>
-                When you receive notifications, they'll appear here
+                Likes, comments, follows and streak updates will show up here.
               </p>
             </div>
           ) : (

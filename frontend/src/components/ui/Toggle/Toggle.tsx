@@ -22,8 +22,19 @@ export interface ToggleProps {
   size?: 'sm' | 'md' | 'lg';
   /** Disabled state */
   disabled?: boolean;
+  /**
+   * A change is being saved: ignores input but stays focusable, so keyboard focus
+   * isn't lost the way it is when a focused button becomes `disabled`
+   */
+  busy?: boolean;
   /** ID for accessibility */
   id?: string;
+  /** Accessible name when no visible `label` is rendered */
+  'aria-label'?: string;
+  /** ID of an element that names the switch (e.g. a settings row title) */
+  'aria-labelledby'?: string;
+  /** ID of an element that describes the switch */
+  'aria-describedby'?: string;
   /** Custom className */
   className?: string;
 }
@@ -35,7 +46,11 @@ export const Toggle: React.FC<ToggleProps> = ({
   description,
   size = 'md',
   disabled = false,
+  busy = false,
   id,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
+  'aria-describedby': ariaDescribedBy,
   className = '',
 }) => {
   const generatedId = React.useId();
@@ -45,6 +60,7 @@ export const Toggle: React.FC<ToggleProps> = ({
     styles.container,
     styles[size],
     disabled ? styles.disabled : '',
+    busy ? styles.busy : '',
     className,
   ]
     .filter(Boolean)
@@ -53,7 +69,7 @@ export const Toggle: React.FC<ToggleProps> = ({
   const trackClasses = [styles.track, checked ? styles.checked : ''].filter(Boolean).join(' ');
 
   const handleClick = () => {
-    if (!disabled) {
+    if (!disabled && !busy) {
       onChange(!checked);
     }
   };
@@ -72,7 +88,11 @@ export const Toggle: React.FC<ToggleProps> = ({
         type="button"
         role="switch"
         aria-checked={checked}
-        aria-disabled={disabled}
+        aria-disabled={disabled || busy}
+        aria-busy={busy || undefined}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
+        aria-describedby={ariaDescribedBy}
         className={trackClasses}
         onClick={handleClick}
         onKeyDown={handleKeyDown}

@@ -5,7 +5,7 @@
  */
 
 import type { InputHTMLAttributes, ReactNode } from 'react';
-import { forwardRef } from 'react';
+import { forwardRef, useId } from 'react';
 
 import styles from './Input.module.css';
 
@@ -26,10 +26,26 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    { label, error, helperText, icon, iconRight, fullWidth = true, className = '', id, ...props },
+    {
+      label,
+      error,
+      helperText,
+      icon,
+      iconRight,
+      fullWidth = true,
+      className = '',
+      id,
+      'aria-describedby': ariaDescribedBy,
+      ...props
+    },
     ref
   ) => {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const autoId = useId();
+    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-') || autoId;
+    const messageId = `${inputId}-message`;
+    const hasMessage = !!error || !!helperText;
+    const describedBy =
+      [ariaDescribedBy, hasMessage ? messageId : null].filter(Boolean).join(' ') || undefined;
 
     return (
       <div className={`${styles.wrapper} ${fullWidth ? styles.fullWidth : ''} ${className}`}>
@@ -40,11 +56,26 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className={`${styles.inputWrapper} ${error ? styles.hasError : ''}`}>
           {icon && <span className={styles.icon}>{icon}</span>}
-          <input ref={ref} id={inputId} className={styles.input} {...props} />
+          <input
+            ref={ref}
+            id={inputId}
+            className={styles.input}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            {...props}
+          />
           {iconRight && <span className={styles.iconRight}>{iconRight}</span>}
         </div>
-        {error && <span className={styles.error}>{error}</span>}
-        {helperText && !error && <span className={styles.helper}>{helperText}</span>}
+        {error && (
+          <span id={messageId} className={styles.error} role="alert">
+            {error}
+          </span>
+        )}
+        {helperText && !error && (
+          <span id={messageId} className={styles.helper}>
+            {helperText}
+          </span>
+        )}
       </div>
     );
   }

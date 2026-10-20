@@ -1,7 +1,9 @@
 /**
  * BottomNavigation Component
  *
- * Instagram-style bottom tab bar: Home, Customize (action), Analytics and Profile.
+ * Primary navigation: Home, Customize (action), Analytics and Profile.
+ * Renders as a floating glass dock on phones/tablets and as a vertical side
+ * rail on desktop (≥1024px) — same markup, layout switched in CSS.
  *
  * Behaviour (mirrors native tab bars):
  * - Tapping a tab opens that tab's root screen.
@@ -11,7 +13,7 @@
  * - Customize works from any screen: it opens Home and enters edit mode there.
  */
 
-import { BarChart3, Home, Settings2, User as UserIcon } from 'lucide-react';
+import { BarChart3, Blocks, Home, User as UserIcon } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -32,15 +34,18 @@ import {
 import styles from './BottomNavigation.module.css';
 import { ProtectedImage } from './ui';
 
-const ICON_SIZE = 26;
-const ACTIVE_STROKE = 2.25;
-const INACTIVE_STROKE = 1.5;
+const ICON_SIZE = 22;
+const ACTIVE_STROKE = 2.4;
+const INACTIVE_STROKE = 1.9;
 
 interface NavItemProps {
   icon: React.ReactNode;
   isActive: boolean;
   onClick: () => void;
+  /** Accessible name */
   label: string;
+  /** Short visible caption */
+  caption: string;
   isProfile?: boolean;
   profilePic?: string | null;
   username?: string;
@@ -51,6 +56,7 @@ const NavItem: React.FC<NavItemProps> = ({
   isActive,
   onClick,
   label,
+  caption,
   isProfile = false,
   profilePic,
   username,
@@ -58,30 +64,31 @@ const NavItem: React.FC<NavItemProps> = ({
   <button
     type="button"
     onClick={onClick}
-    className={`${styles.navItem} ${isActive ? styles.navItemActive : styles.navItemInactive}`}
+    className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
     aria-label={label}
     aria-current={isActive ? 'page' : undefined}
   >
     {isProfile ? (
-      <div
-        className={`${styles.profileRing} ${isActive ? styles.profileRingActive : styles.profileRingInactive}`}
+      <span
+        className={`${styles.profileRing} ${isActive ? styles.profileRingActive : ''}`}
+        aria-hidden="true"
       >
-        <div className={styles.profileAvatar}>
+        <span className={styles.profileAvatar}>
           {profilePic ? (
             <ProtectedImage src={profilePic} alt="" className={styles.profileImage} />
           ) : (
-            username?.charAt(0) || <UserIcon size={16} aria-hidden="true" />
+            username?.charAt(0) || <UserIcon size={14} />
           )}
-        </div>
-      </div>
+        </span>
+      </span>
     ) : (
-      <div
-        className={`${styles.iconScale} ${isActive ? styles.iconScaleActive : ''}`}
-        aria-hidden="true"
-      >
+      <span className={styles.icon} aria-hidden="true">
         {icon}
-      </div>
+      </span>
     )}
+    <span className={styles.caption} aria-hidden="true">
+      {caption}
+    </span>
   </button>
 );
 
@@ -158,13 +165,15 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ onCustomizeT
           isActive={isHome}
           onClick={() => handleTabPress('home')}
           label="Home"
+          caption="Home"
         />
 
         <NavItem
-          icon={<Settings2 size={ICON_SIZE} strokeWidth={INACTIVE_STROKE} />}
+          icon={<Blocks size={ICON_SIZE} strokeWidth={INACTIVE_STROKE} />}
           isActive={false}
           onClick={handleCustomize}
           label="Customize tiles"
+          caption="Customize"
         />
 
         <NavItem
@@ -176,14 +185,16 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ onCustomizeT
           }
           isActive={isAnalytics}
           onClick={() => handleTabPress('analytics')}
-          label="Analytics"
+          label="Insights"
+          caption="Insights"
         />
 
         <NavItem
           icon={<UserIcon size={ICON_SIZE} />}
           isActive={isProfile}
           onClick={() => handleTabPress('profile')}
-          label="Profile and settings"
+          label="You: profile and settings"
+          caption="You"
           isProfile
           profilePic={user.profilePicThumb || user.profilePic}
           username={user.username}

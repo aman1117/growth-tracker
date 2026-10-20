@@ -26,7 +26,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ onClick, isO
       aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       aria-expanded={isOpen}
     >
-      <Bell size={22} strokeWidth={1.8} />
+      <Bell size={20} strokeWidth={2} aria-hidden="true" />
       {unreadCount > 0 && (
         <span className={styles.badge} aria-hidden="true">
           {unreadCount > 99 ? '99+' : unreadCount}

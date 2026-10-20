@@ -1,7 +1,7 @@
 /**
  * FollowStats Component
  *
- * Simple text-based follower/following counts.
+ * Stacked follower/following counts (number over label).
  * Clickable to open respective list modals.
  */
 
@@ -72,6 +72,7 @@ export const FollowStats: React.FC<FollowStatsProps> = ({
     <>
       <div className={styles.container}>
         <button
+          type="button"
           className={`${styles.stat} ${!isClickable ? styles.notClickable : ''}`}
           onClick={() => handleStatClick('followers')}
           disabled={isLoading || !isClickable}
@@ -83,6 +84,7 @@ export const FollowStats: React.FC<FollowStatsProps> = ({
         </button>
 
         <button
+          type="button"
           className={`${styles.stat} ${!isClickable ? styles.notClickable : ''}`}
           onClick={() => handleStatClick('following')}
           disabled={isLoading || !isClickable}

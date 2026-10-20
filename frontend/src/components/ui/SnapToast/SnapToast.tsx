@@ -40,11 +40,11 @@ export interface SnapToastProps {
 }
 
 const typeIcons: Record<SnapToastType, React.ReactNode> = {
-  success: <Check size={16} strokeWidth={3} />,
-  error: <X size={16} strokeWidth={3} />,
-  info: <Info size={16} strokeWidth={2.5} />,
-  warning: <AlertTriangle size={16} strokeWidth={2.5} />,
-  neutral: <Zap size={16} strokeWidth={2.5} />,
+  success: <Check size={16} strokeWidth={3} aria-hidden="true" />,
+  error: <X size={16} strokeWidth={3} aria-hidden="true" />,
+  info: <Info size={16} strokeWidth={2.5} aria-hidden="true" />,
+  warning: <AlertTriangle size={16} strokeWidth={2.5} aria-hidden="true" />,
+  neutral: <Zap size={16} strokeWidth={2.5} aria-hidden="true" />,
 };
 
 export const SnapToast: React.FC<SnapToastProps> = ({
@@ -175,8 +175,8 @@ export const SnapToast: React.FC<SnapToastProps> = ({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      role="alert"
-      aria-live="polite"
+      role={type === 'error' || type === 'warning' ? 'alert' : 'status'}
+      aria-live={type === 'error' || type === 'warning' ? 'assertive' : 'polite'}
     >
       {/* Icon */}
       {showIcon && <span className={styles.iconWrapper}>{displayIcon}</span>}

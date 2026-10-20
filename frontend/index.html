@@ -13,19 +13,53 @@
       name="description"
       content="Track every hour of your day. Build better habits. Grow intentionally."
     />
-    <meta name="theme-color" content="#3b82f6" />
+    <!-- Status-bar / browser-chrome color follows the active theme (kept in sync at runtime) -->
+    <meta name="theme-color" content="#f6f5fb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b0a12" media="(prefers-color-scheme: dark)" />
 
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Growth Tracker" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
 
-    <!-- Fonts -->
+    <!--
+      Apply the saved theme before first paint so dark-mode users never see a light flash.
+      Mirrors useThemeStore: preference stored under "growth-tracker-theme" (light | dark | system).
+    -->
+    <style>
+      html {
+        background: #f6f5fb;
+      }
+      html[data-theme='dark'] {
+        background: #0b0a12;
+      }
+    </style>
+    <script>
+      (function () {
+        try {
+          var stored = JSON.parse(localStorage.getItem('growth-tracker-theme') || 'null');
+          var pref = (stored && stored.state && stored.state.theme) || 'system';
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+          var metas = document.querySelectorAll('meta[name="theme-color"]');
+          for (var i = 0; i < metas.length; i++) {
+            metas[i].setAttribute('content', dark ? '#0b0a12' : '#f6f5fb');
+          }
+        } catch (e) {
+          /* Storage unavailable (private mode) - fall back to CSS defaults */
+        }
+      })();
+    </script>
+
+    <!-- Fonts: Bricolage Grotesque (display) + Plus Jakarta Sans (UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,500;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900;1,6..12,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..600&display=swap"
       rel="stylesheet"
     />
     <title>Growth Tracker</title>

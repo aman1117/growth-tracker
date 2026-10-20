@@ -5,7 +5,7 @@
  * Uses design tokens for consistent styling across the app.
  */
 
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 import React from 'react';
 
 import styles from './Button.module.css';
@@ -34,6 +34,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   hoverVariant?: ButtonVariant;
   /** Children content */
   children: ReactNode;
+  /** Ref to the underlying button (React 19 passes refs as props) */
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export const Button: React.FC<ButtonProps> = ({

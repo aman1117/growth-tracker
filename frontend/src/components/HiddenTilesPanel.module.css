@@ -1,0 +1,201 @@
+/**
+ * HiddenTilesPanel Styles
+ */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sectionTitleWarning {
+  color: var(--color-text-warning);
+}
+
+.sectionHint {
+  margin: 0;
+  padding: 0 var(--space-1);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  --tile-color: var(--accent);
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2-5) var(--space-2-5) var(--space-2-5) var(--space-3);
+  border: 1px solid var(--glass-surface-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-surface-bg);
+  box-shadow: var(--glass-surface-glow);
+}
+
+.rowWarning {
+  border-color: color-mix(in srgb, var(--warning) 35%, transparent);
+  background: var(--warning-soft);
+}
+
+.rowIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--tile-color) var(--tile-tint-strength), transparent);
+  color: color-mix(in srgb, var(--tile-color), var(--tile-ink-mix) var(--tile-ink-strength));
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rowName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.rowMeta {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+}
+
+.rowWarning .rowMeta {
+  color: var(--color-text-warning);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.restoreButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 12px 0 10px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
+}
+
+.restoreButton:hover {
+  background: var(--accent-soft-strong);
+}
+
+.restoreButton:active {
+  transform: scale(0.95);
+}
+
+.iconAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--chip-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    color var(--transition-fast) var(--ease-default),
+    transform 0.12s var(--ease-default);
+}
+
+.iconAction:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.iconAction:active {
+  transform: scale(0.92);
+}
+
+.dangerAction:hover {
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+.restoreButton:focus-visible,
+.iconAction:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+/* Narrow phones: keep the restore action, compact its label */
+@media (max-width: 360px) {
+  .row {
+    gap: var(--space-2);
+    padding-left: var(--space-2-5);
+  }
+
+  .rowIcon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .restoreButton {
+    padding: 0 10px;
+  }
+
+  .restoreButton span {
+    display: none;
+  }
+}

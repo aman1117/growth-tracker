@@ -1,8 +1,11 @@
 /**
  * ActivityTile Component
  *
- * Activity tracking tile with glassmorphism design.
- * Supports drag-and-drop, resizing, and edit mode.
+ * One activity on the home grid.
+ * - Empty (0h): calm glass tile with an icon chip tinted in the activity color.
+ * - Logged (>0h): rich gradient in the activity color; text/icon tone is picked
+ *   from the color's contrast (white on deep colors, ink on bright ones).
+ * Supports drag-and-drop, resizing and edit mode.
  */
 
 import { useSortable } from '@dnd-kit/sortable';
@@ -12,6 +15,7 @@ import React, { Suspense, useMemo } from 'react';
 
 import type { ActivityName } from '../../types';
 import { isCustomTile } from '../../types';
+import { getOnColorTone } from '../../utils/color';
 import { DynamicIcon } from '../DynamicIcon';
 import styles from './ActivityTile.module.css';
 
@@ -39,10 +43,16 @@ export interface ActivityTileProps {
   iconName?: string;
 }
 
-const sizeConfig = {
-  small: { iconSize: 20 },
-  medium: { iconSize: 40 },
-  wide: { iconSize: 24 },
+const ICON_SIZES: Record<TileSize, number> = {
+  small: 20,
+  medium: 34,
+  wide: 24,
+};
+
+const SIZE_LABELS: Record<TileSize, string> = {
+  small: 'Small',
+  wide: 'Wide',
+  medium: 'Large',
 };
 
 // Cycle through sizes: small -> wide -> medium -> small
@@ -51,6 +61,13 @@ const getNextSize = (current: TileSize): TileSize => {
   if (current === 'wide') return 'medium';
   return 'small';
 };
+
+/** "deep_work" → "Deep Work" */
+const formatActivityName = (name: string) =>
+  name
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
 export const ActivityTile: React.FC<ActivityTileProps> = ({
   name,
@@ -79,27 +96,18 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
   });
 
   const isActive = hours > 0;
-  const config = sizeConfig[size];
-
-  // Use custom display label if provided, otherwise format from name
-  const displayName = useMemo(() => {
-    return (
-      displayLabel ||
-      name
-        .split('_')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-    );
-  }, [displayLabel, name]);
+  const iconSize = ICON_SIZES[size];
+  const displayName = useMemo(() => displayLabel || formatActivityName(name), [displayLabel, name]);
+  const onColorTone = useMemo(() => getOnColorTone(color), [color]);
 
   const isLongName = displayName.length > 10;
   const isCustom = isCustomTile(name);
+  const showSizeLabel = isSelected && isDraggable;
 
-  const handleTileClick = (e: React.MouseEvent) => {
+  const activate = () => {
     if (isDraggingProp) return;
 
     if (isDraggable) {
-      e.stopPropagation();
       if (isSelected) {
         onResize?.(name, getNextSize(size));
       } else {
@@ -107,6 +115,19 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
       }
     } else {
       onClick();
+    }
+  };
+
+  const handleTileClick = (e: React.MouseEvent) => {
+    if (isDraggable) e.stopPropagation();
+    activate();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      activate();
     }
   };
 
@@ -120,11 +141,9 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
     onEditCustomTile?.();
   };
 
-  // Build class names
-  const tileClassName = [
-    styles.tile,
+  const cellClassName = [
+    styles.cell,
     styles[size],
-    isActive && styles.active,
     isSelected && styles.selected,
     isOtherSelected && !isSelected && styles.otherSelected,
     isDraggingProp && styles.dragging,
@@ -136,105 +155,113 @@ export const ActivityTile: React.FC<ActivityTileProps> = ({
     .filter(Boolean)
     .join(' ');
 
-  const iconContainerClassName = [styles.iconContainer, isActive ? styles.active : styles.inactive]
-    .filter(Boolean)
-    .join(' ');
-
-  const labelClassName = [
-    styles.label,
-    isActive ? styles.active : styles.inactive,
-    isLongName && size === 'small' && styles.long,
+  const tileClassName = [
+    styles.tile,
+    isActive && styles.active,
+    isActive && (onColorTone === 'light' ? styles.onLight : styles.onDark),
   ]
     .filter(Boolean)
     .join(' ');
 
-  const hoursClassName = [styles.hours, isActive ? styles.active : styles.inactive]
-    .filter(Boolean)
-    .join(' ');
-
-  // Dynamic styles that depend on the color prop
-  const tileStyle: React.CSSProperties = {
+  const cellStyle = {
+    '--tile-color': color,
     transition,
     touchAction: isSelected && isDraggable ? 'none' : 'manipulation',
-    // Apply color gradient when active
-    ...(isActive && {
-      background: `linear-gradient(135deg, ${color}dd 0%, ${color}aa 100%)`,
-      boxShadow: `var(--glass-panel-shadow), var(--glass-panel-glow), 0 4px 20px ${color}50`,
-    }),
+  } as React.CSSProperties;
+
+  const hoursLabel = `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
+  const ariaLabel = isDraggable
+    ? `${displayName}, ${SIZE_LABELS[size].toLowerCase()} tile${
+        isSelected ? ', selected. Activate to resize' : '. Activate to select'
+      }`
+    : `${displayName}, ${hoursLabel}${hasNote ? ', has note' : ''}`;
+
+  // dnd-kit wiring only while selected (edit mode); our a11y props are set after the spread
+  const dndProps = isSelected ? { ...attributes, ...listeners } : undefined;
+
+  const handleTileKeyDown = (e: React.KeyboardEvent) => {
+    // A selected tile hands keyboard control to dnd-kit (Space/Enter picks it up)
+    const dndKeyDown = isSelected ? listeners?.onKeyDown : undefined;
+    if (dndKeyDown) {
+      dndKeyDown(e);
+      return;
+    }
+    handleKeyDown(e);
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={tileStyle}
-      className={tileClassName}
-      onClick={handleTileClick}
-      {...(isSelected ? { ...attributes, ...listeners } : {})}
-    >
-      {/* Delete Badge */}
+    <div ref={setNodeRef} style={cellStyle} className={cellClassName}>
+      <div
+        {...dndProps}
+        className={tileClassName}
+        onClick={handleTileClick}
+        onKeyDown={handleTileKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-label={ariaLabel}
+        aria-pressed={isDraggable ? isSelected : undefined}
+      >
+        {/* Note indicator */}
+        {hasNote && !isSelected && !isEditMode && (
+          <span className={styles.noteDot} title="Has note" aria-hidden="true" />
+        )}
+
+        {showSizeLabel ? (
+          <div className={styles.sizeInfo}>
+            <span className={styles.sizeLabel}>{SIZE_LABELS[size]}</span>
+            {size !== 'small' && <span className={styles.sizeHint}>Tap to resize · drag</span>}
+          </div>
+        ) : (
+          <>
+            <div className={styles.iconChip} aria-hidden="true">
+              {iconName ? (
+                <Suspense fallback={<span style={{ width: iconSize, height: iconSize }} />}>
+                  <DynamicIcon name={iconName} size={iconSize} color="currentColor" />
+                </Suspense>
+              ) : Icon ? (
+                <Icon size={iconSize} color="currentColor" strokeWidth={2.1} />
+              ) : null}
+            </div>
+
+            <div className={styles.content}>
+              <span
+                className={`${styles.label} ${isLongName && size === 'small' ? styles.long : ''}`}
+              >
+                {displayName}
+              </span>
+              <span className={styles.hours}>
+                {hours}
+                <span className={styles.hoursUnit}>h</span>
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Hide badge (edit mode) - sibling of the tile so buttons never nest */}
       {isEditMode && !isDraggingProp && onHide && (
         <button
+          type="button"
           onClick={handleHideClick}
           className={`${styles.badge} ${styles.deleteBadge}`}
           title="Hide tile"
+          aria-label={`Hide ${displayName}`}
         >
-          <X size={14} strokeWidth={3} />
+          <X size={13} strokeWidth={3} aria-hidden="true" />
         </button>
       )}
 
-      {/* Edit Badge */}
+      {/* Edit badge (custom tiles in edit mode) */}
       {isEditMode && !isDraggingProp && isCustom && onEditCustomTile && (
         <button
+          type="button"
           onClick={handleEditClick}
           className={`${styles.badge} ${styles.editBadge}`}
           title="Edit tile"
+          aria-label={`Edit ${displayName}`}
         >
-          <Pencil size={12} strokeWidth={2.5} />
+          <Pencil size={12} strokeWidth={2.5} aria-hidden="true" />
         </button>
-      )}
-
-      {/* Note Indicator */}
-      {hasNote && !isSelected && !isEditMode && (
-        <div
-          className={`${styles.noteIndicator} ${isActive ? styles.active : styles.inactive}`}
-          title="Has note"
-        />
-      )}
-
-      {/* Content */}
-      {isSelected && isDraggable ? (
-        <span className={`${styles.sizeLabel} ${isActive ? styles.active : styles.inactive}`}>
-          {size}
-        </span>
-      ) : (
-        <>
-          {/* Icon */}
-          <div className={iconContainerClassName}>
-            {iconName ? (
-              <Suspense
-                fallback={<div style={{ width: config.iconSize, height: config.iconSize }} />}
-              >
-                <DynamicIcon
-                  name={iconName}
-                  size={config.iconSize}
-                  color={isActive ? 'white' : 'var(--text-secondary)'}
-                />
-              </Suspense>
-            ) : Icon ? (
-              <Icon
-                size={config.iconSize}
-                color={isActive ? 'white' : 'var(--text-secondary)'}
-                style={{ transition: 'color 0.2s' }}
-              />
-            ) : null}
-          </div>
-
-          {/* Label and Hours */}
-          <div className={styles.content}>
-            <span className={labelClassName}>{displayName}</span>
-            <span className={hoursClassName}>{hours}h</span>
-          </div>
-        </>
       )}
     </div>
   );

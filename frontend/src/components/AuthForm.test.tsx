@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import type { InitialEntry } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -20,6 +20,12 @@ const renderForm = (entry: InitialEntry = '/login') =>
   renderWithHistory(<AuthForm />, { entries: [entry] });
 
 const location = () => screen.getByTestId('location');
+/**
+ * Waits for the router to reach `path`. Navigating after signing in commits as a React transition
+ * (react-router v7), which can land after user-event's click has resolved.
+ */
+const expectLocation = (path: string | RegExp) =>
+  waitFor(() => expect(location()).toHaveTextContent(path));
 const identifierField = () => screen.getByLabelText('Username or email');
 const passwordField = () => screen.getByLabelText('Password');
 const submitButton = (name: string) => screen.getByRole('button', { name });
@@ -119,7 +125,7 @@ describe('AuthForm', () => {
         identifier: 'John@Example.com',
         password: 'password123',
       });
-      expect(location()).toHaveTextContent(/^\/$/);
+      await expectLocation(/^\/$/);
     });
 
     it('trims the identifier when leaving the field', async () => {
@@ -142,7 +148,7 @@ describe('AuthForm', () => {
         identifier: 'alice',
         password: 'password123',
       });
-      expect(location()).toHaveTextContent(/^\/$/);
+      await expectLocation(/^\/$/);
       expect(useAuthStore.getState()).toMatchObject({
         isAuthenticated: true,
         user: { id: 7, username: 'alice' },
@@ -159,7 +165,7 @@ describe('AuthForm', () => {
 
       await logIn(user);
 
-      expect(location()).toHaveTextContent('/settings?tab=privacy');
+      await expectLocation('/settings?tab=privacy');
     });
 
     it('never follows a redirect that leaves the app', async () => {
@@ -168,7 +174,7 @@ describe('AuthForm', () => {
 
       await logIn(user);
 
-      expect(location()).toHaveTextContent(/^\/$/);
+      await expectLocation(/^\/$/);
     });
 
     it('submits with Enter and trims what was typed', async () => {
@@ -351,7 +357,7 @@ describe('AuthForm', () => {
         username: 'alice',
         password: '🌱'.repeat(8),
       });
-      expect(location()).toHaveTextContent(/^\/$/);
+      await expectLocation(/^\/$/);
     });
 
     it('creates the account and signs straight in', async () => {
@@ -371,7 +377,7 @@ describe('AuthForm', () => {
         identifier: 'alice',
         password: 'password123',
       });
-      expect(location()).toHaveTextContent(/^\/$/);
+      await expectLocation(/^\/$/);
       expect(useAuthStore.getState().user).toMatchObject({ id: 7, username: 'alice' });
     });
 

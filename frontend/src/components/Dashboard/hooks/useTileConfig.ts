@@ -19,7 +19,6 @@ import {
   HIDDEN_STORAGE_KEY,
   loadTileOrder,
   loadTileSizes,
-  saveTileOrder,
   saveTileSizes,
   SIZE_STORAGE_KEY,
   STORAGE_KEY,
@@ -84,6 +83,87 @@ const hasLocalConfig = (): boolean => {
 /** Identifies whose tile config is on screen */
 const getProfileKey = (isReadOnly: boolean, targetUsername: string | undefined): string =>
   `${isReadOnly ? 'other' : 'own'}:${targetUsername ?? ''}`;
+
+/** Everything that makes up a dashboard's tiles */
+interface TileLayout {
+  order: ActivityName[];
+  sizes: Record<ActivityName, TileSize>;
+  hidden: ActivityName[];
+  colors: Record<string, string>;
+  customTiles: CustomTile[];
+}
+
+const defaultLayout = (): TileLayout => ({
+  order: [...ACTIVITY_NAMES],
+  sizes: getDefaultTileSizes(),
+  hidden: [],
+  colors: {},
+  customTiles: [],
+});
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * The layout a saved config describes. Saving leaves out hidden tiles, colors and custom tiles
+ * when there are none, so a missing one means none: it never falls back to what this device
+ * has, which made devices show different layouts.
+ */
+const layoutFromConfig = (config: Record<string, unknown>): TileLayout => {
+  const { order, sizes, hidden, colors, customTiles } = config;
+  return {
+    // Unknown tiles are dropped; custom tiles are kept
+    order: Array.isArray(order)
+      ? order.filter(
+          (name): name is ActivityName =>
+            typeof name === 'string' &&
+            (ACTIVITY_NAMES.includes(name as PredefinedActivityName) || isCustomTile(name))
+        )
+      : [...ACTIVITY_NAMES],
+    sizes: isObject(sizes) ? (sizes as Record<ActivityName, TileSize>) : getDefaultTileSizes(),
+    hidden: Array.isArray(hidden) ? hidden : [],
+    colors: isObject(colors) ? (colors as Record<string, string>) : {},
+    customTiles: Array.isArray(customTiles) ? customTiles : [],
+  };
+};
+
+/** One part of the layout cached on this device, or `fallback` when it is missing or unreadable */
+const readCached = <T>(key: string, isValid: (value: unknown) => boolean, fallback: T): T => {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved === null) return fallback;
+    const value: unknown = JSON.parse(saved);
+    return isValid(value) ? (value as T) : fallback;
+  } catch (e) {
+    console.error('[useTileConfig] Failed to restore from localStorage', e);
+    return fallback;
+  }
+};
+
+/** The layout this device last loaded or saved, with defaults for any part it lacks */
+const readCachedLayout = (): TileLayout => {
+  const defaults = defaultLayout();
+  return {
+    order: readCached(STORAGE_KEY, Array.isArray, defaults.order),
+    sizes: readCached(SIZE_STORAGE_KEY, isObject, defaults.sizes),
+    hidden: readCached(HIDDEN_STORAGE_KEY, Array.isArray, defaults.hidden),
+    colors: readCached(COLORS_STORAGE_KEY, isObject, defaults.colors),
+    customTiles: readCached(CUSTOM_TILES_STORAGE_KEY, Array.isArray, defaults.customTiles),
+  };
+};
+
+/** Keeps a copy of our layout on this device, so it shows at once next time */
+const cacheLayout = (layout: TileLayout): void => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(layout.order));
+    localStorage.setItem(SIZE_STORAGE_KEY, JSON.stringify(layout.sizes));
+    localStorage.setItem(HIDDEN_STORAGE_KEY, JSON.stringify(layout.hidden));
+    localStorage.setItem(COLORS_STORAGE_KEY, JSON.stringify(layout.colors));
+    localStorage.setItem(CUSTOM_TILES_STORAGE_KEY, JSON.stringify(layout.customTiles));
+  } catch (e) {
+    console.error('[useTileConfig] Failed to save the layout locally', e);
+  }
+};
 
 export const useTileConfig = ({
   isReadOnly,
@@ -164,30 +244,18 @@ export const useTileConfig = ({
     // Once a newer load has started (another profile, or a reload), this one changes nothing
     const isLatest = () => loadId === latestLoadRef.current;
     const profileKey = getProfileKey(isReadOnly, targetUsername);
+    const showLayout = (layout: TileLayout) => {
+      setTileOrder(layout.order);
+      setTileSizes(layout.sizes);
+      setHiddenTiles(layout.hidden);
+      setTileColors(layout.colors);
+      setCustomTiles(layout.customTiles);
+    };
     setConfigLoading(true);
 
-    // When returning to own profile, immediately restore from localStorage
-    // to prevent flash of other user's config while API loads
-    if (!isReadOnly) {
-      try {
-        const localHidden = localStorage.getItem(HIDDEN_STORAGE_KEY);
-        const localColors = localStorage.getItem(COLORS_STORAGE_KEY);
-        const localCustomTiles = localStorage.getItem(CUSTOM_TILES_STORAGE_KEY);
-        const localOrder = localStorage.getItem(STORAGE_KEY);
-        const localSizes = localStorage.getItem(SIZE_STORAGE_KEY);
-
-        if (localHidden) setHiddenTiles(JSON.parse(localHidden));
-        else setHiddenTiles([]);
-        if (localColors) setTileColors(JSON.parse(localColors));
-        else setTileColors({});
-        if (localCustomTiles) setCustomTiles(JSON.parse(localCustomTiles));
-        else setCustomTiles([]);
-        if (localOrder) setTileOrder(JSON.parse(localOrder));
-        if (localSizes) setTileSizes(JSON.parse(localSizes));
-      } catch (e) {
-        console.error('[useTileConfig] Failed to restore from localStorage', e);
-      }
-    }
+    // Our own dashboard shows the layout cached on this device until the server answers, and
+    // keeps showing it if the server can't be reached (never another profile's tiles)
+    if (!isReadOnly) showLayout(readCachedLayout());
 
     try {
       // Fetch config based on whose profile we're viewing
@@ -197,103 +265,24 @@ export const useTileConfig = ({
           : await api.get('/tile-config');
       if (!isLatest()) return 'superseded';
 
-      if (res.success && res.data) {
-        const { order, sizes, hidden, colors, customTiles: customTilesData } = res.data;
-
-        // Load custom tiles first (needed for order validation)
-        if (customTilesData && Array.isArray(customTilesData)) {
-          setCustomTiles(customTilesData);
-          if (!isReadOnly) {
-            localStorage.setItem(CUSTOM_TILES_STORAGE_KEY, JSON.stringify(customTilesData));
-          }
-        } else if (isReadOnly) {
-          // Viewing other user with no custom tiles - set empty
-          setCustomTiles([]);
-        }
-
-        // Load hidden tiles
-        if (hidden && Array.isArray(hidden)) {
-          setHiddenTiles(hidden);
-          if (!isReadOnly) {
-            localStorage.setItem(HIDDEN_STORAGE_KEY, JSON.stringify(hidden));
-          }
-        } else if (isReadOnly) {
-          // Viewing other user with no hidden tiles - set empty (don't use our own)
-          setHiddenTiles([]);
-        }
-
-        // Load color overrides
-        if (colors && typeof colors === 'object') {
-          setTileColors(colors);
-          if (!isReadOnly) {
-            localStorage.setItem(COLORS_STORAGE_KEY, JSON.stringify(colors));
-          }
-        } else if (isReadOnly) {
-          // Viewing other user with no color overrides - set empty
-          setTileColors({});
-        }
-
-        // Validate and apply order (including custom tiles)
-        if (order && Array.isArray(order)) {
-          // For validation, check predefined activities + custom tiles
-          const validOrder = order.filter(
-            (name: string) =>
-              ACTIVITY_NAMES.includes(name as PredefinedActivityName) || isCustomTile(name)
-          );
-          setTileOrder(validOrder as ActivityName[]);
-          if (!isReadOnly) saveTileOrder(validOrder as ActivityName[]);
-        } else {
-          setTileOrder([...ACTIVITY_NAMES]);
-        }
-
-        // Apply sizes
-        if (sizes && typeof sizes === 'object') {
-          setTileSizes(sizes);
-          if (!isReadOnly) saveTileSizes(sizes);
-        } else {
-          setTileSizes(getDefaultTileSizes());
-        }
-      } else {
-        // No config from backend
-        if (isReadOnly) {
-          // Viewing other user with no config - use defaults, don't touch localStorage
-          setHiddenTiles([]);
-          setTileColors({});
-          setCustomTiles([]);
-          setTileOrder([...ACTIVITY_NAMES]);
-          setTileSizes(getDefaultTileSizes());
-        } else {
-          // Own profile with no backend config - try localStorage first
-          try {
-            const localHidden = localStorage.getItem(HIDDEN_STORAGE_KEY);
-            const localColors = localStorage.getItem(COLORS_STORAGE_KEY);
-            const localCustomTiles = localStorage.getItem(CUSTOM_TILES_STORAGE_KEY);
-
-            if (localHidden) setHiddenTiles(JSON.parse(localHidden));
-            if (localColors) setTileColors(JSON.parse(localColors));
-            if (localCustomTiles) setCustomTiles(JSON.parse(localCustomTiles));
-          } catch (e) {
-            console.error('[useTileConfig] Failed to load from localStorage', e);
-          }
-
-          setTileOrder([...ACTIVITY_NAMES]);
-          setTileSizes(getDefaultTileSizes());
-        }
+      if (res.success) {
+        // The saved layout, or the default one when nothing is saved, so every device shows the
+        // same tiles
+        const layout = isObject(res.data) ? layoutFromConfig(res.data) : defaultLayout();
+        showLayout(layout);
+        if (!isReadOnly) cacheLayout(layout);
+        setLastLoad({ profileKey, ok: true });
+        return 'loaded';
       }
-      setLastLoad({ profileKey, ok: !!res.success });
-      return res.success ? 'loaded' : 'failed';
+      setLastLoad({ profileKey, ok: false });
+      if (isReadOnly) showLayout(defaultLayout());
+      return 'failed';
     } catch (err) {
       if (!isLatest()) return 'superseded';
       console.error('[useTileConfig] Failed to fetch tile config', err);
       setLastLoad({ profileKey, ok: false });
-      setTileOrder([...ACTIVITY_NAMES]);
-      setTileSizes(getDefaultTileSizes());
-      if (isReadOnly) {
-        // On error viewing other user, use clean defaults
-        setHiddenTiles([]);
-        setTileColors({});
-        setCustomTiles([]);
-      }
+      // On error viewing other user, use clean defaults
+      if (isReadOnly) showLayout(defaultLayout());
     } finally {
       if (isLatest()) setConfigLoading(false);
     }

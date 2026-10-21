@@ -82,6 +82,14 @@ export const Dashboard: React.FC = () => {
     setToast({ message, type: 'error' });
   }, []);
 
+  // Customize was requested but the user's tiles could not be loaded, even after a retry
+  const handleTilesUnavailable = useCallback(() => {
+    setToast({
+      message: "Couldn't load your tiles. Check your connection and try again.",
+      type: 'error',
+    });
+  }, []);
+
   // Ref to store fetchActivities for the follow-accepted event handler
   // This avoids circular dependency between useTargetUser and useActivityData
   const fetchActivitiesRef = useRef<() => void>(() => {});
@@ -153,6 +161,8 @@ export const Dashboard: React.FC = () => {
     customTiles,
     setCustomTiles,
     configLoading,
+    configStatus,
+    reloadTileConfig,
     visibleTiles,
     saveTileConfigToBackend,
     handleTileResize,
@@ -183,6 +193,9 @@ export const Dashboard: React.FC = () => {
     setCustomTiles,
     setTileColors,
     saveTileConfigToBackend,
+    configStatus,
+    reloadTileConfig,
+    onTilesUnavailable: handleTilesUnavailable,
   });
 
   // Drag and drop

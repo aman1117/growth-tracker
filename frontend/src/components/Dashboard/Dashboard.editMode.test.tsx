@@ -3,10 +3,11 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { STORAGE_KEYS } from '../../constants';
-import { api, commentApi, likeApi } from '../../services/api';
+import { api, ApiError, commentApi, likeApi } from '../../services/api';
 import { gl } from '../../services/goodlogs';
 import {
   ALICE,
+  createDeferred,
   dashboardRoutes,
   FIXED_TODAY,
   makeActivity,
@@ -196,6 +197,222 @@ describe('Dashboard edit mode', () => {
       await user.click(button('Cancel'));
 
       expect(await screen.findByRole('region', { name: 'Yesterday summary' })).toBeInTheDocument();
+    });
+  });
+
+  describe('before the tiles have loaded', () => {
+    /** Alice's day while her saved layout is still on its way from the server. */
+    function renderWhileTilesLoad() {
+      const tileConfig = createDeferred<unknown>();
+      routeApi(
+        api,
+        dashboardRoutes({
+          'POST /get-activities': {
+            success: true,
+            data: [makeActivity({ name: 'sleep', hours: 8 })],
+          },
+          'GET /tile-config': tileConfig.promise,
+        })
+      );
+      const view = renderWithRouter(<Dashboard />, { route: '/', path: '/' });
+      return { ...view, tileConfig };
+    }
+
+    async function addChess(user: ReturnType<typeof renderWithRouter>['user']) {
+      await user.click(button('Add a custom tile'));
+      await user.type(screen.getByRole('textbox', { name: 'Name' }), 'Chess');
+      await user.click(button('Create'));
+    }
+
+    const serverError = new ApiError('Failed to get tile configuration', 500, 'FETCH_FAILED');
+
+    /** Alice's day where each request for her tiles gets the next of `responses`. */
+    function renderWithTileConfigResponses(...responses: unknown[]) {
+      routeApi(
+        api,
+        dashboardRoutes({
+          'POST /get-activities': {
+            success: true,
+            data: [makeActivity({ name: 'sleep', hours: 8 })],
+          },
+          'GET /tile-config': () => responses.shift(),
+        })
+      );
+      return renderWithRouter(<Dashboard />, { route: '/', path: '/' });
+    }
+
+    const tileConfigLoads = () =>
+      vi.mocked(api.get).mock.calls.filter(([endpoint]) => endpoint === '/tile-config').length;
+
+    it('enters edit mode requested from the navigation bar once the tiles have loaded', async () => {
+      const { tileConfig } = renderWhileTilesLoad();
+
+      toggleEditMode();
+      expect(toolbar()).not.toBeInTheDocument();
+      await act(async () => tileConfig.resolve({ success: true, data: layout }));
+
+      expect(await screen.findByRole('toolbar', { name: 'Customize tiles' })).toBeInTheDocument();
+      expect(button('Guitar, small tile. Activate to select')).toBeInTheDocument();
+    });
+
+    it('Cancel puts back the loaded config, not the defaults shown while it loaded', async () => {
+      const { user, tileConfig } = renderWhileTilesLoad();
+      toggleEditMode();
+      await act(async () => tileConfig.resolve({ success: true, data: layout }));
+      await screen.findByRole('toolbar', { name: 'Customize tiles' });
+      await addChess(user);
+      expect(lastSavedConfig()?.customTiles).toHaveLength(2);
+
+      await user.click(button('Cancel'));
+
+      expect(lastSavedConfig()).toEqual(layout);
+      expect(queryButton(/^Chess, /)).not.toBeInTheDocument();
+      expect(button('Guitar, 0 hours')).toBeInTheDocument();
+    });
+
+    it('loads the tiles again when Customize follows a failed load, then enters edit mode', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { user } = renderWithTileConfigResponses(serverError, { success: true, data: layout });
+      await screen.findByRole('button', { name: 'Sleep, 8 hours' });
+
+      toggleEditMode();
+
+      expect(await screen.findByRole('toolbar', { name: 'Customize tiles' })).toBeInTheDocument();
+      expect(button('Guitar, small tile. Activate to select')).toBeInTheDocument();
+      expect(tileConfigLoads()).toBe(2);
+      // The snapshot is the freshly loaded config, so Cancel can safely put it back
+      await addChess(user);
+      await user.click(button('Cancel'));
+      expect(lastSavedConfig()).toEqual(layout);
+    });
+
+    it('stays out of edit mode and says why while the tiles cannot be loaded', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      renderWithTileConfigResponses(serverError, new TypeError('Failed to fetch'), {
+        success: true,
+        data: layout,
+      });
+      await screen.findByRole('button', { name: 'Sleep, 8 hours' });
+
+      toggleEditMode();
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        "Couldn't load your tiles. Check your connection and try again."
+      );
+      expect(toolbar()).not.toBeInTheDocument();
+      expect(button('Sleep, 8 hours')).toBeInTheDocument();
+      expect(savedConfigs()).toHaveLength(0);
+
+      // Customize again tries once more
+      toggleEditMode();
+
+      expect(await screen.findByRole('toolbar', { name: 'Customize tiles' })).toBeInTheDocument();
+      expect(button('Guitar, small tile. Activate to select')).toBeInTheDocument();
+      expect(tileConfigLoads()).toBe(3);
+    });
+
+    it('never shows another user’s older tiles on our own dashboard', async () => {
+      const drums = makeCustomTile({
+        id: 'drums-1',
+        name: 'Drums',
+        icon: 'Drum',
+        color: '#ef4444',
+      });
+      const bobsTileConfig = createDeferred<unknown>();
+      routeApi(
+        api,
+        dashboardRoutes({
+          'POST /get-activities': {
+            success: true,
+            data: [makeActivity({ name: 'sleep', hours: 8 })],
+          },
+          'POST /tile-config/user': bobsTileConfig.promise,
+          'GET /tile-config': { success: true, data: layout },
+        })
+      );
+      function MyDashboardLink() {
+        const navigate = useNavigate();
+        return (
+          <button type="button" onClick={() => navigate('/')}>
+            My dashboard
+          </button>
+        );
+      }
+      const { user } = renderWithRouter(
+        <>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/user/:username" element={<Dashboard />} />
+          </Routes>
+          <MyDashboardLink />
+        </>,
+        { route: '/user/bob' }
+      );
+      await user.click(button('My dashboard'));
+      expect(await screen.findByRole('button', { name: 'Guitar, 0 hours' })).toBeInTheDocument();
+
+      // Bob's tiles were requested first but arrive last
+      await act(async () =>
+        bobsTileConfig.resolve({
+          success: true,
+          data: { order: ['custom:drums-1', 'sleep'], sizes, customTiles: [drums] },
+        })
+      );
+
+      expect(queryButton(/^Drums, /)).not.toBeInTheDocument();
+      expect(button('Guitar, 0 hours')).toBeInTheDocument();
+      toggleEditMode();
+      expect(await screen.findByRole('toolbar', { name: 'Customize tiles' })).toBeInTheDocument();
+      expect(button('Guitar, small tile. Activate to select')).toBeInTheDocument();
+    });
+
+    it('never snapshots another user’s tiles when Customize is chosen on their profile', async () => {
+      const drums = makeCustomTile({
+        id: 'drums-1',
+        name: 'Drums',
+        icon: 'Drum',
+        color: '#ef4444',
+      });
+      const ownTileConfig = createDeferred<unknown>();
+      routeApi(
+        api,
+        dashboardRoutes({
+          'POST /tile-config/user': {
+            success: true,
+            data: { order: ['custom:drums-1', 'sleep'], sizes, customTiles: [drums] },
+          },
+          'GET /tile-config': ownTileConfig.promise,
+        })
+      );
+      function CustomizeButton() {
+        const navigate = useNavigate();
+        return (
+          <button type="button" onClick={() => navigate('/', { state: { enterEditMode: true } })}>
+            Customize
+          </button>
+        );
+      }
+      // Both routes render the dashboard like the app does, so React keeps the same instance
+      const { user } = renderWithRouter(
+        <>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/user/:username" element={<Dashboard />} />
+          </Routes>
+          <CustomizeButton />
+        </>,
+        { route: '/user/bob' }
+      );
+      await screen.findByRole('button', { name: 'Drums, 0 hours' });
+
+      await user.click(button('Customize'));
+      expect(toolbar()).not.toBeInTheDocument();
+      await act(async () => ownTileConfig.resolve({ success: true, data: layout }));
+      await screen.findByRole('toolbar', { name: 'Customize tiles' });
+      await addChess(user);
+      await user.click(button('Cancel'));
+
+      expect(lastSavedConfig()).toEqual(layout);
     });
   });
 

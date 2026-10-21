@@ -59,6 +59,8 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   them by hand, use the raw values instead (`DATABASE_URL` is used unchanged, as before).
 - A missing photo now returns the error code `PHOTO_NOT_FOUND` (was `NOTIFICATION_NOT_FOUND`),
   and replying to a missing parent comment returns 404 (was 400).
+- `GET /api/tile-config` and `POST /api/tile-config/user` return 500 (`FETCH_FAILED`) when the
+  database fails, instead of `{"success": true, "data": null}`, which means "no layout saved".
 
 ### Fixed
 - Login could fail for tokens containing base64url characters (`-`/`_`).
@@ -100,6 +102,10 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   failed; an empty badge list said "Legendary status achieved!".
 - Home: cancelling a tile drag left tiles stuck; undoing the deletion of a hidden tile put it on
   the grid; Cancel in edit mode did not restore the layout already saved on the server.
+  Customizing while your tiles were still loading, after they failed to load (a server error
+  looked like having no saved layout) or right after viewing another profile could save the
+  default tiles, or that profile's, over your own: Customize now waits for your tiles and retries
+  a failed load, and a slower response for a profile you already left is ignored.
 - Text fields with a limit: a full field now ignores further typing instead of dropping text
   from the end, pasted text is cut to fit, counters count characters, an @mention that would not
   fit is no longer inserted, and long comments are shortened without splitting an emoji.
@@ -118,7 +124,7 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   announced by their visible label; the user search keeps its suggestions after clearing and no
   longer flashes "No users found".
 - Follower and following counts missed the first follow or follow request for users without a
-  counter row.
+  counter row, and missed follows made while no counter subscriber was listening.
 - Streaks did not count the first completed day when the nightly job had already created that
   day's row.
 - Unliking a day reported success when the database failed; over-long notes returned a generic
@@ -130,8 +136,9 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   previews and device details could cut an emoji or accented letter in half; day-completed
   notifications sent to several followers carried another follower's notification ID, so
   opening one from a push did not mark it as read.
-- Backend: an unreachable Redis at startup left a broken client in place instead of running
-  without Redis; request logs recorded failed requests with the wrong status and level; a failed
+- Backend: when Redis could not be reached at startup, requests that use it failed instead of
+  falling back; the backend now runs without Redis and connects in the background as soon as
+  Redis answers. Request logs recorded failed requests with the wrong status and level; a failed
   database initialisation could be reported as success on a later call; boolean environment
   variables now accept any letter case (`TRUE`, `True`).
 

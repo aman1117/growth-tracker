@@ -111,6 +111,9 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   deleted on one device, other devices kept them, and saving there brought them back. Every
   device now shows exactly the layout saved for your account and, while offline, the last layout
   it loaded instead of the default tiles mixed with cached ones.
+- Insights could name and colour activities after custom tiles and colours that were removed on
+  another device, and after switching people it could show your tile names and colours on
+  someone else's week.
 - Text fields with a limit: a full field now ignores further typing instead of dropping text
   from the end, pasted text is cut to fit, counters count characters, an @mention that would not
   fit is no longer inserted, and long comments are shortened without splitting an emoji.

@@ -79,13 +79,16 @@ function serve({ weeks = {}, verified = [], ownTiles, otherTiles }: Backend = {}
     [LAST_WEEK]: lastWeek(),
     ...weeks,
   };
-  api.getWeekAnalytics.mockImplementation(async (_username, weekStart) => {
-    const week = allWeeks[weekStart] ?? emptyWeek(weekStart);
-    if (week instanceof Error) throw week;
-    return week;
-  });
+  // An Error fails the request
+  const answer = (value: unknown) => {
+    if (value instanceof Error) throw value;
+    return value;
+  };
+  api.getWeekAnalytics.mockImplementation(async (_username, weekStart) =>
+    answer(allWeeks[weekStart] ?? emptyWeek(weekStart))
+  );
   api.get.mockImplementation(async (endpoint) => {
-    if (endpoint === '/tile-config') return ownTiles ?? { success: true, data: {} };
+    if (endpoint === '/tile-config') return answer(ownTiles ?? { success: true, data: {} });
     throw new Error(`Unexpected GET ${endpoint}`);
   });
   api.post.mockImplementation(async (endpoint, body) => {
@@ -99,7 +102,7 @@ function serve({ weeks = {}, verified = [], ownTiles, otherTiles }: Backend = {}
         ],
       };
     }
-    if (endpoint === '/tile-config/user') return otherTiles ?? { success: true, data: {} };
+    if (endpoint === '/tile-config/user') return answer(otherTiles ?? { success: true, data: {} });
     throw new Error(`Unexpected POST ${endpoint}`);
   });
 }
@@ -124,6 +127,11 @@ const dayTrack = (title: string) => within(chart()).getByTitle(title);
 const barHeight = (title: string) =>
   (dayTrack(title).firstElementChild as HTMLElement).style.height;
 const statText = (label: string) => within(weekSummary()).getByText(label).closest('div');
+/** The color an activity's breakdown row is drawn in */
+const rowColor = (label: string) =>
+  (within(breakdown()).getByText(label).closest('li') as HTMLElement).style.getPropertyValue(
+    '--row-color'
+  );
 const location = () => screen.getByTestId('location');
 
 describe('AnalyticsPage (Insights)', () => {
@@ -589,22 +597,40 @@ describe('AnalyticsPage (Insights)', () => {
     });
 
     it.each([
-      ['the request fails', new Error('offline')],
-      ['the response is unsuccessful', { success: false }],
-      ['the config is malformed', { success: true, data: { customTiles: 'oops', colors: null } }],
-    ])('falls back to default tile names when %s', async (_label, response) => {
+      [
+        'the request fails',
+        new Error('offline'),
+        '[Insights] Failed to fetch tile config; keeping the tile names shown',
+        { own: false, error: expect.any(Error) },
+      ],
+      [
+        'the response is unsuccessful',
+        { success: false, error_code: 'INTERNAL' },
+        '[Insights] Tile config request failed; keeping the tile names shown',
+        { own: false, code: 'INTERNAL' },
+      ],
+    ])('falls back to default tile names when %s', async (_label, response, message, context) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       serve({
         weeks: { [THIS_WEEK]: weekAnalytics(parseApiDate(THIS_WEEK), [{ 'custom:g1': 2 }]) },
-      });
-      api.post.mockImplementation(async (endpoint, body) => {
-        if (endpoint === '/tile-config/user') {
-          if (response instanceof Error) throw response;
-          return response;
-        }
-        return { success: true, data: [{ username: (body as { username: string }).username }] };
+        otherTiles: response,
       });
       await renderLoaded('/analytics?user=alice');
 
+      expect(within(breakdown()).getByText('Custom')).toBeInTheDocument();
+      await waitFor(() => expect(warn).toHaveBeenCalledWith(message, context));
+    });
+
+    it('falls back to default tile names when the config is malformed', async () => {
+      serve({
+        weeks: { [THIS_WEEK]: weekAnalytics(parseApiDate(THIS_WEEK), [{ 'custom:g1': 2 }]) },
+        otherTiles: { success: true, data: { customTiles: 'oops', colors: null } },
+      });
+      await renderLoaded('/analytics?user=alice');
+
+      await waitFor(() =>
+        expect(api.post).toHaveBeenCalledWith('/tile-config/user', { username: 'alice' })
+      );
       expect(within(breakdown()).getByText('Custom')).toBeInTheDocument();
     });
 
@@ -625,12 +651,17 @@ describe('AnalyticsPage (Insights)', () => {
     });
 
     it('treats a private-account API error the same way', async () => {
-      serve({ weeks: { [THIS_WEEK]: new ApiError('Private', 403, 'ACCOUNT_PRIVATE') } });
+      const warn = vi.spyOn(console, 'warn');
+      const privateAccount = new ApiError('Private', 403, 'ACCOUNT_PRIVATE');
+      serve({ weeks: { [THIS_WEEK]: privateAccount }, otherTiles: privateAccount });
       renderInsights('/analytics?user=alice');
 
       expect(
         await screen.findByRole('heading', { name: 'This account is private' })
       ).toBeInTheDocument();
+      // The page explains it, so failing to get their tile names is not worth a warning
+      expect(api.post).toHaveBeenCalledWith('/tile-config/user', { username: 'alice' });
+      expect(warn).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -741,13 +772,21 @@ describe('AnalyticsPage (Insights)', () => {
     const guitar: CustomTile = { id: 'g1', name: 'Guitar', icon: 'Music', color: '#ff00aa' };
     const guitarWeek = () => weekAnalytics(parseApiDate(THIS_WEEK), [{ 'custom:g1': 2, sleep: 1 }]);
 
-    it('uses the tiles saved on this device when the server has none', async () => {
+    it('keeps the tiles saved on this device when the server answers unsuccessfully', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       localStorage.setItem(STORAGE_KEYS.CUSTOM_TILES, JSON.stringify([guitar]));
       localStorage.setItem(STORAGE_KEYS.TILE_COLORS, JSON.stringify({ sleep: '#000000' }));
       serve({ weeks: { [THIS_WEEK]: guitarWeek() }, ownTiles: { success: false } });
       await renderLoaded();
 
+      await waitFor(() =>
+        expect(warn).toHaveBeenCalledWith(
+          '[Insights] Tile config request failed; keeping the tile names shown',
+          { own: true, code: undefined }
+        )
+      );
       expect(within(breakdown()).getByText('Guitar')).toBeInTheDocument();
+      expect(rowColor('Sleep')).toBe('#000000');
       expect(api.get).toHaveBeenCalledWith('/tile-config');
       expect(api.post).not.toHaveBeenCalledWith('/tile-config/user', expect.anything());
     });
@@ -764,14 +803,40 @@ describe('AnalyticsPage (Insights)', () => {
       await renderLoaded();
 
       expect(await within(breakdown()).findByText('Bass')).toBeInTheDocument();
+      expect(rowColor('Sleep')).toBe('#111111');
     });
 
+    it.each([
+      ['saved without them', { success: true, data: { order: ['custom:g1', 'sleep'] } }],
+      ['nothing saved', { success: true, data: null }],
+    ])(
+      'drops tiles and colors only this device still has when the server has %s',
+      async (_label, ownTiles) => {
+        // Saving leaves out custom tiles and colors when there are none, so another device that
+        // deleted the last ones saved a config without them
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_TILES, JSON.stringify([guitar]));
+        localStorage.setItem(STORAGE_KEYS.TILE_COLORS, JSON.stringify({ sleep: '#000000' }));
+        serve({ weeks: { [THIS_WEEK]: guitarWeek() }, ownTiles });
+        await renderLoaded();
+
+        expect(await within(breakdown()).findByText('Custom')).toBeInTheDocument();
+        expect(within(breakdown()).queryByText('Guitar')).not.toBeInTheDocument();
+        expect(rowColor('Sleep')).toBe('#6366f1');
+      }
+    );
+
     it('keeps the device tiles when the server cannot be reached', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       localStorage.setItem(STORAGE_KEYS.CUSTOM_TILES, JSON.stringify([guitar]));
-      serve({ weeks: { [THIS_WEEK]: guitarWeek() } });
-      api.get.mockRejectedValue(new Error('offline'));
+      serve({ weeks: { [THIS_WEEK]: guitarWeek() }, ownTiles: new Error('offline') });
       await renderLoaded();
 
+      await waitFor(() =>
+        expect(warn).toHaveBeenCalledWith(
+          '[Insights] Failed to fetch tile config; keeping the tile names shown',
+          { own: true, error: expect.any(Error) }
+        )
+      );
       expect(within(breakdown()).getByText('Guitar')).toBeInTheDocument();
     });
 
@@ -808,6 +873,43 @@ describe('AnalyticsPage (Insights)', () => {
       expect(location()).toHaveTextContent('/analytics?user=bob');
       await waitFor(() => expect(api.getWeekAnalytics).toHaveBeenLastCalledWith('bob', THIS_WEEK));
       expect(switcher()).toHaveAccessibleName(/^Viewing insights for\s*bob\s*Switch$/);
+    });
+
+    it("never shows your tile names or colors on someone else's insights", async () => {
+      const guitar: CustomTile = { id: 'g1', name: 'Guitar', icon: 'Music', color: '#ff00aa' };
+      const yourTiles = { customTiles: [guitar], colors: { sleep: '#000000' } };
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_TILES, JSON.stringify(yourTiles.customTiles));
+      localStorage.setItem(STORAGE_KEYS.TILE_COLORS, JSON.stringify(yourTiles.colors));
+      const yourConfig = deferred<unknown>();
+      const bobsConfig = deferred<unknown>();
+      serve({
+        weeks: {
+          [THIS_WEEK]: weekAnalytics(parseApiDate(THIS_WEEK), [{ 'custom:g1': 2, sleep: 1 }]),
+        },
+        ownTiles: yourConfig.promise,
+        otherTiles: bobsConfig.promise,
+      });
+      userApi.autocomplete.mockResolvedValue({ suggestions: [suggestion('bob')] });
+      const { user } = await renderLoaded();
+      expect(within(breakdown()).getByText('Guitar')).toBeInTheDocument();
+
+      await user.click(switcher());
+      await user.type(screen.getByRole('combobox'), 'bo');
+      await user.click(await screen.findByRole('option', { name: /bob/ }));
+
+      // While bob's names load, his week shows the default ones, not yours
+      await waitFor(() => expect(within(breakdown()).getByText('Custom')).toBeInTheDocument());
+      expect(rowColor('Sleep')).toBe('#6366f1');
+
+      // Your config answering late changes nothing
+      await act(async () => yourConfig.resolve({ success: true, data: yourTiles }));
+      expect(within(breakdown()).queryByText('Guitar')).not.toBeInTheDocument();
+      expect(rowColor('Sleep')).toBe('#6366f1');
+
+      await act(async () =>
+        bobsConfig.resolve({ success: true, data: { customTiles: [{ ...guitar, name: 'Drums' }] } })
+      );
+      expect(within(breakdown()).getByText('Drums')).toBeInTheDocument();
     });
 
     it('goes back to your own insights when you pick yourself', async () => {

@@ -637,6 +637,63 @@ func TestNotificationWSHandler_BroadcastToUser_WhileConnectionsChange(t *testing
 	eventually(t, func() bool { return received.Load() >= rounds }, "every broadcast reached the connection")
 }
 
+func TestNotificationWSHandler_BroadcastToUser_FromSeveralGoroutines(t *testing.T) {
+	env := newEnv(t)
+	srv := startWSServer(t, env)
+	user := env.user(t)
+	conn, _ := srv.connect(t, user)
+
+	var received atomic.Int64
+	require.NoError(t, conn.SetReadDeadline(time.Time{}))
+	go func() { // drains the client until the connection is closed at the end of the test
+		for {
+			if _, _, err := conn.ReadMessage(); err != nil {
+				return
+			}
+			received.Add(1)
+		}
+	}()
+
+	// A WebSocket connection allows one writer at a time: concurrent writes panic
+	const senders, perSender = 8, 100
+	var wg sync.WaitGroup
+	for range senders {
+		wg.Go(func() {
+			for i := range perSender {
+				srv.h.BroadcastToUser(user.ID, "custom", i)
+			}
+		})
+	}
+	wg.Wait()
+
+	eventually(t, func() bool { return received.Load() == senders*perSender }, "every broadcast reached the connection")
+}
+
+func TestNotificationWSHandler_BroadcastToUser_NeverWritesToAFinishedConnection(t *testing.T) {
+	env := newEnv(t)
+	srv := startWSServer(t, env)
+	alice := env.user(t)
+	bob := env.user(t)
+	aliceConn, connID := srv.connect(t, alice)
+	srv.h.mu.RLock()
+	stale := srv.h.connections[alice.ID][connID]
+	srv.h.mu.RUnlock()
+
+	require.NoError(t, aliceConn.Close())
+	eventually(t, func() bool { return srv.ln.open.Load() == 0 }, "alice's handler finished")
+	// A broadcast that copied alice's connection just before her handler finished still holds
+	// it, but the server recycles a connection once its handler returns
+	srv.h.addConnection(alice.ID, connID, stale)
+	srv.h.BroadcastToUser(alice.ID, "custom", "for alice")
+
+	// Bob's connection may reuse it
+	bobConn, _ := srv.connect(t, bob)
+	srv.h.BroadcastToUser(alice.ID, "custom", "for alice")
+	srv.h.BroadcastToUser(bob.ID, "custom", "for bob")
+
+	assert.JSONEq(t, `"for bob"`, string(readWS(t, bobConn).Payload), "bob never receives alice's broadcast")
+}
+
 func TestNotificationWSHandler_PongsKeepAnIdleConnectionOpen(t *testing.T) {
 	const readTimeout = 250 * time.Millisecond
 	useWSTimings(t, readTimeout/10, readTimeout)

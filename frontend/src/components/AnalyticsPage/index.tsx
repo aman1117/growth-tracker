@@ -35,6 +35,7 @@ import { api, ApiError, userApi } from '../../services/api';
 import { useAuth } from '../../store';
 import type { ActivityName, CustomTile, DayAnalytics, WeekAnalyticsResponse } from '../../types';
 import type { AutocompleteSuggestion } from '../../types/autocomplete';
+import { type TileExtras, tileExtrasFromConfig } from '../../utils/tileConfig';
 import { EmptyState, PageHeader, Skeleton, VerifiedBadge } from '../ui';
 import { Autocomplete } from '../ui/Autocomplete';
 import styles from './AnalyticsPage.module.css';
@@ -127,6 +128,24 @@ const getChartTicks = (scaleMax: number): number[] =>
 
 type LoadError = 'not_found' | 'failed';
 
+/** The custom tiles and colors Home last cached on this device, or none when they can't be read */
+const readCachedTileExtras = (): TileExtras => {
+  try {
+    return tileExtrasFromConfig({
+      customTiles: JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_TILES) ?? 'null'),
+      colors: JSON.parse(localStorage.getItem(STORAGE_KEYS.TILE_COLORS) ?? 'null'),
+    });
+  } catch (e) {
+    console.error('Failed to load tile config from localStorage', e);
+    return tileExtrasFromConfig(null);
+  }
+};
+
+/** Failures the page already explains: a private account or an unknown user */
+const isExplainedByPage = (err: unknown): boolean =>
+  err instanceof ApiError &&
+  (err.errorCode === 'ACCOUNT_PRIVATE' || err.errorCode === 'USER_NOT_FOUND');
+
 export const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -170,70 +189,45 @@ export const AnalyticsPage: React.FC = () => {
 
   // Load custom tiles and colors based on target user
   useEffect(() => {
-    const loadTileConfig = async () => {
-      const isViewingOwn = targetUsername === user?.username;
-
-      if (isViewingOwn) {
-        // Load own config from localStorage first (immediate)
-        try {
-          const localCustomTiles = localStorage.getItem(STORAGE_KEYS.CUSTOM_TILES);
-          const localColors = localStorage.getItem(STORAGE_KEYS.TILE_COLORS);
-          if (localCustomTiles) {
-            const parsed = JSON.parse(localCustomTiles);
-            if (Array.isArray(parsed)) setCustomTiles(parsed);
-          }
-          if (localColors) {
-            const parsed = JSON.parse(localColors);
-            if (parsed && typeof parsed === 'object') setTileColors(parsed);
-          }
-        } catch (e) {
-          console.error('Failed to load tile config from localStorage', e);
-        }
-
-        // Then fetch from backend (may have more recent data)
-        try {
-          const res = await api.get('/tile-config');
-          if (res.success && res.data) {
-            if (res.data.customTiles && Array.isArray(res.data.customTiles)) {
-              setCustomTiles(res.data.customTiles);
-            }
-            if (res.data.colors && typeof res.data.colors === 'object') {
-              setTileColors(res.data.colors);
-            }
-          }
-        } catch {
-          // API failed, but we already loaded from localStorage
-        }
-      } else {
-        // Viewing another user's analytics - fetch their tile config
-        try {
-          const res = await api.post('/tile-config/user', { username: targetUsername });
-          if (res.success && res.data) {
-            if (res.data.customTiles && Array.isArray(res.data.customTiles)) {
-              setCustomTiles(res.data.customTiles);
-            } else {
-              setCustomTiles([]);
-            }
-            if (res.data.colors && typeof res.data.colors === 'object') {
-              setTileColors(res.data.colors);
-            } else {
-              setTileColors({});
-            }
-          } else {
-            setCustomTiles([]);
-            setTileColors({});
-          }
-        } catch {
-          setCustomTiles([]);
-          setTileColors({});
-        }
-      }
+    if (!targetUsername) return;
+    // Set once someone else is on screen, so a slower answer never names another person's tiles
+    let cancelled = false;
+    const showTiles = (extras: TileExtras) => {
+      setCustomTiles(extras.customTiles);
+      setTileColors(extras.colors);
     };
 
-    if (targetUsername) {
-      loadTileConfig();
-    }
-  }, [targetUsername, user?.username]);
+    const loadTileConfig = async () => {
+      // Our own names and colors show at once from Home's copy on this device. Someone else's
+      // insights start from the defaults, never ours.
+      showTiles(isViewingOwnAnalytics ? readCachedTileExtras() : tileExtrasFromConfig(null));
+      try {
+        const res = isViewingOwnAnalytics
+          ? await api.get('/tile-config')
+          : await api.post('/tile-config/user', { username: targetUsername });
+        if (cancelled) return;
+        if (res.success) {
+          // The saved config replaces the copy entirely: what it leaves out was removed
+          showTiles(tileExtrasFromConfig(res.data));
+        } else {
+          console.warn('[Insights] Tile config request failed; keeping the tile names shown', {
+            own: isViewingOwnAnalytics,
+            code: res.error_code,
+          });
+        }
+      } catch (err) {
+        if (cancelled || isExplainedByPage(err)) return;
+        console.warn('[Insights] Failed to fetch tile config; keeping the tile names shown', {
+          own: isViewingOwnAnalytics,
+          error: err,
+        });
+      }
+    };
+    loadTileConfig();
+    return () => {
+      cancelled = true;
+    };
+  }, [targetUsername, isViewingOwnAnalytics]);
 
   // Close user selector when clicking outside
   useEffect(() => {

@@ -11,6 +11,7 @@ import { api } from '../../../services/api';
 import { gl } from '../../../services/goodlogs';
 import type { ActivityName, CustomTile, PredefinedActivityName } from '../../../types';
 import { ACTIVITY_NAMES, isCustomTile } from '../../../types';
+import { isPlainObject, type TileExtras, tileExtrasFromConfig } from '../../../utils/tileConfig';
 import type { TileSize } from '../../ActivityTile';
 import {
   COLORS_STORAGE_KEY,
@@ -85,12 +86,9 @@ const getProfileKey = (isReadOnly: boolean, targetUsername: string | undefined):
   `${isReadOnly ? 'other' : 'own'}:${targetUsername ?? ''}`;
 
 /** Everything that makes up a dashboard's tiles */
-interface TileLayout {
+interface TileLayout extends TileExtras {
   order: ActivityName[];
   sizes: Record<ActivityName, TileSize>;
-  hidden: ActivityName[];
-  colors: Record<string, string>;
-  customTiles: CustomTile[];
 }
 
 const defaultLayout = (): TileLayout => ({
@@ -101,16 +99,13 @@ const defaultLayout = (): TileLayout => ({
   customTiles: [],
 });
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
 /**
- * The layout a saved config describes. Saving leaves out hidden tiles, colors and custom tiles
- * when there are none, so a missing one means none: it never falls back to what this device
- * has, which made devices show different layouts.
+ * The layout a saved config describes. Missing hidden tiles, colors or custom tiles mean none
+ * (never what this device has, which made devices show different layouts); a missing order or
+ * sizes means the default ones.
  */
 const layoutFromConfig = (config: Record<string, unknown>): TileLayout => {
-  const { order, sizes, hidden, colors, customTiles } = config;
+  const { order, sizes } = config;
   return {
     // Unknown tiles are dropped; custom tiles are kept
     order: Array.isArray(order)
@@ -120,10 +115,8 @@ const layoutFromConfig = (config: Record<string, unknown>): TileLayout => {
             (ACTIVITY_NAMES.includes(name as PredefinedActivityName) || isCustomTile(name))
         )
       : [...ACTIVITY_NAMES],
-    sizes: isObject(sizes) ? (sizes as Record<ActivityName, TileSize>) : getDefaultTileSizes(),
-    hidden: Array.isArray(hidden) ? hidden : [],
-    colors: isObject(colors) ? (colors as Record<string, string>) : {},
-    customTiles: Array.isArray(customTiles) ? customTiles : [],
+    sizes: isPlainObject(sizes) ? (sizes as Record<ActivityName, TileSize>) : getDefaultTileSizes(),
+    ...tileExtrasFromConfig(config),
   };
 };
 
@@ -145,9 +138,9 @@ const readCachedLayout = (): TileLayout => {
   const defaults = defaultLayout();
   return {
     order: readCached(STORAGE_KEY, Array.isArray, defaults.order),
-    sizes: readCached(SIZE_STORAGE_KEY, isObject, defaults.sizes),
+    sizes: readCached(SIZE_STORAGE_KEY, isPlainObject, defaults.sizes),
     hidden: readCached(HIDDEN_STORAGE_KEY, Array.isArray, defaults.hidden),
-    colors: readCached(COLORS_STORAGE_KEY, isObject, defaults.colors),
+    colors: readCached(COLORS_STORAGE_KEY, isPlainObject, defaults.colors),
     customTiles: readCached(CUSTOM_TILES_STORAGE_KEY, Array.isArray, defaults.customTiles),
   };
 };
@@ -268,7 +261,7 @@ export const useTileConfig = ({
       if (res.success) {
         // The saved layout, or the default one when nothing is saved, so every device shows the
         // same tiles
-        const layout = isObject(res.data) ? layoutFromConfig(res.data) : defaultLayout();
+        const layout = isPlainObject(res.data) ? layoutFromConfig(res.data) : defaultLayout();
         showLayout(layout);
         if (!isReadOnly) cacheLayout(layout);
         setLastLoad({ profileKey, ok: true });

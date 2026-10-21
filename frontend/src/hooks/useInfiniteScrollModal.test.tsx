@@ -84,6 +84,18 @@ function scrollSentinel(isIntersecting = true) {
   act(() => observer.callback([{ isIntersecting } as IntersectionObserverEntry], observer));
 }
 
+/**
+ * Renders the list and waits for its first page. The page can show before React has run the
+ * effects of that render, which replace the sentinel's observer with one for the loaded page;
+ * React runs them before any new render, so re-rendering makes the latest observer current.
+ */
+async function renderFirstPage(fetchFn: HarnessProps['fetchFn']) {
+  const view = render(<FollowersList isOpen fetchFn={fetchFn} />);
+  await screen.findByText('Alice');
+  view.rerender(<FollowersList isOpen fetchFn={fetchFn} />);
+  return view;
+}
+
 const names = () => screen.queryAllByRole('listitem').map((item) => item.textContent);
 
 function deferred<T>() {
@@ -137,8 +149,7 @@ describe('useInfiniteScrollModal', () => {
       .fn()
       .mockResolvedValueOnce({ items: [alice, bob], nextCursor: 'c2', totalCount: 3 })
       .mockReturnValueOnce(nextPage.promise);
-    render(<FollowersList isOpen fetchFn={fetchFn} />);
-    await screen.findByText('Alice');
+    await renderFirstPage(fetchFn);
 
     scrollSentinel();
 
@@ -159,8 +170,7 @@ describe('useInfiniteScrollModal', () => {
       .fn()
       .mockResolvedValueOnce({ items: [alice], nextCursor: 'c2' })
       .mockReturnValueOnce(nextPage.promise);
-    render(<FollowersList isOpen fetchFn={fetchFn} />);
-    await screen.findByText('Alice');
+    await renderFirstPage(fetchFn);
 
     scrollSentinel(false);
     expect(fetchFn).toHaveBeenCalledTimes(1);

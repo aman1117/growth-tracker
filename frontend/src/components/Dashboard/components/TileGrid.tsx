@@ -33,6 +33,8 @@ interface TileGridProps {
   sensors: ReturnType<typeof import('@dnd-kit/core').useSensors>;
   onDragStart: (event: import('@dnd-kit/core').DragStartEvent) => void;
   onDragEnd: (event: import('@dnd-kit/core').DragEndEvent) => void;
+  /** Called when a drag is cancelled (Escape, resize, tab switch) so the tile stops dragging */
+  onDragCancel?: (event: import('@dnd-kit/core').DragCancelEvent) => void;
   onActivityClick: (name: ActivityName) => void;
   onTileResize: (name: ActivityName, size: TileSize) => void;
   onSelectTile: (name: ActivityName | null) => void;
@@ -62,6 +64,7 @@ export const TileGrid: React.FC<TileGridProps> = ({
   sensors,
   onDragStart,
   onDragEnd,
+  onDragCancel,
   onActivityClick,
   onTileResize,
   onSelectTile,
@@ -78,6 +81,7 @@ export const TileGrid: React.FC<TileGridProps> = ({
       collisionDetection={closestCenter}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      onDragCancel={onDragCancel}
     >
       <SortableContext items={visibleTiles} strategy={rectSortingStrategy}>
         <div

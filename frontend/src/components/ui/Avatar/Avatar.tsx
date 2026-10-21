@@ -72,8 +72,22 @@ export const Avatar: React.FC<AvatarProps> = ({
     .filter(Boolean)
     .join(' ');
 
+  // A clickable avatar behaves like a button: Enter and Space activate it (Space without scrolling)
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    onClick?.();
+  };
+
   return (
-    <div className={classNames} onClick={onClick}>
+    <div
+      className={classNames}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? name : undefined}
+      onKeyDown={onClick ? handleKeyDown : undefined}
+    >
       {showImage ? (
         <img
           src={displaySrc}

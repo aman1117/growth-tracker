@@ -2,7 +2,7 @@
  * Bio Dialog
  *
  * Dialog for editing user bio. The limit is counted the way the server counts it
- * (UTF-8 bytes), so emoji-heavy bios are never rejected after looking valid.
+ * (characters, i.e. Unicode code points), so a bio that fits here is never rejected.
  */
 
 import { PenLine } from 'lucide-react';
@@ -10,13 +10,9 @@ import React, { useId, useState } from 'react';
 
 import { VALIDATION } from '../../../constants/validation';
 import { api } from '../../../services/api';
+import { applyCharacterLimit, characterCount } from '../../../utils/text';
 import { Button, Modal } from '../../ui';
-import {
-  clampToUtf8Bytes,
-  getErrorCode,
-  getRequestErrorMessage,
-  utf8Length,
-} from '../settingsForm';
+import { getErrorCode, getRequestErrorMessage } from '../settingsForm';
 import type { BioDialogProps } from '../SettingsPage.types';
 import styles from './SettingsDialogs.module.css';
 
@@ -40,9 +36,7 @@ export const BioDialog: React.FC<BioDialogProps> = ({ isOpen, onClose, currentBi
     }
   }
 
-  const used = utf8Length(bio.trim());
-  // Bytes exceed UTF-16 length only when the bio contains non-ASCII characters
-  const hasWideCharacters = used > bio.trim().length;
+  const used = characterCount(bio.trim());
   const counterClass =
     used >= MAX_BIO ? styles.counterFull : used >= MAX_BIO - 15 ? styles.counterNear : '';
 
@@ -51,7 +45,7 @@ export const BioDialog: React.FC<BioDialogProps> = ({ isOpen, onClose, currentBi
     if (isLoading) return;
 
     const trimmedBio = bio.trim();
-    if (utf8Length(trimmedBio) > MAX_BIO) {
+    if (characterCount(trimmedBio) > MAX_BIO) {
       setError(`Bio must be ${MAX_BIO} characters or less`);
       return;
     }
@@ -117,7 +111,7 @@ export const BioDialog: React.FC<BioDialogProps> = ({ isOpen, onClose, currentBi
             className={`${styles.textarea} ${error ? styles.textareaError : ''}`}
             value={bio}
             onChange={(e) => {
-              setBio(clampToUtf8Bytes(e.target.value, MAX_BIO));
+              setBio(applyCharacterLimit(e.target.value, bio, MAX_BIO));
               setError('');
             }}
             placeholder="e.g. Reading 20 pages a day and learning to code 📚"
@@ -132,7 +126,7 @@ export const BioDialog: React.FC<BioDialogProps> = ({ isOpen, onClose, currentBi
               className={`${styles.fieldMessage} ${error ? styles.fieldMessageError : ''}`}
               role={error ? 'alert' : undefined}
             >
-              {error || (hasWideCharacters ? 'Emoji and symbols count as more than one.' : '')}
+              {error}
             </span>
             <span className={`${styles.counter} ${counterClass}`} aria-hidden="true">
               {used}/{MAX_BIO}

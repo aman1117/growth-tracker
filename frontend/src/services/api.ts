@@ -24,6 +24,31 @@ interface RequestOptions {
   signal?: AbortSignal;
 }
 
+/** The API's JSON envelope: every response has `success`; failures add `error`/`error_code` */
+type ApiResponseBody = {
+  success?: boolean;
+  error?: string;
+  error_code?: string;
+} & Record<string, unknown>;
+
+/**
+ * Reads a response body as JSON without throwing on bodies that are not JSON.
+ * Returns `undefined` for an empty body (e.g. 204 No Content) and `null` for a body that
+ * is not JSON (e.g. a proxy's HTML error page), so callers can still fail with the status.
+ */
+async function readJsonBody(response: Response): Promise<ApiResponseBody | null | undefined> {
+  const text = await response.text();
+  if (!text.trim()) return undefined;
+  try {
+    return JSON.parse(text) as ApiResponseBody;
+  } catch {
+    return null;
+  }
+}
+
+/** An empty successful response (e.g. 204 No Content) still follows the API's envelope */
+const emptySuccessBody = (): ApiResponseBody => ({ success: true });
+
 // ============================================================================
 // API Client Class
 // ============================================================================
@@ -101,22 +126,22 @@ class ApiClient {
       throw new ApiError('Unauthorized', 401, 'UNAUTHORIZED');
     }
 
-    const data = await response.json();
+    const data = await readJsonBody(response);
 
-    if (!response.ok) {
+    if (!response.ok || data === null) {
       gl.warn('API error', {
         metadata: {
           endpoint,
           method,
           statusCode: response.status,
-          errorCode: data.error_code,
-          message: data.error,
+          errorCode: data?.error_code,
+          message: data?.error,
         },
       });
-      throw new ApiError(data.error || 'Request failed', response.status, data.error_code);
+      throw new ApiError(data?.error || 'Request failed', response.status, data?.error_code);
     }
 
-    return data as T;
+    return (data ?? emptySuccessBody()) as T;
   }
 
   /**
@@ -172,7 +197,13 @@ class ApiClient {
   ): Promise<T> {
     const formData = new FormData();
     formData.append(fieldName, file);
+    return this.postForm<T>(endpoint, formData, options);
+  }
 
+  /**
+   * POST multipart/form-data with the same auth, session-expiry and error handling as JSON requests
+   */
+  async postForm<T>(endpoint: string, formData: FormData, options?: RequestOptions): Promise<T> {
     const headers: Record<string, string> = {
       // Don't set Content-Type - browser will set it with boundary
       ...(!options?.skipAuth ? this.getAuthHeaders() : {}),
@@ -191,13 +222,13 @@ class ApiClient {
       throw new ApiError('Unauthorized', 401, 'UNAUTHORIZED');
     }
 
-    const data = await response.json();
+    const data = await readJsonBody(response);
 
-    if (!response.ok) {
-      throw new ApiError(data.error || 'Upload failed', response.status, data.error_code);
+    if (!response.ok || data === null) {
+      throw new ApiError(data?.error || 'Upload failed', response.status, data?.error_code);
     }
 
-    return data as T;
+    return (data ?? emptySuccessBody()) as T;
   }
 }
 
@@ -577,26 +608,14 @@ export const activityPhotoApi = {
       formData.append('activity_label', customTileMetadata.label);
     }
 
-    const token = localStorage.getItem('access_token');
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${apiClient['baseUrl']}${API_ROUTES.ACTIVITY_PHOTO.UPLOAD}`, {
-      method: 'POST',
-      headers,
-      body: formData,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new ApiError(data.error || 'Upload failed', response.status, data.error_code);
-    }
+    // Shares the client's auth, session-expiry (401) and error handling
+    const data = await apiClient.postForm<UploadPhotoResponse>(
+      API_ROUTES.ACTIVITY_PHOTO.UPLOAD,
+      formData
+    );
 
     gl.track('photo_uploaded', { properties: { activityName } });
-    return data as UploadPhotoResponse;
+    return data;
   },
 
   /**

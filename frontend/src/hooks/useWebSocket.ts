@@ -59,6 +59,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   const connectRef = useRef<() => void>(() => {});
 
   const isOffline = useOfflineStatus();
+  // Socket handlers outlive the render that created them, so they read the live offline state.
+  // Declared before the other effects so it is already current when they run in the same commit.
+  const isOfflineRef = useRef(isOffline);
+  useEffect(() => {
+    isOfflineRef.current = isOffline;
+  }, [isOffline]);
 
   const { setWSStatus, addNotification, addPendingNotifications, fetchUnreadCount, wsStatus } =
     useNotificationStore();
@@ -195,7 +201,15 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
    * Schedule reconnection with exponential backoff
    */
   const scheduleReconnect = useCallback(() => {
-    if (isManualCloseRef.current || isOffline) return;
+    if (isManualCloseRef.current) return;
+
+    // A connection that drops while offline is not "reconnecting": keep the offline status and
+    // let the network-restored effect reconnect with a fresh backoff once the browser is online.
+    if (isOfflineRef.current) {
+      console.log('[WS] Offline, waiting for the network before reconnecting');
+      setWSStatus('disconnected');
+      return;
+    }
 
     if (reconnectAttemptRef.current >= MAX_RECONNECT_ATTEMPTS) {
       console.log('[WS] Max reconnection attempts reached, switching to polling');
@@ -214,7 +228,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       reconnectAttemptRef.current++;
       connectRef.current();
     }, delay);
-  }, [isOffline, setWSStatus, startFallbackPolling]);
+  }, [setWSStatus, startFallbackPolling]);
 
   /**
    * Connect to WebSocket
@@ -277,6 +291,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
 
       ws.onclose = (event) => {
         console.log('[WS] Connection closed:', event.code, event.reason);
+        // A socket that was already replaced or closed on purpose (reconnect(), disconnect(),
+        // or swapped out by connect()) must not clear the current one or schedule a reconnect.
+        if (globalWs !== ws) return;
+
         wsRef.current = null;
         globalWs = null;
         globalWsConnecting = false;
@@ -337,6 +355,22 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     connect();
   }, [connect, disconnect]);
 
+  // Reconnect with a fresh backoff when the network comes back. Only a real offline → online
+  // transition counts: giving up after the last retry or a manual disconnect() also leave the
+  // status 'disconnected', and must not start a new connection.
+  const wasOfflineRef = useRef(isOffline);
+  useEffect(() => {
+    const cameBackOnline = wasOfflineRef.current && !isOffline;
+    wasOfflineRef.current = isOffline;
+    if (!cameBackOnline || !enabled) return;
+
+    reconnectAttemptRef.current = 0;
+    if (!globalWs && !globalWsConnecting) {
+      console.log('[WS] Network restored, reconnecting...');
+      connect();
+    }
+  }, [isOffline, enabled, connect]);
+
   // Connect when enabled and online
   useEffect(() => {
     if (enabled && !isOffline) {
@@ -365,14 +399,28 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     stopFallbackPolling,
   ]);
 
-  // Reconnect when coming back online (only if not already connected)
+  // The socket is authenticated with the signed-in user's token, so it must never outlive
+  // their session: close it when the hook is switched off (e.g. `enabled` follows sign-in).
+  const wasEnabledRef = useRef(enabled);
   useEffect(() => {
-    if (!isOffline && enabled && wsStatus === 'disconnected' && !globalWs && !globalWsConnecting) {
-      console.log('[WS] Network restored, reconnecting...');
-      reconnectAttemptRef.current = 0;
-      connect();
+    if (wasEnabledRef.current && !enabled) {
+      console.log('[WS] Disabled, closing connection');
+      disconnect();
     }
-  }, [isOffline, enabled, wsStatus, connect]);
+    wasEnabledRef.current = enabled;
+  }, [enabled, disconnect]);
+
+  // Unmounting keeps the shared connection (StrictMode, the bell hiding while search is open),
+  // except after sign-out, which removes the token and unmounts the bell in the same commit.
+  useEffect(
+    () => () => {
+      if (!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)) {
+        console.log('[WS] Signed out, closing connection');
+        disconnect();
+      }
+    },
+    [disconnect]
+  );
 
   // Fetch initial unread count on mount
   useEffect(() => {

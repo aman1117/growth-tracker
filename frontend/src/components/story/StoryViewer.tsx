@@ -94,11 +94,13 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
   // Lock page scroll and touch gestures while the viewer is open
   useBodyScrollLock(isOpen, { blockTouch: true });
 
-  // Reset state when opening (but not on every photos change)
-  const prevIsOpenRef = useRef(false);
-  useEffect(() => {
-    // Only reset when first opening, not when photos change while open
-    if (isOpen && !prevIsOpenRef.current) {
+  // Reset state when opening (but not on every photos change). This runs during render,
+  // not in an effect, so the like-status and view effects below never run against the
+  // previous session's photo and never see a second, freshly emptied like-status map.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) {
       setCurrentIndex(startIndex);
       setShowInteractions(false);
       setShowDeleteConfirm(false);
@@ -106,17 +108,24 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       setFailedImages(new Set());
       setToastMessage(null);
       setLocalPhotos(photos);
-      viewedPhotosRef.current = new Set();
       setLikeStatus(new Map());
       setShowLikeAnimation(false);
       // Reset swipe state
       setSwipeOffset(0);
       setIsSwiping(false);
       setIsAnimating(false);
+    }
+  }
+
+  // Refs cannot be reset during render, so clear them when the viewer opens
+  const prevIsOpenRef = useRef(false);
+  useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
+      viewedPhotosRef.current = new Set();
       touchStartRef.current = null;
     }
     prevIsOpenRef.current = isOpen;
-  }, [isOpen, startIndex, photos]);
+  }, [isOpen]);
 
   // Fetch interactions count on load for own stories
   useEffect(() => {
@@ -135,9 +144,9 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       });
   }, [isOpen, isOwnStory, currentPhoto]);
 
-  // Fetch like status when photo changes (for non-own photos)
+  // Fetch like status when photo changes (for non-own photos, only while open)
   useEffect(() => {
-    if (!currentPhoto || isOwnStory) return;
+    if (!isOpen || !currentPhoto || isOwnStory) return;
 
     // Check if we already have status for this photo
     if (likeStatus.has(currentPhoto.id)) return;
@@ -157,11 +166,11 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       .catch((err) => {
         console.error('Failed to fetch like status:', err);
       });
-  }, [currentPhoto, isOwnStory, likeStatus]);
+  }, [isOpen, currentPhoto, isOwnStory, likeStatus]);
 
-  // Record view when photo changes (only for non-own photos)
+  // Record view when photo changes (only for non-own photos, only while open)
   useEffect(() => {
-    if (!currentPhoto || isOwnStory) return;
+    if (!isOpen || !currentPhoto || isOwnStory) return;
     if (viewedPhotosRef.current.has(currentPhoto.id)) return; // Already recorded
 
     // Mark as viewed immediately to prevent duplicate calls
@@ -172,7 +181,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
       // Fail silently - view recording is not critical
       console.error('Failed to record view:', err);
     });
-  }, [currentPhoto, isOwnStory]);
+  }, [isOpen, currentPhoto, isOwnStory]);
 
   // Notify parent when closing about all viewed photos (for marking stories as seen)
   const handleClose = useCallback(() => {
@@ -495,9 +504,13 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
     ) : null;
   }
 
-  // Format date for display
+  // Format date for display. photo_date is a calendar day (YYYY-MM-DD); new Date() would
+  // read it as UTC midnight, i.e. the previous day west of UTC, so build a local date.
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const day = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+    const date = day
+      ? new Date(Number(day[1]), Number(day[2]) - 1, Number(day[3]))
+      : new Date(dateStr);
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -643,7 +656,7 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
         </div>
 
         {/* Main image */}
-        <div ref={containerRef} className={styles.content} onClick={handleImageTap}>
+        <div ref={containerRef} className={styles.content}>
           {/* Double-tap like animation */}
           {showLikeAnimation && (
             <div className={styles.likeBurst} aria-hidden="true">
@@ -669,7 +682,11 @@ export const StoryViewer: React.FC<StoryViewerProps> = ({
           <div
             ref={trackRef}
             className={`${styles.track} ${isAnimating ? styles.trackAnimating : ''}`}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              // Photo taps must not close the viewer, but still count towards a double-tap like
+              e.stopPropagation();
+              handleImageTap(e);
+            }}
             style={{
               transform: `translateX(${swipeOffset}px)`,
             }}

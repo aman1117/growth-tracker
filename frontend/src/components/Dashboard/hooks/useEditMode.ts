@@ -5,11 +5,20 @@
  * entering, canceling, and saving edit mode changes.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { gl } from '../../../services/goodlogs';
 import type { ActivityName, CustomTile } from '../../../types';
 import type { TileSize } from '../../ActivityTile';
 import { saveTileOrder, saveTileSizes } from '../Dashboard.constants';
+
+type SaveTileConfig = (
+  order: ActivityName[],
+  sizes: Record<ActivityName, TileSize>,
+  hidden: ActivityName[],
+  colors: Record<string, string>,
+  customTilesList: CustomTile[]
+) => Promise<void>;
 
 interface UseEditModeProps {
   isReadOnly: boolean;
@@ -23,13 +32,7 @@ interface UseEditModeProps {
   setHiddenTiles: React.Dispatch<React.SetStateAction<ActivityName[]>>;
   setCustomTiles: React.Dispatch<React.SetStateAction<CustomTile[]>>;
   setTileColors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  saveTileConfigToBackend: (
-    order: ActivityName[],
-    sizes: Record<ActivityName, TileSize>,
-    hidden: ActivityName[],
-    colors: Record<string, string>,
-    customTilesList: CustomTile[]
-  ) => Promise<void>;
+  saveTileConfigToBackend: SaveTileConfig;
 }
 
 interface UseEditModeReturn {
@@ -44,6 +47,11 @@ interface UseEditModeReturn {
   enterEditMode: () => void;
   cancelEditMode: () => void;
   saveEditMode: () => void;
+  /**
+   * Saves the tile config to the server right away (custom tile, restore and delete changes),
+   * remembering it so that Cancel can put the original config back.
+   */
+  persistTileConfig: SaveTileConfig;
 }
 
 export const useEditMode = ({
@@ -71,6 +79,8 @@ export const useEditMode = ({
   const [originalHiddenTiles, setOriginalHiddenTiles] = useState<ActivityName[]>([]);
   const [originalCustomTiles, setOriginalCustomTiles] = useState<CustomTile[]>([]);
   const [originalTileColors, setOriginalTileColors] = useState<Record<string, string>>({});
+  // Whether this editing session already saved changes to the server (Cancel must undo them)
+  const savedDuringEditRef = useRef(false);
 
   const enterEditMode = useCallback(() => {
     if (!isReadOnly && !isEditMode) {
@@ -79,10 +89,19 @@ export const useEditMode = ({
       setOriginalHiddenTiles([...hiddenTiles]);
       setOriginalCustomTiles([...customTiles]);
       setOriginalTileColors({ ...tileColors });
+      savedDuringEditRef.current = false;
       setIsEditMode(true);
       setSelectedTile(null);
     }
   }, [isReadOnly, isEditMode, tileOrder, tileSizes, hiddenTiles, customTiles, tileColors]);
+
+  const persistTileConfig = useCallback<SaveTileConfig>(
+    (order, sizes, hidden, colors, customTilesList) => {
+      savedDuringEditRef.current = true;
+      return saveTileConfigToBackend(order, sizes, hidden, colors, customTilesList);
+    },
+    [saveTileConfigToBackend]
+  );
 
   const cancelEditMode = useCallback(() => {
     // Restore original state
@@ -93,6 +112,18 @@ export const useEditMode = ({
     setTileColors(originalTileColors);
     saveTileOrder(originalTileOrder);
     saveTileSizes(originalTileSizes);
+    // Put the original config back on the server if this session already saved changes there
+    if (savedDuringEditRef.current) {
+      savedDuringEditRef.current = false;
+      gl.debug('tile_config_reverted', { metadata: { trigger: 'edit_cancelled' } });
+      saveTileConfigToBackend(
+        originalTileOrder,
+        originalTileSizes,
+        originalHiddenTiles,
+        originalTileColors,
+        originalCustomTiles
+      );
+    }
     setIsEditMode(false);
     setSelectedTile(null);
   }, [
@@ -106,6 +137,7 @@ export const useEditMode = ({
     setHiddenTiles,
     setCustomTiles,
     setTileColors,
+    saveTileConfigToBackend,
   ]);
 
   const saveEditMode = useCallback(() => {
@@ -143,5 +175,6 @@ export const useEditMode = ({
     enterEditMode,
     cancelEditMode,
     saveEditMode,
+    persistTileConfig,
   };
 };

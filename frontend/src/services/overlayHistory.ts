@@ -174,3 +174,16 @@ export const isOverlayEntryCurrent = (): boolean => {
   const id = readState()?.[OVERLAY_STATE_KEY];
   return !!id && stack.some((entry) => entry.id === id);
 };
+
+/**
+ * Forgets every open overlay and pending Back, as on a fresh page load. The unit-test setup
+ * calls this between tests so one test's overlays cannot affect the next; the app never needs it.
+ */
+export const resetOverlayHistory = (): void => {
+  stack.length = 0;
+  deferredOpens.clear();
+  pendingProgrammaticPops = 0;
+  if (settleTimer) clearTimeout(settleTimer);
+  settleTimer = null;
+  lastKnownIdx = readIdx();
+};

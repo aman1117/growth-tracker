@@ -169,6 +169,7 @@ export const Dashboard: React.FC = () => {
     enterEditMode,
     cancelEditMode: baseCancelEditMode,
     saveEditMode: baseSaveEditMode,
+    persistTileConfig,
   } = useEditMode({
     isReadOnly,
     tileOrder,
@@ -185,9 +186,10 @@ export const Dashboard: React.FC = () => {
   });
 
   // Drag and drop
-  const { activeDragId, sensors, handleDragStart, handleDragEnd } = useDragAndDrop({
-    setTileOrder,
-  });
+  const { activeDragId, sensors, handleDragStart, handleDragEnd, handleDragCancel } =
+    useDragAndDrop({
+      setTileOrder,
+    });
 
   // ============================================================================
   // Refresh State (for pull-to-refresh)
@@ -403,7 +405,7 @@ export const Dashboard: React.FC = () => {
       setTileOrder(newTileOrder);
     }
 
-    saveTileConfigToBackend(newTileOrder, tileSizes, newHiddenTiles, tileColors, customTiles);
+    persistTileConfig(newTileOrder, tileSizes, newHiddenTiles, tileColors, customTiles);
   };
 
   // Custom tile handlers
@@ -433,7 +435,7 @@ export const Dashboard: React.FC = () => {
       setActivities((prev) => ({ ...prev, [activityName]: 0 }));
     }
 
-    saveTileConfigToBackend(newTileOrder, newTileSizes, hiddenTiles, tileColors, newCustomTiles);
+    persistTileConfig(newTileOrder, newTileSizes, hiddenTiles, tileColors, newCustomTiles);
     setShowCustomTileModal(false);
     setEditingCustomTile(undefined);
 
@@ -469,7 +471,7 @@ export const Dashboard: React.FC = () => {
     setHiddenTiles(newHiddenTiles);
     setTileColors(newTileColors);
 
-    saveTileConfigToBackend(newTileOrder, tileSizes, newHiddenTiles, newTileColors, newCustomTiles);
+    persistTileConfig(newTileOrder, tileSizes, newHiddenTiles, newTileColors, newCustomTiles);
 
     const timeoutId = setTimeout(() => setDeletedTile(null), UNDO_TIMEOUT_DURATION);
     setUndoTimeoutId(timeoutId);
@@ -492,8 +494,11 @@ export const Dashboard: React.FC = () => {
 
     const newCustomTiles = [...customTiles, tile];
     const newTileOrder = [...tileOrder];
-    const insertIndex = Math.min(orderIndex, newTileOrder.length);
-    newTileOrder.splice(insertIndex, 0, activityName);
+    // A tile that was not on the grid (missing from the order) stays off it
+    if (orderIndex >= 0) {
+      const insertIndex = Math.min(orderIndex, newTileOrder.length);
+      newTileOrder.splice(insertIndex, 0, activityName);
+    }
     const newHiddenTiles = wasHidden ? [...hiddenTiles, activityName] : hiddenTiles;
     const newTileColors = color ? { ...tileColors, [activityName]: color } : tileColors;
 
@@ -502,7 +507,7 @@ export const Dashboard: React.FC = () => {
     if (wasHidden) setHiddenTiles(newHiddenTiles);
     if (color) setTileColors(newTileColors);
 
-    saveTileConfigToBackend(newTileOrder, tileSizes, newHiddenTiles, newTileColors, newCustomTiles);
+    persistTileConfig(newTileOrder, tileSizes, newHiddenTiles, newTileColors, newCustomTiles);
 
     if (undoTimeoutId) clearTimeout(undoTimeoutId);
     setDeletedTile(null);
@@ -519,7 +524,7 @@ export const Dashboard: React.FC = () => {
     tileColors,
     setTileColors,
     tileSizes,
-    saveTileConfigToBackend,
+    persistTileConfig,
   ]);
 
   // Edit mode handlers with undo cleanup
@@ -736,6 +741,7 @@ export const Dashboard: React.FC = () => {
             sensors={sensors}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
             onActivityClick={handleActivityClick}
             onTileResize={handleTileResize}
             onSelectTile={setSelectedTile}

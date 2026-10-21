@@ -96,7 +96,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const [loading, setLoading] = useState(true);
   const [uploadingActivity, setUploadingActivity] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showActivityPicker, setShowActivityPicker] = useState(false);
   const [showSourcePicker, setShowSourcePicker] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
@@ -206,14 +206,14 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
 
     // Validate
     if (!isValidImageType(file)) {
-      setToastMessage('Please select a JPEG, PNG, or WebP image');
+      setToast({ message: 'Please select a JPEG, PNG, or WebP image', type: 'error' });
       setUploadingActivity(null);
       setSelectedActivity(null);
       return;
     }
 
     if (!isValidImageSize(file)) {
-      setToastMessage('Image must be less than 5MB');
+      setToast({ message: 'Image must be less than 5MB', type: 'error' });
       setUploadingActivity(null);
       setSelectedActivity(null);
       return;
@@ -246,13 +246,13 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
 
       if (response.success && response.photo) {
         setOwnPhotos((prev) => [...prev, response.photo!]);
-        setToastMessage('Photo uploaded!');
+        setToast({ message: 'Photo uploaded!', type: 'success' });
       } else {
-        setToastMessage(response.error || 'Upload failed');
+        setToast({ message: response.error || 'Upload failed', type: 'error' });
       }
     } catch (err) {
       console.error('Upload error:', err);
-      setToastMessage(err instanceof Error ? err.message : 'Upload failed');
+      setToast({ message: err instanceof Error ? err.message : 'Upload failed', type: 'error' });
     } finally {
       setUploadingActivity(null);
       setSelectedActivity(null);
@@ -288,7 +288,7 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
   const handleAddStoryClick = () => {
     const available = getAvailableActivities();
     if (available.length === 0) {
-      setToastMessage("You've added photos for all activities today!");
+      setToast({ message: "You've added photos for all activities today!", type: 'success' });
       return;
     }
     setShowActivityPicker(true);
@@ -558,18 +558,8 @@ export const StoryCirclesRow: React.FC<StoryCirclesRowProps> = ({
       </Modal>
 
       {/* Toast notification */}
-      {toastMessage && (
-        <SnapToast
-          message={toastMessage}
-          type={
-            toastMessage.includes('failed') ||
-            toastMessage.includes('Please') ||
-            toastMessage.includes('must be')
-              ? 'error'
-              : 'success'
-          }
-          onClose={() => setToastMessage(null)}
-        />
+      {toast?.message && (
+        <SnapToast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
     </section>
   );

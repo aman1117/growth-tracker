@@ -86,6 +86,7 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
   const [viewDate, setViewDate] = useState(selectedDate);
   const [view, setView] = useState<'days' | 'months' | 'years'>('days');
   const calendarRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Generate years for year picker (2020 to current year)
   const years = useMemo(() => {
@@ -97,15 +98,19 @@ export const CalendarPicker: React.FC<CalendarPickerProps> = ({
     return result;
   }, [maxDate]);
 
-  // Reset view when calendar opens
+  // Plays the exit animation, then tells the parent. One press can reach several close triggers
+  // (outside press, overlay click, touch), so requests made while closing are ignored.
   const handleClose = useCallback(() => {
+    if (closeTimerRef.current !== null) return;
     setIsClosing(true);
-    setTimeout(() => {
+    closeTimerRef.current = setTimeout(() => {
+      closeTimerRef.current = null;
       onClose();
       setIsClosing(false);
     }, 150);
   }, [onClose]);
 
+  // Reset view when calendar opens
   useEffect(() => {
     if (isOpen) {
       setViewDate(selectedDate);

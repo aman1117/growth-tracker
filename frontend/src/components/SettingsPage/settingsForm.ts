@@ -25,22 +25,3 @@ export const getRequestErrorMessage = (error: unknown, fallback: string): string
 /** Error code from an API failure, safe to log */
 export const getErrorCode = (error: unknown): string | undefined =>
   error instanceof ApiError ? error.errorCode || `HTTP_${error.statusCode}` : undefined;
-
-const encoder = new TextEncoder();
-
-/** UTF-8 length, which is what the server measures for text limits */
-export const utf8Length = (value: string): number => encoder.encode(value).length;
-
-/** Longest prefix of `value` that fits in `maxBytes` UTF-8 bytes, never splitting a character */
-export const clampToUtf8Bytes = (value: string, maxBytes: number): string => {
-  if (utf8Length(value) <= maxBytes) return value;
-  let result = '';
-  let bytes = 0;
-  for (const char of value) {
-    const size = utf8Length(char);
-    if (bytes + size > maxBytes) break;
-    result += char;
-    bytes += size;
-  }
-  return result;
-};

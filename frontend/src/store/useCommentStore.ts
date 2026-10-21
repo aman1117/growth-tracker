@@ -175,11 +175,13 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
           loading: false,
           sort: currentSort,
         }));
+        return;
       }
     } catch (error) {
       console.error('[CommentStore] fetchComments failed:', error);
-      set({ loading: false });
     }
+    // Refused or failed: keep what is shown and stop the spinner
+    set({ loading: false });
   },
 
   fetchReplies: async (commentId, reset) => {
@@ -211,19 +213,20 @@ export const useCommentStore = create<CommentStore>((set, get) => ({
             },
           },
         }));
+        return;
       }
     } catch (error) {
       console.error('[CommentStore] fetchReplies failed:', error);
-      set((state) => ({
-        repliesByRoot: {
-          ...state.repliesByRoot,
-          [commentId]: {
-            ...state.repliesByRoot[commentId],
-            loading: false,
-          },
-        },
-      }));
     }
+    // Refused or failed: keep the loaded replies and stop the thread's spinner
+    set((state) => {
+      const thread = state.repliesByRoot[commentId];
+      // The thread may have been cleared while the request was in flight
+      if (!thread) return state;
+      return {
+        repliesByRoot: { ...state.repliesByRoot, [commentId]: { ...thread, loading: false } },
+      };
+    });
   },
 
   createComment: async (username, date, body) => {

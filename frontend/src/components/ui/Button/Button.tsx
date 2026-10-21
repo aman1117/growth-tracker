@@ -76,7 +76,11 @@ export const Button: React.FC<ButtonProps> = ({
       {!iconOnly && (
         <>
           <span className={styles.text}>{children}</span>
-          {hoverLabel && <span className={styles.hoverText}>{hoverLabel}</span>}
+          {hoverLabel && (
+            <span className={styles.hoverText} aria-hidden="true">
+              {hoverLabel}
+            </span>
+          )}
         </>
       )}
       {!loading && iconRight && <span className={styles.iconRight}>{iconRight}</span>}

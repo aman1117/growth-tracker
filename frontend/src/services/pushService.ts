@@ -8,6 +8,7 @@
  * - Preferences management
  */
 
+import { env } from '../config/env';
 import type {
   PreferencesResponse,
   PushSubscriptionData,
@@ -17,7 +18,7 @@ import type {
   UpdatePreferencesRequest,
   VapidKeyResponse,
 } from '../types/push';
-import { apiClient } from './api';
+import { apiClient, ApiError } from './api';
 
 // ============================================================================
 // Constants
@@ -30,12 +31,22 @@ const PUSH_ROUTES = {
   PREFERENCES: '/push/preferences',
 } as const;
 
+// Same base URL as apiClient, for the one request that must bypass it (unregisterDevice)
+const API_BASE_URL = `${env.apiUrl}/api`;
+
 // Cache VAPID key to avoid repeated API calls
 let cachedVapidKey: string | null = null;
+
+/** Outcome of confirming the browser's existing subscription with the server */
+export type SubscriptionCheck = 'registered' | 'removed' | 'unchecked';
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/** The server answers 409 when the endpoint is registered to another account */
+const isEndpointConflict = (error: unknown): boolean =>
+  error instanceof ApiError && error.statusCode === 409;
 
 /**
  * Convert URL-safe base64 to Uint8Array for push subscription
@@ -233,6 +244,23 @@ class PushService {
 
     // Create browser subscription
     const subscription = await this.createBrowserSubscription();
+    try {
+      return await this.registerSubscription(subscription);
+    } catch (error) {
+      if (!isEndpointConflict(error)) throw error;
+      // The browser still holds a subscription registered to another account (its logout
+      // could not unregister it): replace it with a fresh one and register that, once
+      console.info('[Push] Replacing a subscription registered to another account');
+      await subscription.unsubscribe();
+      return this.registerSubscription(await this.createBrowserSubscription());
+    }
+  }
+
+  /**
+   * Register a browser subscription with the backend for the signed-in user. The server
+   * upserts by endpoint, so registering the same subscription again is harmless.
+   */
+  async registerSubscription(subscription: PushSubscription): Promise<SubscribeResponse> {
     const subscriptionData = this.extractSubscriptionData(subscription);
     const { browser, platform } = getBrowserInfo();
 
@@ -249,9 +277,74 @@ class PushService {
       },
     };
 
-    const response = await apiClient.post<SubscribeResponse>(PUSH_ROUTES.SUBSCRIBE, request);
+    return apiClient.post<SubscribeResponse>(PUSH_ROUTES.SUBSCRIBE, request);
+  }
 
-    return response;
+  /**
+   * Confirm that the browser's existing subscription belongs to the signed-in user by
+   * registering it again. A 409 means another account registered it, so that account's
+   * session on this browser is over: the subscription is removed. Never throws.
+   *
+   * @returns 'registered', 'removed' (it was another account's) or 'unchecked' (the server
+   * could not be asked, e.g. offline)
+   */
+  async confirmSubscription(subscription: PushSubscription): Promise<SubscriptionCheck> {
+    try {
+      await this.registerSubscription(subscription);
+      return 'registered';
+    } catch (error) {
+      if (!isEndpointConflict(error)) return 'unchecked';
+    }
+
+    console.info('[Push] This browser was subscribed for another account; removing it');
+    try {
+      await subscription.unsubscribe();
+    } catch (error) {
+      console.warn('[Push] Could not remove the other account’s subscription', error);
+    }
+    return 'removed';
+  }
+
+  /**
+   * Stop this browser receiving the signed-out account's pushes (explicit logout only).
+   *
+   * The server is told with the token captured before logout cleared it, through a keepalive
+   * fetch rather than apiClient, whose 401 handling would reload the app mid-logout. The
+   * browser subscription is then removed whatever the server answered: if the request failed
+   * (offline), the push service answers 410 for the dead endpoint and the server marks it
+   * gone. Never throws, and never waits for a service worker that is not installed.
+   */
+  async unregisterDevice(token: string | null): Promise<void> {
+    if (!this.isSupported()) return;
+
+    try {
+      // getRegistration(), unlike `ready`, resolves (to undefined) without a service worker
+      const registration = await navigator.serviceWorker.getRegistration();
+      const subscription = await registration?.pushManager.getSubscription();
+      if (!subscription) return;
+
+      if (token) {
+        try {
+          const response = await fetch(`${API_BASE_URL}${PUSH_ROUTES.UNSUBSCRIBE}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ endpoint: subscription.endpoint }),
+            keepalive: true,
+          });
+          if (!response.ok) {
+            console.warn('[Push] Server did not unregister this device', {
+              status: response.status,
+            });
+          }
+        } catch (error) {
+          console.warn('[Push] Could not reach the server to unregister this device', error);
+        }
+      }
+
+      await subscription.unsubscribe();
+    } catch (error) {
+      console.warn('[Push] Could not remove this device’s push subscription', error);
+    }
   }
 
   /**

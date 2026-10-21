@@ -133,6 +133,11 @@ export interface FollowButtonProps {
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   onStateChange?: (newState: RelationshipState) => void;
+  /**
+   * Offer Accept/Decline when this user has asked to follow you (default true).
+   * Lists that are not about requests turn this off; requests live in FollowRequestsModal.
+   */
+  showRequestActions?: boolean;
 }
 
 export interface FollowListModalProps {
@@ -157,4 +162,6 @@ export interface UserCardProps {
   onRemove?: (userId: number) => void;
   isRemoving?: boolean;
   onUserClick?: (username: string) => void;
+  /** Passed to FollowButton: offer Accept/Decline for incoming follow requests (default true) */
+  showRequestActions?: boolean;
 }

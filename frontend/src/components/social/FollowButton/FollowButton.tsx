@@ -29,6 +29,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   size = 'md',
   fullWidth = false,
   onStateChange,
+  showRequestActions = true,
 }) => {
   const { user } = useAuth();
   const cachedState = useRelationship(userId);
@@ -136,7 +137,7 @@ export const FollowButton: React.FC<FollowButtonProps> = ({
   }
 
   // Show Follow/Following + Accept/Decline buttons when there's an incoming pending request
-  if (currentState?.incoming_pending) {
+  if (showRequestActions && currentState?.incoming_pending) {
     const alreadyFollowing = currentState?.following;
     return (
       <div className={styles.incomingActions}>

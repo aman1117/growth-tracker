@@ -20,6 +20,7 @@ export const UserCard: React.FC<UserCardProps> = ({
   onRemove,
   isRemoving = false,
   onUserClick,
+  showRequestActions = true,
 }) => {
   const navigate = useOverlayAwareNavigate();
   const { user: currentUser } = useAuth();
@@ -63,6 +64,7 @@ export const UserCard: React.FC<UserCardProps> = ({
                 isPrivate={user.is_private}
                 initialState={user.relationship_state}
                 size="sm"
+                showRequestActions={showRequestActions}
               />
             )}
 

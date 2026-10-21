@@ -273,8 +273,18 @@
   display: none;
 }
 
+/* Visually hidden (like .sr-only) rather than display: none, so the visible label stays the
+   button's accessible name while the aria-hidden hover label is shown */
 .hasHoverLabel:hover .text {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .hasHoverLabel:hover .hoverText {

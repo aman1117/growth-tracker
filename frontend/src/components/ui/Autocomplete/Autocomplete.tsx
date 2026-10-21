@@ -138,13 +138,23 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
   useEffect(() => {
     const query = debouncedQuery;
 
-    // If query is empty and we have initial suggestions, show them
+    // Too short to search: show the initial suggestions while the input has focus, else close
     if (query.length < minChars) {
-      setSuggestions([]);
-      setShowingInitial(false);
+      // A search still in flight belongs to an older query, so ignore its result
+      requestCounterRef.current++;
+      setIsLoading(false);
       setActiveIndex(-1);
-      // Don't close if we have initial suggestions
-      if (!initialSuggestions || initialSuggestions.length === 0) {
+      if (
+        initialSuggestions &&
+        initialSuggestions.length > 0 &&
+        document.activeElement === inputRef.current
+      ) {
+        setSuggestions(initialSuggestions);
+        setShowingInitial(true);
+        setIsOpen(true);
+      } else {
+        setSuggestions([]);
+        setShowingInitial(false);
         setIsOpen(false);
       }
       return;
@@ -337,11 +347,13 @@ export const Autocomplete: React.FC<AutocompleteProps> = ({
 
   // Handle clear button click
   const handleClear = useCallback(() => {
+    // Focus first: the focus handler still sees the old query and would reopen its results,
+    // so the resets below must come after it
+    inputRef.current?.focus();
     setInputValue('');
     setSuggestions([]);
     setIsOpen(false);
     setActiveIndex(-1);
-    inputRef.current?.focus();
   }, []);
 
   // Scroll active item into view

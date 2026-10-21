@@ -6,6 +6,7 @@
  */
 
 import { Bell } from 'lucide-react';
+import type { Ref } from 'react';
 import React from 'react';
 
 import { useUnreadCount } from '../../../store';
@@ -14,13 +15,16 @@ import styles from './Notification.module.css';
 interface NotificationBellProps {
   onClick: () => void;
   isOpen: boolean;
+  /** Ref to the underlying button (React 19 passes refs as props) */
+  ref?: Ref<HTMLButtonElement>;
 }
 
-export const NotificationBell: React.FC<NotificationBellProps> = ({ onClick, isOpen }) => {
+export const NotificationBell: React.FC<NotificationBellProps> = ({ onClick, isOpen, ref }) => {
   const unreadCount = useUnreadCount();
 
   return (
     <button
+      ref={ref}
       className={`${styles.bellButton} ${isOpen ? styles.bellActive : ''}`}
       onClick={onClick}
       aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}

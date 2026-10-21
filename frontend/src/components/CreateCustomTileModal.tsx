@@ -12,6 +12,7 @@ import { ACTIVITY_CONFIG, DEFAULT_TILE_COLOR } from '../constants';
 import type { CustomTile, PredefinedActivityName } from '../types';
 import { ACTIVITY_NAMES, MAX_CUSTOM_TILES } from '../types';
 import { getOnColorTone } from '../utils/color';
+import { applyCharacterLimit, characterCount } from '../utils/text';
 import { ColorPicker } from './ColorPicker';
 import styles from './CreateCustomTileModal.module.css';
 import { DynamicIcon } from './DynamicIcon';
@@ -80,7 +81,7 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
         setError('Please enter a name for your tile');
         return;
       }
-      if (trimmedName.length > NAME_LIMIT) {
+      if (characterCount(trimmedName) > NAME_LIMIT) {
         setError('Name cannot exceed 20 characters');
         return;
       }
@@ -130,13 +131,17 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
     [name, icon, color, existingTile, isEditing, currentTileCount, existingTiles, onSave, onClose]
   );
 
-  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value.length <= NAME_LIMIT) {
+  // Limits by characters (as the server counts them), so each emoji counts once
+  const handleNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = applyCharacterLimit(e.target.value, name, NAME_LIMIT);
+      // Typing into a full field changes nothing, so any error message stays
+      if (value === name) return;
       setName(value);
       setError(null);
-    }
-  }, []);
+    },
+    [name]
+  );
 
   if (!isOpen) return null;
 
@@ -212,7 +217,6 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
               value={name}
               onChange={handleNameChange}
               placeholder="e.g. Guitar practice"
-              maxLength={NAME_LIMIT}
               autoComplete="off"
               enterKeyHint="done"
               className={styles.nameInput}
@@ -220,7 +224,7 @@ export const CreateCustomTileModal: React.FC<CreateCustomTileModalProps> = ({
               aria-invalid={!!error || undefined}
             />
             <span id={nameCountId} className={styles.counter}>
-              {name.length}/{NAME_LIMIT}
+              {characterCount(name)}/{NAME_LIMIT}
             </span>
           </div>
         </div>

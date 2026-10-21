@@ -92,7 +92,11 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
+      // Keys pressed on the inner delete/username buttons belong to those buttons
+      if (e.target !== e.currentTarget) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        // Space would otherwise scroll the page
+        if (e.key === ' ') e.preventDefault();
         handleItemAction();
       }
     },

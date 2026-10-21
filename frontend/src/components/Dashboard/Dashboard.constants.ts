@@ -4,7 +4,7 @@
  * Storage keys, default configurations, and helper functions for tile management.
  */
 
-import { STORAGE_KEYS } from '../../constants';
+import { ACTIVITY_CACHE_KEY_PREFIX, STORAGE_KEYS } from '../../constants';
 import type { ActivityName } from '../../types';
 import { ACTIVITY_NAMES } from '../../types';
 import type { TileSize } from '../ActivityTile';
@@ -159,7 +159,7 @@ export const getDateFromSearchParams = (searchParams: URLSearchParams): Date | n
  * Get cache key for offline data
  */
 export const getCacheKey = (username: string, date: string): string => {
-  return `dashboard_${username}_${date}`;
+  return `${ACTIVITY_CACHE_KEY_PREFIX}${username}_${date}`;
 };
 
 /**

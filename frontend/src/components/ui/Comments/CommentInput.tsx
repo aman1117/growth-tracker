@@ -10,9 +10,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useCommentStore } from '../../../store/useCommentStore';
 import { showError } from '../../../store/useToastStore';
+import { applyCharacterLimit, characterCount } from '../../../utils/text';
 import styles from './CommentInput.module.css';
 import { MentionAutocomplete } from './MentionAutocomplete';
 
+// Counted in characters (Unicode code points), like the server
 const MAX_LENGTH = 200;
 const CHAR_COUNTER_THRESHOLD = 0.8; // Show at 80%
 
@@ -35,6 +37,8 @@ export const CommentInput: React.FC<CommentInputProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionStartIdx, setMentionStartIdx] = useState(-1);
+  // Set when a picked mention didn't fit: the counter shows its at-limit warning until the next edit
+  const [mentionDidNotFit, setMentionDidNotFit] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const createComment = useCommentStore((s) => s.createComment);
   const createReply = useCommentStore((s) => s.createReply);
@@ -55,30 +59,39 @@ export const CommentInput: React.FC<CommentInputProps> = ({
     }
   }, [body]);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    if (value.length <= MAX_LENGTH) {
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = applyCharacterLimit(e.target.value, body, MAX_LENGTH);
       setBody(value);
-    }
+      setMentionDidNotFit(false);
 
-    // Detect @mention trigger
-    const cursorPos = e.target.selectionStart;
-    const textUpToCursor = value.slice(0, cursorPos);
-    const atMatch = textUpToCursor.match(/@([a-z0-9_.]{0,20})$/i);
-    if (atMatch) {
-      setMentionQuery(atMatch[1]);
-      setMentionStartIdx(cursorPos - atMatch[0].length);
-    } else {
-      setMentionQuery(null);
-      setMentionStartIdx(-1);
-    }
-  }, []);
+      // Detect @mention trigger. When the limit changed the edit, React writes the kept value
+      // back into the field, which moves the cursor to the end.
+      const cursorPos = value === e.target.value ? e.target.selectionStart : value.length;
+      const textUpToCursor = value.slice(0, cursorPos);
+      const atMatch = textUpToCursor.match(/@([a-z0-9_.]{0,20})$/i);
+      if (atMatch) {
+        setMentionQuery(atMatch[1]);
+        setMentionStartIdx(cursorPos - atMatch[0].length);
+      } else {
+        setMentionQuery(null);
+        setMentionStartIdx(-1);
+      }
+    },
+    [body]
+  );
 
   const handleMentionSelect = useCallback(
     (selectedUsername: string) => {
       const before = body.slice(0, mentionStartIdx);
       const after = body.slice(mentionStartIdx + (mentionQuery ? mentionQuery.length + 1 : 1));
       const newBody = `${before}@${selectedUsername} ${after}`;
+      // Insert the mention only if it fits whole: a cut-off username would mention someone else
+      if (characterCount(newBody) > MAX_LENGTH) {
+        setMentionDidNotFit(true);
+        return;
+      }
+      setMentionDidNotFit(false);
       setBody(newBody);
       setMentionQuery(null);
       setMentionStartIdx(-1);
@@ -111,6 +124,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
 
       if (result) {
         setBody('');
+        setMentionDidNotFit(false);
         setMentionQuery(null);
         setMentionStartIdx(-1);
         onCommentPosted();
@@ -144,8 +158,9 @@ export const CommentInput: React.FC<CommentInputProps> = ({
     [handleSubmit, replyTarget, onCancelReply, isMobile]
   );
 
-  const showCharCounter = body.length > MAX_LENGTH * CHAR_COUNTER_THRESHOLD;
-  const isOverLimit = body.length >= MAX_LENGTH;
+  const characters = characterCount(body);
+  const showCharCounter = characters > MAX_LENGTH * CHAR_COUNTER_THRESHOLD || mentionDidNotFit;
+  const isOverLimit = characters >= MAX_LENGTH || mentionDidNotFit;
   const canSubmit = body.trim().length > 0 && !submitting;
 
   return (
@@ -188,7 +203,6 @@ export const CommentInput: React.FC<CommentInputProps> = ({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           rows={1}
-          maxLength={MAX_LENGTH}
           disabled={submitting}
           aria-label="Comment input"
         />
@@ -206,7 +220,7 @@ export const CommentInput: React.FC<CommentInputProps> = ({
       {/* Character counter */}
       {showCharCounter && (
         <div className={`${styles.charCounter} ${isOverLimit ? styles.charCounterWarning : ''}`}>
-          {body.length}/{MAX_LENGTH}
+          {characters}/{MAX_LENGTH}
         </div>
       )}
     </div>

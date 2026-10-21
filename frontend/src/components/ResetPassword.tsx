@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
+import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
 import { api, ApiError } from '../services/api';
+import { characterCount } from '../utils/text';
 import { AuthShell, authStyles } from './auth';
 import { PasswordInput, SnapToast } from './ui';
 
@@ -57,8 +59,9 @@ export const ResetPassword: React.FC = () => {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setToast({ message: 'Password must be at least 8 characters', type: 'error' });
+    // Count characters like the server does, so an emoji counts once
+    if (characterCount(newPassword) < VALIDATION.PASSWORD_MIN_LENGTH) {
+      setToast({ message: VALIDATION_MESSAGES.PASSWORD_LENGTH_ERROR, type: 'error' });
       return;
     }
 

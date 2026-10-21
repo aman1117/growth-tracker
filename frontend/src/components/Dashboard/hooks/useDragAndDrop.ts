@@ -21,6 +21,7 @@ interface UseDragAndDropReturn {
   sensors: ReturnType<typeof useSensors>;
   handleDragStart: (event: DragStartEvent) => void;
   handleDragEnd: (event: DragEndEvent) => void;
+  handleDragCancel: () => void;
 }
 
 export const useDragAndDrop = ({ setTileOrder }: UseDragAndDropProps): UseDragAndDropReturn => {
@@ -69,10 +70,16 @@ export const useDragAndDrop = ({ setTileOrder }: UseDragAndDropProps): UseDragAn
     }
   };
 
+  // A cancelled drag (Escape, window resize, switching tabs) leaves the order unchanged
+  const handleDragCancel = () => {
+    setActiveDragId(null);
+  };
+
   return {
     activeDragId,
     sensors,
     handleDragStart,
     handleDragEnd,
+    handleDragCancel,
   };
 };

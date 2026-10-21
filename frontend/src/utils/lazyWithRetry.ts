@@ -40,7 +40,7 @@ export function lazyWithRetry<T extends ComponentType<object>>(
   return lazy(async () => {
     try {
       return await factory();
-    } catch (firstError) {
+    } catch {
       console.warn('[lazyWithRetry] Chunk load failed, retrying', { chunkName });
       await wait(RETRY_DELAY_MS);
       try {
@@ -55,7 +55,7 @@ export function lazyWithRetry<T extends ComponentType<object>>(
         }
         console.error('[lazyWithRetry] Chunk load failed permanently', {
           chunkName,
-          error: secondError instanceof Error ? secondError.message : String(firstError),
+          error: secondError instanceof Error ? secondError.message : String(secondError),
         });
         throw secondError;
       }

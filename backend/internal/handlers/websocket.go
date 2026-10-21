@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"sync"
 	"time"
 
@@ -39,6 +40,37 @@ var (
 	wsReadTimeout  = constants.WSReadTimeout
 )
 
+var errWSConnClosed = errors.New("websocket connection closed")
+
+// wsConn is a client connection. A WebSocket connection allows one writer at a time, and both
+// the connection's handler and BroadcastToUser write to it, so every write goes through write.
+type wsConn struct {
+	conn   *websocket.Conn
+	mu     sync.Mutex
+	closed bool
+}
+
+// write sends one message, unless the connection's handler has finished
+func (w *wsConn) write(messageType int, data []byte) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if w.closed {
+		return errWSConnClosed
+	}
+	if err := w.conn.SetWriteDeadline(time.Now().Add(constants.WSWriteTimeout)); err != nil {
+		return err
+	}
+	return w.conn.WriteMessage(messageType, data)
+}
+
+// close stops all further writes. The handler calls it before it returns, because the
+// connection is recycled for another client after that.
+func (w *wsConn) close() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.closed = true
+}
+
 // NotificationWSHandler handles WebSocket connections for real-time notifications
 type NotificationWSHandler struct {
 	notifSvc *services.NotificationService
@@ -46,7 +78,7 @@ type NotificationWSHandler struct {
 
 	// Connection management
 	mu          sync.RWMutex
-	connections map[uint]map[string]*websocket.Conn // userID -> connID -> conn
+	connections map[uint]map[string]*wsConn // userID -> connID -> conn
 }
 
 // NewNotificationWSHandler creates a new NotificationWSHandler
@@ -54,7 +86,7 @@ func NewNotificationWSHandler(notifSvc *services.NotificationService, tokenSvc *
 	return &NotificationWSHandler{
 		notifSvc:    notifSvc,
 		tokenSvc:    tokenSvc,
-		connections: make(map[uint]map[string]*websocket.Conn),
+		connections: make(map[uint]map[string]*wsConn),
 	}
 }
 
@@ -96,6 +128,7 @@ func (h *NotificationWSHandler) HandleConnection() fiber.Handler {
 		userID := c.Locals("user_id").(uint)
 		username := c.Locals("username").(string)
 		connID := uuid.New().String()
+		wc := &wsConn{conn: c}
 
 		log := logger.LogWithFullContext("ws-"+connID[:8], userID, username)
 		log.Infow("WebSocket connection initiated")
@@ -106,26 +139,33 @@ func (h *NotificationWSHandler) HandleConnection() fiber.Handler {
 		allowed, err := h.notifSvc.TrackWSConnection(ctx, userID, connID)
 		if err != nil {
 			log.Errorw("Failed to track WebSocket connection", "error", err)
-			h.sendMessage(c, WSTypeError, "Internal server error")
+			h.sendMessage(wc, WSTypeError, "Internal server error")
 			return
 		}
 		if !allowed {
 			log.Warnw("Max WebSocket connections exceeded")
-			h.sendMessage(c, WSTypeError, "Maximum connections exceeded. Please close other tabs.")
+			h.sendMessage(wc, WSTypeError, "Maximum connections exceeded. Please close other tabs.")
 			return
 		}
 
-		// Register connection locally
-		h.addConnection(userID, connID, c)
+		// Register connection locally. Cleanup runs before this handler returns and c is
+		// recycled: the connection leaves the map and stops accepting writes first.
+		h.addConnection(userID, connID, wc)
+		defer func() {
+			h.removeConnection(userID, connID)
+			wc.close()
+			h.notifSvc.RemoveWSConnection(ctx, userID, connID)
+			log.Infow("WebSocket connection closed")
+		}()
 
 		// Send connected confirmation
-		h.sendMessage(c, WSTypeConnected, map[string]interface{}{
+		h.sendMessage(wc, WSTypeConnected, map[string]interface{}{
 			"connection_id": connID,
 			"user_id":       userID,
 		})
 
 		// Deliver any pending notifications
-		h.deliverPendingNotifications(ctx, c, userID, log)
+		h.deliverPendingNotifications(ctx, wc, userID, log)
 
 		// Subscribe to Redis pub/sub for this user
 		pubsub := h.notifSvc.SubscribeToNotifications(ctx, userID)
@@ -138,13 +178,6 @@ func (h *NotificationWSHandler) HandleConnection() fiber.Handler {
 		// Setup ping ticker for heartbeat
 		pingTicker := time.NewTicker(wsPingInterval)
 		defer pingTicker.Stop()
-
-		// Cleanup on disconnect
-		defer func() {
-			h.removeConnection(userID, connID)
-			h.notifSvc.RemoveWSConnection(ctx, userID, connID)
-			log.Infow("WebSocket connection closed")
-		}()
 
 		// Set read deadline and message size limit
 		c.SetReadLimit(constants.WSMaxMessageSize)
@@ -186,8 +219,7 @@ func (h *NotificationWSHandler) HandleConnection() fiber.Handler {
 
 			case <-pingTicker.C:
 				// Send ping for heartbeat
-				c.SetWriteDeadline(time.Now().Add(constants.WSWriteTimeout))
-				if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
+				if err := wc.write(websocket.PingMessage, nil); err != nil {
 					log.Warnw("Failed to send ping", "error", err)
 					return
 				}
@@ -199,7 +231,7 @@ func (h *NotificationWSHandler) HandleConnection() fiber.Handler {
 					return // Channel closed
 				}
 				// Forward notification from Redis pub/sub to WebSocket
-				h.forwardPubSubMessage(c, msg, log)
+				h.forwardPubSubMessage(wc, msg, log)
 			}
 		}
 	}, websocket.Config{
@@ -227,9 +259,7 @@ func (h *NotificationWSHandler) handleClientMessage(c *websocket.Conn, message [
 }
 
 // forwardPubSubMessage forwards a Redis pub/sub message to the WebSocket
-func (h *NotificationWSHandler) forwardPubSubMessage(c *websocket.Conn, msg *goredis.Message, log *zap.SugaredLogger) {
-	c.SetWriteDeadline(time.Now().Add(constants.WSWriteTimeout))
-
+func (h *NotificationWSHandler) forwardPubSubMessage(wc *wsConn, msg *goredis.Message, log *zap.SugaredLogger) {
 	// Create WebSocket message wrapper
 	// msg.Payload is already the JSON string of the notification
 	wsMsg := WSMessage{
@@ -243,13 +273,13 @@ func (h *NotificationWSHandler) forwardPubSubMessage(c *websocket.Conn, msg *gor
 		return
 	}
 
-	if err := c.WriteMessage(websocket.TextMessage, data); err != nil {
+	if err := wc.write(websocket.TextMessage, data); err != nil {
 		log.Warnw("Failed to send notification via WebSocket", "error", err)
 	}
 }
 
 // deliverPendingNotifications sends any pending notifications on reconnect
-func (h *NotificationWSHandler) deliverPendingNotifications(ctx context.Context, c *websocket.Conn, userID uint, log *zap.SugaredLogger) {
+func (h *NotificationWSHandler) deliverPendingNotifications(ctx context.Context, wc *wsConn, userID uint, log *zap.SugaredLogger) {
 	pending, err := h.notifSvc.GetPendingNotifications(ctx, userID)
 	if err != nil {
 		log.Warnw("Failed to get pending notifications", "error", err)
@@ -276,14 +306,13 @@ func (h *NotificationWSHandler) deliverPendingNotifications(ctx context.Context,
 		return
 	}
 
-	c.SetWriteDeadline(time.Now().Add(constants.WSWriteTimeout))
-	if err := c.WriteMessage(websocket.TextMessage, data); err != nil {
+	if err := wc.write(websocket.TextMessage, data); err != nil {
 		log.Warnw("Failed to send pending notifications", "error", err)
 	}
 }
 
 // sendMessage sends a typed message over WebSocket
-func (h *NotificationWSHandler) sendMessage(c *websocket.Conn, msgType string, payload interface{}) {
+func (h *NotificationWSHandler) sendMessage(wc *wsConn, msgType string, payload interface{}) {
 	msg := WSMessage{
 		Type:    msgType,
 		Payload: payload,
@@ -294,17 +323,16 @@ func (h *NotificationWSHandler) sendMessage(c *websocket.Conn, msgType string, p
 		return
 	}
 
-	c.SetWriteDeadline(time.Now().Add(constants.WSWriteTimeout))
-	c.WriteMessage(websocket.TextMessage, data)
+	_ = wc.write(websocket.TextMessage, data)
 }
 
 // addConnection adds a WebSocket connection to the local map
-func (h *NotificationWSHandler) addConnection(userID uint, connID string, conn *websocket.Conn) {
+func (h *NotificationWSHandler) addConnection(userID uint, connID string, conn *wsConn) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
 	if h.connections[userID] == nil {
-		h.connections[userID] = make(map[string]*websocket.Conn)
+		h.connections[userID] = make(map[string]*wsConn)
 	}
 	h.connections[userID][connID] = conn
 }
@@ -322,11 +350,12 @@ func (h *NotificationWSHandler) removeConnection(userID uint, connID string) {
 	}
 }
 
-// BroadcastToUser sends a message to all connections of a user (local instance only)
+// BroadcastToUser sends a message to all connections of a user (local instance only). It is safe
+// to call from any goroutine.
 func (h *NotificationWSHandler) BroadcastToUser(userID uint, msgType string, payload interface{}) {
 	// Copy the user's connections under the read lock: the map changes as clients come and go
 	h.mu.RLock()
-	conns := make([]*websocket.Conn, 0, len(h.connections[userID]))
+	conns := make([]*wsConn, 0, len(h.connections[userID]))
 	for _, conn := range h.connections[userID] {
 		conns = append(conns, conn)
 	}
@@ -346,8 +375,8 @@ func (h *NotificationWSHandler) BroadcastToUser(userID uint, msgType string, pay
 		return
 	}
 
+	// A connection that closed after the copy refuses the write
 	for _, conn := range conns {
-		conn.SetWriteDeadline(time.Now().Add(constants.WSWriteTimeout))
-		conn.WriteMessage(websocket.TextMessage, data)
+		_ = conn.write(websocket.TextMessage, data)
 	}
 }

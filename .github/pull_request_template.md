@@ -16,8 +16,8 @@ List the commands you ran.
 
 ```bash
 # Example
-cd frontend && npm run lint && npm run format:check && npm run typecheck && npm run build
-cd backend && go fmt ./... && go vet ./... && go build ./...
+cd frontend && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build
+cd backend && go fmt ./... && go vet ./... && go test ./... && go build ./...
 ```
 
 ## Screenshots or Recordings

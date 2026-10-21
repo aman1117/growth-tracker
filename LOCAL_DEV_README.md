@@ -198,6 +198,20 @@ docker exec -it growth-tracker-backend sh
 docker exec -it growth-tracker-frontend sh
 ```
 
+### Run Unit Tests
+
+Unit tests run on the host and don't need the stack, but the backend suite can reuse the Compose
+database to skip starting an embedded PostgreSQL. Each test package creates and drops its own
+temporary database, so `growth_tracker_dev` is never touched.
+
+```powershell
+# Frontend
+cd frontend; npm test
+
+# Backend, against the Compose database (omit TEST_DATABASE_URL to use an embedded PostgreSQL)
+cd backend; $env:TEST_DATABASE_URL = 'postgres://localdev:localdevpassword@localhost:5432/postgres?sslmode=disable'; go test ./...
+```
+
 ## Hot Reload
 
 Both backend and frontend support hot-reload:

@@ -483,7 +483,13 @@ func (s *StreakService) AddStreak(userID uint, date time.Time, isCron bool) erro
 	// No previous streak - check if there's a streak for today
 	streakToUpdate, _ := s.streakRepo.FindByUserAndDate(userID, date)
 	if streakToUpdate != nil && streakToUpdate.ID != 0 {
-		return nil // Already exists
+		if streakToUpdate.Current != 0 {
+			return nil // Already counted
+		}
+		// The daily job opened today's record before the user's first activity: count the day
+		streakToUpdate.Current = current + 1
+		streakToUpdate.Longest = max(streakToUpdate.Longest, streakToUpdate.Current)
+		return s.streakRepo.Update(streakToUpdate)
 	}
 
 	// Create new streak

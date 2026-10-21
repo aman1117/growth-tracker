@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
 	"github.com/aman1117/backend/internal/config"
@@ -30,10 +31,18 @@ type PushMessage struct {
 	CreatedAt        time.Time              `json:"created_at"`
 }
 
+// serviceBusSender is the subset of *azservicebus.Sender used here (an interface so tests can fake it).
+type serviceBusSender interface {
+	NewMessageBatch(ctx context.Context, options *azservicebus.MessageBatchOptions) (*azservicebus.MessageBatch, error)
+	SendMessageBatch(ctx context.Context, batch *azservicebus.MessageBatch, options *azservicebus.SendMessageBatchOptions) error
+	SendMessage(ctx context.Context, message *azservicebus.Message, options *azservicebus.SendMessageOptions) error
+	Close(ctx context.Context) error
+}
+
 // PushPublisher handles publishing push notifications to Azure Service Bus
 type PushPublisher struct {
 	client *azservicebus.Client
-	sender *azservicebus.Sender
+	sender serviceBusSender
 	config *config.Config
 	mu     sync.RWMutex
 
@@ -128,12 +137,21 @@ func NewPushPublisher(cfg *config.Config) (*PushPublisher, error) {
 
 // warmupConnection sends a probe to establish the AMQP/TLS connection early
 func (p *PushPublisher) warmupConnection() {
+	// Close may already have released the sender before this goroutine started running.
+	p.mu.RLock()
+	sender, closed := p.sender, p.closed
+	p.mu.RUnlock()
+	if sender == nil || closed {
+		logger.Sugar.Debugw("Push publisher closed before connection warm-up, skipping")
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	// Create an empty batch just to trigger connection establishment
 	// This forces the TLS handshake to happen at startup, not on first notification
-	batch, err := p.sender.NewMessageBatch(ctx, nil)
+	batch, err := sender.NewMessageBatch(ctx, nil)
 	if err != nil {
 		logger.Sugar.Warnw("Failed to warm up Service Bus connection",
 			"error", err,
@@ -202,7 +220,7 @@ func (p *PushPublisher) worker() {
 		}
 
 		sent := 0
-		for _, msg := range batch {
+		for i, msg := range batch {
 			if err := msgBatch.AddMessage(msg, nil); err != nil {
 				// Batch full, send what we have and retry this message
 				if err := sender.SendMessageBatch(ctx, msgBatch, nil); err != nil {
@@ -219,8 +237,9 @@ func (p *PushPublisher) worker() {
 				// Create new batch for remaining messages
 				msgBatch, err = sender.NewMessageBatch(ctx, nil)
 				if err != nil {
-					logger.Sugar.Errorw("Failed to create new message batch",
+					logger.Sugar.Errorw("Failed to create new message batch, dropping remaining messages",
 						"error", err,
+						"dropped", len(batch)-i,
 					)
 					break
 				}
@@ -237,8 +256,8 @@ func (p *PushPublisher) worker() {
 			sent++
 		}
 
-		// Send remaining messages in batch
-		if msgBatch.NumMessages() > 0 {
+		// Send remaining messages in batch (msgBatch is nil if recreating it failed)
+		if msgBatch != nil && msgBatch.NumMessages() > 0 {
 			if err := sender.SendMessageBatch(ctx, msgBatch, nil); err != nil {
 				logger.Sugar.Errorw("Failed to send final message batch",
 					"error", err,
@@ -454,10 +473,10 @@ func isValidDeepLink(link string) bool {
 	return false
 }
 
-// truncateBody truncates body text to max length
+// truncateBody truncates body text to maxLen characters (runes), never splitting a character
 func truncateBody(body string, maxLen int) string {
-	if len(body) <= maxLen {
+	if utf8.RuneCountInString(body) <= maxLen {
 		return body
 	}
-	return body[:maxLen-3] + "..."
+	return string([]rune(body)[:maxLen-3]) + "..."
 }

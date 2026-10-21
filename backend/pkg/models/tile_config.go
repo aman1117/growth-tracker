@@ -6,6 +6,7 @@ import (
 	"errors"
 	"regexp"
 	"time"
+	"unicode/utf8"
 )
 
 // JSONB type for PostgreSQL jsonb column
@@ -75,7 +76,7 @@ func (ct *CustomTile) Validate() error {
 		return errors.New("custom tile name is required")
 	}
 
-	if len(ct.Name) > 20 {
+	if utf8.RuneCountInString(ct.Name) > 20 {
 		return errors.New("custom tile name cannot exceed 20 characters")
 	}
 

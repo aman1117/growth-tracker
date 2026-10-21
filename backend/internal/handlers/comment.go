@@ -194,8 +194,11 @@ func (h *CommentHandler) CreateReply(c *fiber.Ctx) error {
 	)
 	if err != nil {
 		if valErr, ok := err.(*validator.ValidationError); ok {
-			if valErr.ErrorCode == constants.ErrCodeDuplicateComment {
+			switch valErr.ErrorCode {
+			case constants.ErrCodeDuplicateComment:
 				return response.Conflict(c, valErr.Message, valErr.ErrorCode)
+			case constants.ErrCodeParentNotFound:
+				return response.NotFound(c, valErr.Message, valErr.ErrorCode)
 			}
 			return response.BadRequest(c, valErr.Message, valErr.ErrorCode)
 		}

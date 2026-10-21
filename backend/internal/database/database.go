@@ -14,14 +14,15 @@ import (
 )
 
 var (
-	db   *gorm.DB
-	once sync.Once
+	db *gorm.DB
+	// initErr is the result of the first Init; later calls return it instead of nil.
+	initErr error
+	once    sync.Once
 )
 
-// Init initializes the database connection with the provided configuration
+// Init initializes the database connection with the provided configuration.
+// Only the first call connects; later calls return the same connection and error.
 func Init(cfg *config.DatabaseConfig) (*gorm.DB, error) {
-	var initErr error
-
 	once.Do(func() {
 		logLevel := logger.Info
 		if config.AppConfig != nil && config.AppConfig.IsProduction() {
@@ -57,13 +58,9 @@ func Get() *gorm.DB {
 	return db
 }
 
-// AutoMigrate runs database migrations for all models
-func AutoMigrate() error {
-	if db == nil {
-		return fmt.Errorf("database not initialized")
-	}
-
-	return db.AutoMigrate(
+// Models returns every model managed by AutoMigrate, in migration order.
+func Models() []interface{} {
+	return []interface{}{
 		&models.User{},
 		&models.Activity{},
 		&models.Streak{},
@@ -85,7 +82,16 @@ func AutoMigrate() error {
 		&models.CommentLike{},
 		&models.CommentMention{},
 		&models.CommentDedupe{},
-	)
+	}
+}
+
+// AutoMigrate runs database migrations for all models
+func AutoMigrate() error {
+	if db == nil {
+		return fmt.Errorf("database not initialized")
+	}
+
+	return db.AutoMigrate(Models()...)
 }
 
 // Close closes the database connection

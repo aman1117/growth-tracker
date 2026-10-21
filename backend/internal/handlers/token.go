@@ -62,6 +62,11 @@ func (s *TokenService) Generate(user *models.User) (string, time.Time, int, erro
 
 // Parse parses and validates a JWT token
 func (s *TokenService) Parse(tokenStr string) (*Claims, error) {
+	// With an empty key anyone could sign a token that verifies, so refuse like Generate does
+	if s.secretKey == "" {
+		return nil, errors.New("JWT_SECRET_KEY is not set")
+	}
+
 	claims := &Claims{}
 
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {

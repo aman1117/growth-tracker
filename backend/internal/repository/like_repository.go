@@ -15,6 +15,9 @@ type LikeRepository struct {
 	db *gorm.DB
 }
 
+// ErrLikeNotFound is returned by Delete when there is no like to remove
+var ErrLikeNotFound = errors.New("like not found")
+
 // NewLikeRepository creates a new LikeRepository
 func NewLikeRepository(db *gorm.DB) *LikeRepository {
 	return &LikeRepository{db: db}
@@ -107,7 +110,7 @@ func (r *LikeRepository) Delete(likerID, likedUserID uint, likedDate time.Time) 
 			"liked_user_id", likedUserID,
 			"liked_date", dateStr,
 		)
-		return errors.New("like not found")
+		return ErrLikeNotFound
 	}
 
 	log.Infow("LikeRepository.Delete success",

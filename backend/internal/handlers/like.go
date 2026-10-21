@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/aman1117/backend/internal/constants"
@@ -260,11 +261,19 @@ func (h *LikeHandler) UnlikeDay(c *fiber.Ctx) error {
 
 	// Delete like
 	if err := h.likeRepo.Delete(userID, targetUser.ID, date); err != nil {
-		log.Warnw("Like not found or delete failed",
+		if !errors.Is(err, repository.ErrLikeNotFound) {
+			log.Errorw("Failed to delete like",
+				"liker_id", userID,
+				"liked_user_id", targetUser.ID,
+				"date", date.Format("2006-01-02"),
+				"error", err,
+			)
+			return response.InternalError(c, "Failed to unlike day", constants.ErrCodeDeleteFailed)
+		}
+		log.Warnw("Like not found, nothing to delete",
 			"liker_id", userID,
 			"liked_user_id", targetUser.ID,
 			"date", date.Format("2006-01-02"),
-			"error", err,
 		)
 		// If like not found, that's okay - just return success with current count
 		count, _ := h.likeRepo.CountLikesForDay(targetUser.ID, date)

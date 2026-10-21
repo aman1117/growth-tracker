@@ -483,20 +483,20 @@ func (s *NotificationService) NotifyDayCompleted(
 		formattedDate = parsedDate.Format("2 Jan, 2006")
 	}
 
-	// Build metadata once (same for all notifications)
-	metadata := models.DayCompletedMetadata{
-		CompletedUserID:     completedUserID,
-		CompletedUsername:   completedUsername,
-		CompletedUserAvatar: completedUserAvatar,
-		CompletedDate:       completedDate,
-	}.ToMap()
-
 	// Deep link to the completed user's profile with date context
 	deepLink := fmt.Sprintf("/user/%s?date=%s", completedUsername, completedDate)
 
 	// Send notifications to each follower
 	var successCount, failCount int
 	for _, followerID := range followerIDs {
+		// Fresh metadata per follower: the push below adds this follower's notification_id to it
+		metadata := models.DayCompletedMetadata{
+			CompletedUserID:     completedUserID,
+			CompletedUsername:   completedUsername,
+			CompletedUserAvatar: completedUserAvatar,
+			CompletedDate:       completedDate,
+		}.ToMap()
+
 		notif := &models.Notification{
 			UserID:   followerID,
 			Type:     models.NotifTypeStreakMilestone,

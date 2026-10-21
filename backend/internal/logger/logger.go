@@ -28,6 +28,7 @@ type axiomWriter struct {
 	mu       sync.Mutex
 	client   *http.Client
 	stopChan chan struct{}
+	stopOnce sync.Once
 	env      string
 }
 
@@ -101,7 +102,7 @@ func Init(cfg *config.Config) {
 	Sugar = Log.Sugar()
 }
 
-// Sync flushes any buffered log entries
+// Sync flushes any buffered log entries. It is safe to call more than once.
 func Sync() {
 	if Log != nil {
 		_ = Log.Sync()
@@ -193,8 +194,9 @@ func (aw *axiomWriter) flush() {
 	resp.Body.Close()
 }
 
+// stop ends the flush loop, which flushes what is buffered. Calling it again does nothing.
 func (aw *axiomWriter) stop() {
-	close(aw.stopChan)
+	aw.stopOnce.Do(func() { close(aw.stopChan) })
 }
 
 // ==================== Context Loggers ====================

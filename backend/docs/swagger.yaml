@@ -1115,9 +1115,6 @@ definitions:
         description: Only included for public profiles
         example: Software developer
         type: string
-      email:
-        example: john@example.com
-        type: string
       id:
         example: 1
         type: integer
@@ -2927,6 +2924,12 @@ paths:
       - application/json
       description: Cleanup stale subscriptions, gone subscriptions, and old delivery
         logs
+      parameters:
+      - description: Maintenance API key (MAINTENANCE_API_KEY)
+        in: header
+        name: X-Maintenance-Key
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2936,6 +2939,10 @@ paths:
             $ref: '#/definitions/dto.CleanupResponse'
         "401":
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Maintenance key invalid or not configured
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
       security:

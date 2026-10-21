@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aman1117/backend/internal/constants"
 	"github.com/aman1117/backend/internal/dto"
@@ -127,7 +128,10 @@ func (s *CommentService) CreateComment(
 
 	if parentCommentID != nil {
 		parentComment, err = s.commentRepo.GetByID(*parentCommentID)
-		if err != nil {
+		// A parent on another day is reported like a missing one: the caller's view permission
+		// was checked for this day only, and the response must not reveal other threads
+		if err != nil || parentComment.DayOwnerID != dayOwnerID ||
+			parentComment.DayDate.Format(constants.DateFormat) != dayDate.Format(constants.DateFormat) {
 			return nil, validator.NewValidationError(
 				"Parent comment not found",
 				constants.ErrCodeParentNotFound,
@@ -732,17 +736,18 @@ func (s *CommentService) EditComment(ctx context.Context, commentID, requestingU
 	if valErr := validator.ValidateCommentBody(trimmedBody); valErr != nil {
 		return nil, valErr
 	}
+	// Validate mentions before saving so a rejected edit leaves the comment unchanged
+	mentionedUsernames, valErr := validator.ParseMentions(trimmedBody)
+	if valErr != nil {
+		return nil, valErr
+	}
 
 	// Update body
 	if err := s.commentRepo.UpdateBody(commentID, trimmedBody); err != nil {
 		return nil, fmt.Errorf("failed to update comment: %w", err)
 	}
 
-	// Re-parse mentions and replace old ones
-	mentionedUsernames, valErr := validator.ParseMentions(trimmedBody)
-	if valErr != nil {
-		return nil, valErr
-	}
+	// Replace old mentions with the re-parsed ones
 	if err := s.mentionRepo.DeleteByCommentID(commentID); err != nil {
 		logger.Sugar.Warnw("Failed to delete old mentions during edit",
 			"comment_id", commentID,
@@ -931,9 +936,10 @@ func hashBody(body string) string {
 	return fmt.Sprintf("%x", h)
 }
 
+// truncateCommentPreview keeps the first CommentPreviewLength characters (runes), never splitting one
 func truncateCommentPreview(body string) string {
-	if len(body) <= constants.CommentPreviewLength {
+	if utf8.RuneCountInString(body) <= constants.CommentPreviewLength {
 		return body
 	}
-	return body[:constants.CommentPreviewLength] + "..."
+	return string([]rune(body)[:constants.CommentPreviewLength]) + "..."
 }

@@ -26,22 +26,30 @@ func Init(redisURL string) error {
 		return fmt.Errorf("failed to parse REDIS_URL: %w", err)
 	}
 
-	client = goredis.NewClient(opt)
+	c := goredis.NewClient(opt)
 
-	// Test connection
+	// Test the connection before installing the client, so a failed Init leaves Redis unavailable
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := client.Ping(ctx).Err(); err != nil {
+	if err := c.Ping(ctx).Err(); err != nil {
+		_ = c.Close()
 		return fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
+	client = c
 	return nil
 }
 
 // Get returns the Redis client
 func Get() *goredis.Client {
 	return client
+}
+
+// SetClient replaces the package-level client. It exists for tests, which point it at an
+// in-memory Redis, or pass nil to simulate Redis being unavailable.
+func SetClient(c *goredis.Client) {
+	client = c
 }
 
 // IsAvailable returns whether Redis is configured and available

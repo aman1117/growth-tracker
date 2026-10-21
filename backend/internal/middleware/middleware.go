@@ -170,7 +170,9 @@ func CommentLikeRateLimiter() fiber.Handler {
 
 // ==================== Request Logging ====================
 
-// RequestLogger logs all incoming HTTP requests with timing and trace_id
+// RequestLogger logs all incoming HTTP requests with timing and trace_id.
+// Errors returned by later handlers are passed to the app's error handler here, so the logged
+// status is the one sent to the client; they are not returned again.
 func RequestLogger(c *fiber.Ctx) error {
 	start := time.Now()
 
@@ -180,6 +182,13 @@ func RequestLogger(c *fiber.Ctx) error {
 
 	// Process request
 	err := c.Next()
+	if err != nil {
+		// Write the error response now (as Fiber's own logger middleware does) instead of
+		// returning the error, which would make Fiber run the error handler a second time.
+		if handlerErr := c.App().ErrorHandler(c, err); handlerErr != nil {
+			_ = c.SendStatus(fiber.StatusInternalServerError)
+		}
+	}
 
 	// Calculate duration
 	duration := time.Since(start)
@@ -217,7 +226,7 @@ func RequestLogger(c *fiber.Ctx) error {
 		logger.Log.Info("HTTP Request", fields...)
 	}
 
-	return err
+	return nil
 }
 
 // Auth validates JWT tokens and sets user context

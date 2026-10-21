@@ -56,7 +56,6 @@ type TokenValidationResponse struct {
 type UserDTO struct {
 	ID              uint    `json:"id" example:"1"`
 	Username        string  `json:"username" example:"john_doe"`
-	Email           string  `json:"email" example:"john@example.com"`
 	ProfilePic      *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
 	ProfilePicThumb *string `json:"profile_pic_thumb,omitempty" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
 	Bio             *string `json:"bio,omitempty" example:"Software developer"` // Only included for public profiles

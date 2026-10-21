@@ -138,6 +138,7 @@ const (
 	ErrCodeAccountPrivate       = "ACCOUNT_PRIVATE"
 	ErrCodeStreakNotFound       = "STREAK_NOT_FOUND"
 	ErrCodeNotificationNotFound = "NOTIFICATION_NOT_FOUND"
+	ErrCodePhotoNotFound        = "PHOTO_NOT_FOUND"
 	ErrCodeConflict             = "CONFLICT"
 
 	// Follow errors

@@ -2604,6 +2604,15 @@ const docTemplate = `{
                     "Push Notifications"
                 ],
                 "summary": "Cleanup stale push data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Maintenance API key (MAINTENANCE_API_KEY)",
+                        "name": "X-Maintenance-Key",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Cleanup results",
@@ -2613,6 +2622,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Maintenance key invalid or not configured",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -5393,10 +5408,6 @@ const docTemplate = `{
                     "description": "Only included for public profiles",
                     "type": "string",
                     "example": "Software developer"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "john@example.com"
                 },
                 "id": {
                     "type": "integer",

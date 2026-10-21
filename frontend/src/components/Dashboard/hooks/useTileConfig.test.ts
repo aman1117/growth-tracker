@@ -105,7 +105,9 @@ describe('useTileConfig', () => {
       expect(stored(STORAGE_KEYS.CUSTOM_TILES)).toEqual([guitar]);
     });
 
-    it('uses the default order and sizes when the backend config omits them', async () => {
+    it('shows the saved layout exactly, dropping extras only this device had', async () => {
+      // Saving leaves out hidden tiles, colors and custom tiles when there are none, so another
+      // device that, say, unhid every tile saved a config without them
       saveLocalConfig();
       routeApi(api, { 'GET /tile-config': { success: true, data: {} } });
 
@@ -114,23 +116,43 @@ describe('useTileConfig', () => {
 
       expect(result.current.tileOrder).toEqual(defaultOrder);
       expect(result.current.tileSizes).toEqual(getDefaultTileSizes());
-      // Own extras are kept from local storage when the backend has none
-      expect(result.current.hiddenTiles).toEqual(['eating']);
-      expect(result.current.customTiles).toEqual([guitar]);
+      expect(result.current.hiddenTiles).toEqual([]);
+      expect(result.current.tileColors).toEqual({});
+      expect(result.current.customTiles).toEqual([]);
+      expect(stored(STORAGE_KEYS.TILE_ORDER)).toEqual(defaultOrder);
+      expect(stored(STORAGE_KEYS.TILE_HIDDEN)).toEqual([]);
+      expect(stored(STORAGE_KEYS.TILE_COLORS)).toEqual({});
+      expect(stored(STORAGE_KEYS.CUSTOM_TILES)).toEqual([]);
     });
 
-    it('falls back to local extras and default layout when the backend has no config', async () => {
+    it('shows the default layout when nothing is saved, whatever this device had', async () => {
+      saveLocalConfig();
+      routeApi(api, { 'GET /tile-config': { success: true, data: null } });
+
+      const { result } = renderTileConfig();
+      await waitFor(() => expect(result.current.configStatus).toBe('loaded'));
+
+      expect(result.current.tileOrder).toEqual(defaultOrder);
+      expect(result.current.tileSizes).toEqual(getDefaultTileSizes());
+      expect(result.current.hiddenTiles).toEqual([]);
+      expect(result.current.tileColors).toEqual({});
+      expect(result.current.customTiles).toEqual([]);
+      expect(stored(STORAGE_KEYS.TILE_SIZES)).toEqual(getDefaultTileSizes());
+      expect(stored(STORAGE_KEYS.CUSTOM_TILES)).toEqual([]);
+    });
+
+    it('keeps showing the layout cached on this device when the backend answers unsuccessfully', async () => {
       saveLocalConfig();
       routeApi(api, { 'GET /tile-config': { success: false } });
 
       const { result } = renderTileConfig();
-      await waitFor(() => expect(result.current.configLoading).toBe(false));
+      await waitFor(() => expect(result.current.configStatus).toBe('failed'));
 
+      expect(result.current.tileOrder).toEqual(['study', 'sleep']);
+      expect(result.current.tileSizes).toEqual(sizes);
       expect(result.current.hiddenTiles).toEqual(['eating']);
       expect(result.current.tileColors).toEqual({ sleep: '#111111' });
       expect(result.current.customTiles).toEqual([guitar]);
-      expect(result.current.tileOrder).toEqual(defaultOrder);
-      expect(result.current.tileSizes).toEqual(getDefaultTileSizes());
     });
 
     it('starts clean when there is no config anywhere', async () => {
@@ -145,8 +167,9 @@ describe('useTileConfig', () => {
       expect(result.current.tileOrder).toEqual(defaultOrder);
     });
 
-    it('logs corrupt local extras instead of crashing', async () => {
+    it('logs corrupt local extras instead of crashing, and still shows the rest', async () => {
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      saveLocalConfig();
       localStorage.setItem(STORAGE_KEYS.TILE_HIDDEN, '{corrupt');
       routeApi(api, { 'GET /tile-config': { success: false } });
 
@@ -157,11 +180,9 @@ describe('useTileConfig', () => {
         '[useTileConfig] Failed to restore from localStorage',
         expect.any(SyntaxError)
       );
-      expect(error).toHaveBeenCalledWith(
-        '[useTileConfig] Failed to load from localStorage',
-        expect.any(SyntaxError)
-      );
-      expect(result.current.tileOrder).toEqual(defaultOrder);
+      expect(result.current.hiddenTiles).toEqual([]);
+      expect(result.current.tileOrder).toEqual(['study', 'sleep']);
+      expect(result.current.customTiles).toEqual([guitar]);
     });
 
     it('shows the loading state and defaults when local storage is unavailable', async () => {
@@ -179,7 +200,7 @@ describe('useTileConfig', () => {
       expect(result.current.tileSizes).toEqual(getDefaultTileSizes());
     });
 
-    it('falls back to the default layout when the config request fails', async () => {
+    it('keeps showing the layout cached on this device when the config request fails', async () => {
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       saveLocalConfig();
       routeApi(api, { 'GET /tile-config': new Error('offline') });
@@ -191,9 +212,40 @@ describe('useTileConfig', () => {
         '[useTileConfig] Failed to fetch tile config',
         expect.any(Error)
       );
+      // Not the default order and sizes mixed with this device's hidden tiles
+      expect(result.current.tileOrder).toEqual(['study', 'sleep']);
+      expect(result.current.tileSizes).toEqual(sizes);
+      expect(result.current.hiddenTiles).toEqual(['eating']);
+      expect(result.current.customTiles).toEqual([guitar]);
+    });
+
+    it('shows the default layout when the config request fails and nothing is cached', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      routeApi(api, { 'GET /tile-config': new Error('offline') });
+
+      const { result } = renderTileConfig();
+      await waitFor(() => expect(result.current.configStatus).toBe('failed'));
+
       expect(result.current.tileOrder).toEqual(defaultOrder);
       expect(result.current.tileSizes).toEqual(getDefaultTileSizes());
-      expect(result.current.hiddenTiles).toEqual(['eating']);
+      expect(result.current.hiddenTiles).toEqual([]);
+    });
+
+    it('logs instead of failing the load when the layout cannot be cached', async () => {
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new DOMException('Quota exceeded', 'QuotaExceededError');
+      });
+      routeApi(api, { 'GET /tile-config': { success: true, data: fullConfig } });
+
+      const { result } = renderTileConfig();
+      await waitFor(() => expect(result.current.configStatus).toBe('loaded'));
+
+      expect(error).toHaveBeenCalledWith(
+        '[useTileConfig] Failed to save the layout locally',
+        expect.any(DOMException)
+      );
+      expect(result.current.customTiles).toEqual([guitar]);
     });
   });
 
@@ -377,7 +429,7 @@ describe('useTileConfig', () => {
       expect(stored(STORAGE_KEYS.CUSTOM_TILES)).toEqual([guitar]);
     });
 
-    it('logs a failed save and leaves local storage alone', async () => {
+    it('logs a failed save and keeps the loaded layout in local storage', async () => {
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       const { result } = await renderLoadedWithoutConfig(new Error('500'));
 
@@ -387,7 +439,7 @@ describe('useTileConfig', () => {
         '[useTileConfig] Failed to save tile config to backend',
         expect.any(Error)
       );
-      expect(localStorage.getItem(STORAGE_KEYS.TILE_HIDDEN)).toBeNull();
+      expect(stored(STORAGE_KEYS.TILE_HIDDEN)).toEqual([]);
     });
 
     it('resizes a tile and remembers the size locally', async () => {

@@ -106,6 +106,11 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   looked like having no saved layout) or right after viewing another profile could save the
   default tiles, or that profile's, over your own: Customize now waits for your tiles and retries
   a failed load, and a slower response for a profile you already left is ignored.
+- Home could show a different layout on each device, such as the installed app and the browser:
+  after the last hidden tile was restored, the last tile colour reset or the last custom tile
+  deleted on one device, other devices kept them, and saving there brought them back. Every
+  device now shows exactly the layout saved for your account and, while offline, the last layout
+  it loaded instead of the default tiles mixed with cached ones.
 - Text fields with a limit: a full field now ignores further typing instead of dropping text
   from the end, pasted text is cut to fit, counters count characters, an @mention that would not
   fit is no longer inserted, and long comments are shortened without splitting an emoji.

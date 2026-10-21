@@ -540,6 +540,20 @@ describe('Dashboard edit mode', () => {
     });
   });
 
+  describe('a layout saved on another device', () => {
+    it('shows it exactly, and saving here never brings back a tile this device had hidden', async () => {
+      // This device hid Study once. Study was restored on another device since, which saved the
+      // layout without hidden tiles.
+      localStorage.setItem(STORAGE_KEYS.TILE_HIDDEN, JSON.stringify(['study']));
+      const { user } = await renderEditMode();
+
+      expect(button('Study, wide tile. Activate to select')).toBeInTheDocument();
+      await user.click(button('Done'));
+
+      expect(lastSavedConfig()).toEqual({ order: layout.order, sizes, customTiles: [guitar] });
+    });
+  });
+
   describe('custom tiles', () => {
     it('creates a custom tile at the end of the grid', async () => {
       const { user } = await renderEditMode();

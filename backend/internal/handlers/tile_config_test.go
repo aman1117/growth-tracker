@@ -138,10 +138,10 @@ func TestTileConfigHandler_SaveConfig_Failures(t *testing.T) {
 	})
 }
 
-func TestTileConfigHandler_GetConfig_DatabaseFailureLooksEmpty(t *testing.T) {
+func TestTileConfigHandler_GetConfig_DatabaseFailure(t *testing.T) {
 	res := call(t, brokenStack(t).handlers(), ghostUser, http.MethodGet, "/api/tile-config", nil)
-	require.Equal(t, http.StatusOK, res.Status)
-	assert.Equal(t, map[string]any{"success": true, "data": nil}, res.JSON(t))
+	// not {"data": null}: the app would take the default tiles for the user's saved ones
+	assertErrorMessage(t, res, http.StatusInternalServerError, constants.ErrCodeFetchFailed, "Failed to get tile configuration")
 }
 
 func TestTileConfigHandler_GetConfigByUsername(t *testing.T) {
@@ -202,10 +202,9 @@ func TestTileConfigHandler_GetConfigByUsername_DatabaseFailure(t *testing.T) {
 		assertErrorMessage(t, res, http.StatusNotFound, constants.ErrCodeUserNotFound, "User not found")
 	})
 
-	t.Run("config lookup looks empty", func(t *testing.T) {
+	t.Run("config lookup", func(t *testing.T) {
 		h := &handlerSet{tileConfig: NewTileConfigHandler(brokenStack(t).tileConfigSvc, env.authSvc, env.profileSvc)}
 		res := call(t, h, owner, http.MethodPost, "/api/tile-config/user", map[string]string{"username": owner.Username})
-		require.Equal(t, http.StatusOK, res.Status)
-		assert.Equal(t, map[string]any{"success": true, "data": nil}, res.JSON(t))
+		assertErrorMessage(t, res, http.StatusInternalServerError, constants.ErrCodeFetchFailed, "Failed to get tile configuration")
 	})
 }

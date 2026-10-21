@@ -3081,13 +3081,19 @@ const docTemplate = `{
                 "summary": "Get tile configuration",
                 "responses": {
                     "200": {
-                        "description": "Tile configuration",
+                        "description": "Tile configuration (data is null when none is saved)",
                         "schema": {
                             "$ref": "#/definitions/dto.TileConfigResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get tile configuration",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -3175,13 +3181,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Tile configuration",
+                        "description": "Tile configuration (data is null when none is saved)",
                         "schema": {
                             "$ref": "#/definitions/dto.TileConfigResponse"
                         }
                     },
                     "400": {
-                        "description": "User not found",
+                        "description": "Invalid request",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -3245,6 +3251,18 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get tile configuration",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }

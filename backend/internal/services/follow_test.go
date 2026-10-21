@@ -671,6 +671,13 @@ func TestFollowService_PublishFollowEvent_WithoutRedisUpdatesCountersSynchronous
 		svc.publishFollowEvent(ctx, models.FollowEventCreated, 7, 8, models.FollowStateActive)
 		assert.EqualValues(t, 1, counterOf(db, 8).FollowersCount)
 	})
+
+	t.Run("an event no subscriber receives also falls back", func(t *testing.T) {
+		startRedis(t) // e.g. the subscriber was not started because Redis was down at startup
+		svc.publishFollowEvent(ctx, models.FollowEventCreated, 9, 10, models.FollowStateActive)
+		assert.EqualValues(t, 1, counterOf(db, 9).FollowingCount)
+		assert.EqualValues(t, 1, counterOf(db, 10).FollowersCount)
+	})
 }
 
 func TestFollowService_CounterSubscriber(t *testing.T) {

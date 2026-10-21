@@ -596,12 +596,22 @@ func (s *FollowService) publishFollowEvent(ctx context.Context, eventType models
 		return
 	}
 
-	if err := redis.Get().Publish(ctx, constants.FollowEventChannel, payload).Err(); err != nil {
+	n, err := redis.Get().Publish(ctx, constants.FollowEventChannel, payload).Result()
+	if err != nil {
 		logger.Sugar.Errorw("Failed to publish follow event",
 			"event_type", eventType,
 			"error", err,
 		)
 		// Fall back to synchronous updates
+		s.updateCountersSynchronously(eventType, followerID, followeeID, state)
+		return
+	}
+	if n == 0 {
+		// No counter subscriber is listening (not started because Redis was down at startup, or
+		// reconnecting), so the event would be lost
+		logger.Sugar.Warnw("No follow counter subscriber received the event, updating counters synchronously",
+			"event_type", eventType,
+		)
 		s.updateCountersSynchronously(eventType, followerID, followeeID, state)
 	}
 }

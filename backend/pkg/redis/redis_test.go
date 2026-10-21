@@ -12,9 +12,12 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/aman1117/backend/internal/constants"
+	"github.com/aman1117/backend/internal/logger"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zaptest/observer"
 )
 
 // startRedis runs an in-memory Redis, installs a client for it as the package client and
@@ -32,8 +35,8 @@ func startRedis(t *testing.T) *miniredis.Miniredis {
 	return mr
 }
 
-// resetClientAfter closes whatever client the test installed (Init creates its own) and
-// restores "Redis unavailable".
+// resetClientAfter closes whatever client the test installed (Init creates its own), restores
+// "Redis unavailable" and waits for background reconnects to stop.
 func resetClientAfter(t *testing.T) {
 	t.Helper()
 	t.Cleanup(func() {
@@ -41,7 +44,23 @@ func resetClientAfter(t *testing.T) {
 			_ = c.Close()
 		}
 		SetClient(nil)
+		waitForReconnects(t)
 	})
+}
+
+// waitForReconnects waits for the background reconnects started by Init to stop.
+func waitForReconnects(t *testing.T) {
+	t.Helper()
+	stopped := make(chan struct{})
+	go func() {
+		reconnects.Wait()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(15 * time.Second):
+		t.Fatal("background reconnects did not stop")
+	}
 }
 
 // closedAddr returns a local address nothing listens on.
@@ -120,20 +139,6 @@ func TestInit_FailedConnectionLeavesRedisUnavailable(t *testing.T) {
 	assert.Nil(t, Get())
 }
 
-func TestInit_FailedPingClosesTheNewClient(t *testing.T) {
-	resetClientAfter(t)
-	mr := miniredis.RunT(t)
-	mr.RequireAuth("s3cret") // accepts the connection but rejects PING
-
-	err := Init("redis://" + mr.Addr())
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to connect to Redis")
-	assert.False(t, IsAvailable())
-	require.Eventually(t, func() bool { return mr.CurrentConnectionCount() == 0 }, 2*time.Second, 10*time.Millisecond,
-		"the rejected client's connections are closed")
-}
-
 func TestInit_FailedReinitKeepsTheWorkingClient(t *testing.T) {
 	startRedis(t)
 	working := Get()
@@ -144,6 +149,119 @@ func TestInit_FailedReinitKeepsTheWorkingClient(t *testing.T) {
 
 	assert.Same(t, working, Get(), "the client is only replaced after a successful PING")
 	assert.NoError(t, Get().Ping(context.Background()).Err())
+}
+
+// fastReconnect shortens the background reconnect delays for one test and, when it ends, stops
+// any reconnect and restores "Redis unavailable".
+func fastReconnect(t *testing.T) {
+	t.Helper()
+	delay, maxDelay := reconnectDelay, reconnectMaxDelay
+	reconnectDelay, reconnectMaxDelay = 5*time.Millisecond, 20*time.Millisecond
+	t.Cleanup(func() { reconnectDelay, reconnectMaxDelay = delay, maxDelay })
+	resetClientAfter(t)
+}
+
+// observeLogs captures what is logged through the app logger during the test.
+func observeLogs(t *testing.T) *observer.ObservedLogs {
+	t.Helper()
+	core, logs := observer.New(zap.InfoLevel)
+	previous := logger.Sugar
+	logger.Sugar = zap.New(core).Sugar()
+	t.Cleanup(func() { logger.Sugar = previous })
+	return logs
+}
+
+// requireReconnected waits for the background reconnect to install a client for mr.
+func requireReconnected(t *testing.T, mr *miniredis.Miniredis, logs *observer.ObservedLogs) {
+	t.Helper()
+	require.Eventually(t, IsAvailable, 15*time.Second, 5*time.Millisecond, "Redis is used again without a restart")
+	waitForReconnects(t)
+	assert.Equal(t, 1, logs.FilterMessage("Redis connection established after retrying").Len())
+
+	require.NoError(t, Get().Set(context.Background(), "k", "v", 0).Err())
+	got, err := mr.Get("k")
+	require.NoError(t, err)
+	assert.Equal(t, "v", got)
+}
+
+func TestInit_ReconnectsInTheBackgroundOnceTheServerIsUp(t *testing.T) {
+	fastReconnect(t)
+	logs := observeLogs(t)
+	addr := closedAddr(t)
+
+	err := Init("redis://" + addr)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to connect to Redis (retrying in the background)")
+	assert.False(t, IsAvailable(), "callers fall back while Redis is down")
+
+	mr := miniredis.NewMiniRedis()
+	require.NoError(t, mr.StartAddr(addr))
+	t.Cleanup(mr.Close)
+	requireReconnected(t, mr, logs)
+}
+
+func TestInit_ReconnectsInTheBackgroundOnceTheServerAnswers(t *testing.T) {
+	fastReconnect(t)
+	logs := observeLogs(t)
+	mr := miniredis.RunT(t)
+	mr.SetError("LOADING Redis is loading the dataset in memory") // what a restarting server replies
+
+	err := Init("redis://" + mr.Addr())
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to connect to Redis (retrying in the background)")
+	assert.False(t, IsAvailable(), "callers fall back while Redis is loading")
+
+	mr.SetError("")
+	requireReconnected(t, mr, logs)
+}
+
+func TestInit_StoppedReconnectClosesItsClient(t *testing.T) {
+	fastReconnect(t)
+	mr := miniredis.RunT(t)
+	mr.RequireAuth("s3cret") // accepts connections but rejects every command
+
+	require.Error(t, Init("redis://"+mr.Addr()))
+	commands := mr.CommandCount()
+	require.Eventually(t, func() bool { return mr.CommandCount() > commands }, 5*time.Second, 5*time.Millisecond,
+		"a server that rejects the client is retried as well")
+
+	require.NoError(t, Close())
+	waitForReconnects(t)
+
+	require.Eventually(t, func() bool { return mr.CurrentConnectionCount() == 0 }, 5*time.Second, 10*time.Millisecond,
+		"the abandoned client's connections are closed")
+	assert.False(t, IsAvailable())
+}
+
+func TestInit_StaleReconnectStopsWhenTheClientChanges(t *testing.T) {
+	changes := map[string]func(t *testing.T){
+		"another client is installed": func(t *testing.T) { startRedis(t) },
+		"Init succeeds with another server": func(t *testing.T) {
+			require.NoError(t, Init("redis://"+miniredis.RunT(t).Addr()))
+		},
+		"Redis is closed": func(t *testing.T) { require.NoError(t, Close()) },
+	}
+	for name, change := range changes {
+		t.Run(name, func(t *testing.T) {
+			fastReconnect(t)
+			addr := closedAddr(t)
+			require.Error(t, Init("redis://"+addr))
+
+			change(t)
+			installed := Get()
+			mr := miniredis.NewMiniRedis()
+			require.NoError(t, mr.StartAddr(addr))
+			t.Cleanup(mr.Close)
+			// a reconnect that kept going would now reach the server, install its client and stop
+			waitForReconnects(t)
+
+			assert.Same(t, installed, Get(), "a stale reconnect never replaces the current client")
+			// (not a connection count: go-redis may finish a dial it started before the change)
+			assert.Zero(t, mr.CommandCount(), "a stale reconnect stops pinging")
+		})
+	}
 }
 
 func TestClientAccessors(t *testing.T) {

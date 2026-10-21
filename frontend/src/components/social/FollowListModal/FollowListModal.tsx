@@ -311,6 +311,9 @@ export const FollowListModal: React.FC<FollowListModalProps> = ({
                       key={user.id}
                       user={user}
                       showFollowButton={true}
+                      // The shared relationship cache still flags incoming requests, so hide
+                      // Accept/Decline explicitly: they belong in FollowRequestsModal
+                      showRequestActions={false}
                       showRemoveButton={showRemove}
                       onRemove={requestRemoveFollower}
                       isRemoving={removingUserId === user.id}

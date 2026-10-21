@@ -206,16 +206,18 @@ func (r *FollowRepository) AcceptFollowWithCounters(followerID, followeeID uint)
 	})
 }
 
-// incrementCounterInTx increments a specific counter field within a transaction using upsert
+// incrementCounterInTx increments a specific counter field within a transaction using upsert.
+// A missing follow_counters row is created with the delta already applied (never below zero).
 func (r *FollowRepository) incrementCounterInTx(tx *gorm.DB, userID uint, field string, delta int) {
-	// Use upsert to handle case where follow_counters row doesn't exist yet
+	initial := map[string]int{"followers_count": 0, "following_count": 0, "pending_requests_count": 0}
+	initial[field] = max(delta, 0)
 	tx.Exec(
 		`INSERT INTO follow_counters (user_id, followers_count, following_count, pending_requests_count, updated_at)
-		 VALUES (?, 0, 0, 0, NOW())
+		 VALUES (?, ?, ?, ?, NOW())
 		 ON CONFLICT (user_id) DO UPDATE SET
 		 `+field+` = follow_counters.`+field+` + ?,
 		 updated_at = NOW()`,
-		userID, delta,
+		userID, initial["followers_count"], initial["following_count"], initial["pending_requests_count"], delta,
 	)
 }
 

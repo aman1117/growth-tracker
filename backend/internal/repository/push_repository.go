@@ -39,9 +39,13 @@ func (r *PushRepository) UpsertSubscription(sub *models.PushSubscription) error 
 		if existing.UserID != sub.UserID {
 			return ErrEndpointConflict
 		}
-		// Same user - update existing subscription
+		// Same user - update existing subscription. Its delivery history is kept: the app
+		// re-registers its subscription once per session, and wiping last_success_at would make
+		// an active device look like it never received a push (see CleanupStaleSubscriptions)
 		sub.ID = existing.ID
 		sub.CreatedAt = existing.CreatedAt
+		sub.LastSuccessAt = existing.LastSuccessAt
+		sub.LastFailureAt = existing.LastFailureAt
 		return r.db.Save(sub).Error
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -125,12 +129,13 @@ func (r *PushRepository) IncrementSubscriptionFailure(id uint, maxFailures int) 
 	return nil
 }
 
-// CleanupStaleSubscriptions marks old inactive subscriptions as expired
+// CleanupStaleSubscriptions marks old inactive subscriptions as expired: active subscriptions
+// with no successful push since the cutoff, judged by creation time if they never had one
 func (r *PushRepository) CleanupStaleSubscriptions(staleDays int) (int64, error) {
 	cutoff := time.Now().AddDate(0, 0, -staleDays)
 	result := r.db.Model(&models.PushSubscription{}).
-		Where("status = ? AND (last_success_at IS NULL OR last_success_at < ?)",
-			models.PushSubscriptionStatusActive, cutoff).
+		Where("status = ? AND (last_success_at < ? OR (last_success_at IS NULL AND created_at < ?))",
+			models.PushSubscriptionStatusActive, cutoff, cutoff).
 		Update("status", models.PushSubscriptionStatusExpired)
 	return result.RowsAffected, result.Error
 }

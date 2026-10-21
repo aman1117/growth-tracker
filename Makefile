@@ -1,6 +1,6 @@
 SHELL := /bin/sh
 
-.PHONY: help setup dev up down logs seed check frontend-install frontend-lint frontend-format-check frontend-typecheck frontend-build backend-fmt backend-vet backend-build
+.PHONY: help setup dev up down logs seed check test frontend-install frontend-lint frontend-format-check frontend-typecheck frontend-test frontend-coverage frontend-build backend-fmt backend-vet backend-test backend-coverage backend-build
 
 help:
 	@echo "Available targets:"
@@ -10,14 +10,19 @@ help:
 	@echo "  down                  Stop local stack"
 	@echo "  logs                  Tail backend and frontend logs"
 	@echo "  seed                  Run seed profile"
-	@echo "  check                 Run frontend and backend validation"
+	@echo "  check                 Run frontend and backend validation, including tests"
+	@echo "  test                  Run frontend and backend unit tests"
 	@echo "  frontend-install      Install frontend dependencies"
 	@echo "  frontend-lint         Run frontend lint"
 	@echo "  frontend-format-check Run frontend format check"
 	@echo "  frontend-typecheck    Run frontend typecheck"
+	@echo "  frontend-test         Run frontend unit tests"
+	@echo "  frontend-coverage     Run frontend unit tests with coverage thresholds"
 	@echo "  frontend-build        Run frontend production build"
 	@echo "  backend-fmt           Check backend formatting"
 	@echo "  backend-vet           Run backend vet"
+	@echo "  backend-test          Run backend unit tests"
+	@echo "  backend-coverage      Run backend unit tests with the coverage minimum"
 	@echo "  backend-build         Build backend packages"
 
 setup: frontend-install
@@ -34,6 +39,12 @@ frontend-format-check:
 frontend-typecheck:
 	cd frontend && npm run typecheck
 
+frontend-test:
+	cd frontend && npm run test
+
+frontend-coverage:
+	cd frontend && npm run test:coverage
+
 frontend-build:
 	cd frontend && npm run build
 
@@ -43,10 +54,18 @@ backend-fmt:
 backend-vet:
 	cd backend && go vet ./...
 
+backend-test:
+	cd backend && go test ./...
+
+backend-coverage:
+	cd backend && sh scripts/test-coverage.sh
+
 backend-build:
 	cd backend && go build ./...
 
-check: frontend-format-check frontend-lint frontend-typecheck frontend-build backend-fmt backend-vet backend-build
+test: frontend-test backend-test
+
+check: frontend-format-check frontend-lint frontend-typecheck frontend-test frontend-build backend-fmt backend-vet backend-test backend-build
 
 dev:
 	docker compose up --build

@@ -9,6 +9,7 @@ import React, { useId, useState } from 'react';
 
 import { VALIDATION, VALIDATION_MESSAGES } from '../../../constants/validation';
 import { api, ApiError } from '../../../services/api';
+import { characterCount } from '../../../utils/text';
 import { Button, Modal, PasswordInput } from '../../ui';
 import { getErrorCode, getRequestErrorMessage } from '../settingsForm';
 import type { PasswordDialogProps } from '../SettingsPage.types';
@@ -46,7 +47,7 @@ export const PasswordDialog: React.FC<PasswordDialogProps> = ({ isOpen, onClose,
     if (!currentPassword) nextErrors.current = 'Enter your current password';
     if (!newPassword) {
       nextErrors.next = 'Choose a new password';
-    } else if (newPassword.trim().length < VALIDATION.PASSWORD_MIN_LENGTH) {
+    } else if (characterCount(newPassword.trim()) < VALIDATION.PASSWORD_MIN_LENGTH) {
       nextErrors.next = VALIDATION_MESSAGES.PASSWORD_LENGTH_ERROR;
     } else if (newPassword === currentPassword) {
       nextErrors.next = 'Pick a password different from your current one';

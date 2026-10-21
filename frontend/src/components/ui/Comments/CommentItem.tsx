@@ -12,6 +12,7 @@ import { useOverlayAwareNavigate } from '../../../hooks/useOverlayAwareNavigate'
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useCommentStore } from '../../../store/useCommentStore';
 import type { Comment } from '../../../types/comment';
+import { applyCharacterLimit, characterCount, truncateToCharacters } from '../../../utils/text';
 import { Avatar } from '../Avatar';
 import { VerifiedBadge } from '../VerifiedBadge';
 import styles from './CommentItem.module.css';
@@ -25,8 +26,9 @@ interface CommentItemProps {
   isTopLevel?: boolean;
 }
 
-const TRUNCATE_LENGTH = 200;
+const TRUNCATE_LENGTH = 200; // characters (Unicode code points), so emoji are never split
 const INITIAL_REPLIES_SHOWN = 3;
+// Counted in characters (Unicode code points), like the server
 const MAX_COMMENT_LENGTH = 200;
 const CHAR_COUNTER_THRESHOLD = 0.8;
 const EDIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -309,9 +311,12 @@ export const CommentItem: React.FC<CommentItemProps> = ({
     fetchReplies(comment.id);
   }, [comment.id, fetchReplies]);
 
-  const needsTruncation = !comment.is_deleted && comment.body.length > TRUNCATE_LENGTH;
+  const needsTruncation = !comment.is_deleted && characterCount(comment.body) > TRUNCATE_LENGTH;
   const displayBody =
-    needsTruncation && !expanded ? comment.body.slice(0, TRUNCATE_LENGTH) + '...' : comment.body;
+    needsTruncation && !expanded
+      ? truncateToCharacters(comment.body, TRUNCATE_LENGTH) + '...'
+      : comment.body;
+  const editCharacters = characterCount(editBody);
 
   const replies = repliesState?.comments || [];
   const visibleReplies = showAllReplies ? replies : replies.slice(0, INITIAL_REPLIES_SHOWN);
@@ -385,20 +390,17 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                     ref={editTextareaRef}
                     className={styles.editTextarea}
                     value={editBody}
-                    onChange={(e) => {
-                      if (e.target.value.length <= MAX_COMMENT_LENGTH) {
-                        setEditBody(e.target.value);
-                      }
-                    }}
+                    onChange={(e) =>
+                      setEditBody(applyCharacterLimit(e.target.value, editBody, MAX_COMMENT_LENGTH))
+                    }
                     onKeyDown={handleEditKeyDown}
-                    maxLength={MAX_COMMENT_LENGTH}
                     rows={1}
                     aria-label="Edit comment"
                   />
                   <div className={styles.editFooter}>
-                    {editBody.length > MAX_COMMENT_LENGTH * CHAR_COUNTER_THRESHOLD && (
+                    {editCharacters > MAX_COMMENT_LENGTH * CHAR_COUNTER_THRESHOLD && (
                       <span className={styles.charCounter}>
-                        {editBody.length}/{MAX_COMMENT_LENGTH}
+                        {editCharacters}/{MAX_COMMENT_LENGTH}
                       </span>
                     )}
                     <div className={styles.editActions}>

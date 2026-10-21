@@ -171,30 +171,52 @@ Important rules:
 | `docker compose up --build` | Start the full local stack |
 | `docker compose down` | Stop the local stack |
 | `make setup` | Install frontend dependencies |
-| `make check` | Run frontend and backend validation |
+| `make check` | Run frontend and backend validation, including tests |
+| `make test` | Run frontend and backend unit tests |
 | `cd frontend && npm run dev` | Start the frontend only |
 | `cd frontend && npm run lint` | Run frontend lint checks |
 | `cd frontend && npm run format:check` | Check frontend formatting |
 | `cd frontend && npm run typecheck` | Run frontend type checking |
+| `cd frontend && npm test` | Run frontend unit tests |
+| `cd frontend && npm run test:coverage` | Run frontend unit tests with coverage thresholds |
 | `cd frontend && npm run build` | Build the frontend |
 | `cd backend && go fmt ./...` | Format backend packages |
 | `cd backend && go vet ./...` | Run backend vet |
+| `cd backend && go test ./...` | Run backend unit tests |
+| `make backend-coverage` | Run backend unit tests with the coverage minimum |
 | `cd backend && go build ./...` | Build backend packages |
 
 ## Testing and Validation
 
-This repository does not currently ship a committed automated test suite.
+Both apps have automated unit test suites. CI runs them on every pull request and fails when
+coverage drops below the minimums.
 
-Until that changes, contributors should validate work with:
+**Frontend** (`frontend/`) uses Vitest, React Testing Library and jsdom. Tests sit next to the
+code they cover (`Button.tsx` → `Button.test.tsx`), and shared setup and helpers live in
+`frontend/src/test/`.
 
-- frontend lint
-- frontend format check
-- frontend typecheck
-- frontend production build
-- backend format check
-- backend vet
-- backend build
-- manual verification using the Docker Compose environment
+- `npm test` runs the suite once; `npm run test:watch` re-runs it on change.
+- `npm run test:coverage` writes an HTML report to `frontend/coverage/` and fails when
+  statements, branches, functions or lines drop below 90% (thresholds in
+  `frontend/vitest.config.ts`).
+
+**Backend** (`backend/`) uses Go's `testing` package with testify. Database code runs against a
+real PostgreSQL 16, Redis against an in-memory server, and external services (Azure Blob
+Storage, Resend, Web Push) against local fakes, so no cloud credentials are needed. Shared
+helpers live in `backend/internal/testutil`.
+
+- `go test ./...` runs the suite. Each test package starts an embedded PostgreSQL 16 (binaries
+  are downloaded once to `~/.embedded-postgres-go`) unless `TEST_DATABASE_URL` points at an
+  existing server, such as the Docker Compose database:
+  `TEST_DATABASE_URL=postgres://localdev:localdevpassword@localhost:5432/postgres?sslmode=disable go test ./...`.
+  Every test package creates and drops its own temporary database, so development data is
+  never touched.
+- `make backend-coverage` (or `sh backend/scripts/test-coverage.sh`) measures statement
+  coverage of `internal/` and `pkg/` across packages, writes `backend/coverage.html` and fails
+  below 90%.
+
+Before opening a pull request, run `make check` (format, lint, typecheck, tests and builds for
+both apps), and verify UI changes manually in the Docker Compose environment.
 
 ## Build and Production Run
 

@@ -17,6 +17,10 @@ docker-compose.override.yml
 *.so
 *.dylib
 
+# Test coverage output
+backend/coverage.out
+backend/coverage.html
+
 # Air hot-reload temp directory
 backend/tmp/
 

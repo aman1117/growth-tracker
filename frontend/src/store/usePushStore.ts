@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { STORAGE_KEYS } from '../constants/storage';
 import { gl } from '../services/goodlogs';
 import { pushService } from '../services/pushService';
 import type {
@@ -49,6 +50,26 @@ const initialState: PushState = {
 // Internal state for preventing duplicate fetches
 let preferencesFetchedFlag = false;
 
+// Endpoint of the browser subscription the server confirmed for the current session
+let confirmedEndpoint: string | null = null;
+
+/**
+ * Whether the browser's push subscription is active for the signed-in user. The first check
+ * in a session registers it again (an idempotent upsert); if another account owns it,
+ * pushService removes it, so push shows as off until this user turns it on. Signed out there
+ * is no session to check against, so the device state is reported as before.
+ */
+const isActiveForSession = async (subscription: PushSubscription | null): Promise<boolean> => {
+  if (!subscription) return false;
+  const signedIn = !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  if (!signedIn || confirmedEndpoint === subscription.endpoint) return true;
+
+  const outcome = await pushService.confirmSubscription(subscription);
+  if (outcome === 'registered') confirmedEndpoint = subscription.endpoint;
+  // 'unchecked' (offline or server error) keeps showing the device state, as before
+  return outcome !== 'removed';
+};
+
 // ============================================================================
 // Store
 // ============================================================================
@@ -71,11 +92,15 @@ export const usePushStore = create<PushStore>()(
 
         set({ isSupported, permission });
 
-        // Check if already subscribed
+        // Check if already subscribed (and, when signed in, that it belongs to this account)
         if (isSupported && permissionState === 'granted') {
-          pushService.getExistingSubscription().then((subscription) => {
-            set({ isSubscribed: !!subscription });
-          });
+          pushService
+            .getExistingSubscription()
+            .then(isActiveForSession)
+            .then((isSubscribed) => set({ isSubscribed }))
+            .catch((error) => {
+              console.warn('[Push] Could not check this device’s subscription', error);
+            });
         }
 
         return isSupported;
@@ -246,6 +271,7 @@ export const usePushStore = create<PushStore>()(
 
       reset: () => {
         preferencesFetchedFlag = false; // Reset the module-level flag
+        confirmedEndpoint = null; // The next session confirms its subscription again
         set(initialState);
       },
     }),

@@ -16,7 +16,7 @@ import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
 import { NoticeStack } from './components/ui';
 import { APP_ROUTES } from './constants/routes';
 import { api } from './services/api';
-import { useAuth, useThemeStore } from './store';
+import { useAuth, useAuthStore, usePushStore, useThemeStore } from './store';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 
 // Lazy load route components for code splitting (with stale-deploy recovery)
@@ -110,12 +110,28 @@ const ProfileInitializer: React.FC<{ children: React.ReactNode }> = ({ children 
   return <>{children}</>;
 };
 
+/**
+ * Once per signed-in session, re-checks this browser's push subscription. checkSupport
+ * confirms an existing subscription with the server, so one left behind by another account
+ * stops delivering that account's pushes here.
+ */
+const PushSessionCheck: React.FC = () => {
+  const userId = useAuthStore((state) => (state.isLoading ? undefined : state.user?.id));
+
+  useEffect(() => {
+    if (userId !== undefined) usePushStore.getState().checkSupport();
+  }, [userId]);
+
+  return null;
+};
+
 function App() {
   return (
     <ErrorBoundary>
       <GoodLogsProvider>
         <ThemeInitializer>
           <ProfileInitializer>
+            <PushSessionCheck />
             {/* App-level notices stack under the header instead of covering it */}
             <NoticeStack>
               <OfflineBanner />

@@ -73,6 +73,7 @@ npm ci
 npm run lint
 npm run format:check
 npm run typecheck
+npm test
 npm run build
 ```
 
@@ -82,6 +83,7 @@ Backend-only commands:
 cd backend
 go fmt ./...
 go vet ./...
+go test ./...
 go build ./...
 ```
 
@@ -99,7 +101,7 @@ go build ./...
 
 - Follow the existing TypeScript, React, and Zustand patterns.
 - Keep components small and feature-oriented.
-- Run ESLint, Prettier, typecheck, and build locally before opening a PR.
+- Run ESLint, Prettier, typecheck, unit tests, and build locally before opening a PR.
 - Do not introduce hardcoded environment-specific URLs or secrets.
 
 ### Backend
@@ -107,7 +109,7 @@ go build ./...
 - Follow existing package boundaries in internal/ and pkg/.
 - Keep handlers thin and business logic in services/repositories.
 - Use structured logging and consistent error responses.
-- Run go fmt, go vet, and go build locally before opening a PR.
+- Run go fmt, go vet, go test, and go build locally before opening a PR.
 
 ## Commit Messages
 
@@ -139,15 +141,40 @@ A good PR should:
 
 ## Tests and Validation
 
-There is currently no committed automated test suite in this repository.
+Both apps have automated unit tests that CI runs on every pull request. Pull requests must keep
+them passing and stay above the coverage minimums: 90% of frontend statements, branches,
+functions and lines (thresholds in `frontend/vitest.config.ts`), and 90% of backend statements
+in `internal/` and `pkg/`. New code should come with tests for its behaviour, including error
+and edge cases.
 
-For now, contributors should validate changes with:
+```bash
+make check              # format, lint, typecheck, tests and builds for both apps
+make test               # unit tests only
+make frontend-coverage  # frontend tests with coverage thresholds (report: frontend/coverage/)
+make backend-coverage   # backend tests with the coverage minimum (report: backend/coverage.html)
+```
 
-- Frontend: lint, format check, typecheck, and production build.
-- Backend: go fmt, go vet, and go build.
-- Manual verification using the local Docker Compose workflow.
+Backend tests run against a real PostgreSQL 16. Each test package starts an embedded server
+automatically; set `TEST_DATABASE_URL` to use an existing one instead (see README.md).
 
-If you add a new testable unit or flow, prefer adding automated coverage alongside the feature rather than deferring it indefinitely.
+When writing tests:
+
+- Add or update tests with every feature and bug fix. A bug fix should include a test that fails
+  without it.
+- Test behavior rather than implementation: what a user sees and does (frontend), or what a
+  function returns, persists or responds with (backend).
+- Frontend: put `Foo.test.tsx` next to `Foo.tsx`. Query by role, label or text with React Testing
+  Library and drive interactions with `user-event`. Mock the API layer (`src/services/api`)
+  instead of the network. `fetch` fails by default, and every zustand store resets after each
+  test. Helpers live in `src/test/utils.tsx`.
+- Backend: put `foo_test.go` next to `foo.go`. Database-backed packages call
+  `testutil.RunWithDatabase` from `TestMain` and use `testutil.DB(t)`, which empties every table
+  after the test. Use `testutil.StartRedis` for Redis and local `httptest` servers for external
+  APIs. Tests never call real cloud services.
+- Keep tests deterministic: use fixed dates, don't sleep to wait for asynchronous work, and don't
+  depend on test order.
+
+Manual verification in the Docker Compose environment is still expected for UI changes.
 
 ## Documentation Expectations
 

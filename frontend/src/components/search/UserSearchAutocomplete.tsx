@@ -91,29 +91,30 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
   // Track confirm timeout for cleanup
   const clearConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Load recent + trending suggestions (on mount, and again to undo a failed edit)
+  const loadSuggestions = useCallback(async () => {
+    try {
+      const response = await searchApi.getSuggestions();
+      setInitialSuggestions({
+        recent: response.recent.map((u) => toAutocompleteSuggestion(u, 'recent')),
+        trending: response.trending.map((u) => toAutocompleteSuggestion(u, 'trending')),
+      });
+    } catch (error) {
+      console.error('[UserSearchAutocomplete] Failed to fetch suggestions:', error);
+      // Set empty suggestions so dropdown shows nothing instead of loading
+      setInitialSuggestions({ recent: [], trending: [] });
+    } finally {
+      setSuggestionsLoaded(true);
+    }
+  }, []);
+
   // Fetch suggestions on mount (will show on focus)
   useEffect(() => {
     if (suggestionsFetchedRef.current) return;
     suggestionsFetchedRef.current = true;
 
-    const fetchSuggestions = async () => {
-      try {
-        const response = await searchApi.getSuggestions();
-        setInitialSuggestions({
-          recent: response.recent.map((u) => toAutocompleteSuggestion(u, 'recent')),
-          trending: response.trending.map((u) => toAutocompleteSuggestion(u, 'trending')),
-        });
-      } catch (error) {
-        console.error('[UserSearchAutocomplete] Failed to fetch suggestions:', error);
-        // Set empty suggestions so dropdown shows nothing instead of loading
-        setInitialSuggestions({ recent: [], trending: [] });
-      } finally {
-        setSuggestionsLoaded(true);
-      }
-    };
-
-    fetchSuggestions();
-  }, []);
+    loadSuggestions();
+  }, [loadSuggestions]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -158,29 +159,32 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
     [onSelect, navigateOnSelect, navigate, onComplete]
   );
 
-  const handleDeleteRecent = useCallback(async (username: string, userId?: number) => {
-    // Optimistically remove from UI
-    setInitialSuggestions((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        recent: prev.recent.filter((s) => s.text !== username),
-      };
-    });
+  const handleDeleteRecent = useCallback(
+    async (username: string, userId?: number) => {
+      // Optimistically remove from UI
+      setInitialSuggestions((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          recent: prev.recent.filter((s) => s.text !== username),
+        };
+      });
 
-    // Delete from server in background
-    if (userId) {
-      try {
-        await searchApi.deleteRecentSearch(userId);
-      } catch (error) {
-        console.error('[UserSearchAutocomplete] Failed to delete recent search:', error);
-        // Revert on error by refetching
-        suggestionsFetchedRef.current = false;
-        setInitialSuggestions(null);
-        setSuggestionsLoaded(false);
+      // Delete from server in background
+      if (userId) {
+        try {
+          await searchApi.deleteRecentSearch(userId);
+        } catch (error) {
+          console.error('[UserSearchAutocomplete] Failed to delete recent search:', error);
+          // Revert on error by refetching
+          setInitialSuggestions(null);
+          setSuggestionsLoaded(false);
+          loadSuggestions();
+        }
       }
-    }
-  }, []);
+    },
+    [loadSuggestions]
+  );
 
   const handleClearAllRecent = useCallback(async () => {
     if (!showClearConfirm) {
@@ -217,11 +221,11 @@ export const UserSearchAutocomplete: React.FC<UserSearchAutocompleteProps> = ({
     } catch (error) {
       console.error('[UserSearchAutocomplete] Failed to clear recent searches:', error);
       // Revert on error by refetching
-      suggestionsFetchedRef.current = false;
       setInitialSuggestions(null);
       setSuggestionsLoaded(false);
+      loadSuggestions();
     }
-  }, [showClearConfirm]);
+  }, [showClearConfirm, loadSuggestions]);
 
   // Render section headers for suggestions
   const renderSectionHeaders = useCallback(

@@ -8,7 +8,7 @@ import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -35,6 +35,14 @@ export default defineConfig([
       'react-hooks/preserve-manual-memoization': 'warn',
       // Allow exporting constants alongside components (common pattern)
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    },
+  },
+  // Test files and helpers are never hot-reloaded, so the fast-refresh export rule
+  // does not apply to them.
+  {
+    files: ['src/test/**/*.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
   // Prettier must be last to override other formatting rules

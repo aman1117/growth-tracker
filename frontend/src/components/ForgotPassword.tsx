@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
-import { api } from '../services/api';
+import { api, ApiError } from '../services/api';
 import { AuthShell, authStyles } from './auth';
 import { Input, SnapToast } from './ui';
 
@@ -17,13 +17,19 @@ export const ForgotPassword: React.FC = () => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
+    setToast(null);
 
     try {
+      // The server answers unknown addresses with the same success (security: don't reveal
+      // if user exists), so any successful response gets the generic confirmation
       await api.post('/auth/forgot-password', { email });
       setIsSubmitted(true);
-    } catch {
-      // Still show success (security: don't reveal if user exists)
-      setIsSubmitted(true);
+    } catch (err) {
+      // Only real failures land here (offline, rate limited, server error): no link was sent
+      console.warn('[ForgotPassword] Reset link request failed; asking the user to retry', err);
+      const message =
+        err instanceof ApiError ? err.message : 'An error occurred. Please try again.';
+      setToast({ message, type: 'error' });
     } finally {
       setLoading(false);
     }

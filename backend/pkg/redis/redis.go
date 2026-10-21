@@ -7,15 +7,40 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/aman1117/backend/internal/constants"
+	"github.com/aman1117/backend/internal/logger"
 	goredis "github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
-var client *goredis.Client
+// current is the client callers use; nil means Redis is unavailable. It is atomic because a
+// background reconnect (see Init) can install a client while requests are being served.
+var current atomic.Pointer[goredis.Client]
 
-// Init initializes the Redis client
+var (
+	// changeMu orders changes of the client. cancelAttempt stops the connection attempt (the
+	// PING, then the background reconnect) of the latest Init, so a later change always wins.
+	changeMu      sync.Mutex
+	cancelAttempt context.CancelFunc = func() {}
+
+	// Waits between background reconnect attempts after a failed Init: the first one doubles
+	// up to the maximum. Variables so tests can shorten them.
+	reconnectDelay    = time.Second
+	reconnectMaxDelay = 30 * time.Second
+
+	// reconnects tracks the running background reconnects, so tests can wait for them to stop.
+	reconnects sync.WaitGroup
+)
+
+const pingTimeout = 5 * time.Second
+
+// Init connects to Redis. Until the server answers PING (it may be down, still starting or
+// rejecting the client), Redis stays unavailable, so callers fall back, and Init keeps retrying
+// in the background: an outage while the app starts does not disable Redis until the next restart.
 func Init(redisURL string) error {
 	if redisURL == "" {
 		return fmt.Errorf("REDIS_URL is not set")
@@ -26,35 +51,99 @@ func Init(redisURL string) error {
 		return fmt.Errorf("failed to parse REDIS_URL: %w", err)
 	}
 
-	client = goredis.NewClient(opt)
+	ctx := newAttempt()
+	c := goredis.NewClient(opt)
 
-	// Test connection
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := client.Ping(ctx).Err(); err != nil {
-		return fmt.Errorf("failed to connect to Redis: %w", err)
+	// Test the connection before installing the client, so a failed Init leaves Redis unavailable
+	if err := ping(ctx, c); err != nil {
+		delay, maxDelay, log := reconnectDelay, reconnectMaxDelay, logger.Sugar
+		reconnects.Go(func() { reconnect(ctx, c, delay, maxDelay, log) })
+		return fmt.Errorf("failed to connect to Redis (retrying in the background): %w", err)
 	}
 
+	if !install(ctx, c) {
+		_ = c.Close()
+	}
 	return nil
 }
 
-// Get returns the Redis client
+func ping(ctx context.Context, c *goredis.Client) error {
+	ctx, cancel := context.WithTimeout(ctx, pingTimeout)
+	defer cancel()
+	return c.Ping(ctx).Err()
+}
+
+// newAttempt stops the connection attempt of the previous Init and returns the context of a new one.
+func newAttempt() context.Context {
+	changeMu.Lock()
+	defer changeMu.Unlock()
+	cancelAttempt()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancelAttempt = cancel
+	return ctx
+}
+
+// install makes c the client callers use, unless a later change stopped the attempt. It
+// reports whether c was installed.
+func install(attempt context.Context, c *goredis.Client) bool {
+	changeMu.Lock()
+	defer changeMu.Unlock()
+	if attempt.Err() != nil {
+		return false
+	}
+	current.Store(c)
+	return true
+}
+
+// reconnect pings c, waiting longer after each failure, until it answers and is installed. It
+// closes c and gives up once a later change (Init, SetClient or Close) stops the attempt.
+func reconnect(attempt context.Context, c *goredis.Client, delay, maxDelay time.Duration, log *zap.SugaredLogger) {
+	for {
+		select {
+		case <-attempt.Done():
+			_ = c.Close()
+			return
+		case <-time.After(delay):
+		}
+		if ping(attempt, c) == nil && install(attempt, c) {
+			if log != nil {
+				log.Info("Redis connection established after retrying")
+			}
+			return
+		}
+		delay = min(delay*2, maxDelay)
+	}
+}
+
+// Get returns the Redis client, or nil when Redis is unavailable
 func Get() *goredis.Client {
-	return client
+	return current.Load()
+}
+
+// SetClient replaces the client callers use and stops any background reconnect. It exists for
+// tests, which point it at an in-memory Redis, or pass nil to simulate Redis being unavailable.
+func SetClient(c *goredis.Client) {
+	changeMu.Lock()
+	defer changeMu.Unlock()
+	cancelAttempt()
+	current.Store(c)
 }
 
 // IsAvailable returns whether Redis is configured and available
 func IsAvailable() bool {
-	return client != nil
+	return current.Load() != nil
 }
 
-// Close closes the Redis connection
+// Close stops any background reconnect and closes the Redis connection
 func Close() error {
-	if client == nil {
+	changeMu.Lock()
+	cancelAttempt()
+	c := current.Load()
+	changeMu.Unlock()
+	if c == nil {
 		return nil
 	}
-	return client.Close()
+	return c.Close()
 }
 
 // ==================== Password Reset Token Functions ====================
@@ -81,6 +170,7 @@ func HashToken(rawToken string) string {
 
 // StoreResetToken stores a password reset token in Redis
 func StoreResetToken(ctx context.Context, tokenHash string, userID uint) error {
+	client := Get()
 	if client == nil {
 		return fmt.Errorf("redis client not initialized")
 	}
@@ -94,6 +184,7 @@ func StoreResetToken(ctx context.Context, tokenHash string, userID uint) error {
 // ValidateResetToken checks if a reset token exists in Redis
 // Does NOT delete the token (for validate-only endpoint)
 func ValidateResetToken(ctx context.Context, rawToken string) (uint, error) {
+	client := Get()
 	if client == nil {
 		return 0, fmt.Errorf("redis client not initialized")
 	}
@@ -119,6 +210,7 @@ func ValidateResetToken(ctx context.Context, rawToken string) (uint, error) {
 
 // ConsumeResetToken validates and deletes a reset token (single-use)
 func ConsumeResetToken(ctx context.Context, rawToken string) (uint, error) {
+	client := Get()
 	if client == nil {
 		return 0, fmt.Errorf("redis client not initialized")
 	}
@@ -149,6 +241,7 @@ func ConsumeResetToken(ctx context.Context, rawToken string) (uint, error) {
 
 // DeleteResetToken explicitly deletes a reset token
 func DeleteResetToken(ctx context.Context, rawToken string) error {
+	client := Get()
 	if client == nil {
 		return fmt.Errorf("redis client not initialized")
 	}
@@ -168,6 +261,7 @@ func LikesCacheKey(userID uint, date string) string {
 
 // GetLikesCache retrieves cached likes data from Redis
 func GetLikesCache(ctx context.Context, userID uint, date string) (string, error) {
+	client := Get()
 	if client == nil {
 		return "", fmt.Errorf("redis client not initialized")
 	}
@@ -187,6 +281,7 @@ func GetLikesCache(ctx context.Context, userID uint, date string) (string, error
 
 // SetLikesCache stores likes data in Redis cache
 func SetLikesCache(ctx context.Context, userID uint, date string, data string) error {
+	client := Get()
 	if client == nil {
 		return fmt.Errorf("redis client not initialized")
 	}
@@ -201,6 +296,7 @@ func SetLikesCache(ctx context.Context, userID uint, date string, data string) e
 
 // InvalidateLikesCache removes likes data from Redis cache
 func InvalidateLikesCache(ctx context.Context, userID uint, date string) error {
+	client := Get()
 	if client == nil {
 		return fmt.Errorf("redis client not initialized")
 	}
@@ -231,6 +327,7 @@ func GenerateVerifyToken() (rawToken string, tokenHash string, err error) {
 
 // StoreVerifyToken stores an email verification token in Redis
 func StoreVerifyToken(ctx context.Context, tokenHash string, userID uint) error {
+	client := Get()
 	if client == nil {
 		return fmt.Errorf("redis client not initialized")
 	}
@@ -244,6 +341,7 @@ func StoreVerifyToken(ctx context.Context, tokenHash string, userID uint) error 
 // ConsumeVerifyToken validates and deletes an email verification token (single-use)
 // Uses atomic GETDEL to prevent race conditions
 func ConsumeVerifyToken(ctx context.Context, rawToken string) (uint, error) {
+	client := Get()
 	if client == nil {
 		return 0, fmt.Errorf("redis client not initialized")
 	}
@@ -280,6 +378,7 @@ func DeleteVerifyTokensForUser(ctx context.Context, userID uint) error {
 
 // SetVerifyResendCooldown sets a cooldown period for resending verification emails
 func SetVerifyResendCooldown(ctx context.Context, userID uint) error {
+	client := Get()
 	if client == nil {
 		return fmt.Errorf("redis client not initialized")
 	}
@@ -290,6 +389,7 @@ func SetVerifyResendCooldown(ctx context.Context, userID uint) error {
 
 // CheckVerifyResendCooldown checks if user is in cooldown period for resending verification
 func CheckVerifyResendCooldown(ctx context.Context, userID uint) (bool, error) {
+	client := Get()
 	if client == nil {
 		return false, fmt.Errorf("redis client not initialized")
 	}
@@ -324,6 +424,7 @@ func AutocompleteCacheKey(query string) string {
 // GetAutocompleteCache retrieves cached autocomplete results from Redis
 // Returns empty string on cache miss (not an error)
 func GetAutocompleteCache(ctx context.Context, query string) (string, error) {
+	client := Get()
 	if client == nil {
 		return "", nil // Redis not available, skip cache
 	}
@@ -344,6 +445,7 @@ func GetAutocompleteCache(ctx context.Context, query string) (string, error) {
 // SetAutocompleteCache stores autocomplete results in Redis cache
 // Silently fails if Redis is not available (cache is optional)
 func SetAutocompleteCache(ctx context.Context, query string, data string) error {
+	client := Get()
 	if client == nil {
 		return nil // Redis not available, skip cache
 	}
@@ -380,6 +482,7 @@ func StoryLikedByCacheKey(photoID, userID uint) string {
 // GetStoryLikeCount retrieves cached like count from Redis
 // Returns -1 on cache miss
 func GetStoryLikeCount(ctx context.Context, photoID uint) (int64, error) {
+	client := Get()
 	if client == nil {
 		return -1, nil // Redis not available, skip cache
 	}
@@ -398,6 +501,7 @@ func GetStoryLikeCount(ctx context.Context, photoID uint) (int64, error) {
 
 // SetStoryLikeCount stores like count in Redis cache
 func SetStoryLikeCount(ctx context.Context, photoID uint, count int64) error {
+	client := Get()
 	if client == nil {
 		return nil // Redis not available, skip cache
 	}
@@ -412,6 +516,7 @@ func SetStoryLikeCount(ctx context.Context, photoID uint, count int64) error {
 
 // IncrementStoryLikeCount atomically increments the cached like count
 func IncrementStoryLikeCount(ctx context.Context, photoID uint) error {
+	client := Get()
 	if client == nil {
 		return nil
 	}
@@ -433,6 +538,7 @@ func IncrementStoryLikeCount(ctx context.Context, photoID uint) error {
 
 // DecrementStoryLikeCount atomically decrements the cached like count
 func DecrementStoryLikeCount(ctx context.Context, photoID uint) error {
+	client := Get()
 	if client == nil {
 		return nil
 	}
@@ -457,6 +563,7 @@ func DecrementStoryLikeCount(ctx context.Context, photoID uint) error {
 
 // InvalidateStoryLikeCount removes like count from cache
 func InvalidateStoryLikeCount(ctx context.Context, photoID uint) error {
+	client := Get()
 	if client == nil {
 		return nil
 	}
@@ -472,6 +579,7 @@ func InvalidateStoryLikeCount(ctx context.Context, photoID uint) error {
 // GetStoryLikedByUser checks if a user has liked a photo (from cache)
 // Returns: liked (bool), found (bool), error
 func GetStoryLikedByUser(ctx context.Context, photoID, userID uint) (bool, bool, error) {
+	client := Get()
 	if client == nil {
 		return false, false, nil // Redis not available
 	}
@@ -490,6 +598,7 @@ func GetStoryLikedByUser(ctx context.Context, photoID, userID uint) (bool, bool,
 
 // SetStoryLikedByUser caches whether a user has liked a photo
 func SetStoryLikedByUser(ctx context.Context, photoID, userID uint, liked bool) error {
+	client := Get()
 	if client == nil {
 		return nil
 	}
@@ -508,6 +617,7 @@ func SetStoryLikedByUser(ctx context.Context, photoID, userID uint, liked bool) 
 
 // InvalidateStoryLikedByUser removes user liked status from cache
 func InvalidateStoryLikedByUser(ctx context.Context, photoID, userID uint) error {
+	client := Get()
 	if client == nil {
 		return nil
 	}
@@ -530,6 +640,7 @@ const (
 // GetTrendingCache retrieves cached trending users from Redis
 // Returns empty string on cache miss (not an error)
 func GetTrendingCache(ctx context.Context, key string) (string, error) {
+	client := Get()
 	if client == nil {
 		return "", nil // Redis not available, skip cache
 	}
@@ -549,6 +660,7 @@ func GetTrendingCache(ctx context.Context, key string) (string, error) {
 // SetTrendingCache stores trending users in Redis cache
 // Silently fails if Redis is not available (cache is optional)
 func SetTrendingCache(ctx context.Context, key string, data string) error {
+	client := Get()
 	if client == nil {
 		return nil // Redis not available, skip cache
 	}

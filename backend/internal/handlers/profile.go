@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aman1117/backend/internal/constants"
 	"github.com/aman1117/backend/internal/dto"
@@ -128,7 +129,7 @@ func (h *ProfileHandler) UpdateBio(c *fiber.Ctx) error {
 		return response.InternalError(c, "Failed to update bio", constants.ErrCodeUpdateFailed)
 	}
 
-	log.Infow("Bio updated", "bio_length", len(bio))
+	log.Infow("Bio updated", "bio_length", utf8.RuneCountInString(bio))
 	return response.JSON(c, fiber.Map{
 		"success": true,
 		"message": constants.MsgBioUpdated,
@@ -300,6 +301,11 @@ func (h *ProfileHandler) SearchUsers(c *fiber.Ctx) error {
 		return response.InvalidRequest(c)
 	}
 
+	// A blank query would match every user, so answer it without touching the database
+	if strings.TrimSpace(req.Username) == "" {
+		return response.Data(c, []dto.UserDTO{})
+	}
+
 	users, err := h.profileSvc.SearchUsers(req.Username)
 	if err != nil {
 		logger.LogWithContext(traceID, currentUserID).Errorw("User search failed", "query", req.Username, "error", err)
@@ -359,10 +365,8 @@ func (h *ProfileHandler) AutocompleteUsers(c *fiber.Ctx) error {
 		return response.BadRequest(c, "Query parameter 'q' is required", constants.ErrCodeMissingFields)
 	}
 
-	// Enforce query length limits
-	if len(query) > 80 {
-		query = query[:80]
-	}
+	// Enforce query length limits in characters, so a multi-byte character is never split
+	query = truncateString(query, 80)
 
 	// Parse limit parameter
 	limit := 12
@@ -452,7 +456,6 @@ func sanitizeUsersWithFollowing(users []models.User, followingSet map[uint]bool)
 		d := dto.UserDTO{
 			ID:              u.ID,
 			Username:        u.Username,
-			Email:           u.Email,
 			ProfilePic:      u.ProfilePic,
 			ProfilePicThumb: u.ProfilePicThumb,
 			IsPrivate:       u.IsPrivate,

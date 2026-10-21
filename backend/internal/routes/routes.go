@@ -190,8 +190,8 @@ func (r *Router) Setup(app *fiber.App) {
 	push.Delete("/subscriptions", authMiddleware, apiRateLimiter, r.pushHandler.UnregisterSubscription)
 	push.Get("/preferences", authMiddleware, apiRateLimiter, r.pushHandler.GetPreferences)
 	push.Put("/preferences", authMiddleware, apiRateLimiter, r.pushHandler.UpdatePreferences)
-	// Admin/maintenance endpoint - cleanup stale data
-	push.Post("/cleanup", authMiddleware, r.pushHandler.RunCleanup)
+	// Maintenance endpoint - cleanup stale data (requires the X-Maintenance-Key header)
+	push.Post("/cleanup", authMiddleware, apiRateLimiter, r.pushHandler.RunCleanup)
 
 	// ==================== Follow System ====================
 	followRateLimiter := middleware.FollowRateLimiter()

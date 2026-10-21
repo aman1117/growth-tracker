@@ -33,6 +33,12 @@ const (
 	WSTypePendingDelivery = "pending_delivery"
 )
 
+// Heartbeat timings, variables only so tests can shorten them.
+var (
+	wsPingInterval = constants.WSPingInterval
+	wsReadTimeout  = constants.WSReadTimeout
+)
+
 // NotificationWSHandler handles WebSocket connections for real-time notifications
 type NotificationWSHandler struct {
 	notifSvc *services.NotificationService
@@ -130,7 +136,7 @@ func (h *NotificationWSHandler) HandleConnection() fiber.Handler {
 		}
 
 		// Setup ping ticker for heartbeat
-		pingTicker := time.NewTicker(constants.WSPingInterval)
+		pingTicker := time.NewTicker(wsPingInterval)
 		defer pingTicker.Stop()
 
 		// Cleanup on disconnect
@@ -142,7 +148,14 @@ func (h *NotificationWSHandler) HandleConnection() fiber.Handler {
 
 		// Set read deadline and message size limit
 		c.SetReadLimit(constants.WSMaxMessageSize)
-		c.SetReadDeadline(time.Now().Add(constants.WSReadTimeout))
+		c.SetReadDeadline(time.Now().Add(wsReadTimeout))
+		// Pongs answering our pings also prove the client is alive (browsers answer pings
+		// automatically and may never send a data message). Use the underlying connection:
+		// c itself is recycled as soon as this handler returns.
+		ws := c.Conn
+		ws.SetPongHandler(func(string) error {
+			return ws.SetReadDeadline(time.Now().Add(wsReadTimeout))
+		})
 
 		// Message handling goroutine
 		done := make(chan struct{})
@@ -158,7 +171,7 @@ func (h *NotificationWSHandler) HandleConnection() fiber.Handler {
 				}
 
 				// Reset read deadline on any message
-				c.SetReadDeadline(time.Now().Add(constants.WSReadTimeout))
+				c.SetReadDeadline(time.Now().Add(wsReadTimeout))
 
 				// Handle incoming messages (mainly pong responses)
 				h.handleClientMessage(c, message, log)
@@ -311,8 +324,12 @@ func (h *NotificationWSHandler) removeConnection(userID uint, connID string) {
 
 // BroadcastToUser sends a message to all connections of a user (local instance only)
 func (h *NotificationWSHandler) BroadcastToUser(userID uint, msgType string, payload interface{}) {
+	// Copy the user's connections under the read lock: the map changes as clients come and go
 	h.mu.RLock()
-	conns := h.connections[userID]
+	conns := make([]*websocket.Conn, 0, len(h.connections[userID]))
+	for _, conn := range h.connections[userID] {
+		conns = append(conns, conn)
+	}
 	h.mu.RUnlock()
 
 	if len(conns) == 0 {

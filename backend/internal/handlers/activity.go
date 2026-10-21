@@ -8,6 +8,7 @@ import (
 	"github.com/aman1117/backend/internal/logger"
 	"github.com/aman1117/backend/internal/response"
 	"github.com/aman1117/backend/internal/services"
+	"github.com/aman1117/backend/internal/validator"
 	"github.com/aman1117/backend/pkg/models"
 	"github.com/gofiber/fiber/v2"
 )
@@ -61,6 +62,11 @@ func (h *ActivityHandler) CreateActivity(c *fiber.Ctx) error {
 	// Validate activity name
 	if !models.ActivityName(req.Activity).IsValid() {
 		return response.BadRequest(c, "Invalid activity name", constants.ErrCodeInvalidActivity)
+	}
+
+	// Validate note length
+	if err := validator.ValidateNote(req.Note); err != nil {
+		return response.BadRequest(c, err.Message, err.ErrorCode)
 	}
 
 	// Parse date

@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { APP_ROUTES } from '../constants/routes';
+import { VALIDATION, VALIDATION_MESSAGES } from '../constants/validation';
 import { api, ApiError } from '../services/api';
 import { useAuth } from '../store';
 import { decodeAccessToken } from '../utils/jwt';
 import { getSafeRedirectPath, type RedirectState } from '../utils/navigation';
+import { characterCount } from '../utils/text';
 import { AuthShell, authStyles } from './auth';
 import { Input, PasswordInput, SnapToast, Tabs } from './ui';
 
@@ -18,6 +20,10 @@ const MODE_TABS = [
 ];
 
 const FIELD_ICON_PROPS = { size: 18, strokeWidth: 2.25, 'aria-hidden': true } as const;
+
+/** Usernames are lowercase on the server; email addresses are sent exactly as typed. */
+const toLoginIdentifier = (identifier: string) =>
+  identifier.includes('@') ? identifier : identifier.toLowerCase();
 
 export const AuthForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -43,6 +49,8 @@ export const AuthForm: React.FC = () => {
   const switchMode = (mode: AuthMode) => {
     if (loading) return;
     setIsLogin(mode === 'login');
+    // The login field keeps the identifier as typed, but sign-up usernames are lowercase only
+    if (mode === 'register') setUsername((value) => value.toLowerCase());
     setToast(null);
   };
 
@@ -84,10 +92,20 @@ export const AuthForm: React.FC = () => {
       return;
     }
 
+    // Count password characters like the server does, so an emoji counts once
+    if (!isLogin && characterCount(password) < VALIDATION.PASSWORD_MIN_LENGTH) {
+      setToast({ message: VALIDATION_MESSAGES.PASSWORD_LENGTH_ERROR, type: 'error' });
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isLogin) {
         // Login
-        const res = await api.post('/login', { identifier: sanitizedUsername, password });
+        const res = await api.post('/login', {
+          identifier: toLoginIdentifier(sanitizedUsername),
+          password,
+        });
         if (res.success) {
           if (!completeLogin(res.access_token)) {
             setToast({ message: 'Login failed. Please try again.', type: 'error' });
@@ -173,10 +191,7 @@ export const AuthForm: React.FC = () => {
               type="text"
               icon={<User {...FIELD_ICON_PROPS} />}
               value={username}
-              onChange={(e) => {
-                const value = e.target.value.trimStart();
-                setUsername(value.includes('@') ? value : value.toLowerCase());
-              }}
+              onChange={(e) => setUsername(e.target.value.trimStart())}
               onBlur={(e) => setUsername(e.target.value.trim())}
               autoComplete="username"
               autoCapitalize="none"

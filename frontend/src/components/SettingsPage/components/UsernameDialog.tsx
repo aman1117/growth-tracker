@@ -9,16 +9,15 @@ import React, { useId, useState } from 'react';
 
 import { VALIDATION } from '../../../constants/validation';
 import { api } from '../../../services/api';
+import { characterCount } from '../../../utils/text';
 import { Button, Input, Modal } from '../../ui';
 import { getErrorCode, getRequestErrorMessage } from '../settingsForm';
 import type { UsernameDialogProps } from '../SettingsPage.types';
 import styles from './SettingsDialogs.module.css';
 
 const validateUsername = (value: string): string | null => {
-  if (
-    value.length < VALIDATION.USERNAME_MIN_LENGTH ||
-    value.length > VALIDATION.USERNAME_MAX_LENGTH
-  ) {
+  const length = characterCount(value);
+  if (length < VALIDATION.USERNAME_MIN_LENGTH || length > VALIDATION.USERNAME_MAX_LENGTH) {
     return `Username must be ${VALIDATION.USERNAME_MIN_LENGTH}-${VALIDATION.USERNAME_MAX_LENGTH} characters`;
   }
   if (!VALIDATION.USERNAME_PATTERN.test(value)) {

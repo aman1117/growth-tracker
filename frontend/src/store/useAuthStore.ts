@@ -10,7 +10,9 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { STORAGE_KEYS } from '../constants/storage';
 import { gl } from '../services/goodlogs';
+import { pushService } from '../services/pushService';
 import { decodeAccessToken } from '../utils/jwt';
+import { resetUserStores } from './resetUserStores';
 
 export interface User {
   id: number;
@@ -66,6 +68,9 @@ export const useAuthStore = create<AuthState>()(
           localStorage.removeItem(STORAGE_KEYS.BIO);
         }
 
+        // Start clean, whatever the previous session left behind (e.g. a late response)
+        resetUserStores();
+
         set({
           user: { id: userId, username, profilePic, bio },
           isAuthenticated: true,
@@ -80,6 +85,10 @@ export const useAuthStore = create<AuthState>()(
         gl.track('logout');
         gl.reset();
 
+        // Stop this account's pushes on this device. The token is read before it is cleared
+        // below; unregisterDevice never throws, so logout stays synchronous.
+        void pushService.unregisterDevice(localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN));
+
         // Clear all auth-related localStorage items
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USERNAME);
@@ -88,6 +97,9 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem(STORAGE_KEYS.BIO);
         // Clear email verification dismissal so new user sees it
         localStorage.removeItem('email-verification-dismissed-at');
+        // Drop the user's data from memory (and persisted push state) so the next person
+        // to sign in on this tab never sees it
+        resetUserStores();
 
         set({
           user: null,
@@ -154,6 +166,10 @@ export const useAuthStore = create<AuthState>()(
         }
 
         if ((!token || isExpired) && state) {
+          // A stored user without a valid token means the session ended without an in-app
+          // logout (expiry, or a 401 that cleared the token and reloaded the app): clear
+          // what that user left behind, such as persisted push state
+          if (state.user) resetUserStores();
           // No valid token means not authenticated
           state.user = null;
           state.isAuthenticated = false;

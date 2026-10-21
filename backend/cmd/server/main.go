@@ -81,7 +81,7 @@ func main() {
 	if cfg.Redis.URL != "" {
 		if err := redis.Init(cfg.Redis.URL); err != nil {
 			log.Warnf("Redis initialization failed: %v", err)
-			log.Warn("Password reset functionality will be disabled")
+			log.Warn("Password reset and other Redis features are unavailable until Redis connects")
 		} else {
 			log.Info("Redis connection established")
 		}

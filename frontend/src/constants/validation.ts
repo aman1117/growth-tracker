@@ -10,12 +10,13 @@ export const VALIDATION = {
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'],
   ALLOWED_IMAGE_EXTENSIONS: ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'],
 
-  // Limits below mirror backend/internal/constants (keep in sync)
+  // Limits below mirror backend/internal/constants (keep in sync). Like the server, count
+  // characters (Unicode code points) with utils/text, not `.length` or `maxLength`.
 
   // Password
   PASSWORD_MIN_LENGTH: 8,
 
-  // Bio — the server measures UTF-8 bytes, so emoji count as more than one
+  // Bio
   BIO_MAX_LENGTH: 150,
 
   // Notes

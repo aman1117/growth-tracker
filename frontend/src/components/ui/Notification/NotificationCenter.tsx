@@ -5,7 +5,7 @@
  * Manages WebSocket connection and notification state.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import { useWebSocket } from '../../../hooks';
 import { useIsAuthenticated } from '../../../store';
@@ -29,6 +29,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   onOpen,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const bellRef = useRef<HTMLButtonElement>(null);
   const isAuthenticated = useIsAuthenticated();
 
   // Initialize WebSocket connection when authenticated
@@ -69,12 +70,13 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
 
   return (
     <div className={styles.container}>
-      <NotificationBell onClick={handleToggle} isOpen={isOpen} />
+      <NotificationBell ref={bellRef} onClick={handleToggle} isOpen={isOpen} />
       <NotificationPanel
         isOpen={isOpen}
         onClose={handleClose}
         onNotificationClick={handleNotificationClick}
         onUsernameClick={handleUsernameClick}
+        triggerRef={bellRef}
       />
     </div>
   );

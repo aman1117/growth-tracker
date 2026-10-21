@@ -12,6 +12,7 @@ import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'reac
 
 import { getActivityConfig } from '../constants/activities';
 import type { ActivityName, CustomTile } from '../types';
+import { applyCharacterLimit, characterCount } from '../utils/text';
 import styles from './ActivityModal.module.css';
 import { DynamicIcon } from './DynamicIcon';
 import { Button, Modal } from './ui';
@@ -150,6 +151,8 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
     isValidHours &&
     parsedHours !== null &&
     parsedHours > remainingHours + 1e-9;
+  // Counted in characters, as the server counts them, so each emoji counts once
+  const noteLength = characterCount(note);
 
   const nudge = (delta: number) => {
     const base = parsedHours ?? 0;
@@ -318,12 +321,12 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
               Note <span className={styles.optional}>· optional</span>
             </label>
             <span
-              className={`${styles.counter} ${note.length > 0 ? styles.counterVisible : ''} ${
-                note.length >= NOTE_LIMIT ? styles.counterFull : ''
+              className={`${styles.counter} ${noteLength > 0 ? styles.counterVisible : ''} ${
+                noteLength >= NOTE_LIMIT ? styles.counterFull : ''
               }`}
-              aria-hidden={note.length === 0}
+              aria-hidden={noteLength === 0}
             >
-              {note.length}/{NOTE_LIMIT}
+              {noteLength}/{NOTE_LIMIT}
             </span>
           </div>
           <div className={styles.noteBox}>
@@ -331,10 +334,9 @@ export const ActivityModal: React.FC<ActivityModalProps> = ({
               id={noteId}
               ref={noteInputRef}
               value={note}
-              onChange={(e) => setNote(e.target.value.slice(0, NOTE_LIMIT))}
+              onChange={(e) => setNote(applyCharacterLimit(e.target.value, note, NOTE_LIMIT))}
               onFocus={() => setIsNoteExpanded(true)}
               placeholder="What did you get done?"
-              maxLength={NOTE_LIMIT}
               rows={2}
               className={`${styles.note} ${isNoteExpanded ? styles.noteExpanded : ''}`}
             />

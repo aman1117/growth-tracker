@@ -4,8 +4,10 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -48,6 +50,10 @@ type Config struct {
 
 	// Runtime profiling (pprof) configuration
 	Pprof PprofConfig
+
+	// MaintenanceAPIKey authorizes maintenance endpoints (X-Maintenance-Key header).
+	// Optional: when empty those endpoints are disabled.
+	MaintenanceAPIKey string
 
 	// Environment (development, production)
 	Env string
@@ -236,6 +242,8 @@ func Load() (*Config, error) {
 			Prefix:  getEnvWithDefault("PPROF_PREFIX", "/debug/pprof"),
 			Token:   os.Getenv("PPROF_TOKEN"),
 		},
+
+		MaintenanceAPIKey: os.Getenv("MAINTENANCE_API_KEY"),
 	}
 
 	AppConfig = config
@@ -249,11 +257,16 @@ func (c *DatabaseConfig) DSN() string {
 		return c.URL
 	}
 
-	// Otherwise, build from components
-	return fmt.Sprintf(
-		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
-		c.Username, c.Password, c.Host, c.Port, c.Name, c.SSLMode,
-	)
+	// Otherwise, build from components. url.URL escapes the user name, password and
+	// database name, so values containing characters such as @ / : # ? or % stay intact.
+	dsn := url.URL{
+		Scheme:   "postgresql",
+		User:     url.UserPassword(c.Username, c.Password),
+		Host:     c.Host + ":" + c.Port,
+		Path:     "/" + c.Name,
+		RawQuery: url.Values{"sslmode": {c.SSLMode}}.Encode(),
+	}
+	return dsn.String()
 }
 
 // IsProduction returns true if running in production environment
@@ -317,8 +330,8 @@ func getBoolFromEnv(key string, defaultValue bool) bool {
 	if value == "" {
 		return defaultValue
 	}
-	// Accept common boolean representations
-	switch value {
+	// Accept common boolean representations in any letter case
+	switch strings.ToLower(value) {
 	case "true", "1", "yes", "on":
 		return true
 	case "false", "0", "no", "off":

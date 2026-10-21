@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/aman1117/backend/internal/constants"
 )
@@ -38,7 +39,7 @@ func ValidateUsername(username string) *ValidationError {
 		return NewValidationError("Username is required", constants.ErrCodeMissingFields)
 	}
 
-	if len(username) < constants.UsernameMinLength || len(username) > constants.UsernameMaxLength {
+	if length := utf8.RuneCountInString(username); length < constants.UsernameMinLength || length > constants.UsernameMaxLength {
 		return NewValidationError(
 			"Username must be between 3 and 20 characters",
 			constants.ErrCodeInvalidUsernameLen,
@@ -63,7 +64,7 @@ func ValidatePassword(password string) *ValidationError {
 		return NewValidationError("Password is required", constants.ErrCodeMissingFields)
 	}
 
-	if len(password) < constants.PasswordMinLength {
+	if utf8.RuneCountInString(password) < constants.PasswordMinLength {
 		return NewValidationError(
 			"Password must be at least 8 characters long",
 			constants.ErrCodePasswordTooShort,
@@ -126,7 +127,7 @@ func ValidateEmail(email string) *ValidationError {
 func ValidateBio(bio string) *ValidationError {
 	bio = strings.TrimSpace(bio)
 
-	if len(bio) > constants.BioMaxLength {
+	if utf8.RuneCountInString(bio) > constants.BioMaxLength {
 		return NewValidationError(
 			"Bio must be 150 characters or less",
 			constants.ErrCodeBioTooLong,
@@ -143,7 +144,7 @@ func ValidateNote(note *string) *ValidationError {
 	}
 
 	trimmed := strings.TrimSpace(*note)
-	if len(trimmed) > constants.NoteMaxLength {
+	if utf8.RuneCountInString(trimmed) > constants.NoteMaxLength {
 		return NewValidationError(
 			"Note must be 500 characters or less",
 			constants.ErrCodeInvalidRequest,
@@ -159,12 +160,13 @@ var MentionPattern = regexp.MustCompile(`@([a-z0-9_.]{3,20})`)
 // ValidateCommentBody validates a comment body for length and content
 func ValidateCommentBody(body string) *ValidationError {
 	trimmed := strings.TrimSpace(body)
+	length := utf8.RuneCountInString(trimmed)
 
-	if len(trimmed) < constants.CommentBodyMinLength {
+	if length < constants.CommentBodyMinLength {
 		return NewValidationError("Comment cannot be empty", constants.ErrCodeCommentEmpty)
 	}
 
-	if len(trimmed) > constants.CommentBodyMaxLength {
+	if length > constants.CommentBodyMaxLength {
 		return NewValidationError(
 			"Comment must be 200 characters or less",
 			constants.ErrCodeCommentTooLong,

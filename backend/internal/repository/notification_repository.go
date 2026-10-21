@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/aman1117/backend/pkg/models"
@@ -143,7 +144,8 @@ func (r *NotificationRepository) ExistsByTypeAndMetadata(
 
 	err := r.db.Model(&models.Notification{}).
 		Where("user_id = ? AND type = ? AND created_at > ?", userID, notifType, sinceTime).
-		Where("metadata->>? = ?", metadataKey, metadataValue).
+		// ->> yields text, so compare with the value's text form (numbers, booleans, strings)
+		Where("metadata->>? = ?", metadataKey, fmt.Sprint(metadataValue)).
 		Count(&count).Error
 
 	return count > 0, err

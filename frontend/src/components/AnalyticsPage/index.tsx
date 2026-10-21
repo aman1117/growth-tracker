@@ -24,6 +24,7 @@ import {
   X,
 } from 'lucide-react';
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { getActivityConfig, STORAGE_KEYS } from '../../constants';
@@ -153,7 +154,8 @@ export const AnalyticsPage: React.FC = () => {
   const [showUserSelector, setShowUserSelector] = useState(false);
   const userSelectorRef = useRef<HTMLDivElement>(null);
   const userButtonRef = useRef<HTMLButtonElement>(null);
-  // Set when the search is dismissed with Escape so focus can return to the switcher
+  // Set when Escape dismisses the search's suggestions (the search then blurs and closes),
+  // so focus can return to the switcher
   const selectorEscapedRef = useRef(false);
 
   // Target username and verification status
@@ -237,6 +239,7 @@ export const AnalyticsPage: React.FC = () => {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (userSelectorRef.current && !userSelectorRef.current.contains(e.target as Node)) {
+        selectorEscapedRef.current = false;
         setShowUserSelector(false);
       }
       if (activityFilterRef.current && !activityFilterRef.current.contains(e.target as Node)) {
@@ -264,9 +267,27 @@ export const AnalyticsPage: React.FC = () => {
     setShowUserSelector(false);
     if (selectorEscapedRef.current) {
       selectorEscapedRef.current = false;
-      // Wait for the switcher button to re-mount before focusing it
-      requestAnimationFrame(() => userButtonRef.current?.focus({ preventScroll: true }));
+      // Wait for the switcher button to re-mount; never take focus the user has moved on
+      requestAnimationFrame(() => {
+        if (document.activeElement === document.body) {
+          userButtonRef.current?.focus({ preventScroll: true });
+        }
+      });
     }
+  };
+
+  const handleSwitcherKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Escape' || !showUserSelector) return;
+    if (e.defaultPrevented) {
+      // The search closed its suggestions and blurred itself; its blur closes it
+      selectorEscapedRef.current = true;
+      return;
+    }
+    // Nothing else to dismiss: close the search now and return focus to the switcher
+    e.preventDefault();
+    selectorEscapedRef.current = false;
+    flushSync(() => setShowUserSelector(false));
+    userButtonRef.current?.focus({ preventScroll: true });
   };
 
   // Autocomplete fetch function
@@ -871,13 +892,7 @@ export const AnalyticsPage: React.FC = () => {
       <PageHeader title="Insights" onBack={isViewingOwnAnalytics ? undefined : smartBack} />
 
       {/* User switcher */}
-      <div
-        ref={userSelectorRef}
-        className={styles.userSwitcher}
-        onKeyDownCapture={(e) => {
-          if (e.key === 'Escape') selectorEscapedRef.current = true;
-        }}
-      >
+      <div ref={userSelectorRef} className={styles.userSwitcher} onKeyDown={handleSwitcherKeyDown}>
         {showUserSelector ? (
           <Autocomplete
             placeholder="Search people…"
@@ -893,7 +908,10 @@ export const AnalyticsPage: React.FC = () => {
             ref={userButtonRef}
             type="button"
             className={styles.userButton}
-            onClick={() => setShowUserSelector(true)}
+            onClick={() => {
+              selectorEscapedRef.current = false;
+              setShowUserSelector(true);
+            }}
           >
             <span className={styles.userIcon} aria-hidden="true">
               <Users size={18} strokeWidth={2.3} />

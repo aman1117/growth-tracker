@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"crypto/subtle"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/aman1117/backend/internal/config"
 	"github.com/aman1117/backend/internal/constants"
@@ -24,6 +27,8 @@ const (
 	MaxPlatformLength = 50
 	// MaxBrowserLength is the maximum length of browser string
 	MaxBrowserLength = 50
+	// MaintenanceKeyHeader carries the MAINTENANCE_API_KEY for maintenance endpoints
+	MaintenanceKeyHeader = "X-Maintenance-Key"
 )
 
 // PushHandler handles push notification subscription requests
@@ -312,11 +317,26 @@ func (h *PushHandler) UpdatePreferences(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Param X-Maintenance-Key header string true "Maintenance API key (MAINTENANCE_API_KEY)"
 // @Success 200 {object} dto.CleanupResponse "Cleanup results"
 // @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 403 {object} dto.ErrorResponse "Maintenance key invalid or not configured"
 // @Router /push/cleanup [post]
 func (h *PushHandler) RunCleanup(c *fiber.Ctx) error {
-	log := logger.LogWithContext(getTraceID(c), 0)
+	log := logger.LogWithContext(getTraceID(c), getUserID(c))
+
+	// Fail closed: without a configured key nobody may run maintenance
+	expectedKey := h.config.MaintenanceAPIKey
+	if expectedKey == "" {
+		log.Warnw("Push cleanup rejected: MAINTENANCE_API_KEY is not configured")
+		return response.Forbidden(c, "Maintenance endpoints are disabled", constants.ErrCodeNotAuthorized)
+	}
+	providedKey := c.Get(MaintenanceKeyHeader)
+	if subtle.ConstantTimeCompare([]byte(providedKey), []byte(expectedKey)) != 1 {
+		log.Warnw("Push cleanup rejected: invalid maintenance key", "key_provided", providedKey != "")
+		return response.Forbidden(c, "Invalid maintenance key", constants.ErrCodeNotAuthorized)
+	}
+
 	log.Info("Running push data cleanup")
 
 	// Cleanup stale subscriptions (no success in 90 days)
@@ -404,10 +424,12 @@ func isValidNotificationType(notifType string) bool {
 	return validTypes[notifType]
 }
 
-// truncateString truncates a string to maxLen
+// truncateString keeps at most maxLen characters. Invalid UTF-8 is replaced and a multi-byte
+// character is never split, so the result is always valid UTF-8 for PostgreSQL.
 func truncateString(s string, maxLen int) string {
-	if len(s) <= maxLen {
+	s = strings.ToValidUTF8(s, string(utf8.RuneError))
+	if utf8.RuneCountInString(s) <= maxLen {
 		return s
 	}
-	return s[:maxLen]
+	return string([]rune(s)[:maxLen])
 }

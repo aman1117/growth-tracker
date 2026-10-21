@@ -31,15 +31,22 @@ func NewTileConfigHandler(tileConfigSvc *services.TileConfigService, authSvc *se
 // @Tags Tile Config
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} dto.TileConfigResponse "Tile configuration"
+// @Success 200 {object} dto.TileConfigResponse "Tile configuration (data is null when none is saved)"
 // @Failure 401 {object} dto.ErrorResponse "Unauthorized"
+// @Failure 500 {object} dto.ErrorResponse "Failed to get tile configuration"
 // @Router /tile-config [get]
 func (h *TileConfigHandler) GetConfig(c *fiber.Ctx) error {
 	userID := getUserID(c)
 
 	config, err := h.tileConfigSvc.GetConfig(userID)
-	if err != nil || config == nil {
-		// No config found - return null config (not an error)
+	if err != nil {
+		// Never report a failure as "no config": the app would show the default tiles and its
+		// next save would replace the user's real configuration
+		logger.LogWithContext(getTraceID(c), userID).Errorw("Tile config fetch failed", "error", err)
+		return response.InternalError(c, "Failed to get tile configuration", constants.ErrCodeFetchFailed)
+	}
+	if config == nil {
+		// No config saved yet - return null config (not an error)
 		return response.JSON(c, dto.TileConfigResponse{
 			Success: true,
 			Data:    nil,
@@ -60,10 +67,12 @@ func (h *TileConfigHandler) GetConfig(c *fiber.Ctx) error {
 // @Produce json
 // @Security BearerAuth
 // @Param request body dto.GetTileConfigByUsernameRequest true "Target username"
-// @Success 200 {object} dto.TileConfigResponse "Tile configuration"
-// @Failure 400 {object} dto.ErrorResponse "User not found"
+// @Success 200 {object} dto.TileConfigResponse "Tile configuration (data is null when none is saved)"
+// @Failure 400 {object} dto.ErrorResponse "Invalid request"
 // @Failure 401 {object} dto.ErrorResponse "Unauthorized"
 // @Failure 403 {object} dto.ErrorResponse "Private account"
+// @Failure 404 {object} dto.ErrorResponse "User not found"
+// @Failure 500 {object} dto.ErrorResponse "Failed to get tile configuration"
 // @Router /tile-config/user [post]
 func (h *TileConfigHandler) GetConfigByUsername(c *fiber.Ctx) error {
 	var req dto.GetTileConfigByUsernameRequest
@@ -91,7 +100,11 @@ func (h *TileConfigHandler) GetConfigByUsername(c *fiber.Ctx) error {
 	}
 
 	config, err := h.tileConfigSvc.GetConfig(user.ID)
-	if err != nil || config == nil {
+	if err != nil {
+		logger.LogWithContext(traceID, currentUserID).Errorw("Tile config fetch failed", "target_user_id", user.ID, "error", err)
+		return response.InternalError(c, "Failed to get tile configuration", constants.ErrCodeFetchFailed)
+	}
+	if config == nil {
 		return response.JSON(c, dto.TileConfigResponse{
 			Success: true,
 			Data:    nil,

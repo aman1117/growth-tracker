@@ -11,6 +11,7 @@
  */
 
 import { BellRing, Check, RefreshCw, X } from 'lucide-react';
+import type { RefObject } from 'react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -25,6 +26,11 @@ interface NotificationPanelProps {
   onClose: () => void;
   onNotificationClick?: (notification: Notification) => void;
   onUsernameClick?: (username: string) => void;
+  /**
+   * The control that opens and closes the panel (e.g. the bell). Presses on it are left to its
+   * own click handler, so clicking it while the panel is open just closes the panel.
+   */
+  triggerRef?: RefObject<HTMLElement | null>;
 }
 
 const CLOSE_ANIMATION_DURATION = 150;
@@ -34,8 +40,10 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   onClose,
   onNotificationClick,
   onUsernameClick,
+  triggerRef,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRender, setShouldRender] = useState(isOpen);
@@ -78,7 +86,10 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   // Close on outside click and Escape key
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      // The trigger and the mobile overlay close the panel through their own click handlers
+      if (triggerRef?.current?.contains(target) || overlayRef.current?.contains(target)) return;
+      if (panelRef.current && !panelRef.current.contains(target)) {
         onClose();
       }
     };
@@ -98,7 +109,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, triggerRef]);
 
   // System Back gesture / button closes the panel instead of leaving the page
   useBackDismiss(isOpen, onClose);
@@ -151,6 +162,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
       {/* Mobile overlay backdrop */}
       {isMobile && (
         <div
+          ref={overlayRef}
           className={`${styles.mobileOverlay} ${isClosing ? styles.mobileOverlayClosing : ''}`}
           onClick={onClose}
         />

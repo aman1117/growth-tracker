@@ -46,6 +46,28 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Coverage summary
+        if: ${{ !cancelled() && hashFiles('frontend/coverage/coverage-summary.json') != '' }}
+        run: |
+          node -e "
+            const total = require('./coverage/coverage-summary.json').total;
+            const rows = ['statements', 'branches', 'functions', 'lines'].map(
+              (k) => '| ' + k + ' | ' + total[k].pct + '% | ' + total[k].covered + ' / ' + total[k].total + ' |'
+            );
+            console.log(['### Frontend coverage', '', '| Metric | Coverage | Covered |', '| --- | --- | --- |', ...rows].join('\n'));
+          " >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() && hashFiles('frontend/coverage/index.html') != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+          retention-days: 14
+
       - name: Build
         run: npm run build
 
@@ -55,6 +77,24 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      postgres:
+        # Same major version as docker-compose.yml.
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Tests create and drop their own database per package on this server.
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -75,6 +115,40 @@ jobs:
 
       - name: Vet
         run: go vet ./...
+
+      - name: Unit tests with coverage
+        run: sh scripts/test-coverage.sh 90
+
+      - name: Coverage summary
+        if: ${{ !cancelled() && hashFiles('backend/coverage.out') != '' }}
+        run: |
+          {
+            echo '### Backend coverage'
+            echo
+            echo '| Package | Statements |'
+            echo '| --- | --- |'
+            # Each test binary reports every block, so count a block once and treat it as
+            # covered when any binary executed it.
+            awk 'NR > 1 { stmts[$1] = $2; if ($3 > 0) hit[$1] = 1 }
+              END {
+                for (block in stmts) {
+                  pkg = block; sub(/\/[^\/]*:.*$/, "", pkg); sub(/^github.com\/aman1117\/backend\//, "", pkg)
+                  total[pkg] += stmts[block]; if (hit[block]) covered[pkg] += stmts[block]
+                }
+                for (pkg in total) printf "| %s | %.1f%% |\n", pkg, 100 * covered[pkg] / total[pkg]
+              }' coverage.out | sort
+            go tool cover -func=coverage.out | awk '/^total:/ { print "| **total** | **" $3 "** |" }'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() && hashFiles('backend/coverage.html') != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-coverage
+          path: |
+            backend/coverage.out
+            backend/coverage.html
+          retention-days: 14
 
       - name: Build
         run: go build ./...

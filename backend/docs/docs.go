@@ -2604,6 +2604,15 @@ const docTemplate = `{
                     "Push Notifications"
                 ],
                 "summary": "Cleanup stale push data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Maintenance API key (MAINTENANCE_API_KEY)",
+                        "name": "X-Maintenance-Key",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Cleanup results",
@@ -2613,6 +2622,12 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Maintenance key invalid or not configured",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -3066,13 +3081,19 @@ const docTemplate = `{
                 "summary": "Get tile configuration",
                 "responses": {
                     "200": {
-                        "description": "Tile configuration",
+                        "description": "Tile configuration (data is null when none is saved)",
                         "schema": {
                             "$ref": "#/definitions/dto.TileConfigResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get tile configuration",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -3160,13 +3181,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Tile configuration",
+                        "description": "Tile configuration (data is null when none is saved)",
                         "schema": {
                             "$ref": "#/definitions/dto.TileConfigResponse"
                         }
                     },
                     "400": {
-                        "description": "User not found",
+                        "description": "Invalid request",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -3230,6 +3251,18 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get tile configuration",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -5393,10 +5426,6 @@ const docTemplate = `{
                     "description": "Only included for public profiles",
                     "type": "string",
                     "example": "Software developer"
-                },
-                "email": {
-                    "type": "string",
-                    "example": "john@example.com"
                 },
                 "id": {
                     "type": "integer",

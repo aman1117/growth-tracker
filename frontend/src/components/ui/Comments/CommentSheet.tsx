@@ -32,6 +32,7 @@ const SKELETON_ROWS = 3;
 
 export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, username, date }) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
   const [shouldRender, setShouldRender] = useState(isOpen);
@@ -86,7 +87,10 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, use
   // Close on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      // The overlay closes the sheet through its own click handler, like Modal's backdrop
+      if (overlayRef.current?.contains(target)) return;
+      if (panelRef.current && !panelRef.current.contains(target)) {
         onClose();
       }
     };
@@ -162,6 +166,7 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({ isOpen, onClose, use
   const content = (
     <>
       <div
+        ref={overlayRef}
         className={`${styles.overlay} ${isClosing ? styles.overlayClosing : ''}`}
         onClick={onClose}
       />

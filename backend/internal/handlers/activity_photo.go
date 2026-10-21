@@ -133,7 +133,7 @@ func (h *ActivityPhotoHandler) DeletePhoto(c *fiber.Ctx) error {
 	// Delete photo
 	if err := h.photoSvc.Delete(c.Context(), uint(photoID), userID); err != nil {
 		if err.Error() == "photo not found" {
-			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+			return response.NotFound(c, "Photo not found", constants.ErrCodePhotoNotFound)
 		}
 		if err.Error() == "not authorized to delete this photo" {
 			return response.Forbidden(c, "Not authorized to delete this photo", constants.ErrCodeNotAuthorized)
@@ -281,7 +281,7 @@ func (h *ActivityPhotoHandler) RecordView(c *fiber.Ctx) error {
 	err = h.photoSvc.RecordView(c.Context(), userID, uint(photoID))
 	if err != nil {
 		if err.Error() == "photo not found" {
-			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+			return response.NotFound(c, "Photo not found", constants.ErrCodePhotoNotFound)
 		}
 		// Don't fail silently - owner shouldn't record view on their own photo
 		if err.Error() == "cannot record view on own photo" {
@@ -341,7 +341,7 @@ func (h *ActivityPhotoHandler) GetPhotoViewers(c *fiber.Ctx) error {
 	viewers, total, err := h.photoSvc.GetViewers(c.Context(), uint(photoID), userID, limit, offset)
 	if err != nil {
 		if err.Error() == "photo not found" {
-			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+			return response.NotFound(c, "Photo not found", constants.ErrCodePhotoNotFound)
 		}
 		if err.Error() == "not authorized to view photo viewers" {
 			return response.Forbidden(c, "Only the photo owner can view viewers", constants.ErrCodeNotAuthorized)
@@ -384,7 +384,7 @@ func (h *ActivityPhotoHandler) LikePhoto(c *fiber.Ctx) error {
 	err = h.photoSvc.LikePhoto(c.Context(), userID, uint(photoID))
 	if err != nil {
 		if err.Error() == "photo not found" {
-			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+			return response.NotFound(c, "Photo not found", constants.ErrCodePhotoNotFound)
 		}
 		if err.Error() == "cannot like own photo" {
 			return response.BadRequest(c, "Cannot like your own photo", constants.ErrCodeInvalidRequest)
@@ -427,7 +427,7 @@ func (h *ActivityPhotoHandler) UnlikePhoto(c *fiber.Ctx) error {
 	err = h.photoSvc.UnlikePhoto(c.Context(), userID, uint(photoID))
 	if err != nil {
 		if err.Error() == "photo not found" {
-			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+			return response.NotFound(c, "Photo not found", constants.ErrCodePhotoNotFound)
 		}
 		logger.LogWithContext(traceID, userID).Errorw("Failed to unlike photo", "error", err, "photo_id", photoID)
 		return response.InternalError(c, "Failed to unlike photo", constants.ErrCodeServerError)
@@ -481,7 +481,7 @@ func (h *ActivityPhotoHandler) GetPhotoInteractions(c *fiber.Ctx) error {
 	interactions, total, err := h.photoSvc.GetPhotoInteractions(c.Context(), uint(photoID), userID, limit, offset)
 	if err != nil {
 		if err.Error() == "photo not found" {
-			return response.NotFound(c, "Photo not found", constants.ErrCodeNotificationNotFound)
+			return response.NotFound(c, "Photo not found", constants.ErrCodePhotoNotFound)
 		}
 		if err.Error() == "not authorized to view photo interactions" {
 			return response.Forbidden(c, "Only the photo owner can view interactions", constants.ErrCodeNotAuthorized)

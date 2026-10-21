@@ -72,7 +72,7 @@ export const BadgeShowcase: React.FC<BadgeShowcaseProps> = ({
         </div>
       )}
 
-      {!nextBadge && earnedCount === badges.length && (
+      {!nextBadge && badges.length > 0 && earnedCount === badges.length && (
         <div className={styles.allEarned}>
           <Sparkles size={14} strokeWidth={2.5} aria-hidden="true" />
           Legendary status achieved!

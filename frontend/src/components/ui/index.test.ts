@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import * as AutocompleteBarrel from './Autocomplete';
 import * as AvatarBarrel from './Avatar';
+import * as AvatarStackBarrel from './AvatarStack';
 import * as BadgeBarrel from './Badge';
 import * as BrandLogoBarrel from './BrandLogo';
 import * as ButtonBarrel from './Button';
@@ -20,6 +21,7 @@ import * as NoticeBarrel from './Notice';
 import * as NotificationBarrel from './Notification';
 import * as NotificationPreviewToastBarrel from './NotificationPreviewToast';
 import * as PageHeaderBarrel from './PageHeader';
+import * as ProgressRingBarrel from './ProgressRing';
 import * as SkeletonBarrel from './Skeleton';
 import * as SnapToastBarrel from './SnapToast';
 import * as TabsBarrel from './Tabs';
@@ -37,6 +39,7 @@ const isComponent = (value: unknown) =>
 const barrelsWithDefault: [string, Barrel][] = [
   ['Autocomplete', AutocompleteBarrel],
   ['Avatar', AvatarBarrel],
+  ['AvatarStack', AvatarStackBarrel],
   ['BrandLogo', BrandLogoBarrel],
   ['Button', ButtonBarrel],
   ['CalendarPicker', CalendarPickerBarrel],
@@ -48,6 +51,7 @@ const barrelsWithDefault: [string, Barrel][] = [
   ['LoadingSpinner', LoadingSpinnerBarrel],
   ['Modal', ModalBarrel],
   ['Notice', NoticeBarrel],
+  ['ProgressRing', ProgressRingBarrel],
   ['Skeleton', SkeletonBarrel],
   ['SnapToast', SnapToastBarrel],
   ['Tabs', TabsBarrel],
@@ -85,6 +89,7 @@ describe('components/ui barrels', () => {
     expect(Object.keys(ui).sort()).toEqual([
       'Autocomplete',
       'Avatar',
+      'AvatarStack',
       'BrandLogo',
       'Button',
       'CalendarPicker',
@@ -109,6 +114,7 @@ describe('components/ui barrels', () => {
       'NotificationPreviewToast',
       'PageHeader',
       'PasswordInput',
+      'ProgressRing',
       'ProtectedImage',
       'PullToRefreshIndicator',
       'PullToRefreshWrapper',

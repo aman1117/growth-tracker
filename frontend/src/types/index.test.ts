@@ -33,5 +33,7 @@ describe('types barrel', () => {
     expect(types.formatNotificationTime).toBe(notification.formatNotificationTime);
     expect(types.formatLastLogged).toBe(notification.formatLastLogged);
     expect(types.isFollowMetadata).toBe(notification.isFollowMetadata);
+    expect(types.isChallengeMetadata).toBe(notification.isChallengeMetadata);
+    expect(types.isChallengeNotificationType).toBe(notification.isChallengeNotificationType);
   });
 });

@@ -1,0 +1,130 @@
+/**
+ * Shared layout for the Challenges screens: page frame, glass cards, sections and states.
+ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.page {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-4) var(--space-8);
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Screens pushed on top of the list (detail, invite link) */
+.pagePushed {
+  animation: slideInFromRight 0.25s ease-out;
+}
+
+.card {
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  background: var(--glass-surface-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-surface-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--glass-surface-shadow), var(--glass-surface-glow);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--type-card-title-size);
+  font-weight: var(--type-card-title-weight);
+  letter-spacing: var(--type-card-title-tracking);
+  color: var(--text-primary);
+}
+
+.stateCard {
+  padding: var(--space-6) var(--space-4);
+}
+
+.section {
+  margin-bottom: var(--space-6);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0 var(--space-1) var(--space-3);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--type-section-title-size);
+  font-weight: var(--type-section-title-weight);
+  letter-spacing: var(--type-section-title-tracking);
+  color: var(--text-primary);
+}
+
+.sectionCount {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Comfortable touch target for buttons that default to a smaller height */
+.touchTarget {
+  min-height: 44px;
+}
+
+/* Long, user-written titles in the page header: wrap up to three lines */
+.headerTitle {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 1.375rem;
+  line-height: 1.2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .pagePushed {
+    animation: none;
+  }
+}

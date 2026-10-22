@@ -19,6 +19,9 @@ export * from './autocomplete';
 // Re-export story types
 export * from './story';
 
+// Re-export challenge types
+export * from './challenge';
+
 export interface AuthResponse {
   success: boolean;
   access_token?: string;

@@ -25,6 +25,13 @@ const commentMetadata = {
   author_id: 6,
   author_username: 'gina',
 };
+const challengeActorMetadata = {
+  challenge_id: 42,
+  challenge_title: 'Study 2h+ a day',
+  actor_id: 5,
+  actor_username: 'erin',
+  actor_avatar: '',
+};
 
 describe('useNotificationNavigation', () => {
   it.each<[string, Notification, string]>([
@@ -80,6 +87,38 @@ describe('useNotificationNavigation', () => {
         'PUSH /user/frank?date=2026-10-15&comments=true',
       ]
     ),
+    [
+      'a challenge invite opens its invite link',
+      note('challenge_invite', { ...challengeActorMetadata, invite_code: 'ABCD2345' }),
+      'PUSH /c/ABCD2345',
+    ],
+    [
+      'a challenge invite trims its code',
+      note('challenge_invite', { ...challengeActorMetadata, invite_code: ' ABCD2345 ' }),
+      'PUSH /c/ABCD2345',
+    ],
+    [
+      'a new challenger opens the challenge',
+      note('challenge_joined', challengeActorMetadata),
+      'PUSH /challenges/42',
+    ],
+    [
+      'a cheer opens the challenge',
+      note('challenge_cheer', { ...challengeActorMetadata, challenge_id: '42' }),
+      'PUSH /challenges/42',
+    ],
+    [
+      'a final result opens the challenge',
+      note('challenge_ended', {
+        challenge_id: 42,
+        challenge_title: 'Study 2h+ a day',
+        rank: 1,
+        days_met: 18,
+        days_possible: 21,
+        completed: true,
+      }),
+      'PUSH /challenges/42',
+    ],
   ])('%s', (_label, notification, expected) => {
     const navigation = renderNavigation();
 
@@ -98,6 +137,17 @@ describe('useNotificationNavigation', () => {
     ['a story like without a date', note('story_liked', { liker_id: 2, liker_username: 'bob' })],
     ['a follow request without a username', note('follow_request', { actor_id: 5 })],
     ['a comment without its day', note('comment_reply', { day_owner_username: 'frank' })],
+    [
+      'a challenge invite without a code',
+      note('challenge_invite', { ...challengeActorMetadata, invite_code: '  ' }),
+    ],
+    ['a challenge cheer without metadata', note('challenge_cheer', null)],
+    [
+      'a challenge result without a valid challenge',
+      note('challenge_ended', { challenge_id: 'abc', challenge_title: 'Study' }),
+    ],
+    ['a challenger with a blank challenge id', note('challenge_joined', { challenge_id: ' ' })],
+    ['a challenger with a negative challenge id', note('challenge_joined', { challenge_id: -3 })],
   ])('stays put for %s', (_label, notification) => {
     const navigation = renderNavigation();
 

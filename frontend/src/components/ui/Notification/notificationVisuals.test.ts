@@ -3,11 +3,15 @@ import {
   AlertTriangle,
   AtSign,
   Camera,
+  Flag,
   Flame,
   Heart,
+  Medal,
   Megaphone,
   MessageCircle,
+  PartyPopper,
   Reply,
+  Target,
   Trophy,
   UserCheck,
   UserPlus,
@@ -34,8 +38,17 @@ describe('getNotificationVisual', () => {
     ['comment_received', MessageCircle, tones.comment],
     ['comment_reply', Reply, tones.comment],
     ['comment_mention', AtSign, tones.comment],
+    ['challenge_invite', Target, tones.challenge],
+    ['challenge_joined', Flag, tones.challenge],
+    ['challenge_cheer', PartyPopper, tones.challenge],
+    ['challenge_ended', Medal, tones.challenge],
   ])('maps %s to its icon and tone', (type, Icon, toneClass) => {
     expect(getNotificationVisual(type)).toEqual({ Icon, toneClass });
+  });
+
+  it('gives challenge notifications their own tone', () => {
+    expect(tones.challenge).toEqual(expect.any(String));
+    expect(tones.challenge).not.toBe(tones.system);
   });
 
   it('falls back to a neutral megaphone for unknown types', () => {

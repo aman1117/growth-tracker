@@ -10,6 +10,12 @@ export {
   useIsAuthenticated,
   type User,
 } from './useAuthStore';
+export {
+  type ChallengeListStatus,
+  type ChallengeStore,
+  type FetchChallengesOptions,
+  useChallengeStore,
+} from './useChallengeStore';
 export { useCommentStore } from './useCommentStore';
 export {
   type MonthCompletionData,

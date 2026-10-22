@@ -11,6 +11,7 @@ import {
   apiClient,
   ApiError,
   authApi,
+  challengeApi,
   commentApi,
   likeApi,
   searchApi,
@@ -1034,6 +1035,177 @@ describe('commentApi', () => {
   });
 });
 
+describe('challengeApi', () => {
+  it.each<[string, EndpointCase]>([
+    ['list', { call: () => challengeApi.list(), method: 'GET', path: '/challenges' }],
+    ['get', { call: () => challengeApi.get(42), method: 'GET', path: '/challenges/42' }],
+    [
+      'remove',
+      {
+        call: () => challengeApi.remove(42),
+        method: 'DELETE',
+        path: '/challenges/42',
+        tracked: ['challenge_deleted', { properties: { challengeId: 42 } }],
+      },
+    ],
+    [
+      'leave',
+      {
+        call: () => challengeApi.leave(42),
+        method: 'POST',
+        path: '/challenges/42/leave',
+        tracked: ['challenge_left', { properties: { challengeId: 42 } }],
+      },
+    ],
+    [
+      'cheer',
+      {
+        call: () => challengeApi.cheer(42, 7),
+        method: 'POST',
+        path: '/challenges/42/cheers',
+        body: { user_id: 7 },
+        tracked: [
+          'challenge_cheered',
+          { properties: { challengeId: 42, toUserId: 7, alreadyCheered: false } },
+        ],
+      },
+    ],
+    [
+      'getInviteCandidates (no query)',
+      {
+        call: () => challengeApi.getInviteCandidates(42),
+        method: 'GET',
+        path: '/challenges/42/invite-candidates',
+      },
+    ],
+    [
+      'getInviteCandidates (blank query)',
+      {
+        call: () => challengeApi.getInviteCandidates(42, { q: '   ' }),
+        method: 'GET',
+        path: '/challenges/42/invite-candidates',
+      },
+    ],
+    [
+      'getInviteCandidates (query and limit)',
+      {
+        call: () => challengeApi.getInviteCandidates(42, { q: ' zoë&co ', limit: 50 }),
+        method: 'GET',
+        path: '/challenges/42/invite-candidates?q=zo%C3%AB%26co&limit=50',
+      },
+    ],
+    [
+      'getPreview',
+      {
+        call: () => challengeApi.getPreview('ABCD2345'),
+        method: 'GET',
+        path: '/challenge-codes/ABCD2345',
+      },
+    ],
+    [
+      'getPreview (encodes the code)',
+      {
+        call: () => challengeApi.getPreview('ab/c d?'),
+        method: 'GET',
+        path: '/challenge-codes/ab%2Fc%20d%3F',
+      },
+    ],
+  ])('%s', async (_name, endpoint) => {
+    await expectEndpoint(endpoint);
+  });
+
+  const challenge = { id: 42, title: 'Study 2h+ a day' };
+
+  it('creates a challenge with the settings as the body and tracks it without the title', async () => {
+    const fetchMock = mockFetch(() => jsonResponse({ success: true, challenge }, { status: 201 }));
+    const request = {
+      title: 'Study 2h+ a day',
+      activity: 'study' as const,
+      goal_type: 'at_least' as const,
+      target_hours: 2,
+      duration_days: 21,
+      start_date: '2026-10-23',
+    };
+
+    await expect(challengeApi.create(request)).resolves.toEqual({ success: true, challenge });
+
+    expect(lastRequest(fetchMock)).toMatchObject({
+      url: `${BASE_URL}/challenges`,
+      method: 'POST',
+    });
+    expect(parseBody(lastRequest(fetchMock).body)).toEqual(request);
+    expect(gl.track).toHaveBeenCalledExactlyOnceWith('challenge_created', {
+      properties: {
+        challengeId: 42,
+        activity: 'study',
+        goalType: 'at_least',
+        targetHours: 2,
+        durationDays: 21,
+      },
+    });
+  });
+
+  it('joins with the (encoded) invite code and tracks the joined challenge', async () => {
+    const fetchMock = mockFetch(() => jsonResponse({ success: true, challenge }));
+
+    await challengeApi.join('abcd 2345');
+
+    expect(lastRequest(fetchMock)).toMatchObject({
+      url: `${BASE_URL}/challenge-codes/abcd%202345/join`,
+      method: 'POST',
+      body: undefined,
+    });
+    expect(gl.track).toHaveBeenCalledExactlyOnceWith('challenge_joined', {
+      properties: { challengeId: 42 },
+    });
+  });
+
+  it('invites people and tracks how many were asked, invited and skipped', async () => {
+    const fetchMock = mockFetch(() => jsonResponse({ success: true, invited: 2, skipped: 1 }));
+
+    await expect(challengeApi.invite(42, [7, 8, 9])).resolves.toEqual({
+      success: true,
+      invited: 2,
+      skipped: 1,
+    });
+
+    expect(lastRequest(fetchMock)).toMatchObject({
+      url: `${BASE_URL}/challenges/42/invites`,
+      method: 'POST',
+    });
+    expect(parseBody(lastRequest(fetchMock).body)).toEqual({ user_ids: [7, 8, 9] });
+    expect(gl.track).toHaveBeenCalledExactlyOnceWith('challenge_invites_sent', {
+      properties: { challengeId: 42, count: 3, invited: 2, skipped: 1 },
+    });
+  });
+
+  it('tracks a repeated cheer as already cheered', async () => {
+    mockFetch(() => jsonResponse({ success: true, already_cheered: true }));
+
+    await challengeApi.cheer(42, 7);
+
+    expect(gl.track).toHaveBeenCalledWith('challenge_cheered', {
+      properties: { challengeId: 42, toUserId: 7, alreadyCheered: true },
+    });
+  });
+
+  it('does not track actions that fail and passes the error code on', async () => {
+    mockFetch(() =>
+      jsonResponse(
+        { success: false, error: 'This challenge is full', error_code: 'CHALLENGE_FULL' },
+        { status: 409 }
+      )
+    );
+
+    await expect(challengeApi.join('ABCD2345')).rejects.toMatchObject({
+      name: 'ApiError',
+      statusCode: 409,
+      errorCode: 'CHALLENGE_FULL',
+    });
+    expect(gl.track).not.toHaveBeenCalled();
+  });
+});
+
 describe('services barrel', () => {
   it('re-exports the API client and typed APIs', () => {
     expect(services.apiClient).toBe(apiClient);
@@ -1045,5 +1217,6 @@ describe('services barrel', () => {
     expect(services.streakApi).toBe(streakApi);
     expect(services.analyticsApi).toBe(analyticsApi);
     expect(services.tileConfigApi).toBe(tileConfigApi);
+    expect(services.challengeApi).toBe(challengeApi);
   });
 });

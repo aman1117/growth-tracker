@@ -48,6 +48,25 @@ const AnalyticsPage = lazyWithRetry(
   () => import('./components/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })),
   'AnalyticsPage'
 );
+const ChallengesPage = lazyWithRetry(
+  () =>
+    import('./components/challenges/ChallengesPage').then((m) => ({ default: m.ChallengesPage })),
+  'ChallengesPage'
+);
+const ChallengeDetailPage = lazyWithRetry(
+  () =>
+    import('./components/challenges/ChallengeDetailPage').then((m) => ({
+      default: m.ChallengeDetailPage,
+    })),
+  'ChallengeDetailPage'
+);
+const JoinChallengePage = lazyWithRetry(
+  () =>
+    import('./components/challenges/JoinChallengePage').then((m) => ({
+      default: m.JoinChallengePage,
+    })),
+  'JoinChallengePage'
+);
 
 /**
  * Theme initializer component - initializes theme on app mount
@@ -191,6 +210,31 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <AnalyticsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={APP_ROUTES.CHALLENGES}
+                      element={
+                        <ProtectedRoute>
+                          <ChallengesPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/challenges/:id"
+                      element={
+                        <ProtectedRoute>
+                          <ChallengeDetailPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* Invite links: signed-out visitors log in or sign up, then return here */}
+                    <Route
+                      path="/c/:code"
+                      element={
+                        <ProtectedRoute>
+                          <JoinChallengePage />
                         </ProtectedRoute>
                       }
                     />

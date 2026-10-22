@@ -9,6 +9,7 @@ export {
   apiClient,
   ApiError,
   authApi,
+  challengeApi,
   streakApi,
   tileConfigApi,
   userApi,

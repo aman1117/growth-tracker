@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 
 import { APP_ROUTES } from '../constants/routes';
 import type { LikeMetadata, Notification } from '../types';
-import type { CommentMetadata } from '../types/notification';
+import { type CommentMetadata, isChallengeNotificationType } from '../types/notification';
 import { useOverlayAwareNavigate } from './useOverlayAwareNavigate';
 
 function isLikeMetadata(metadata: unknown): metadata is LikeMetadata {
@@ -63,6 +63,36 @@ function isCommentMetadata(metadata: unknown): metadata is CommentMetadata {
   );
 }
 
+/** The challenge a notification is about (ids may arrive as numbers or numeric strings) */
+function getChallengeId(metadata: Record<string, unknown> | undefined): number | null {
+  const raw = metadata?.challenge_id;
+  const id = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : raw;
+  return typeof id === 'number' && Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function getInviteCode(metadata: Record<string, unknown> | undefined): string | null {
+  const code = metadata?.invite_code;
+  return typeof code === 'string' && code.trim() !== '' ? code.trim() : null;
+}
+
+/**
+ * Where a challenge notification leads: an invite opens its invite link (the invitee
+ * is not a participant yet, so the challenge itself would be "not found"); everything
+ * else opens the challenge.
+ */
+function getChallengeDestination(notification: Notification): string | null {
+  const metadata = notification.metadata as Record<string, unknown> | null;
+  if (!metadata) return null;
+
+  if (notification.type === 'challenge_invite') {
+    const code = getInviteCode(metadata);
+    return code ? APP_ROUTES.JOIN_CHALLENGE(code) : null;
+  }
+
+  const challengeId = getChallengeId(metadata);
+  return challengeId ? APP_ROUTES.CHALLENGE(challengeId) : null;
+}
+
 export function useNotificationNavigation() {
   // Notifications are usually opened from the panel overlay: replace its history entry
   // so Back from the destination returns to the page, not to an invisible panel step.
@@ -110,6 +140,9 @@ export function useNotificationNavigation() {
         navigate(
           `${APP_ROUTES.USER_PROFILE(notification.metadata.day_owner_username)}?date=${notification.metadata.day_date}&comments=true`
         );
+      } else if (isChallengeNotificationType(notification.type)) {
+        const destination = getChallengeDestination(notification);
+        if (destination) navigate(destination);
       }
     },
     [navigate]

@@ -816,3 +816,116 @@ export const commentApi = {
   getCommentCount: (username: string, date: string) =>
     apiClient.get<CommentCountResponse>(API_ROUTES.COMMENT.COUNT(username, date)),
 };
+
+// ============================================================================
+// Challenges API
+// ============================================================================
+
+import type {
+  ChallengeActionResponse,
+  ChallengeCheerResponse,
+  ChallengeDetailResponse,
+  ChallengeInvitesResponse,
+  ChallengePreviewResponse,
+  ChallengesListResponse,
+  CreateChallengeRequest,
+  InviteCandidatesResponse,
+} from '../types/challenge';
+
+export interface InviteCandidatesQuery {
+  /** Case-insensitive username prefix */
+  q?: string;
+  /** 1–50; the server defaults to 20 */
+  limit?: number;
+}
+
+/**
+ * Challenges: create one, follow progress, invite friends and cheer them on.
+ * Analytics events carry ids and settings only — never titles, usernames or invite codes.
+ */
+export const challengeApi = {
+  /** Every upcoming and active challenge the user takes part in, plus the 20 latest ended */
+  list: () => apiClient.get<ChallengesListResponse>(API_ROUTES.CHALLENGE.LIST),
+
+  /** Creates a challenge; the creator joins it automatically */
+  create: (request: CreateChallengeRequest) =>
+    apiClient.post<ChallengeDetailResponse>(API_ROUTES.CHALLENGE.CREATE, request).then((res) => {
+      gl.track('challenge_created', {
+        properties: {
+          challengeId: res.challenge?.id,
+          activity: request.activity,
+          goalType: request.goal_type,
+          targetHours: request.target_hours,
+          durationDays: request.duration_days,
+        },
+      });
+      return res;
+    }),
+
+  /** Challenge detail with the leaderboard and the user's days (participants only) */
+  get: (id: number) => apiClient.get<ChallengeDetailResponse>(API_ROUTES.CHALLENGE.DETAIL(id)),
+
+  /** Deletes a challenge and everything attached to it (creator only) */
+  remove: (id: number) =>
+    apiClient.delete<ChallengeActionResponse>(API_ROUTES.CHALLENGE.DELETE(id)).then((res) => {
+      gl.track('challenge_deleted', { properties: { challengeId: id } });
+      return res;
+    }),
+
+  /** Leaves a challenge (not allowed for its creator) */
+  leave: (id: number) =>
+    apiClient.post<ChallengeActionResponse>(API_ROUTES.CHALLENGE.LEAVE(id)).then((res) => {
+      gl.track('challenge_left', { properties: { challengeId: id } });
+      return res;
+    }),
+
+  /** Cheers another participant; at most once a day per person (repeats are no-ops) */
+  cheer: (id: number, userId: number) =>
+    apiClient
+      .post<ChallengeCheerResponse>(API_ROUTES.CHALLENGE.CHEERS(id), { user_id: userId })
+      .then((res) => {
+        gl.track('challenge_cheered', {
+          properties: { challengeId: id, toUserId: userId, alreadyCheered: !!res.already_cheered },
+        });
+        return res;
+      }),
+
+  /** People the user follows or who follow them, who are not taking part yet */
+  getInviteCandidates: (id: number, { q, limit }: InviteCandidatesQuery = {}) => {
+    const params: string[] = [];
+    const query = q?.trim();
+    if (query) params.push(`q=${encodeURIComponent(query)}`);
+    if (limit !== undefined) params.push(`limit=${limit}`);
+    const search = params.length > 0 ? `?${params.join('&')}` : '';
+    return apiClient.get<InviteCandidatesResponse>(
+      `${API_ROUTES.CHALLENGE.INVITE_CANDIDATES(id)}${search}`
+    );
+  },
+
+  /** Invites up to 20 people; ineligible ones are skipped by the server */
+  invite: (id: number, userIds: number[]) =>
+    apiClient
+      .post<ChallengeInvitesResponse>(API_ROUTES.CHALLENGE.INVITES(id), { user_ids: userIds })
+      .then((res) => {
+        gl.track('challenge_invites_sent', {
+          properties: {
+            challengeId: id,
+            count: userIds.length,
+            invited: res.invited,
+            skipped: res.skipped,
+          },
+        });
+        return res;
+      }),
+
+  /** What an invite link leads to; any signed-in user with the code can see it */
+  getPreview: (code: string) =>
+    apiClient.get<ChallengePreviewResponse>(API_ROUTES.CHALLENGE.PREVIEW(code)),
+
+  /** Joins with an invite code; joining a challenge you are already in succeeds */
+  join: (code: string) =>
+    apiClient.post<ChallengeDetailResponse>(API_ROUTES.CHALLENGE.JOIN(code)).then((res) => {
+      gl.track('challenge_joined', { properties: { challengeId: res.challenge?.id } });
+      return res;
+    }),
+};

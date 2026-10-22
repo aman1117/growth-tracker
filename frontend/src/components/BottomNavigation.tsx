@@ -1,7 +1,7 @@
 /**
  * BottomNavigation Component
  *
- * Primary navigation: Home, Customize (action), Analytics and Profile.
+ * Primary navigation: Home, Customize (action), Challenges, Analytics and Profile.
  * Renders as a floating glass dock on phones/tablets and as a vertical side
  * rail on desktop (≥1024px) — same markup, layout switched in CSS.
  *
@@ -13,7 +13,7 @@
  * - Customize works from any screen: it opens Home and enters edit mode there.
  */
 
-import { BarChart3, Blocks, Home, User as UserIcon } from 'lucide-react';
+import { BarChart3, Blocks, Home, Trophy, User as UserIcon } from 'lucide-react';
 import React, { useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -154,6 +154,7 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ onCustomizeT
   if (!user) return null;
 
   const isHome = activeTab === 'home';
+  const isChallenges = activeTab === 'challenges';
   const isAnalytics = activeTab === 'analytics';
   const isProfile = activeTab === 'profile';
 
@@ -174,6 +175,16 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({ onCustomizeT
           onClick={handleCustomize}
           label="Customize tiles"
           caption="Customize"
+        />
+
+        <NavItem
+          icon={
+            <Trophy size={ICON_SIZE} strokeWidth={isChallenges ? ACTIVE_STROKE : INACTIVE_STROKE} />
+          }
+          isActive={isChallenges}
+          onClick={() => handleTabPress('challenges')}
+          label="Challenges"
+          caption="Challenges"
         />
 
         <NavItem

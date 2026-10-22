@@ -10,11 +10,15 @@ import {
   AlertTriangle,
   AtSign,
   Camera,
+  Flag,
   Flame,
   Heart,
+  Medal,
   Megaphone,
   MessageCircle,
+  PartyPopper,
   Reply,
+  Target,
   Trophy,
   UserCheck,
   UserPlus,
@@ -45,6 +49,10 @@ const NOTIFICATION_VISUALS: Record<NotificationType, NotificationVisual> = {
   comment_reply: { Icon: Reply, toneClass: tones.comment },
   comment_mention: { Icon: AtSign, toneClass: tones.comment },
   comment_liked: { Icon: Heart, toneClass: tones.like },
+  challenge_invite: { Icon: Target, toneClass: tones.challenge },
+  challenge_joined: { Icon: Flag, toneClass: tones.challenge },
+  challenge_cheer: { Icon: PartyPopper, toneClass: tones.challenge },
+  challenge_ended: { Icon: Medal, toneClass: tones.challenge },
 };
 
 const FALLBACK_VISUAL: NotificationVisual = { Icon: Megaphone, toneClass: tones.system };

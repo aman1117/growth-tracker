@@ -1,0 +1,223 @@
+.count {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(var(--space-2) * -1);
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * rank | avatar | name and stats | cheer, with the last days and today's status below, using
+ * the full width (also under the cheer button). Spacing comes from margins on the cells, so a
+ * missing rank or cheer takes no room.
+ */
+.row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'rank avatar info cheer'
+    'rank avatar activity activity';
+  align-items: center;
+  min-width: 0;
+  padding: var(--space-2-5) var(--space-2);
+  border-radius: var(--radius-lg);
+}
+
+.row + .row {
+  border-top: 1px solid var(--glass-surface-border);
+}
+
+.rowMe {
+  background: var(--accent-soft);
+}
+
+.rowMe + .row,
+.row:has(+ .rowMe) {
+  border-top-color: transparent;
+}
+
+.rank {
+  grid-area: rank;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 28px;
+  height: 28px;
+  margin-right: var(--space-3);
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--font-extrabold);
+  font-variant-numeric: tabular-nums;
+}
+
+.gold {
+  background: color-mix(in srgb, var(--amber-400) 26%, transparent);
+  color: var(--color-text-warning);
+}
+
+.silver {
+  background: color-mix(in srgb, var(--ink-400) 22%, transparent);
+  color: var(--text-secondary);
+}
+
+.bronze {
+  background: color-mix(in srgb, var(--orange-500) 18%, transparent);
+  color: var(--orange-700);
+}
+
+:global([data-theme='dark']) .bronze {
+  color: var(--orange-400);
+}
+
+.avatar {
+  grid-area: avatar;
+  margin-right: var(--space-3);
+}
+
+.info {
+  grid-area: info;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.youTag {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: var(--text-on-color);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.02em;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+}
+
+.statDays {
+  color: var(--text-secondary);
+  font-weight: var(--font-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--color-streak);
+}
+
+.completed {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--color-text-success);
+  font-weight: var(--font-bold);
+}
+
+.activity {
+  grid-area: activity;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1-5) var(--space-2);
+  min-width: 0;
+  margin-top: 5px;
+}
+
+.dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.dotMet {
+  background: var(--success);
+}
+
+.dotMissed {
+  background: var(--error);
+}
+
+.dotPending {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--warning);
+}
+
+.dotUpcoming {
+  background: var(--progress-track);
+}
+
+.dotNone {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+}
+
+.cheer {
+  grid-area: cheer;
+  flex-shrink: 0;
+  margin-left: var(--space-3);
+}
+
+.toggle {
+  margin-top: var(--space-2);
+}
+
+@media (max-width: 359px) {
+  .rank,
+  .avatar {
+    margin-right: var(--space-2);
+  }
+
+  .cheer {
+    margin-left: var(--space-2);
+  }
+
+  /* Icon-only cheer button on the narrowest phones; its name stays "Cheer <user>" */
+  .cheer > span:not(:first-child) {
+    display: none;
+  }
+}

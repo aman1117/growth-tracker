@@ -1,0 +1,278 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-3) var(--space-5) var(--space-2);
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.touchTarget {
+  min-height: 44px;
+}
+
+/* ============================================================================
+   Invite link
+   ============================================================================ */
+
+.linkRow {
+  display: flex;
+}
+
+.link {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-inset);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  /* 16px keeps iOS from zooming in on focus */
+  font-size: 16px;
+  text-overflow: ellipsis;
+}
+
+.link:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.shareButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.linkMessage {
+  min-height: 1.1rem;
+  margin: var(--space-1-5) 0 0;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-success);
+}
+
+.linkMessageError {
+  color: var(--error);
+}
+
+/* ============================================================================
+   People
+   ============================================================================ */
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-3) 0 2.25rem;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-control);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  /* 16px keeps iOS from zooming in on focus */
+  font-size: 16px;
+}
+
+.searchInput::placeholder {
+  color: var(--input-placeholder);
+}
+
+.searchInput:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.limit {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-warning);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  transition: opacity var(--transition-fast) ease;
+}
+
+.listSearching {
+  opacity: 0.6;
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+}
+
+.person {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background-color var(--transition-fast) var(--ease-default);
+}
+
+.person:hover {
+  background: var(--chip-bg);
+}
+
+.personSelected,
+.personSelected:hover {
+  background: var(--accent-soft);
+}
+
+.personDisabled {
+  cursor: default;
+}
+
+.personDisabled:not(.personSelected):hover {
+  background: transparent;
+}
+
+/* The native checkbox stays focusable and clickable; the round check shows its state */
+.checkbox {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.person:has(.checkbox:focus-visible) {
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.personName {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.username {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.personDisabled .username {
+  color: var(--text-muted);
+}
+
+.check {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  color: var(--text-on-color);
+  transition:
+    background-color var(--transition-fast) var(--ease-default),
+    border-color var(--transition-fast) var(--ease-default);
+}
+
+.checkOn {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.invitedTag {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--chip-bg);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-3);
+  text-align: center;
+}
+
+.stateText {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--text-muted);
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: var(--space-2-5) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--error-soft);
+  color: var(--error);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+}
+
+.error > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.footerButton {
+  flex: 1;
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list,
+  .person,
+  .check {
+    transition: none;
+  }
+}

@@ -32,6 +32,7 @@ type Container struct {
 	CommentLikeRepo    *repository.CommentLikeRepository
 	CommentMentionRepo *repository.CommentMentionRepository
 	CommentDedupeRepo  *repository.CommentDedupeRepository
+	ChallengeRepo      *repository.ChallengeRepository
 
 	// Services
 	AuthService              *services.AuthService
@@ -49,6 +50,7 @@ type Container struct {
 	ActivityPhotoService     *services.ActivityPhotoService
 	SearchSuggestionsService *services.SearchSuggestionsService
 	CommentService           *services.CommentService
+	ChallengeService         *services.ChallengeService
 
 	// Handlers
 	TokenService             *handlers.TokenService
@@ -70,6 +72,7 @@ type Container struct {
 	ActivityPhotoHandler     *handlers.ActivityPhotoHandler
 	SearchSuggestionsHandler *handlers.SearchSuggestionsHandler
 	CommentHandler           *handlers.CommentHandler
+	ChallengeHandler         *handlers.ChallengeHandler
 
 	// Router
 	Router *routes.Router
@@ -96,6 +99,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.CommentLikeRepo = repository.NewCommentLikeRepository(db)
 	c.CommentMentionRepo = repository.NewCommentMentionRepository(db)
 	c.CommentDedupeRepo = repository.NewCommentDedupeRepository(db)
+	c.ChallengeRepo = repository.NewChallengeRepository(db)
 
 	// Initialize services
 	c.AuthService = services.NewAuthService(c.UserRepo)
@@ -119,6 +123,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.NotificationService,
 		c.ProfileService,
 	)
+	c.ChallengeService = services.NewChallengeService(c.ChallengeRepo, c.CronJobLogRepo, c.NotificationService)
 
 	// Initialize activity photo service (optional - requires blob storage)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -163,6 +168,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 	c.FollowHandler = handlers.NewFollowHandler(c.FollowService, c.UserRepo, c.NotificationService)
 	c.SearchSuggestionsHandler = handlers.NewSearchSuggestionsHandler(c.SearchSuggestionsService)
 	c.CommentHandler = handlers.NewCommentHandler(c.CommentService, c.ProfileService, c.AuthService)
+	c.ChallengeHandler = handlers.NewChallengeHandler(c.ChallengeService)
 
 	// Initialize blob handler (optional)
 	if cfg.AzureStorage.ConnectionString != "" {
@@ -197,6 +203,7 @@ func New(cfg *config.Config, db *gorm.DB) (*Container, error) {
 		c.ActivityPhotoHandler,
 		c.SearchSuggestionsHandler,
 		c.CommentHandler,
+		c.ChallengeHandler,
 		c.TokenService,
 	)
 

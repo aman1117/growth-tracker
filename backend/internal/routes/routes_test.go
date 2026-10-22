@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/aman1117/backend/internal/config"
@@ -48,6 +49,22 @@ var coreRoutes = []string{
 	"POST /api/users/:targetId/follow",
 	"GET /api/ws/notifications",
 	"POST /api/days/:username/:date/comments",
+}
+
+// challengeRoutes are the challenge endpoints; all of them require authentication.
+var challengeRoutes = []struct {
+	method, path, target string
+}{
+	{fiber.MethodGet, "/api/challenges", "/api/challenges"},
+	{fiber.MethodPost, "/api/challenges", "/api/challenges"},
+	{fiber.MethodGet, "/api/challenges/:id", "/api/challenges/1"},
+	{fiber.MethodDelete, "/api/challenges/:id", "/api/challenges/1"},
+	{fiber.MethodPost, "/api/challenges/:id/leave", "/api/challenges/1/leave"},
+	{fiber.MethodPost, "/api/challenges/:id/cheers", "/api/challenges/1/cheers"},
+	{fiber.MethodGet, "/api/challenges/:id/invite-candidates", "/api/challenges/1/invite-candidates"},
+	{fiber.MethodPost, "/api/challenges/:id/invites", "/api/challenges/1/invites"},
+	{fiber.MethodGet, "/api/challenge-codes/:code", "/api/challenge-codes/ABCDEFGH"},
+	{fiber.MethodPost, "/api/challenge-codes/:code/join", "/api/challenge-codes/ABCDEFGH/join"},
 }
 
 // newApp wires the whole application (container and routes) on db.
@@ -111,6 +128,20 @@ func TestSetup_SwaggerDocs(t *testing.T) {
 
 	assert.Equal(t, fiber.StatusOK, res.Status)
 	assert.Contains(t, string(res.Body), "Growth Tracker API")
+
+	var doc struct {
+		Paths       map[string]map[string]any `json:"paths"`
+		Definitions map[string]any            `json:"definitions"`
+	}
+	res.Decode(t, &doc)
+	for _, route := range challengeRoutes {
+		path := strings.TrimPrefix(route.path, "/api")
+		path = strings.NewReplacer(":id", "{id}", ":code", "{code}").Replace(path)
+		assert.Contains(t, doc.Paths[path], strings.ToLower(route.method), "%s %s is not documented", route.method, path)
+	}
+	for _, name := range []string{"dto.ChallengeDetail", "dto.ChallengeSummary", "dto.ChallengePreview", "dto.CreateChallengeRequest"} {
+		assert.Contains(t, doc.Definitions, name)
+	}
 }
 
 func TestSetup_RegistersTheCoreRoutes(t *testing.T) {
@@ -221,6 +252,53 @@ func TestSetup_WebSocketRequiresAnUpgrade(t *testing.T) {
 	res := testutil.Do(t, app, fiber.MethodGet, "/api/ws/notifications", nil)
 
 	assert.Equal(t, fiber.StatusUpgradeRequired, res.Status)
+}
+
+func TestSetup_ChallengeRoutesRequireAuth(t *testing.T) {
+	db := testutil.DB(t)
+	cfg := testutil.Config()
+	user := testutil.CreateUser(t, db)
+	app := newApp(t, cfg, db)
+	routes := registeredRoutes(app)
+
+	for _, route := range challengeRoutes {
+		t.Run(route.method+" "+route.path, func(t *testing.T) {
+			assert.True(t, routes[route.method+" "+route.path], "route is not registered")
+
+			res := testutil.Do(t, app, route.method, route.target, nil)
+			assert.Equal(t, fiber.StatusUnauthorized, res.Status)
+			assert.Equal(t, errorBody("Missing Authorization Header", constants.ErrCodeMissingAuthHeader), res.JSON(t))
+		})
+	}
+
+	res := testutil.Do(t, app, fiber.MethodGet, "/api/challenges", nil, testutil.WithToken(tokenFor(t, cfg, user)))
+	assert.Equal(t, fiber.StatusOK, res.Status)
+	assert.Equal(t, map[string]any{"success": true, "challenges": []any{}}, res.JSON(t))
+}
+
+func TestSetup_ChallengeWritesAreRateLimited(t *testing.T) {
+	db := testutil.DB(t)
+	cfg := testutil.Config()
+	user := testutil.CreateUser(t, db)
+	app := newApp(t, cfg, db)
+	token := testutil.WithToken(tokenFor(t, cfg, user))
+
+	// Every write endpoint shares one per-user budget.
+	for i := 1; i <= constants.RateLimitChallengeWriteMaxRequests; i++ {
+		target := "/api/challenges"
+		if i%2 == 0 {
+			target = "/api/challenges/1/leave"
+		}
+		res := testutil.Do(t, app, fiber.MethodPost, target, map[string]any{}, token)
+		require.NotEqual(t, fiber.StatusTooManyRequests, res.Status, "request %d", i)
+	}
+	res := testutil.Do(t, app, fiber.MethodPost, "/api/challenge-codes/ABCDEFGH/join", nil, token)
+	assert.Equal(t, fiber.StatusTooManyRequests, res.Status)
+	assert.Equal(t, errorBody(constants.MsgRateLimitChallengeWrite, constants.ErrCodeRateLimitExceeded), res.JSON(t))
+
+	// Reads use the general API limiter, so they still work.
+	res = testutil.Do(t, app, fiber.MethodGet, "/api/challenges", nil, token)
+	assert.Equal(t, fiber.StatusOK, res.Status)
 }
 
 func TestSetup_StorageRoutesDependOnBlobStorage(t *testing.T) {

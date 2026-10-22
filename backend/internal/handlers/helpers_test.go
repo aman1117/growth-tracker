@@ -65,6 +65,7 @@ type stack struct {
 	commentLikeRepo    *repository.CommentLikeRepository
 	commentMentionRepo *repository.CommentMentionRepository
 	commentDedupeRepo  *repository.CommentDedupeRepository
+	challengeRepo      *repository.ChallengeRepository
 
 	authSvc       *services.AuthService
 	profileSvc    *services.ProfileService
@@ -78,7 +79,17 @@ type stack struct {
 	followSvc     *services.FollowService
 	searchSvc     *services.SearchSuggestionsService
 	commentSvc    *services.CommentService
+	challengeSvc  *services.ChallengeService
 	tokenSvc      *TokenService
+}
+
+// challengeToday is the IST date the challenge service sees in handler tests.
+var challengeToday = time.Date(2026, time.March, 9, 0, 0, 0, 0, time.UTC)
+
+// challengeClock returns noon IST on challengeToday.
+func challengeClock() time.Time {
+	return time.Date(challengeToday.Year(), challengeToday.Month(), challengeToday.Day(), 12, 0, 0, 0,
+		time.FixedZone("IST", 5*3600+1800))
 }
 
 // newStack mirrors container.New. Unless async is set, the dependencies that only feed
@@ -104,6 +115,7 @@ func newStack(db *gorm.DB, cfg *config.Config, async bool) *stack {
 	s.commentLikeRepo = repository.NewCommentLikeRepository(db)
 	s.commentMentionRepo = repository.NewCommentMentionRepository(db)
 	s.commentDedupeRepo = repository.NewCommentDedupeRepository(db)
+	s.challengeRepo = repository.NewChallengeRepository(db)
 
 	s.authSvc = services.NewAuthService(s.userRepo)
 	s.profileSvc = services.NewProfileService(s.userRepo, s.followRepo)
@@ -118,6 +130,9 @@ func newStack(db *gorm.DB, cfg *config.Config, async bool) *stack {
 	s.searchSvc = services.NewSearchSuggestionsService(s.recentSearchRepo)
 	s.commentSvc = services.NewCommentService(s.commentRepo, s.commentLikeRepo, s.commentMentionRepo,
 		s.commentDedupeRepo, s.userRepo, s.followRepo, s.asyncNotif(), s.profileSvc)
+	// Challenge notifications are sent synchronously, so the service always gets them.
+	s.challengeSvc = services.NewChallengeService(s.challengeRepo, repository.NewCronJobLogRepository(db), s.notifSvc,
+		services.WithChallengeClock(challengeClock))
 	s.tokenSvc = NewTokenService(&cfg.JWT)
 	return s
 }
@@ -148,6 +163,7 @@ type handlerSet struct {
 	activityPhoto     *ActivityPhotoHandler
 	searchSuggestions *SearchSuggestionsHandler
 	comment           *CommentHandler
+	challenge         *ChallengeHandler
 }
 
 // handlers builds the handlers like container.New. The email service is nil (tests that send
@@ -173,6 +189,7 @@ func (s *stack) handlers() *handlerSet {
 		follow:            NewFollowHandler(s.followSvc, s.userRepo, s.asyncNotif()),
 		searchSuggestions: NewSearchSuggestionsHandler(s.searchSvc),
 		comment:           NewCommentHandler(s.commentSvc, s.profileSvc, s.authSvc),
+		challenge:         NewChallengeHandler(s.challengeSvc),
 	}
 }
 
@@ -296,6 +313,18 @@ func mountRoutes(app *fiber.App, h *handlerSet, auth fiber.Handler) {
 		api.Post("/comments/:commentId/like", auth, c.LikeComment)
 		api.Delete("/comments/:commentId/like", auth, c.UnlikeComment)
 		api.Get("/comments/:commentId/replies", auth, c.GetReplies)
+	}
+	if c := h.challenge; c != nil {
+		api.Get("/challenges", auth, c.ListChallenges)
+		api.Post("/challenges", auth, c.CreateChallenge)
+		api.Get("/challenges/:id", auth, c.GetChallenge)
+		api.Delete("/challenges/:id", auth, c.DeleteChallenge)
+		api.Post("/challenges/:id/leave", auth, c.LeaveChallenge)
+		api.Post("/challenges/:id/cheers", auth, c.CheerParticipant)
+		api.Get("/challenges/:id/invite-candidates", auth, c.GetInviteCandidates)
+		api.Post("/challenges/:id/invites", auth, c.InviteUsers)
+		api.Get("/challenge-codes/:code", auth, c.PreviewChallenge)
+		api.Post("/challenge-codes/:code/join", auth, c.JoinChallenge)
 	}
 }
 

@@ -8,6 +8,7 @@ import { API_ROUTES } from '../constants';
 import { STORAGE_KEYS } from '../constants/storage';
 import { api, apiClient } from '../services/api';
 import { pushService } from '../services/pushService';
+import { makeChallengeSummary } from '../test/fixtures/challenges';
 import { makeCustomTile, routeApi } from '../test/fixtures/dashboard';
 import {
   deferred,
@@ -22,6 +23,7 @@ import { ACTIVITY_NAMES } from '../types';
 import {
   showToast,
   useAuthStore,
+  useChallengeStore,
   useCommentStore,
   useCompletionStore,
   useFollowStore,
@@ -77,6 +79,7 @@ const USER_STORES = {
   useFollowStore,
   useCommentStore,
   useCompletionStore,
+  useChallengeStore,
   usePushStore,
 };
 
@@ -133,6 +136,12 @@ async function browseAsAlice() {
       sort: 'newest',
     });
     useCompletionStore.getState().updateDay('bob', new Date(2024, 2, 1), 2.5);
+    useChallengeStore.setState({
+      challenges: [makeChallengeSummary()],
+      status: 'ready',
+      lastFetchedAt: 1,
+      revision: 2,
+    });
     usePushStore.setState({ isSupported: true, permission: 'granted', isSubscribed: true });
   });
   saveAliceDashboard();
@@ -160,6 +169,11 @@ function expectNoUserData() {
   });
   expect(useCommentStore.getState()).toMatchObject({ commentsByDay: {}, counts: {} });
   expect(useCompletionStore.getState().monthlyData).toEqual({});
+  expect(useChallengeStore.getState()).toMatchObject({
+    challenges: [],
+    status: 'idle',
+    lastFetchedAt: null,
+  });
   expect(usePushStore.getState()).toMatchObject({ isSubscribed: false, preferences: null });
   expect(JSON.parse(localStorage.getItem(PUSH_STORAGE_KEY) ?? 'null')).toEqual({
     state: { isSubscribed: false },
@@ -335,6 +349,27 @@ describe('resetUserStores', () => {
 
       expect(bell()).toHaveAccessibleName('Notifications');
       expect(useNotificationStore.getState().unreadCount).toBe(0);
+    });
+
+    it('never sees a challenge list that arrived for the previous user after they signed out', async () => {
+      signInAs(ALICE);
+      const response = deferred<Response>();
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(() => response.promise)
+      );
+      const loading = useChallengeStore.getState().fetchChallenges();
+
+      signOutOfTheApp();
+      response.resolve(
+        new Response(JSON.stringify({ success: true, challenges: [makeChallengeSummary()] }), {
+          status: 200,
+        })
+      );
+      await act(() => loading);
+      signInAs(BOB);
+
+      expect(useChallengeStore.getState()).toMatchObject({ challenges: [], status: 'idle' });
     });
 
     it('keeps push for its owner when their session expired on this device', async () => {

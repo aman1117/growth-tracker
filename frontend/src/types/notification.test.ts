@@ -4,6 +4,8 @@ import {
   formatLastLogged,
   formatNotificationTime,
   isBadgeMetadata,
+  isChallengeMetadata,
+  isChallengeNotificationType,
   isFollowMetadata,
   isLikeMetadata,
   isStreakMetadata,
@@ -15,26 +17,64 @@ const storyLike = { liker_id: 2, liker_username: 'bob', photo_id: 9, photo_date:
 const badge = { badge_id: 'b1', badge_name: 'Early bird', badge_icon: 'Sun' };
 const streak = { activity_type: 'workout', streak_count: 7 };
 const follow = { actor_id: 5, actor_username: 'erin' };
+const challengeInvite = {
+  challenge_id: 42,
+  challenge_title: 'Study 2h+ a day',
+  invite_code: 'ABCD2345',
+  actor_id: 5,
+  actor_username: 'erin',
+  actor_avatar: '',
+};
+const challengeEnded = {
+  challenge_id: 42,
+  challenge_title: 'Study 2h+ a day',
+  rank: 1,
+  days_met: 18,
+  days_possible: 21,
+  completed: true,
+};
 
 describe('notification metadata type guards', () => {
   it.each<[string, NotificationMetadata | null, boolean[]]>([
-    ['like', like, [true, false, false, false]],
-    ['story like', storyLike, [true, false, false, false]],
-    ['badge', badge, [false, true, false, false]],
-    ['streak', streak, [false, false, true, false]],
-    ['follow', follow, [false, false, false, true]],
+    ['like', like, [true, false, false, false, false]],
+    ['story like', storyLike, [true, false, false, false, false]],
+    ['badge', badge, [false, true, false, false, false]],
+    ['streak', streak, [false, false, true, false, false]],
+    ['follow', follow, [false, false, false, true, false]],
+    ['challenge invite', challengeInvite, [false, false, false, true, true]],
+    ['challenge result', challengeEnded, [false, false, false, false, true]],
     [
       'incomplete',
-      { liker_id: 2, badge_id: 'b1', activity_type: 'x', actor_id: 5 },
-      [false, false, false, false],
+      { liker_id: 2, badge_id: 'b1', activity_type: 'x', actor_id: 5, challenge_id: 42 },
+      [false, false, false, false, false],
     ],
-    ['missing', null, [false, false, false, false]],
-  ])('recognises %s metadata', (_label, metadata, [isLike, isBadge, isStreak, isFollow]) => {
-    expect(isLikeMetadata(metadata)).toBe(isLike);
-    expect(isBadgeMetadata(metadata)).toBe(isBadge);
-    expect(isStreakMetadata(metadata)).toBe(isStreak);
-    expect(isFollowMetadata(metadata)).toBe(isFollow);
-  });
+    ['missing', null, [false, false, false, false, false]],
+  ])(
+    'recognises %s metadata',
+    (_label, metadata, [isLike, isBadge, isStreak, isFollow, isChallenge]) => {
+      expect(isLikeMetadata(metadata)).toBe(isLike);
+      expect(isBadgeMetadata(metadata)).toBe(isBadge);
+      expect(isStreakMetadata(metadata)).toBe(isStreak);
+      expect(isFollowMetadata(metadata)).toBe(isFollow);
+      expect(isChallengeMetadata(metadata)).toBe(isChallenge);
+    }
+  );
+});
+
+describe('isChallengeNotificationType', () => {
+  it.each(['challenge_invite', 'challenge_joined', 'challenge_cheer', 'challenge_ended'])(
+    'recognises %s',
+    (type) => {
+      expect(isChallengeNotificationType(type)).toBe(true);
+    }
+  );
+
+  it.each(['like_received', 'new_follower', 'challenge', 'challenge_invite '])(
+    'rejects %s',
+    (type) => {
+      expect(isChallengeNotificationType(type)).toBe(false);
+    }
+  );
 });
 
 describe('formatNotificationTime', () => {

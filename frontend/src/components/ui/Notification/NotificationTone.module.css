@@ -45,6 +45,12 @@
   --tone-soft: var(--color-info-bg);
 }
 
+/* Challenges: the success greens, which already switch between light and dark themes */
+.challenge {
+  --tone: var(--success);
+  --tone-soft: var(--success-soft);
+}
+
 :global([data-theme='dark']) .photo {
   --tone: var(--teal-400);
 }

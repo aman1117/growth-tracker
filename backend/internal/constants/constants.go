@@ -294,13 +294,54 @@ const (
 
 // Rate limiting messages
 const (
-	MsgRateLimitAuth         = "Too many attempts. Please wait a minute before trying again."
-	MsgRateLimitPassword     = "Too many password reset requests. Please try again later."
-	MsgRateLimitAPI          = "Too many requests. Please slow down."
-	MsgRateLimitUpload       = "Too many uploads. Please wait a minute."
-	MsgRateLimitAutocomplete = "Too many search requests. Please slow down."
-	MsgRateLimitComment      = "Too many comments. Please slow down."
-	MsgRateLimitCommentLike  = "Too many like actions. Please slow down."
+	MsgRateLimitAuth           = "Too many attempts. Please wait a minute before trying again."
+	MsgRateLimitPassword       = "Too many password reset requests. Please try again later."
+	MsgRateLimitAPI            = "Too many requests. Please slow down."
+	MsgRateLimitUpload         = "Too many uploads. Please wait a minute."
+	MsgRateLimitAutocomplete   = "Too many search requests. Please slow down."
+	MsgRateLimitComment        = "Too many comments. Please slow down."
+	MsgRateLimitCommentLike    = "Too many like actions. Please slow down."
+	MsgRateLimitChallengeWrite = "Too many challenge actions. Please slow down."
+)
+
+// Challenge system constants
+const (
+	// Limits
+	ChallengeMaxParticipants      = 50 // participants per challenge
+	ChallengeMaxOpenPerUser       = 10 // upcoming or active challenges a user takes part in
+	ChallengeMaxInvitesPerRequest = 20
+	ChallengeTitleMaxLength       = 60 // characters (runes)
+	ChallengeMinDurationDays      = 3
+	ChallengeMaxDurationDays      = 60
+	ChallengeMaxStartOffsetDays   = 30 // the start date is today .. today+30
+	ChallengeAtLeastMaxHours      = 24.0
+	ChallengeAtMostMaxHours       = 23.75
+	ChallengeHoursStep            = 0.25
+	ChallengeRecentEndedLimit     = 20 // ended challenges listed per user
+	ChallengePreviewParticipants  = 5
+	ChallengeCandidatesDefault    = 20
+	ChallengeCandidatesMax        = 50
+	ChallengeCompletionPercent    = 80 // share of the possible days a participant must meet
+	ChallengeLockDelayDays        = 2  // day D becomes final on D+2 (it can be edited until the end of D+1)
+
+	// Invite codes: 8 characters from an alphabet without look-alikes (no 0/O, 1/I)
+	ChallengeInviteCodeLength   = 8
+	ChallengeInviteCodeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+	// Rate limits for writes (create, join, leave, delete, invites, cheers)
+	RateLimitChallengeWriteWindow      = 1 * time.Minute
+	RateLimitChallengeWriteMaxRequests = 30
+
+	// Error codes
+	ErrCodeInvalidChallenge      = "INVALID_CHALLENGE"
+	ErrCodeChallengeNotFound     = "CHALLENGE_NOT_FOUND"
+	ErrCodeChallengeFull         = "CHALLENGE_FULL"
+	ErrCodeChallengeLimitReached = "CHALLENGE_LIMIT_REACHED"
+	ErrCodeChallengeEnded        = "CHALLENGE_ENDED"
+	ErrCodeChallengeNotActive    = "CHALLENGE_NOT_ACTIVE"
+	ErrCodeCreatorCannotLeave    = "CREATOR_CANNOT_LEAVE"
+	ErrCodeChallengeInProgress   = "CHALLENGE_IN_PROGRESS"
+	ErrCodeCannotCheerSelf       = "CANNOT_CHEER_SELF"
 )
 
 // Allowed file extensions for profile pictures

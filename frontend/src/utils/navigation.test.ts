@@ -77,6 +77,12 @@ describe('getActiveTab', () => {
     ['/analytics', '?user=bob', 'alice', null],
     ['/analytics/bob', '', 'alice', null],
     ['/settings', '', 'alice', 'profile'],
+    ['/challenges', '', 'alice', 'challenges'],
+    ['/challenges/', '', 'alice', 'challenges'],
+    ['/challenges/42', '', 'alice', 'challenges'],
+    ['/c/ABCD2345', '', 'alice', 'challenges'],
+    ['/c/', '', 'alice', null],
+    ['/challengesx', '', 'alice', null],
     ['/login', '', undefined, null],
     ['/user/', '', 'alice', null],
   ])('%s%s for %s → %s', (pathname, search, own, tab) => {
@@ -84,7 +90,12 @@ describe('getActiveTab', () => {
   });
 
   it('maps every tab to its root route', () => {
-    expect(TAB_ROUTES).toEqual({ home: '/', analytics: '/analytics', profile: '/settings' });
+    expect(TAB_ROUTES).toEqual({
+      home: '/',
+      challenges: '/challenges',
+      analytics: '/analytics',
+      profile: '/settings',
+    });
     (Object.keys(TAB_ROUTES) as Array<keyof typeof TAB_ROUTES>).forEach((tab) => {
       expect(getActiveTab(TAB_ROUTES[tab], '', 'alice')).toBe(tab);
     });
@@ -98,6 +109,11 @@ describe('getRouteTitle', () => {
     ['/reset-password', '', undefined, 'Reset password · Growth Tracker'],
     ['/verify-email', '', undefined, 'Verify email · Growth Tracker'],
     ['/settings', '', 'alice', 'Settings · Growth Tracker'],
+    ['/challenges', '', 'alice', 'Challenges · Growth Tracker'],
+    ['/challenges/', '', 'alice', 'Challenges · Growth Tracker'],
+    ['/challenges/42', '', 'alice', 'Challenge · Growth Tracker'],
+    ['/c/ABCD2345', '', 'alice', 'Join challenge · Growth Tracker'],
+    ['/c/ABCD2345', '', undefined, 'Join challenge · Growth Tracker'],
     ['/analytics', '', 'alice', 'Insights · Growth Tracker'],
     ['/analytics', '?user=Alice', 'alice', 'Insights · Growth Tracker'],
     ['/analytics', '?user=bob', 'alice', '@bob · Insights · Growth Tracker'],
@@ -142,6 +158,7 @@ describe('getSafeRedirectPath', () => {
     ['/verify-email', '/'],
     ['/settings', '/settings'],
     ['/user/alice?date=2026-10-20#comments', '/user/alice?date=2026-10-20#comments'],
+    ['/c/ABCD2345', '/c/ABCD2345'],
   ])('%o → %s', (from, expected) => {
     expect(getSafeRedirectPath(from)).toBe(expected);
   });
@@ -155,6 +172,10 @@ describe('toRoutePattern', () => {
     ['/analytics', '/analytics'],
     ['/settings', '/settings'],
     ['/user/', '/user/'],
+    ['/challenges', '/challenges'],
+    ['/challenges/42', '/challenges/:id'],
+    ['/challenges/42/extra', '/challenges/:id'],
+    ['/c/ABCD2345', '/c/:code'],
   ])('%s → %s', (pathname, pattern) => {
     expect(toRoutePattern(pathname)).toBe(pattern);
   });

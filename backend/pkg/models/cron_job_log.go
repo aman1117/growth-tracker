@@ -28,6 +28,7 @@ const (
 	CronJobStreakReminder       = "streak_reminder"
 	CronJobNotificationCleanup  = "notification_cleanup"
 	CronJobFollowTombstoneClean = "follow_tombstone_cleanup"
+	CronJobChallengeDaily       = "challenge_daily"
 )
 
 // CronJobStatus constants

@@ -30,6 +30,7 @@ type Router struct {
 	activityPhotoHandler     *handlers.ActivityPhotoHandler
 	searchSuggestionsHandler *handlers.SearchSuggestionsHandler
 	commentHandler           *handlers.CommentHandler
+	challengeHandler         *handlers.ChallengeHandler
 	tokenSvc                 *handlers.TokenService
 }
 
@@ -53,6 +54,7 @@ func NewRouter(
 	activityPhotoHandler *handlers.ActivityPhotoHandler,
 	searchSuggestionsHandler *handlers.SearchSuggestionsHandler,
 	commentHandler *handlers.CommentHandler,
+	challengeHandler *handlers.ChallengeHandler,
 	tokenSvc *handlers.TokenService,
 ) *Router {
 	return &Router{
@@ -74,6 +76,7 @@ func NewRouter(
 		activityPhotoHandler:     activityPhotoHandler,
 		searchSuggestionsHandler: searchSuggestionsHandler,
 		commentHandler:           commentHandler,
+		challengeHandler:         challengeHandler,
 		tokenSvc:                 tokenSvc,
 	}
 }
@@ -265,4 +268,20 @@ func (r *Router) Setup(app *fiber.App) {
 	api.Post("/comments/:commentId/like", authMiddleware, commentLikeRateLimiter, r.commentHandler.LikeComment)
 	api.Delete("/comments/:commentId/like", authMiddleware, commentLikeRateLimiter, r.commentHandler.UnlikeComment)
 	api.Get("/comments/:commentId/replies", authMiddleware, apiRateLimiter, r.commentHandler.GetReplies)
+
+	// ==================== Challenges ====================
+	challengeWriteRateLimiter := middleware.ChallengeWriteRateLimiter()
+
+	api.Get("/challenges", authMiddleware, apiRateLimiter, r.challengeHandler.ListChallenges)
+	api.Post("/challenges", authMiddleware, challengeWriteRateLimiter, r.challengeHandler.CreateChallenge)
+	api.Get("/challenges/:id", authMiddleware, apiRateLimiter, r.challengeHandler.GetChallenge)
+	api.Delete("/challenges/:id", authMiddleware, challengeWriteRateLimiter, r.challengeHandler.DeleteChallenge)
+	api.Post("/challenges/:id/leave", authMiddleware, challengeWriteRateLimiter, r.challengeHandler.LeaveChallenge)
+	api.Post("/challenges/:id/cheers", authMiddleware, challengeWriteRateLimiter, r.challengeHandler.CheerParticipant)
+	api.Get("/challenges/:id/invite-candidates", authMiddleware, apiRateLimiter, r.challengeHandler.GetInviteCandidates)
+	api.Post("/challenges/:id/invites", authMiddleware, challengeWriteRateLimiter, r.challengeHandler.InviteUsers)
+
+	// Invite links (any signed-in user with the code)
+	api.Get("/challenge-codes/:code", authMiddleware, apiRateLimiter, r.challengeHandler.PreviewChallenge)
+	api.Post("/challenge-codes/:code/join", authMiddleware, challengeWriteRateLimiter, r.challengeHandler.JoinChallenge)
 }

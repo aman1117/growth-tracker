@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import * as store from './index';
 import * as auth from './useAuthStore';
+import * as challenges from './useChallengeStore';
 import * as comments from './useCommentStore';
 import * as completion from './useCompletionStore';
 import * as follow from './useFollowStore';
@@ -19,6 +20,7 @@ describe('store barrel', () => {
       useAuthStore: auth.useAuthStore,
       useCurrentUser: auth.useCurrentUser,
       useIsAuthenticated: auth.useIsAuthenticated,
+      useChallengeStore: challenges.useChallengeStore,
       useCommentStore: comments.useCommentStore,
       useCompletionStore: completion.useCompletionStore,
       useMonthCompletion: completion.useMonthCompletion,

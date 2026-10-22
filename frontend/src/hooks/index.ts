@@ -15,5 +15,6 @@ export {
   type UsePullToRefreshReturn,
 } from './usePullToRefresh';
 export { usePushNotifications } from './usePushNotifications';
+export { useRefreshOnFocus, type UseRefreshOnFocusOptions } from './useRefreshOnFocus';
 export { useSmartBack } from './useSmartBack';
 export { useWebSocket } from './useWebSocket';

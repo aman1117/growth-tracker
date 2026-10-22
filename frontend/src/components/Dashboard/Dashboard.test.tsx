@@ -1,7 +1,7 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { api, commentApi, likeApi } from '../../services/api';
+import { api, challengeApi, commentApi, likeApi } from '../../services/api';
 import { useCompletionStore } from '../../store';
 import {
   ALICE,
@@ -11,6 +11,7 @@ import {
   makeActivity,
   makeBadge,
   makePhoto,
+  mockChallengeList,
   mockQuietSocial,
   resetStoryStubs,
   routeApi,
@@ -29,6 +30,7 @@ vi.mock('../../services/api', async (importOriginal) => ({
   api: { get: vi.fn(), post: vi.fn() },
   likeApi: { getLikes: vi.fn(), likeDay: vi.fn(), unlikeDay: vi.fn() },
   commentApi: { getCommentCount: vi.fn(), getComments: vi.fn() },
+  challengeApi: { list: vi.fn() },
 }));
 vi.mock('../story', async () => {
   const { StoryCirclesRowStub, StoryViewerStub } = await import('../../test/fixtures/dashboard');
@@ -87,6 +89,7 @@ describe('Dashboard (own day)', () => {
     signIn(ALICE);
     routeApi(api, dashboardRoutes({ 'POST /get-activities': aliceDay }));
     mockQuietSocial({ likeApi, commentApi });
+    mockChallengeList(challengeApi);
     resetStoryStubs();
   });
 

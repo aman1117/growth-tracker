@@ -21,7 +21,15 @@ export type NotificationType =
   | 'comment_received'
   | 'comment_reply'
   | 'comment_mention'
-  | 'comment_liked';
+  | 'comment_liked'
+  | ChallengeNotificationType;
+
+/** Notifications about a challenge the recipient was invited to or takes part in */
+export type ChallengeNotificationType =
+  | 'challenge_invite'
+  | 'challenge_joined'
+  | 'challenge_cheer'
+  | 'challenge_ended';
 
 export interface Notification {
   id: number;
@@ -92,6 +100,27 @@ export interface CommentMetadata {
   author_avatar?: string;
 }
 
+/**
+ * Metadata of the challenge notifications. Every type carries the challenge;
+ * the rest depends on the type:
+ * - challenge_invite: the inviter (actor_*) and the invite_code to open /c/<code>
+ * - challenge_joined / challenge_cheer: the person who joined or cheered (actor_*)
+ * - challenge_ended: the recipient's final result (rank, days_met, days_possible, completed)
+ */
+export interface ChallengeNotificationMetadata {
+  challenge_id: number;
+  challenge_title: string;
+  invite_code?: string;
+  actor_id?: number;
+  actor_username?: string;
+  /** May be an empty string when the actor has no picture */
+  actor_avatar?: string;
+  rank?: number;
+  days_met?: number;
+  days_possible?: number;
+  completed?: boolean;
+}
+
 export type NotificationMetadata =
   | LikeMetadata
   | StoryLikedMetadata
@@ -101,6 +130,7 @@ export type NotificationMetadata =
   | DayCompletedMetadata
   | PhotoUploadedMetadata
   | CommentMetadata
+  | ChallengeNotificationMetadata
   | Record<string, unknown>;
 
 // ==================== API Response Types ====================
@@ -212,6 +242,29 @@ export function isFollowMetadata(
   metadata: NotificationMetadata | null
 ): metadata is FollowMetadata {
   return metadata !== null && 'actor_id' in metadata && 'actor_username' in metadata;
+}
+
+const CHALLENGE_NOTIFICATION_TYPES: ReadonlySet<string> = new Set<ChallengeNotificationType>([
+  'challenge_invite',
+  'challenge_joined',
+  'challenge_cheer',
+  'challenge_ended',
+]);
+
+/**
+ * Whether a notification type is about a challenge
+ */
+export function isChallengeNotificationType(type: string): type is ChallengeNotificationType {
+  return CHALLENGE_NOTIFICATION_TYPES.has(type);
+}
+
+/**
+ * Type guard to check if metadata is ChallengeNotificationMetadata
+ */
+export function isChallengeMetadata(
+  metadata: NotificationMetadata | null
+): metadata is ChallengeNotificationMetadata {
+  return metadata !== null && 'challenge_id' in metadata && 'challenge_title' in metadata;
 }
 
 /**

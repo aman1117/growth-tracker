@@ -230,3 +230,28 @@ type CreateReplyRequest struct {
 type EditCommentRequest struct {
 	Body string `json:"body" example:"Updated comment text"`
 }
+
+// ==================== Challenge DTOs ====================
+
+// CreateChallengeRequest represents the request to create a challenge
+// @Description Create a challenge; the creator joins it automatically
+type CreateChallengeRequest struct {
+	Title        string   `json:"title" example:"Study 2h+ a day"`                       // 1-60 characters, trimmed
+	Activity     string   `json:"activity" example:"study"`                              // a predefined activity (no custom tiles)
+	GoalType     string   `json:"goal_type" example:"at_least" enums:"at_least,at_most"` // daily hours must reach / stay within the target
+	TargetHours  *float64 `json:"target_hours" example:"2"`                              // multiple of 0.25: 0.25-24 (at_least), 0-23.75 (at_most)
+	DurationDays *int     `json:"duration_days" example:"21"`                            // 3-60
+	StartDate    string   `json:"start_date" example:"2026-10-23"`                       // YYYY-MM-DD (IST), today .. today+30
+}
+
+// CheerChallengeRequest represents the request to cheer a participant
+// @Description Cheer another participant of an active challenge (once per day)
+type CheerChallengeRequest struct {
+	UserID uint `json:"user_id" example:"42"`
+}
+
+// InviteToChallengeRequest represents the request to invite users to a challenge
+// @Description Invite 1-20 users you follow or who follow you
+type InviteToChallengeRequest struct {
+	UserIDs []uint `json:"user_ids" example:"42,43"`
+}

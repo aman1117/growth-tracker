@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getAnalyticsUsername, getProfileUsername } from '../utils/navigation';
+import { getActiveTab, getAnalyticsUsername, getProfileUsername } from '../utils/navigation';
 import { API_ROUTES, APP_ROUTES } from './routes';
 
 /** Every fixed endpoint, keyed like "AUTH.LOGIN". */
@@ -74,6 +74,22 @@ describe('API_ROUTES', () => {
     ['COMMENT.DELETE', API_ROUTES.COMMENT.DELETE(4), '/comments/4'],
     ['COMMENT.LIKE', API_ROUTES.COMMENT.LIKE(4), '/comments/4/like'],
     ['COMMENT.GET_REPLIES', API_ROUTES.COMMENT.GET_REPLIES(4), '/comments/4/replies'],
+    ['CHALLENGE.DETAIL', API_ROUTES.CHALLENGE.DETAIL(12), '/challenges/12'],
+    ['CHALLENGE.LEAVE', API_ROUTES.CHALLENGE.LEAVE(12), '/challenges/12/leave'],
+    ['CHALLENGE.CHEERS', API_ROUTES.CHALLENGE.CHEERS(12), '/challenges/12/cheers'],
+    [
+      'CHALLENGE.INVITE_CANDIDATES',
+      API_ROUTES.CHALLENGE.INVITE_CANDIDATES(12),
+      '/challenges/12/invite-candidates',
+    ],
+    ['CHALLENGE.INVITES', API_ROUTES.CHALLENGE.INVITES(12), '/challenges/12/invites'],
+    ['CHALLENGE.PREVIEW', API_ROUTES.CHALLENGE.PREVIEW('ABCD2345'), '/challenge-codes/ABCD2345'],
+    ['CHALLENGE.JOIN', API_ROUTES.CHALLENGE.JOIN('ABCD2345'), '/challenge-codes/ABCD2345/join'],
+    [
+      'CHALLENGE.PREVIEW (encoded)',
+      API_ROUTES.CHALLENGE.PREVIEW('a/b?c d'),
+      '/challenge-codes/a%2Fb%3Fc%20d',
+    ],
   ])('%s builds %s', (_name, actual, expected) => {
     expect(actual).toBe(expected);
   });
@@ -87,6 +103,8 @@ describe('API_ROUTES', () => {
       API_ROUTES.COMMENT.CREATE('alice', '2026-10-20')
     );
     expect(API_ROUTES.TILE_CONFIG.SAVE).toBe(API_ROUTES.TILE_CONFIG.GET);
+    expect(API_ROUTES.CHALLENGE.CREATE).toBe(API_ROUTES.CHALLENGE.LIST);
+    expect(API_ROUTES.CHALLENGE.DELETE(12)).toBe(API_ROUTES.CHALLENGE.DETAIL(12));
   });
 });
 
@@ -105,5 +123,19 @@ describe('APP_ROUTES', () => {
     const analytics = new URL(APP_ROUTES.USER_ANALYTICS('bob'), 'https://app.example');
     expect(analytics.pathname + analytics.search).toBe('/analytics?user=bob');
     expect(getAnalyticsUsername(analytics.pathname, analytics.search)).toBe('bob');
+  });
+
+  it('builds challenge and invite links that open the Challenges tab', () => {
+    expect(APP_ROUTES.CHALLENGES).toBe('/challenges');
+    expect(APP_ROUTES.CHALLENGE(12)).toBe('/challenges/12');
+    expect(APP_ROUTES.JOIN_CHALLENGE('ABCD2345')).toBe('/c/ABCD2345');
+    expect(APP_ROUTES.JOIN_CHALLENGE('a/b c')).toBe('/c/a%2Fb%20c');
+    for (const path of [
+      APP_ROUTES.CHALLENGES,
+      APP_ROUTES.CHALLENGE(12),
+      APP_ROUTES.JOIN_CHALLENGE('ABCD2345'),
+    ]) {
+      expect(getActiveTab(path, '', 'alice')).toBe('challenges');
+    }
   });
 });

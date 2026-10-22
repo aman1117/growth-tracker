@@ -125,6 +125,7 @@ func TestRateLimiters(t *testing.T) {
 		{name: "AutocompleteRateLimiter", limiter: middleware.AutocompleteRateLimiter, max: constants.RateLimitAutocompleteMaxRequests, window: constants.RateLimitAutocompleteWindow, message: constants.MsgRateLimitAutocomplete, perUser: true},
 		{name: "CommentRateLimiter", limiter: middleware.CommentRateLimiter, max: constants.RateLimitCommentMaxRequests, window: constants.RateLimitCommentWindow, message: constants.MsgRateLimitComment, perUser: true},
 		{name: "CommentLikeRateLimiter", limiter: middleware.CommentLikeRateLimiter, max: constants.RateLimitCommentLikeMaxRequests, window: constants.RateLimitCommentLikeWindow, message: constants.MsgRateLimitCommentLike, perUser: true},
+		{name: "ChallengeWriteRateLimiter", limiter: middleware.ChallengeWriteRateLimiter, max: constants.RateLimitChallengeWriteMaxRequests, window: constants.RateLimitChallengeWriteWindow, message: constants.MsgRateLimitChallengeWrite, perUser: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

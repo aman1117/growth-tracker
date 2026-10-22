@@ -168,6 +168,23 @@ func CommentLikeRateLimiter() fiber.Handler {
 	})
 }
 
+// ChallengeWriteRateLimiter returns a rate limiter for challenge write endpoints (create, join,
+// leave, delete, invites, cheers)
+// Moderate: 30 actions per minute per user
+func ChallengeWriteRateLimiter() fiber.Handler {
+	return NewRateLimiter(RateLimitConfig{
+		Max:        constants.RateLimitChallengeWriteMaxRequests,
+		Expiration: constants.RateLimitChallengeWriteWindow,
+		Message:    constants.MsgRateLimitChallengeWrite,
+		KeyFunc: func(c *fiber.Ctx) string {
+			if userID, ok := c.Locals("user_id").(uint); ok && userID > 0 {
+				return fmt.Sprintf("challenge:%d", userID)
+			}
+			return c.IP()
+		},
+	})
+}
+
 // ==================== Request Logging ====================
 
 // RequestLogger logs all incoming HTTP requests with timing and trace_id.

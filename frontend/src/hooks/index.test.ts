@@ -14,6 +14,7 @@ describe('hooks barrel', () => {
       { useOverlayAwareNavigate },
       { usePullToRefresh },
       { usePushNotifications },
+      { useRefreshOnFocus },
       { useSmartBack },
       { useWebSocket },
     ] = await Promise.all([
@@ -26,6 +27,7 @@ describe('hooks barrel', () => {
       import('./useOverlayAwareNavigate'),
       import('./usePullToRefresh'),
       import('./usePushNotifications'),
+      import('./useRefreshOnFocus'),
       import('./useSmartBack'),
       import('./useWebSocket'),
     ]);
@@ -40,6 +42,7 @@ describe('hooks barrel', () => {
       useOverlayAwareNavigate,
       usePullToRefresh,
       usePushNotifications,
+      useRefreshOnFocus,
       useSmartBack,
       useWebSocket,
     });

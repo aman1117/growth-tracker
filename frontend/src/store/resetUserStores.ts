@@ -4,9 +4,9 @@
  * Zustand stores are module singletons that outlive a session. Every store below holds data
  * fetched for, or about, the signed-in user, so it is reset whenever a session ends or a new
  * one starts; otherwise the next person to sign in on the same tab would briefly see the
- * previous user's notifications, follow state, comments ("liked by me"), calendar data and
- * push preferences. The user's data kept in localStorage (dashboard layout, custom tiles and
- * per-day activity caches) is cleared at the same moments.
+ * previous user's notifications, follow state, comments ("liked by me"), calendar data,
+ * challenges and push preferences. The user's data kept in localStorage (dashboard layout,
+ * custom tiles and per-day activity caches) is cleared at the same moments.
  *
  * App-wide state is deliberately not reset: the theme preference (persisted per device),
  * transient toasts and any storage key not declared per-user (see USER_STORAGE_KEYS).
@@ -17,6 +17,7 @@
 import type { StoreApi } from 'zustand';
 
 import { ACTIVITY_CACHE_KEY_PREFIX, USER_STORAGE_KEYS } from '../constants/storage';
+import { useChallengeStore } from './useChallengeStore';
 import { useCommentStore } from './useCommentStore';
 import { useCompletionStore } from './useCompletionStore';
 import { useFollowStore } from './useFollowStore';
@@ -53,6 +54,8 @@ export function resetUserStores(): void {
   restoreInitialState(useFollowStore);
   restoreInitialState(useCommentStore);
   restoreInitialState(useCompletionStore);
+  // Also forgets a list load still in flight, so its response can't reach the next user
+  useChallengeStore.getState().reset();
   // reset() also clears the "preferences fetched" flag so the next user's preferences load,
   // and persists isSubscribed: false. It never touches the browser's push subscription:
   // an explicit logout unregisters it (useAuthStore), otherwise the next session confirms

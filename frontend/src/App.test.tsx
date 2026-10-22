@@ -39,6 +39,27 @@ vi.mock('./components/AnalyticsPage', () => {
   chunks.load('AnalyticsPage');
   return { AnalyticsPage: () => <h1>Insights</h1> };
 });
+vi.mock('./components/challenges/ChallengesPage', () => ({
+  ChallengesPage: () => <h1>Your challenges</h1>,
+}));
+vi.mock('./components/challenges/ChallengeDetailPage', async () => {
+  const { useParams } = await import('react-router-dom');
+  return {
+    ChallengeDetailPage: () => {
+      const { id } = useParams();
+      return <h1>{`Challenge ${id}`}</h1>;
+    },
+  };
+});
+vi.mock('./components/challenges/JoinChallengePage', async () => {
+  const { useParams } = await import('react-router-dom');
+  return {
+    JoinChallengePage: () => {
+      const { code } = useParams();
+      return <h1>{`Invite ${code}`}</h1>;
+    },
+  };
+});
 vi.mock('./components/VerifyEmail', async (importOriginal) => {
   chunks.load('VerifyEmail');
   return importOriginal();
@@ -145,6 +166,65 @@ describe('App', () => {
 
       expect(await findHeading('Forgot your password?')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Growth Tracker home' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('challenges', () => {
+    it.each([
+      ['/challenges', 'Your challenges', 'Challenges · Growth Tracker'],
+      ['/challenges/42', 'Challenge 42', 'Challenge · Growth Tracker'],
+      ['/c/ABCD2345', 'Invite ABCD2345', 'Join challenge · Growth Tracker'],
+    ])('opens %s under the Challenges tab', async (url, heading, title) => {
+      signIn();
+
+      renderAppAt(url);
+
+      expect(await findHeading(heading)).toBeInTheDocument();
+      expect(currentUrl()).toBe(url);
+      expect(screen.getByRole('button', { name: 'Challenges' })).toHaveAttribute(
+        'aria-current',
+        'page'
+      );
+      await waitFor(() => expect(document.title).toBe(title));
+    });
+
+    it('sends signed-out visitors from an invite link to log in, then back to it', async () => {
+      post.mockResolvedValue({
+        success: true,
+        access_token: tokenWith({ user_id: 7, username: 'alice' }),
+      });
+      const { user } = renderAppAt('/c/ABCD2345');
+
+      await findHeading('Welcome back');
+      expect(currentUrl()).toBe('/login');
+      await user.type(screen.getByLabelText('Username or email'), 'alice');
+      await user.type(screen.getByLabelText('Password'), 'password123{Enter}');
+
+      expect(await findHeading('Invite ABCD2345')).toBeInTheDocument();
+      expect(currentUrl()).toBe('/c/ABCD2345');
+    });
+
+    it('brings people who sign up from an invite link back to it', async () => {
+      post.mockImplementation(async (endpoint: string) =>
+        endpoint === '/register'
+          ? { success: true }
+          : { success: true, access_token: tokenWith({ user_id: 8, username: 'newbie' }) }
+      );
+      const { user } = renderAppAt('/c/ABCD2345');
+
+      await findHeading('Welcome back');
+      await user.click(screen.getByRole('tab', { name: 'Sign up' }));
+      await user.type(screen.getByLabelText('Email'), 'newbie@example.com');
+      await user.type(screen.getByLabelText('Username'), 'newbie');
+      await user.type(screen.getByLabelText('Password'), 'password123{Enter}');
+
+      expect(await findHeading('Invite ABCD2345')).toBeInTheDocument();
+      expect(currentUrl()).toBe('/c/ABCD2345');
+      expect(post).toHaveBeenCalledWith('/register', {
+        email: 'newbie@example.com',
+        username: 'newbie',
+        password: 'password123',
+      });
     });
   });
 

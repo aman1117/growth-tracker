@@ -38,7 +38,7 @@ describe('BottomNavigation', () => {
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 
-  it('offers Home, Customize, Insights and the profile tab', () => {
+  it('offers Home, Customize, Challenges, Insights and the profile tab', () => {
     signIn();
     renderAt('/');
 
@@ -47,12 +47,15 @@ describe('BottomNavigation', () => {
       within(nav)
         .getAllByRole('button')
         .map((button) => button.getAttribute('aria-label'))
-    ).toEqual(['Home', 'Customize tiles', 'Insights', PROFILE_TAB]);
+    ).toEqual(['Home', 'Customize tiles', 'Challenges', 'Insights', PROFILE_TAB]);
   });
 
   it.each([
     ['/', 'Home'],
     ['/user/TestUser', 'Home'],
+    ['/challenges', 'Challenges'],
+    ['/challenges/42', 'Challenges'],
+    ['/c/ABCD2345', 'Challenges'],
     ['/analytics', 'Insights'],
     ['/analytics?user=testuser', 'Insights'],
     ['/settings', PROFILE_TAB],
@@ -144,6 +147,37 @@ describe('BottomNavigation', () => {
       expect(location()).toHaveTextContent(/^\/analytics$/);
     });
 
+    it('opens the challenge list, also from a challenge or an invite link', async () => {
+      signIn();
+      const { user } = renderAt('/');
+
+      await user.click(tab('Challenges'));
+      expect(location()).toHaveTextContent(/^\/challenges$/);
+      expect(gl.debug).toHaveBeenCalledWith('tab_selected', {
+        metadata: { tab: 'challenges', from: 'home' },
+      });
+
+      window.history.replaceState(null, '', '/c/ABCD2345');
+      await user.click(tab('Challenges'));
+      expect(gl.debug).toHaveBeenLastCalledWith('tab_selected', {
+        metadata: { tab: 'challenges', from: 'challenges' },
+      });
+    });
+
+    it('announces a reselect of the challenge list so it can refresh', async () => {
+      signIn();
+      const reselect = listenFor(TAB_RESELECT_EVENT);
+      const { user } = renderAt('/challenges');
+
+      await user.click(tab('Challenges'));
+
+      expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+      expect(reselect).toHaveBeenCalledWith(
+        expect.objectContaining({ detail: { tab: 'challenges' } })
+      );
+      expect(location()).toHaveTextContent(/^\/challenges$/);
+    });
+
     it('scrolls to the top and announces the reselect when already on the tab root', async () => {
       signIn();
       const reselect = listenFor(TAB_RESELECT_EVENT);
@@ -163,6 +197,8 @@ describe('BottomNavigation', () => {
 
       await user.tab();
       await user.tab();
+      await user.tab();
+      expect(tab('Challenges')).toHaveFocus();
       await user.tab();
       expect(tab('Insights')).toHaveFocus();
 

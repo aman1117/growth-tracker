@@ -5,6 +5,7 @@
  */
 
 export * from './activities';
+export * from './challenges';
 export * from './colors';
 export * from './icons';
 export * from './routes';

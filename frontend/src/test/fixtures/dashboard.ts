@@ -11,8 +11,8 @@ import { vi } from 'vitest';
 
 import type { StoryCirclesRowProps, StoryViewerProps } from '../../components/story';
 import type { PullToRefreshWrapperProps } from '../../components/ui';
-import type { commentApi, likeApi } from '../../services/api';
-import type { Activity, ActivityPhoto, CustomTile } from '../../types';
+import type { challengeApi, commentApi, likeApi } from '../../services/api';
+import type { Activity, ActivityPhoto, ChallengeSummary, CustomTile } from '../../types';
 import type { Badge, UserSearchResult } from '../../types/api';
 
 // ============================================================================
@@ -184,6 +184,14 @@ export function mockQuietSocial(apis: { likeApi: typeof likeApi; commentApi: typ
     comments: [],
     has_more: false,
   });
+}
+
+/** The challenges strip on the own day: the user's challenge list (none by default). */
+export function mockChallengeList(
+  api: { list: typeof challengeApi.list },
+  challenges: ChallengeSummary[] = []
+) {
+  vi.mocked(api.list).mockResolvedValue({ success: true, challenges });
 }
 
 // ============================================================================

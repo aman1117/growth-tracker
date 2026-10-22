@@ -559,3 +559,158 @@ type CommentActionResponse struct {
 	Comment *CommentDTO `json:"comment,omitempty"`
 	Message string      `json:"message,omitempty" example:"Comment created successfully"`
 }
+
+// ==================== Challenge DTOs ====================
+
+// ChallengeUser represents a user shown in challenges
+// @Description User shown in challenges
+type ChallengeUser struct {
+	ID              uint    `json:"id" example:"7"`
+	Username        string  `json:"username" example:"john_doe"`
+	ProfilePic      *string `json:"profile_pic" example:"https://storage.blob.core.windows.net/pics/1/abc.jpg"`
+	ProfilePicThumb *string `json:"profile_pic_thumb" example:"https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"`
+	IsVerified      bool    `json:"is_verified" example:"false"`
+}
+
+// ChallengeProgress represents a participant's progress in a challenge
+// @Description Progress of one participant
+type ChallengeProgress struct {
+	Rank          *int     `json:"rank" example:"1"` // null for upcoming challenges
+	DaysMet       int      `json:"days_met" example:"5"`
+	DaysElapsed   int      `json:"days_elapsed" example:"6"`
+	DaysPossible  int      `json:"days_possible" example:"21"`
+	CurrentStreak int      `json:"current_streak" example:"3"`
+	TotalHours    float64  `json:"total_hours" example:"12.5"`
+	TodayHours    *float64 `json:"today_hours" example:"2.25"`                            // null unless active and today is in the participant's window
+	TodayStatus   *string  `json:"today_status" example:"met" enums:"met,missed,pending"` // null like today_hours
+	Completed     *bool    `json:"completed" example:"true"`                              // null until the results are final
+}
+
+// ChallengeSummary represents a challenge in the list
+// @Description Challenge summary with the viewer's progress
+type ChallengeSummary struct {
+	ID               uint              `json:"id" example:"12"`
+	Title            string            `json:"title" example:"Study 2h+ a day"`
+	Activity         string            `json:"activity" example:"study"`
+	GoalType         string            `json:"goal_type" example:"at_least" enums:"at_least,at_most"`
+	TargetHours      float64           `json:"target_hours" example:"2"`
+	StartDate        string            `json:"start_date" example:"2026-10-23"`
+	EndDate          string            `json:"end_date" example:"2026-11-12"`
+	DurationDays     int               `json:"duration_days" example:"21"`
+	Status           string            `json:"status" example:"active" enums:"upcoming,active,ended"`
+	Finalized        bool              `json:"finalized" example:"false"`
+	DayNumber        *int              `json:"day_number" example:"6"` // null unless active
+	ParticipantCount int               `json:"participant_count" example:"4"`
+	IsCreator        bool              `json:"is_creator" example:"true"`
+	Me               ChallengeProgress `json:"me"`
+}
+
+// ChallengeDay represents the viewer's result on one challenge date
+// @Description The viewer's result on one challenge date
+type ChallengeDay struct {
+	Date   string   `json:"date" example:"2026-10-23"`
+	Hours  *float64 `json:"hours" example:"2.5"` // null for upcoming / none
+	Status string   `json:"status" example:"met" enums:"met,missed,pending,upcoming,none"`
+	Locked bool     `json:"locked" example:"true"`
+}
+
+// ChallengeParticipant represents a participant in a challenge detail
+// @Description Participant with progress
+type ChallengeParticipant struct {
+	ChallengeProgress
+	User         ChallengeUser `json:"user"`
+	JoinedOn     string        `json:"joined_on" example:"2026-10-22"`
+	IsMe         bool          `json:"is_me" example:"false"`
+	CheeredToday bool          `json:"cheered_today" example:"false"` // by the viewer
+	Days         string        `json:"days" example:"MMXP-UU"`        // one character per date: M met, X missed, P pending, U upcoming, - not taking part yet
+}
+
+// ChallengeDetail represents a challenge with every participant's progress
+// @Description Challenge detail
+type ChallengeDetail struct {
+	ChallengeSummary
+	InviteCode      string                 `json:"invite_code" example:"K7Q2M9XA"`
+	Today           string                 `json:"today" example:"2026-10-28"`
+	LockedThrough   *string                `json:"locked_through" example:"2026-10-26"`
+	ResultsDate     string                 `json:"results_date" example:"2026-11-14"` // end_date + 2: when results become final
+	CompletionDays  int                    `json:"completion_days" example:"17"`
+	MaxParticipants int                    `json:"max_participants" example:"50"`
+	Creator         ChallengeUser          `json:"creator"`
+	CanInvite       bool                   `json:"can_invite" example:"true"`
+	CanLeave        bool                   `json:"can_leave" example:"false"`
+	CanDelete       bool                   `json:"can_delete" example:"false"`
+	Participants    []ChallengeParticipant `json:"participants"` // by rank (nulls last), then username
+	MyDays          []ChallengeDay         `json:"my_days"`      // one per date, start_date..end_date
+}
+
+// InviteCandidate represents a user who can be invited to a challenge
+// @Description User who can be invited
+type InviteCandidate struct {
+	ChallengeUser
+	Invited bool `json:"invited" example:"false"`
+}
+
+// ChallengePreview represents what an invite link shows before joining
+// @Description Challenge preview for an invite code
+type ChallengePreview struct {
+	ID                  uint            `json:"id" example:"12"`
+	Title               string          `json:"title" example:"Study 2h+ a day"`
+	Activity            string          `json:"activity" example:"study"`
+	GoalType            string          `json:"goal_type" example:"at_least" enums:"at_least,at_most"`
+	TargetHours         float64         `json:"target_hours" example:"2"`
+	StartDate           string          `json:"start_date" example:"2026-10-23"`
+	EndDate             string          `json:"end_date" example:"2026-11-12"`
+	DurationDays        int             `json:"duration_days" example:"21"`
+	Status              string          `json:"status" example:"upcoming" enums:"upcoming,active,ended"`
+	Finalized           bool            `json:"finalized" example:"false"`
+	ParticipantCount    int             `json:"participant_count" example:"4"`
+	MaxParticipants     int             `json:"max_participants" example:"50"`
+	Creator             ChallengeUser   `json:"creator"`
+	ParticipantsPreview []ChallengeUser `json:"participants_preview"` // up to 5, earliest joined first
+	IsParticipant       bool            `json:"is_participant" example:"false"`
+	CanJoin             bool            `json:"can_join" example:"true"`
+	JoinBlockedReason   *string         `json:"join_blocked_reason" example:"full" enums:"ended,full,limit"`
+}
+
+// ChallengeListResponse represents the challenges of the viewer
+// @Description Upcoming and active challenges plus the 20 most recently ended
+type ChallengeListResponse struct {
+	Success    bool               `json:"success" example:"true"`
+	Challenges []ChallengeSummary `json:"challenges"`
+}
+
+// ChallengeResponse represents a challenge detail response
+// @Description Challenge detail response
+type ChallengeResponse struct {
+	Success   bool             `json:"success" example:"true"`
+	Challenge *ChallengeDetail `json:"challenge"`
+}
+
+// ChallengeCheerResponse represents the result of a cheer
+// @Description Cheer result
+type ChallengeCheerResponse struct {
+	Success        bool `json:"success" example:"true"`
+	AlreadyCheered bool `json:"already_cheered" example:"false"`
+}
+
+// InviteCandidatesResponse represents users who can be invited to a challenge
+// @Description Invite candidates
+type InviteCandidatesResponse struct {
+	Success bool              `json:"success" example:"true"`
+	Users   []InviteCandidate `json:"users"`
+}
+
+// ChallengeInviteResponse represents the result of an invite request
+// @Description Invite result
+type ChallengeInviteResponse struct {
+	Success bool `json:"success" example:"true"`
+	Invited int  `json:"invited" example:"2"`
+	Skipped int  `json:"skipped" example:"1"`
+}
+
+// ChallengePreviewResponse represents a challenge preview response
+// @Description Challenge preview response
+type ChallengePreviewResponse struct {
+	Success bool              `json:"success" example:"true"`
+	Preview *ChallengePreview `json:"preview"`
+}

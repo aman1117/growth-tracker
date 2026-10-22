@@ -2,7 +2,7 @@ import { act, screen, waitFor, within } from '@testing-library/react';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { api, ApiError, commentApi, likeApi } from '../../services/api';
+import { api, ApiError, challengeApi, commentApi, likeApi } from '../../services/api';
 import {
   ALICE,
   BOB,
@@ -12,6 +12,7 @@ import {
   makeBadge,
   makePhoto,
   makeSearchUser,
+  mockChallengeList,
   mockQuietSocial,
   resetStoryStubs,
   routeApi,
@@ -28,6 +29,7 @@ vi.mock('../../services/api', async (importOriginal) => ({
   api: { get: vi.fn(), post: vi.fn() },
   likeApi: { getLikes: vi.fn(), likeDay: vi.fn(), unlikeDay: vi.fn() },
   commentApi: { getCommentCount: vi.fn(), getComments: vi.fn() },
+  challengeApi: { list: vi.fn() },
 }));
 vi.mock('../story', async () => {
   const { StoryCirclesRowStub, StoryViewerStub } = await import('../../test/fixtures/dashboard');
@@ -95,6 +97,7 @@ describe('Dashboard (another user’s day)', () => {
     signIn(ALICE);
     routeApi(api, bobRoutes());
     mockQuietSocial({ likeApi, commentApi });
+    mockChallengeList(challengeApi);
     resetStoryStubs();
   });
 

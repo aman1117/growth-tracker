@@ -1,0 +1,53 @@
+.stack {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  /* Room for the first avatar's outline */
+  padding-left: 1px;
+}
+
+.item {
+  position: relative;
+  display: inline-flex;
+  border-radius: 50%;
+}
+
+.item + .item {
+  margin-left: calc(var(--avatar-stack-overlap) * -1);
+}
+
+.xs {
+  --avatar-stack-overlap: 7px;
+  --avatar-stack-size: 24px;
+  --avatar-stack-font: 0.5625rem;
+}
+
+.sm {
+  --avatar-stack-overlap: 9px;
+  --avatar-stack-size: 32px;
+  --avatar-stack-font: var(--text-2xs);
+}
+
+.md {
+  --avatar-stack-overlap: 11px;
+  --avatar-stack-size: 40px;
+  --avatar-stack-font: var(--text-xs);
+}
+
+.more {
+  align-items: center;
+  justify-content: center;
+  min-width: var(--avatar-stack-size);
+  height: var(--avatar-stack-size);
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--bg-elevated);
+  box-shadow: 0 0 0 1px var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: var(--avatar-stack-font);
+  font-weight: var(--font-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}

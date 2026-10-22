@@ -181,6 +181,19 @@ func setupCronJobs(c *container.Container, log *zap.SugaredLogger) {
 		log.Fatalf("Failed to add daily cron job: %v", err)
 	}
 
+	// 00:05 IST cron job for challenges (after the midnight streak job): locks the days that can
+	// no longer be edited (today-2 and earlier) and finalizes ended challenges
+	_, err = cronScheduler.AddFunc("0 5 0 * * *", func() {
+		if err := c.ChallengeService.RunDailyJob(context.Background()); err != nil {
+			log.Errorf("Challenge daily job failed: %v", err)
+		} else {
+			log.Info("Challenge daily job completed successfully")
+		}
+	})
+	if err != nil {
+		log.Fatalf("Failed to add challenge cron job: %v", err)
+	}
+
 	// 10 PM IST cron job for streak reminders (push + in-app notifications)
 	// Reminds users who haven't logged today while they still have time
 	_, err = cronScheduler.AddFunc("0 0 22 * * *", func() {

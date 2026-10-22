@@ -193,6 +193,24 @@ func TestMetadata_ToMap(t *testing.T) {
 			FollowMetadata{ActorID: 8, ActorUsername: "grace", ActorAvatar: "https://cdn.example.com/g.png"},
 			NotificationMetadata{"actor_id": uint(8), "actor_username": "grace", "actor_avatar": "https://cdn.example.com/g.png"},
 		},
+		{
+			"challenge actor",
+			ChallengeActorMetadata{ChallengeID: 12, ChallengeTitle: "Study 2h+ 📚", ActorID: 8, ActorUsername: "grace", ActorAvatar: "https://cdn.example.com/g.png"},
+			NotificationMetadata{"challenge_id": uint(12), "challenge_title": "Study 2h+ 📚", "actor_id": uint(8), "actor_username": "grace", "actor_avatar": "https://cdn.example.com/g.png"},
+		},
+		{
+			"challenge invite",
+			ChallengeInviteMetadata{
+				ChallengeActorMetadata: ChallengeActorMetadata{ChallengeID: 12, ChallengeTitle: "Study", ActorID: 8, ActorUsername: "grace", ActorAvatar: "https://cdn.example.com/g.png"},
+				InviteCode:             "K7Q2M9XA",
+			},
+			NotificationMetadata{"challenge_id": uint(12), "challenge_title": "Study", "actor_id": uint(8), "actor_username": "grace", "actor_avatar": "https://cdn.example.com/g.png", "invite_code": "K7Q2M9XA"},
+		},
+		{
+			"challenge ended",
+			ChallengeEndedMetadata{ChallengeID: 12, ChallengeTitle: "Study", Rank: 2, DaysMet: 17, DaysPossible: 21, Completed: true},
+			NotificationMetadata{"challenge_id": uint(12), "challenge_title": "Study", "rank": 2, "days_met": 17, "days_possible": 21, "completed": true},
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

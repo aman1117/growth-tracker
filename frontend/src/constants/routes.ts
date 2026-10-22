@@ -205,6 +205,32 @@ export const API_ROUTES = {
     /** GET - Get replies for a comment */
     GET_REPLIES: (commentId: number) => `/comments/${commentId}/replies`,
   },
+
+  // ============================================================================
+  // Challenges
+  // ============================================================================
+  CHALLENGE: {
+    /** GET - The user's upcoming, active and recently ended challenges */
+    LIST: '/challenges',
+    /** POST - Create a challenge (the creator joins automatically) */
+    CREATE: '/challenges',
+    /** GET - Challenge detail (participants only) */
+    DETAIL: (id: number) => `/challenges/${id}`,
+    /** DELETE - Delete a challenge (creator only) */
+    DELETE: (id: number) => `/challenges/${id}`,
+    /** POST - Leave a challenge */
+    LEAVE: (id: number) => `/challenges/${id}/leave`,
+    /** POST - Cheer another participant */
+    CHEERS: (id: number) => `/challenges/${id}/cheers`,
+    /** GET - People the user can invite (`?q=&limit=`) */
+    INVITE_CANDIDATES: (id: number) => `/challenges/${id}/invite-candidates`,
+    /** POST - Invite people the user follows or who follow them */
+    INVITES: (id: number) => `/challenges/${id}/invites`,
+    /** GET - Preview a challenge from its invite code */
+    PREVIEW: (code: string) => `/challenge-codes/${encodeURIComponent(code)}`,
+    /** POST - Join a challenge with its invite code */
+    JOIN: (code: string) => `/challenge-codes/${encodeURIComponent(code)}/join`,
+  },
 } as const;
 
 /**
@@ -218,8 +244,12 @@ export const APP_ROUTES = {
   VERIFY_EMAIL: '/verify-email',
   SETTINGS: '/settings',
   ANALYTICS: '/analytics',
+  CHALLENGES: '/challenges',
   USER_PROFILE: (username: string) => `/user/${username}`,
   USER_ANALYTICS: (username: string) => `/analytics?user=${username}`,
+  CHALLENGE: (id: number) => `/challenges/${id}`,
+  /** Invite link landing page; shared as `${origin}/c/<code>` */
+  JOIN_CHALLENGE: (code: string) => `/c/${encodeURIComponent(code)}`,
 } as const;
 
 // Type for API route values

@@ -26,6 +26,10 @@ const (
 	NotifTypeCommentReply    NotificationType = "comment_reply"
 	NotifTypeCommentMention  NotificationType = "comment_mention"
 	NotifTypeCommentLiked    NotificationType = "comment_liked"
+	NotifTypeChallengeInvite NotificationType = "challenge_invite"
+	NotifTypeChallengeJoined NotificationType = "challenge_joined"
+	NotifTypeChallengeCheer  NotificationType = "challenge_cheer"
+	NotifTypeChallengeEnded  NotificationType = "challenge_ended"
 )
 
 // NotificationMetadata is a flexible JSON field for notification-specific data
@@ -164,6 +168,61 @@ func (m CommentMetadata) ToMap() NotificationMetadata {
 		"author_id":          m.AuthorID,
 		"author_username":    m.AuthorUsername,
 		"author_avatar":      m.AuthorAvatar,
+	}
+}
+
+// ChallengeActorMetadata holds data for challenge_joined and challenge_cheer notifications
+type ChallengeActorMetadata struct {
+	ChallengeID    uint   `json:"challenge_id"`
+	ChallengeTitle string `json:"challenge_title"`
+	ActorID        uint   `json:"actor_id"`
+	ActorUsername  string `json:"actor_username"`
+	ActorAvatar    string `json:"actor_avatar,omitempty"`
+}
+
+// ToMap converts ChallengeActorMetadata to NotificationMetadata
+func (m ChallengeActorMetadata) ToMap() NotificationMetadata {
+	return NotificationMetadata{
+		"challenge_id":    m.ChallengeID,
+		"challenge_title": m.ChallengeTitle,
+		"actor_id":        m.ActorID,
+		"actor_username":  m.ActorUsername,
+		"actor_avatar":    m.ActorAvatar,
+	}
+}
+
+// ChallengeInviteMetadata holds data for challenge_invite notifications
+type ChallengeInviteMetadata struct {
+	ChallengeActorMetadata
+	InviteCode string `json:"invite_code"`
+}
+
+// ToMap converts ChallengeInviteMetadata to NotificationMetadata
+func (m ChallengeInviteMetadata) ToMap() NotificationMetadata {
+	metadata := m.ChallengeActorMetadata.ToMap()
+	metadata["invite_code"] = m.InviteCode
+	return metadata
+}
+
+// ChallengeEndedMetadata holds data for challenge_ended notifications
+type ChallengeEndedMetadata struct {
+	ChallengeID    uint   `json:"challenge_id"`
+	ChallengeTitle string `json:"challenge_title"`
+	Rank           int    `json:"rank"`
+	DaysMet        int    `json:"days_met"`
+	DaysPossible   int    `json:"days_possible"`
+	Completed      bool   `json:"completed"`
+}
+
+// ToMap converts ChallengeEndedMetadata to NotificationMetadata
+func (m ChallengeEndedMetadata) ToMap() NotificationMetadata {
+	return NotificationMetadata{
+		"challenge_id":    m.ChallengeID,
+		"challenge_title": m.ChallengeTitle,
+		"rank":            m.Rank,
+		"days_met":        m.DaysMet,
+		"days_possible":   m.DaysPossible,
+		"completed":       m.Completed,
 	}
 }
 

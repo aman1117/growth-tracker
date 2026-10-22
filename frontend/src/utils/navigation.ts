@@ -10,7 +10,7 @@ import { APP_ROUTES } from '../constants/routes';
 export const APP_NAME = 'Growth Tracker';
 
 /** Primary destinations reachable from the bottom tab bar */
-export type AppTab = 'home' | 'analytics' | 'profile';
+export type AppTab = 'home' | 'challenges' | 'analytics' | 'profile';
 
 /** Window event fired when the user taps the tab they are already on */
 export const TAB_RESELECT_EVENT = 'app:tab-reselect';
@@ -45,10 +45,30 @@ const AUTH_FLOW_ROUTES: readonly string[] = [
 
 const PROFILE_PATH_PREFIX = '/user/';
 const ANALYTICS_PATH_PREFIX = `${APP_ROUTES.ANALYTICS}/`;
+const CHALLENGE_PATH_PREFIX = `${APP_ROUTES.CHALLENGES}/`;
+const JOIN_CHALLENGE_PATH_PREFIX = '/c/';
 
 export const isAuthFlowRoute = (pathname: string): boolean => AUTH_FLOW_ROUTES.includes(pathname);
 
 export const isLoginRoute = (pathname: string): boolean => pathname === APP_ROUTES.LOGIN;
+
+/** First path segment after `prefix`, or null when the path has none */
+const segmentAfter = (pathname: string, prefix: string): string | null =>
+  pathname.startsWith(prefix) ? pathname.slice(prefix.length).split('/')[0] || null : null;
+
+/** `/challenges/:id` (any id; the screen validates it) */
+const isChallengeDetailRoute = (pathname: string): boolean =>
+  segmentAfter(pathname, CHALLENGE_PATH_PREFIX) !== null;
+
+/** `/c/:code` — an invite link */
+const isJoinChallengeRoute = (pathname: string): boolean =>
+  segmentAfter(pathname, JOIN_CHALLENGE_PATH_PREFIX) !== null;
+
+/** The Challenges list, a challenge, or an invite link */
+const isChallengesRoute = (pathname: string): boolean =>
+  pathname === APP_ROUTES.CHALLENGES ||
+  pathname.startsWith(CHALLENGE_PATH_PREFIX) ||
+  isJoinChallengeRoute(pathname);
 
 /** Extracts the username from `/user/:username`, or null for other paths */
 export const getProfileUsername = (pathname: string): string | null => {
@@ -98,12 +118,15 @@ export const getActiveTab = (
 
   if (pathname === APP_ROUTES.SETTINGS) return 'profile';
 
+  if (isChallengesRoute(pathname)) return 'challenges';
+
   return null;
 };
 
 /** Root route for each tab — what tapping the tab navigates to */
 export const TAB_ROUTES: Record<AppTab, string> = {
   home: APP_ROUTES.HOME,
+  challenges: APP_ROUTES.CHALLENGES,
   analytics: APP_ROUTES.ANALYTICS,
   profile: APP_ROUTES.SETTINGS,
 };
@@ -121,6 +144,9 @@ export const getRouteTitle = (
   if (pathname === APP_ROUTES.RESET_PASSWORD) return withApp('Reset password');
   if (pathname === APP_ROUTES.VERIFY_EMAIL) return withApp('Verify email');
   if (pathname === APP_ROUTES.SETTINGS) return withApp('Settings');
+  if (isChallengeDetailRoute(pathname)) return withApp('Challenge');
+  if (isJoinChallengeRoute(pathname)) return withApp('Join challenge');
+  if (isChallengesRoute(pathname)) return withApp('Challenges');
 
   const analyticsUser = getAnalyticsUsername(pathname, search);
   if (pathname === APP_ROUTES.ANALYTICS || analyticsUser) {
@@ -161,12 +187,14 @@ export const getSafeRedirectPath = (from: unknown): string => {
 };
 
 /**
- * Normalises a pathname to its route pattern for logging, so user handles are not
- * written to analytics (e.g. `/user/jane` → `/user/:username`).
+ * Normalises a pathname to its route pattern for logging, so user handles, challenge ids and
+ * invite codes are not written to analytics (e.g. `/user/jane` → `/user/:username`).
  */
 export const toRoutePattern = (pathname: string): string => {
   if (getProfileUsername(pathname)) return '/user/:username';
   if (pathname.startsWith(ANALYTICS_PATH_PREFIX)) return '/analytics/:username';
+  if (isChallengeDetailRoute(pathname)) return '/challenges/:id';
+  if (isJoinChallengeRoute(pathname)) return '/c/:code';
   return pathname;
 };
 

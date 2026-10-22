@@ -9,6 +9,12 @@
 export { Autocomplete, type AutocompleteProps } from './Autocomplete';
 export { Avatar, type AvatarProps, type AvatarSize } from './Avatar';
 export {
+  AvatarStack,
+  type AvatarStackPerson,
+  type AvatarStackProps,
+  type AvatarStackSize,
+} from './AvatarStack';
+export {
   BrandLogo,
   type BrandLogoProps,
   type BrandLogoSize,
@@ -43,6 +49,7 @@ export {
   NoticeStack,
   type NoticeTone,
 } from './Notice';
+export { ProgressRing, type ProgressRingProps } from './ProgressRing';
 export {
   Skeleton,
   SkeletonAvatar,

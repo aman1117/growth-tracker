@@ -160,7 +160,21 @@ func TestInvariants(t *testing.T) {
 		"autocomplete": constants.RateLimitAutocompleteMaxRequests,
 		"comment":      constants.RateLimitCommentMaxRequests,
 		"comment like": constants.RateLimitCommentLikeMaxRequests,
+		"challenge":    constants.RateLimitChallengeWriteMaxRequests,
 	} {
 		assert.Positive(t, max, name)
 	}
+
+	// Challenges: the bounds the queries and validation rely on.
+	assert.Positive(t, constants.ChallengeMaxParticipants)
+	assert.Positive(t, constants.ChallengeMaxOpenPerUser)
+	assert.Positive(t, constants.ChallengeMaxInvitesPerRequest)
+	assert.LessOrEqual(t, constants.ChallengeCandidatesDefault, constants.ChallengeCandidatesMax)
+	assert.LessOrEqual(t, constants.ChallengePreviewParticipants, constants.ChallengeMaxParticipants)
+	assert.Less(t, constants.ChallengeMinDurationDays, constants.ChallengeMaxDurationDays)
+	assert.Len(t, constants.ChallengeInviteCodeAlphabet, 32, "invite codes pick letters with 5 random bits")
+	assert.NotContains(t, constants.ChallengeInviteCodeAlphabet, "0")
+	assert.NotContains(t, constants.ChallengeInviteCodeAlphabet, "O")
+	assert.NotContains(t, constants.ChallengeInviteCodeAlphabet, "1")
+	assert.NotContains(t, constants.ChallengeInviteCodeAlphabet, "I")
 }

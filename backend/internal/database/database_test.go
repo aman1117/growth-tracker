@@ -3,6 +3,7 @@ package database_test
 import (
 	"errors"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -142,7 +143,7 @@ func TestInit_ReturnsTheFirstErrorOnLaterCalls(t *testing.T) {
 func TestModels(t *testing.T) {
 	all := database.Models()
 
-	require.Len(t, all, 21)
+	require.Len(t, all, 26)
 	assert.IsType(t, &models.User{}, all[0], "users must be migrated before the tables that reference them")
 	seen := map[reflect.Type]bool{}
 	for _, model := range all {
@@ -151,8 +152,15 @@ func TestModels(t *testing.T) {
 		assert.False(t, seen[typ], "%v is listed twice", typ)
 		seen[typ] = true
 	}
-	for _, model := range []any{&models.Comment{}, &models.ActivityPhoto{}, &models.PushSubscription{}, &models.FollowCounter{}} {
+	for _, model := range []any{&models.Comment{}, &models.ActivityPhoto{}, &models.PushSubscription{}, &models.FollowCounter{},
+		&models.Challenge{}, &models.ChallengeParticipant{}, &models.ChallengeDay{}, &models.ChallengeCheer{}, &models.ChallengeInvite{}} {
 		assert.True(t, seen[reflect.TypeOf(model)], "%T is missing", model)
+	}
+	index := func(model any) int {
+		return slices.IndexFunc(all, func(m any) bool { return reflect.TypeOf(m) == reflect.TypeOf(model) })
+	}
+	for _, child := range []any{&models.ChallengeParticipant{}, &models.ChallengeDay{}, &models.ChallengeCheer{}, &models.ChallengeInvite{}} {
+		assert.Less(t, index(&models.Challenge{}), index(child), "challenges must be migrated before %T", child)
 	}
 }
 

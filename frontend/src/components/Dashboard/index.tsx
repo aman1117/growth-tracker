@@ -15,7 +15,7 @@ import { useOverlayAwareNavigate } from '../../hooks/useOverlayAwareNavigate';
 import { useSmartBack } from '../../hooks/useSmartBack';
 import { api } from '../../services/api';
 import { gl } from '../../services/goodlogs';
-import { useAuth, useCompletionStore } from '../../store';
+import { useAuth, useChallengeStore, useCompletionStore } from '../../store';
 import type { ActivityName, CustomTile } from '../../types';
 import { MAX_CUSTOM_TILES } from '../../types';
 import type { Badge } from '../../types/api';
@@ -28,6 +28,7 @@ import { playActivitySound, playCompletionSound } from '../../utils/sounds';
 import { ActivityModal } from '../ActivityModal';
 import type { TileSize } from '../ActivityTile';
 import { BadgeUnlockModal } from '../BadgeUnlockModal';
+import { ChallengesStrip } from '../challenges/ChallengesStrip';
 import { CreateCustomTileModal } from '../CreateCustomTileModal';
 import { DaySummaryCard } from '../DaySummaryCard';
 import { HiddenTilesPanel } from '../HiddenTilesPanel';
@@ -379,6 +380,9 @@ export const Dashboard: React.FC = () => {
         if (targetUsername) {
           updateDay(targetUsername, currentDate, newTotalHours);
         }
+
+        // Logged hours count towards challenges: refresh their progress in the background
+        void useChallengeStore.getState().refreshAfterActivityLogged();
       } else {
         throw new Error(res.error);
       }
@@ -721,6 +725,9 @@ export const Dashboard: React.FC = () => {
             }
           />
         )}
+
+        {/* Active challenges (own dashboard, today) */}
+        {!isReadOnly && !isEditMode && isViewingToday && <ChallengesStrip />}
 
         {/* Edit Mode Toolbar */}
         {!isReadOnly && isEditMode && (

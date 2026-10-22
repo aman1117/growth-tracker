@@ -132,6 +132,35 @@
 }
 
 /* ============================================================================
+   Narrow phones: five tabs share the dock, so spacing tightens first and the
+   caption shrinks on the narrowest screens — labels stay whole, targets ≥44px.
+   ============================================================================ */
+
+@media (max-width: 419px) {
+  .nav {
+    width: calc(100% - 16px);
+    padding: 5px;
+  }
+
+  .navInner {
+    gap: 2px;
+    height: calc(var(--nav-dock-height) - 10px);
+  }
+
+  .navItem {
+    padding: 0 1px;
+    border-radius: 18px;
+  }
+}
+
+@media (max-width: 359px) {
+  .caption {
+    font-size: var(--text-2xs);
+    letter-spacing: 0;
+  }
+}
+
+/* ============================================================================
    Desktop: side rail
    ============================================================================ */
 

@@ -33,6 +33,16 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
 - `npm run brand:assets` regenerates every logo asset (favicons, PWA/Apple/maskable icons, push
   badge, Android TWA icons and splash, help-center icon, README lockups) from the same geometry the
   in-app `BrandLogo` draws.
+- Challenges: commit to a daily goal for one activity with friends, such as "Study 2h+ a day for
+  21 days" or "Reels under 1h a day for 14 days". Your normal logging counts automatically. A new
+  Challenges tab lists your challenges; each challenge has a progress ring, a day-by-day grid, a
+  live leaderboard and cheers. You can invite people you follow or who follow you, or share an
+  invite link (`/c/<code>`) that anyone can use to join. Home shows today's progress for active
+  challenges. Days lock at the end of the next day (India time) so results can't be changed
+  afterwards. Final results arrive two days after a challenge ends, with notifications for
+  invites, joins, cheers and results. A challenge lasts 3–60 days and takes up to 50 people; you
+  can be in up to 10 upcoming or active challenges at once. New API: `/api/challenges` and
+  `/api/challenge-codes`.
 
 ### Changed
 - New original logo: a "leaf check" mark (two leaves forming a check — growth you can track) with a

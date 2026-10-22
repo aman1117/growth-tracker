@@ -98,7 +98,8 @@ func (ChallengeCheer) TableName() string {
 	return "challenge_cheers"
 }
 
-// ChallengeInvite records that a user was invited to a challenge (once, by anyone).
+// ChallengeInvite records an invite to a challenge. A user has at most one (from anyone);
+// leaving the challenge removes it, so people who left can be invited again.
 type ChallengeInvite struct {
 	ID          uint      `gorm:"primaryKey"`
 	ChallengeID uint      `gorm:"not null;uniqueIndex:idx_challenge_invite,priority:1"`

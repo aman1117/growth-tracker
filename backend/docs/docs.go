@@ -1446,7 +1446,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Invite 1-20 users to a challenge that has not ended. Users who do not exist, already take part, were invited before (by anyone) or have no active follow relationship with you (either direction) are skipped. Participants only.",
+                "description": "Invite 1-20 users to a challenge that has not ended. Users who do not exist, already take part, already have an invite (from anyone) or have no active follow relationship with you (either direction) are skipped. Leaving a challenge removes the leaver's invite, so people who left can be invited again. Participants only.",
                 "consumes": [
                     "application/json"
                 ],
@@ -5906,6 +5906,7 @@ const docTemplate = `{
                     "example": 7
                 },
                 "invited": {
+                    "description": "already has an invite (from anyone); leaving the challenge removes it",
                     "type": "boolean",
                     "example": false
                 },

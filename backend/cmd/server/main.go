@@ -93,6 +93,12 @@ func main() {
 		log.Fatalf("Failed to create container: %v", err)
 	}
 
+	// Remove invites still held by people who left a challenge back when leaving kept them, so
+	// they can be invited again (a no-op once they are gone)
+	if err := c.ChallengeService.DeleteStaleInvites(context.Background()); err != nil {
+		log.Warnf("Stale challenge invite cleanup failed; it runs again on the next start: %v", err)
+	}
+
 	// Log optional service status
 	if c.BlobHandler != nil {
 		log.Info("Azure Blob Storage initialized")

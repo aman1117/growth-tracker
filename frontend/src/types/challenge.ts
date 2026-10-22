@@ -101,6 +101,7 @@ export interface ChallengeDetail extends ChallengeSummary {
 }
 
 export interface InviteCandidate extends ChallengeUser {
+  /** Already has an invite (from anyone); leaving the challenge removes it */
   invited: boolean;
 }
 

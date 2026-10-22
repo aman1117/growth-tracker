@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aman1117/backend/internal/constants"
 	"github.com/aman1117/backend/internal/dto"
@@ -73,7 +74,7 @@ func TestChallengeService_Invite(t *testing.T) {
 
 	invited, skipped, err = e.svc.Invite(ctx, ann.ID, created.ID, []uint{iFollow.ID, followsMe.ID})
 	require.NoError(t, err)
-	assert.Equal(t, 0, invited, "a user is invited once")
+	assert.Equal(t, 0, invited, "an open invite is not sent again")
 	assert.Equal(t, 2, skipped)
 	invited, _, err = e.svc.Invite(ctx, ben.ID, created.ID, []uint{iFollow.ID})
 	require.NoError(t, err)
@@ -86,6 +87,102 @@ func TestChallengeService_Invite(t *testing.T) {
 		_, _, err := e.svc.Invite(ctx, ann.ID, ended.ID, []uint{iFollow.ID})
 		assert.ErrorIs(t, err, ErrChallengeEnded)
 	})
+}
+
+func TestChallengeService_InviteAgainAfterLeaving(t *testing.T) {
+	e := newChEnv(t, cday)
+	ctx := context.Background()
+	ann, ben, cat := e.user(t, "ann", chAvatar), e.user(t, "ben"), e.user(t, "cat")
+	makeFollow(t, e.db, ann.ID, cat.ID, models.FollowStateActive)
+	makeFollow(t, e.db, ben.ID, cat.ID, models.FollowStateActive)
+	created, err := e.svc.Create(ctx, ann.ID, studyRequest(on(1), 7))
+	require.NoError(t, err)
+	_, err = e.svc.JoinByCode(ctx, ben.ID, created.InviteCode)
+	require.NoError(t, err)
+
+	invite := func(t *testing.T, from *models.User) int {
+		t.Helper()
+		invited, skipped, err := e.svc.Invite(ctx, from.ID, created.ID, []uint{cat.ID})
+		require.NoError(t, err)
+		assert.Equal(t, 1, invited+skipped)
+		return invited
+	}
+	// catInvited reports whether ann's invite list marks cat as invited
+	catInvited := func(t *testing.T) bool {
+		t.Helper()
+		users, err := e.svc.InviteCandidates(ctx, ann.ID, created.ID, "cat", 20)
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		return users[0].Invited
+	}
+	joinAndLeave := func(t *testing.T) {
+		t.Helper()
+		_, err := e.svc.JoinByCode(ctx, cat.ID, created.InviteCode)
+		require.NoError(t, err)
+		assert.Zero(t, invite(t, ann), "participants are not invited")
+		require.NoError(t, e.svc.Leave(ctx, cat.ID, created.ID))
+	}
+	invites := func() []models.Notification {
+		return typedNotifications(t, e.db, cat.ID, models.NotifTypeChallengeInvite)
+	}
+
+	require.Equal(t, 1, invite(t, ann))
+	assert.True(t, catInvited(t))
+	assert.Zero(t, invite(t, ann), "an open invite is not sent again")
+	assert.Zero(t, invite(t, ben), "...by anyone")
+
+	joinAndLeave(t)
+	assert.False(t, catInvited(t), "leaving removed the invite")
+	assert.Equal(t, 1, invite(t, ann), "the same person can invite again")
+	assert.True(t, catInvited(t))
+	assert.Zero(t, invite(t, ben), "the new invite is open")
+	notifs := invites()
+	require.Len(t, notifs, 2, "the new invite is notified")
+	assert.Equal(t, "ann invited you to “Study 2h+”", notifs[1].Body)
+	assert.Equal(t, created.InviteCode, notifs[1].Metadata["invite_code"])
+
+	joinAndLeave(t)
+	assert.Equal(t, 1, invite(t, ben), "anyone can invite again")
+	notifs = invites()
+	require.Len(t, notifs, 3)
+	assert.Equal(t, "ben invited you to “Study 2h+”", notifs[2].Body)
+	assert.Len(t, typedNotifications(t, e.db, ann.ID, models.NotifTypeChallengeJoined), 2,
+		"one joined notification per joiner, however often they join")
+}
+
+func TestChallengeService_DeleteStaleInvites(t *testing.T) {
+	e := newChEnv(t, cday)
+	ctx := context.Background()
+	ann, cat, dan := e.user(t, "ann"), e.user(t, "cat"), e.user(t, "dan")
+	makeFollow(t, e.db, ann.ID, cat.ID, models.FollowStateActive)
+	makeFollow(t, e.db, ann.ID, dan.ID, models.FollowStateActive)
+	c := e.seed(t, ann, on(1), 5)
+	e.join(t, c, ann, cday)
+	// As left behind before leaving removed invites: cat joined with hers and left; dan has not
+	// answered his yet.
+	invitedAt := e.clock.Now()
+	for _, u := range []*models.User{cat, dan} {
+		require.NoError(t, e.db.Create(&models.ChallengeInvite{ChallengeID: c.ID, InviterID: ann.ID, InviteeID: u.ID, CreatedAt: invitedAt}).Error)
+	}
+	require.NoError(t, e.db.Create(&models.NotificationDedupe{
+		UserID: ann.ID, ActorID: cat.ID, Type: models.NotifTypeChallengeJoined,
+		EntityType: models.NotifEntityChallenge, EntityKey: fmt.Sprint(c.ID), CreatedAt: invitedAt.Add(time.Hour),
+	}).Error)
+	logs := observeChallengeLogs(t)
+
+	require.NoError(t, e.svc.DeleteStaleInvites(ctx))
+	users, err := e.svc.InviteCandidates(ctx, ann.ID, c.ID, "", 20)
+	require.NoError(t, err)
+	assert.Equal(t, []dto.InviteCandidate{{ChallengeUser: chUser(cat)}, {ChallengeUser: chUser(dan), Invited: true}}, users)
+	entries := logs.FilterMessage("Stale challenge invites deleted").All()
+	require.Len(t, entries, 1)
+	assert.EqualValues(t, 1, entries[0].ContextMap()["deleted_count"])
+
+	require.NoError(t, e.svc.DeleteStaleInvites(ctx))
+	assert.Equal(t, 1, logs.FilterMessage("Stale challenge invites deleted").Len(), "nothing deleted, nothing logged")
+
+	err = e.failingChallenges(t, failStaleInvites).DeleteStaleInvites(ctx)
+	require.ErrorIs(t, err, errInjected)
 }
 
 func TestChallengeService_InviteCandidates(t *testing.T) {

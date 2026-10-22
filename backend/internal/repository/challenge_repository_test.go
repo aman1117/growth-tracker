@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -629,7 +630,7 @@ func TestChallengeRepository_Participants(t *testing.T) {
 func TestChallengeRepository_RemoveParticipant(t *testing.T) {
 	db := testutil.DB(t)
 	repo := NewChallengeRepository(db)
-	alice, bob := testutil.CreateUser(t, db), testutil.CreateUser(t, db)
+	alice, bob, carol := testutil.CreateUser(t, db), testutil.CreateUser(t, db), testutil.CreateUser(t, db)
 	c := seedChallenge(t, db, alice.ID, day, 7)
 	other := seedChallenge(t, db, alice.ID, day, 7)
 	for _, ch := range []*models.Challenge{c, other} {
@@ -638,21 +639,22 @@ func TestChallengeRepository_RemoveParticipant(t *testing.T) {
 		seedDay(t, db, ch.ID, alice.ID, day, 3, true)
 		seedDay(t, db, ch.ID, bob.ID, day, 3, true)
 		seedDay(t, db, ch.ID, bob.ID, day.AddDate(0, 0, 1), 0, false)
+		require.NoError(t, db.Create(&models.ChallengeInvite{ChallengeID: ch.ID, InviterID: alice.ID, InviteeID: bob.ID}).Error)
 	}
 	_, err := repo.CreateCheer(&models.ChallengeCheer{ChallengeID: c.ID, FromUserID: alice.ID, ToUserID: bob.ID, CheerDate: day})
 	require.NoError(t, err)
 	_, err = repo.CreateCheer(&models.ChallengeCheer{ChallengeID: c.ID, FromUserID: bob.ID, ToUserID: alice.ID, CheerDate: day})
 	require.NoError(t, err)
-	require.NoError(t, db.Create(&models.ChallengeInvite{ChallengeID: c.ID, InviterID: alice.ID, InviteeID: bob.ID}).Error)
+	require.NoError(t, db.Create(&models.ChallengeInvite{ChallengeID: c.ID, InviterID: bob.ID, InviteeID: carol.ID}).Error)
 
 	t.Run("failure rolls back", func(t *testing.T) {
-		faulty := NewChallengeRepository(faultyDB(t, on("delete", "challenge_participants")))
-		require.ErrorIs(t, faulty.RemoveParticipant(c.ID, bob.ID), errInjected)
-		assert.EqualValues(t, 2, challengeCount(t, db, &models.ChallengeDay{}, "challenge_id = ? AND user_id = ?", c.ID, bob.ID))
-
-		faulty = NewChallengeRepository(faultyDB(t, on("delete", "challenge_days")))
-		require.ErrorIs(t, faulty.RemoveParticipant(c.ID, bob.ID), errInjected)
-		assert.EqualValues(t, 1, challengeCount(t, db, &models.ChallengeParticipant{}, "challenge_id = ? AND user_id = ?", c.ID, bob.ID))
+		for _, table := range []string{"challenge_days", "challenge_invites", "challenge_participants"} {
+			faulty := NewChallengeRepository(faultyDB(t, on("delete", table)))
+			require.ErrorIs(t, faulty.RemoveParticipant(c.ID, bob.ID), errInjected, table)
+			assert.EqualValues(t, 1, challengeCount(t, db, &models.ChallengeParticipant{}, "challenge_id = ? AND user_id = ?", c.ID, bob.ID), table)
+			assert.EqualValues(t, 2, challengeCount(t, db, &models.ChallengeDay{}, "challenge_id = ? AND user_id = ?", c.ID, bob.ID), table)
+			assert.EqualValues(t, 1, challengeCount(t, db, &models.ChallengeInvite{}, "challenge_id = ? AND invitee_id = ?", c.ID, bob.ID), table)
+		}
 	})
 
 	require.NoError(t, repo.RemoveParticipant(c.ID, bob.ID))
@@ -660,10 +662,14 @@ func TestChallengeRepository_RemoveParticipant(t *testing.T) {
 	assert.Zero(t, challengeCount(t, db, &models.ChallengeParticipant{}, "challenge_id = ? AND user_id = ?", c.ID, bob.ID))
 	assert.Zero(t, challengeCount(t, db, &models.ChallengeDay{}, "challenge_id = ? AND user_id = ?", c.ID, bob.ID), "their days go")
 	assert.EqualValues(t, 1, challengeCount(t, db, &models.ChallengeDay{}, "challenge_id = ? AND user_id = ?", c.ID, alice.ID))
+	assert.Zero(t, challengeCount(t, db, &models.ChallengeInvite{}, "challenge_id = ? AND invitee_id = ?", c.ID, bob.ID),
+		"their invite goes, so they can be invited again")
+	assert.EqualValues(t, 1, challengeCount(t, db, &models.ChallengeInvite{}, "challenge_id = ? AND inviter_id = ?", c.ID, bob.ID),
+		"invites they sent stay")
 	assert.EqualValues(t, 2, challengeCount(t, db, &models.ChallengeDay{}, "challenge_id = ? AND user_id = ?", other.ID, bob.ID),
 		"other challenges are untouched")
+	assert.EqualValues(t, 1, challengeCount(t, db, &models.ChallengeInvite{}, "challenge_id = ? AND invitee_id = ?", other.ID, bob.ID))
 	assert.EqualValues(t, 2, challengeCount(t, db, &models.ChallengeCheer{}, "challenge_id = ?", c.ID), "cheers are kept")
-	assert.EqualValues(t, 1, challengeCount(t, db, &models.ChallengeInvite{}, "challenge_id = ?", c.ID), "invites are kept")
 }
 
 func TestChallengeRepository_SaveFinalResults(t *testing.T) {
@@ -934,31 +940,138 @@ func TestChallengeRepository_CreateInvites(t *testing.T) {
 
 	at := t0.Add(time.Hour)
 	ids := []uint{followsMe.ID, iFollow.ID, pending.ID, removed.ID, stranger.ID, participant.ID, invitedBefore.ID, me.ID, 99999}
-	invited, err := repo.CreateInvites(c.ID, me.ID, ids, at)
+	invites, err := repo.CreateInvites(c.ID, me.ID, ids, at)
 	require.NoError(t, err)
-	assert.Equal(t, []uint{iFollow.ID, followsMe.ID}, invited, "ascending IDs")
+	assert.Equal(t, []uint{iFollow.ID, followsMe.ID}, inviteeIDs(invites), "ordered by invitee ID")
 
 	var stored []models.ChallengeInvite
 	require.NoError(t, db.Where("challenge_id = ?", c.ID).Order("invitee_id").Find(&stored).Error)
 	require.Len(t, stored, 3)
 	for _, inv := range stored {
 		if inv.InviteeID == invitedBefore.ID {
-			assert.Equal(t, mate.ID, inv.InviterID, "the first invite is kept")
+			assert.Equal(t, mate.ID, inv.InviterID, "the open invite is kept")
 			continue
 		}
+		assert.Equal(t, me.ID, inv.InviterID)
+		assert.True(t, at.Equal(inv.CreatedAt))
+	}
+	for _, inv := range invites {
+		i := slices.IndexFunc(stored, func(s models.ChallengeInvite) bool { return s.ID == inv.ID })
+		require.GreaterOrEqual(t, i, 0, "returns the stored invites")
+		assert.Equal(t, stored[i].InviteeID, inv.InviteeID)
+		assert.Equal(t, c.ID, inv.ChallengeID)
 		assert.Equal(t, me.ID, inv.InviterID)
 		assert.True(t, at.Equal(inv.CreatedAt))
 	}
 
 	again, err := repo.CreateInvites(c.ID, me.ID, ids, at)
 	require.NoError(t, err)
-	assert.Empty(t, again, "a user is invited once per challenge")
+	assert.Empty(t, again, "a user has one invite per challenge")
 
 	none, err := repo.CreateInvites(c.ID, me.ID, nil, at)
 	require.NoError(t, err)
 	assert.Empty(t, none)
 
 	_, err = NewChallengeRepository(testutil.BrokenDB(t)).CreateInvites(c.ID, me.ID, ids, at)
+	assert.Error(t, err)
+
+	t.Run("after leaving, a user can be invited again", func(t *testing.T) {
+		seedParticipant(t, db, c.ID, iFollow.ID, day)
+		require.NoError(t, repo.RemoveParticipant(c.ID, iFollow.ID))
+
+		later := at.Add(time.Hour)
+		reinvited, err := repo.CreateInvites(c.ID, me.ID, []uint{iFollow.ID, followsMe.ID}, later)
+		require.NoError(t, err)
+		require.Equal(t, []uint{iFollow.ID}, inviteeIDs(reinvited), "followsme still has an open invite")
+		assert.NotEqual(t, invites[0].ID, reinvited[0].ID, "a new invite")
+		assert.True(t, later.Equal(reinvited[0].CreatedAt))
+	})
+}
+
+func inviteeIDs(invites []models.ChallengeInvite) []uint {
+	out := make([]uint, len(invites))
+	for i, inv := range invites {
+		out[i] = inv.InviteeID
+	}
+	return out
+}
+
+func TestChallengeRepository_DeleteStaleInvites(t *testing.T) {
+	db := testutil.DB(t)
+	repo := NewChallengeRepository(db)
+	ann := namedUser(t, db, "ann")
+	c := seedChallenge(t, db, ann.ID, day, 7)
+	other := seedChallenge(t, db, ann.ID, day, 7)
+	seedParticipant(t, db, c.ID, ann.ID, day)
+	invitedAt, joinedAt := t0, t0.Add(time.Hour)
+
+	invite := func(challenge *models.Challenge, invitee *models.User, at time.Time) *models.ChallengeInvite {
+		t.Helper()
+		inv := &models.ChallengeInvite{ChallengeID: challenge.ID, InviterID: ann.ID, InviteeID: invitee.ID, CreatedAt: at}
+		require.NoError(t, db.Create(inv).Error)
+		return inv
+	}
+	// joined records the "joined" notification the creator got when u joined the challenge
+	joined := func(challenge *models.Challenge, u *models.User, at time.Time, opts ...func(*models.NotificationDedupe)) {
+		t.Helper()
+		d := &models.NotificationDedupe{
+			UserID: challenge.CreatorID, ActorID: u.ID, Type: models.NotifTypeChallengeJoined,
+			EntityType: models.NotifEntityChallenge, EntityKey: fmt.Sprint(challenge.ID), CreatedAt: at,
+		}
+		for _, opt := range opts {
+			opt(d)
+		}
+		require.NoError(t, db.Create(d).Error)
+	}
+
+	left := namedUser(t, db, "left") // joined with the invite and left before leaving removed it
+	stale := invite(c, left, invitedAt)
+	joined(c, left, joinedAt)
+
+	leftAtOnce := namedUser(t, db, "leftatonce") // joined in the same instant
+	staleToo := invite(c, leftAtOnce, invitedAt)
+	joined(c, leftAtOnce, invitedAt)
+
+	open := namedUser(t, db, "open") // has not used the invite yet
+	invite(c, open, invitedAt)
+
+	member := namedUser(t, db, "member") // joined with the invite and is still in
+	invite(c, member, invitedAt)
+	joined(c, member, joinedAt)
+	seedParticipant(t, db, c.ID, member.ID, day)
+
+	reinvited := namedUser(t, db, "reinvited") // joined, left, then got a new invite
+	invite(c, reinvited, joinedAt.Add(time.Hour))
+	joined(c, reinvited, joinedAt)
+
+	elsewhere := namedUser(t, db, "elsewhere") // joined another challenge
+	invite(c, elsewhere, invitedAt)
+	joined(other, elsewhere, joinedAt)
+
+	cheered := namedUser(t, db, "cheered") // a record of another kind
+	invite(c, cheered, invitedAt)
+	joined(c, cheered, joinedAt, func(d *models.NotificationDedupe) { d.Type = models.NotifTypeChallengeCheer })
+	joined(c, cheered, joinedAt, func(d *models.NotificationDedupe) {
+		d.Type, d.EntityType = models.NotifTypeChallengeJoined, models.NotifEntityChallengeDay
+	})
+
+	notTheCreator := namedUser(t, db, "notthecreator") // someone else was notified
+	invite(c, notTheCreator, invitedAt)
+	joined(c, notTheCreator, joinedAt, func(d *models.NotificationDedupe) { d.UserID = member.ID })
+
+	deleted, err := repo.DeleteStaleInvites()
+	require.NoError(t, err)
+	assert.EqualValues(t, 2, deleted)
+	assert.Zero(t, challengeCount(t, db, &models.ChallengeInvite{}, "id IN ?", []uint{stale.ID, staleToo.ID}))
+	var kept []models.ChallengeInvite
+	require.NoError(t, db.Where("challenge_id = ?", c.ID).Order("invitee_id").Find(&kept).Error)
+	assert.Equal(t, []uint{open.ID, member.ID, reinvited.ID, elsewhere.ID, cheered.ID, notTheCreator.ID}, inviteeIDs(kept))
+
+	again, err := repo.DeleteStaleInvites()
+	require.NoError(t, err)
+	assert.Zero(t, again, "nothing left to delete")
+
+	_, err = NewChallengeRepository(testutil.BrokenDB(t)).DeleteStaleInvites()
 	assert.Error(t, err)
 }
 

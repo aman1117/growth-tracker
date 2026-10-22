@@ -30,6 +30,7 @@ var (
 	failRemoveParticipant = failingOn("delete", "challenge_participants")
 	failDeleteChallenge   = failingOn("delete", "challenges")
 	failCreateInvites     = failingOn("row", "", "INSERT INTO challenge_invites")
+	failStaleInvites      = failingOn("raw", "", "DELETE FROM challenge_invites")
 	failInviteCandidates  = failingOn("row", "", "ESCAPE")
 	failInsertDays        = failingOn("create", "challenge_days")
 	failSetLockedThrough  = failingOn("update", "challenges", "locked_through IS NULL OR locked_through < ?")

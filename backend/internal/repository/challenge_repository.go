@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"cmp"
 	"errors"
 	"slices"
 	"strings"
@@ -83,7 +84,7 @@ type InviteCandidateRow struct {
 	ProfilePic      *string
 	ProfilePicThumb *string
 	IsVerified      bool
-	Invited         bool // already invited to the challenge (by anyone)
+	Invited         bool // has an invite to the challenge (from anyone); leaving removes it
 }
 
 // ChallengeRepository handles challenge data operations. Dates are DATE values represented as
@@ -295,11 +296,16 @@ func (r *ChallengeRepository) ListParticipants(challengeIDs []uint) ([]Challenge
 }
 
 // RemoveParticipant removes a participant together with their locked days, so a later re-join
-// starts a clean window. Cheers and invites are kept.
+// starts a clean window, and with their invite to the challenge, so they can be invited again.
+// Cheers and the invites they sent are kept.
 func (r *ChallengeRepository) RemoveParticipant(challengeID, userID uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("challenge_id = ? AND user_id = ?", challengeID, userID).
 			Delete(&models.ChallengeDay{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("challenge_id = ? AND invitee_id = ?", challengeID, userID).
+			Delete(&models.ChallengeInvite{}).Error; err != nil {
 			return err
 		}
 		return tx.Where("challenge_id = ? AND user_id = ?", challengeID, userID).
@@ -438,13 +444,13 @@ func (r *ChallengeRepository) CheeredUserIDs(challengeID, fromUserID uint, date 
 
 // CreateInvites invites, in one statement, every user in userIDs who exists, is not the inviter,
 // is not a participant, has an ACTIVE follow relationship with the inviter in either direction
-// and was not invited to the challenge before (by anyone). It returns the newly invited user
-// IDs in ascending order.
-func (r *ChallengeRepository) CreateInvites(challengeID, inviterID uint, userIDs []uint, at time.Time) ([]uint, error) {
+// and has no invite to the challenge yet (from anyone; leaving a challenge removes the leaver's
+// invite). It returns the new invites ordered by invitee ID.
+func (r *ChallengeRepository) CreateInvites(challengeID, inviterID uint, userIDs []uint, at time.Time) ([]models.ChallengeInvite, error) {
 	if len(userIDs) == 0 {
 		return nil, nil
 	}
-	var invited []uint
+	var invites []models.ChallengeInvite
 	err := r.db.Raw(`
 		INSERT INTO challenge_invites (challenge_id, inviter_id, invitee_id, created_at)
 		SELECT ?, ?, u.id, ?
@@ -458,14 +464,38 @@ func (r *ChallengeRepository) CreateInvites(challengeID, inviterID uint, userIDs
 					WHERE f.followee_id = ? AND f.follower_id = u.id AND f.state = ?))
 		ORDER BY u.id
 		ON CONFLICT (challenge_id, invitee_id) DO NOTHING
-		RETURNING invitee_id`,
+		RETURNING id, challenge_id, inviter_id, invitee_id, created_at`,
 		challengeID, inviterID, at, userIDs, inviterID, challengeID,
-		inviterID, models.FollowStateActive, inviterID, models.FollowStateActive).Scan(&invited).Error
+		inviterID, models.FollowStateActive, inviterID, models.FollowStateActive).Scan(&invites).Error
 	if err != nil {
 		return nil, err
 	}
-	slices.Sort(invited)
-	return invited, nil
+	slices.SortFunc(invites, func(a, b models.ChallengeInvite) int { return cmp.Compare(a.InviteeID, b.InviteeID) })
+	return invites, nil
+}
+
+// DeleteStaleInvites deletes invites that were used to join a challenge the invitee has left
+// since. Leaving used to keep the invite, which blocked inviting that person to the challenge
+// again (RemoveParticipant now deletes it). A join is recognised by the creator's "joined"
+// notification record, which is created right after the join and never deleted. Invites newer
+// than that record were sent after a later leave and are open, so they stay, and running this
+// again deletes nothing new. Returns the number of invites deleted.
+func (r *ChallengeRepository) DeleteStaleInvites() (int64, error) {
+	result := r.db.Exec(`
+		DELETE FROM challenge_invites i
+		USING challenges c
+		WHERE c.id = i.challenge_id
+			AND NOT EXISTS (SELECT 1 FROM challenge_participants p
+				WHERE p.challenge_id = i.challenge_id AND p.user_id = i.invitee_id)
+			AND EXISTS (SELECT 1 FROM notification_dedupes d
+				WHERE d.user_id = c.creator_id
+					AND d.actor_id = i.invitee_id
+					AND d.type = ?
+					AND d.entity_type = ?
+					AND d.entity_key = i.challenge_id::text
+					AND d.created_at >= i.created_at)`,
+		models.NotifTypeChallengeJoined, models.NotifEntityChallenge)
+	return result.RowsAffected, result.Error
 }
 
 // InviteCandidates returns the users the viewer follows or who follow the viewer (ACTIVE edges),

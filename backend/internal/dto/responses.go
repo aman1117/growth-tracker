@@ -647,7 +647,7 @@ type ChallengeDetail struct {
 // @Description User who can be invited
 type InviteCandidate struct {
 	ChallengeUser
-	Invited bool `json:"invited" example:"false"`
+	Invited bool `json:"invited" example:"false"` // already has an invite (from anyone); leaving the challenge removes it
 }
 
 // ChallengePreview represents what an invite link shows before joining

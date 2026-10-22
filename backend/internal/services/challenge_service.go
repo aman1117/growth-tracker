@@ -192,6 +192,7 @@ func (s *ChallengeService) GetDetail(ctx context.Context, viewerID, challengeID 
 
 // InviteCandidates returns up to limit (default 20, at most 50) people the viewer follows or who
 // follow the viewer, who are not participants yet, optionally filtered by a username prefix.
+// Invited marks people who already have an invite; leaving the challenge removes it.
 func (s *ChallengeService) InviteCandidates(ctx context.Context, viewerID, challengeID uint, query string, limit int) ([]dto.InviteCandidate, error) {
 	if _, err := s.requireParticipant(challengeID, viewerID); err != nil {
 		return nil, err
@@ -548,7 +549,8 @@ func (s *ChallengeService) Cheer(ctx context.Context, viewerID, challengeID, tar
 
 // Invite invites 1 to 20 users to a challenge that has not ended. Users who do not exist, are
 // participants, are the inviter, have no ACTIVE follow relationship with the inviter (in either
-// direction) or were invited before are skipped; invited + skipped = len(userIDs).
+// direction) or already have an invite (from anyone) are skipped; invited + skipped =
+// len(userIDs). Leaving a challenge removes the leaver's invite, so they can be invited again.
 func (s *ChallengeService) Invite(ctx context.Context, viewerID, challengeID uint, userIDs []uint) (invited, skipped int, err error) {
 	if valErr := validator.ValidateInviteUserIDs(userIDs); valErr != nil {
 		return 0, 0, valErr
@@ -569,11 +571,11 @@ func (s *ChallengeService) Invite(ctx context.Context, viewerID, challengeID uin
 			candidates = append(candidates, id)
 		}
 	}
-	newIDs, err := s.repo.CreateInvites(challenge.ID, viewerID, candidates, s.now())
+	invites, err := s.repo.CreateInvites(challenge.ID, viewerID, candidates, s.now())
 	if err != nil {
 		return 0, 0, fmt.Errorf("create invites: %w", err)
 	}
-	invited, skipped = len(newIDs), len(userIDs)-len(newIDs)
+	invited, skipped = len(invites), len(userIDs)-len(invites)
 	logger.Sugar.Infow("Challenge invites sent",
 		"challenge_id", challenge.ID,
 		"user_id", viewerID,
@@ -583,13 +585,27 @@ func (s *ChallengeService) Invite(ctx context.Context, viewerID, challengeID uin
 	)
 
 	inviter := findParticipantRow(participants, viewerID)
-	for _, inviteeID := range newIDs {
-		s.notify(challenge.ID, "challenge_invite", inviteeID, func(nctx context.Context) error {
-			return s.notifSvc.NotifyChallengeInvite(nctx, inviteeID, viewerID, inviter.Username,
-				avatarOf(inviter.ProfilePic), challenge.ID, challenge.Title, challenge.InviteCode)
+	for _, invite := range invites {
+		s.notify(challenge.ID, "challenge_invite", invite.InviteeID, func(nctx context.Context) error {
+			return s.notifSvc.NotifyChallengeInvite(nctx, invite.InviteeID, viewerID, inviter.Username,
+				avatarOf(inviter.ProfilePic), challenge.ID, invite.ID, challenge.Title, challenge.InviteCode)
 		})
 	}
 	return invited, skipped, nil
+}
+
+// DeleteStaleInvites deletes invites still held by people who joined a challenge with them and
+// left it back when leaving kept the invite, so they can be invited again. Safe to run on every
+// start: it never deletes an open invite.
+func (s *ChallengeService) DeleteStaleInvites(ctx context.Context) error {
+	deleted, err := s.repo.DeleteStaleInvites()
+	if err != nil {
+		return fmt.Errorf("delete stale challenge invites: %w", err)
+	}
+	if deleted > 0 {
+		logger.Sugar.Infow("Stale challenge invites deleted", "deleted_count", deleted)
+	}
+	return nil
 }
 
 // ==================== Loading and building ====================

@@ -1062,21 +1062,22 @@ func (s *NotificationService) notifyOnce(
 	return nil
 }
 
-// NotifyChallengeInvite tells a user they were invited to a challenge. It is sent once per
-// (invitee, inviter, challenge) and links to the invite page.
+// NotifyChallengeInvite tells a user they were invited to a challenge and links to the invite
+// page. It is sent once per invite, so someone invited again after leaving the challenge is
+// notified again.
 func (s *NotificationService) NotifyChallengeInvite(
 	ctx context.Context,
 	inviteeID, inviterID uint,
 	inviterUsername, inviterAvatar string,
-	challengeID uint, challengeTitle, inviteCode string,
+	challengeID, inviteID uint, challengeTitle, inviteCode string,
 ) error {
 	return s.notifyOnce(ctx,
 		&models.NotificationDedupe{
 			UserID:     inviteeID,
 			ActorID:    inviterID,
 			Type:       models.NotifTypeChallengeInvite,
-			EntityType: "challenge",
-			EntityKey:  fmt.Sprintf("%d", challengeID),
+			EntityType: models.NotifEntityChallengeInvite,
+			EntityKey:  fmt.Sprintf("%d", inviteID),
 		},
 		&models.Notification{
 			UserID: inviteeID,
@@ -1094,7 +1095,7 @@ func (s *NotificationService) NotifyChallengeInvite(
 				InviteCode: inviteCode,
 			}.ToMap(),
 		},
-		fmt.Sprintf("challenge_invite:%d:%d:%d", inviteeID, inviterID, challengeID),
+		fmt.Sprintf("challenge_invite:%d:%d:%d:%d", inviteeID, inviterID, challengeID, inviteID),
 		"/c/"+inviteCode,
 	)
 }
@@ -1112,7 +1113,7 @@ func (s *NotificationService) NotifyChallengeJoined(
 			UserID:     creatorID,
 			ActorID:    joinerID,
 			Type:       models.NotifTypeChallengeJoined,
-			EntityType: "challenge",
+			EntityType: models.NotifEntityChallenge,
 			EntityKey:  fmt.Sprintf("%d", challengeID),
 		},
 		&models.Notification{
@@ -1146,7 +1147,7 @@ func (s *NotificationService) NotifyChallengeCheer(
 			UserID:     recipientID,
 			ActorID:    cheererID,
 			Type:       models.NotifTypeChallengeCheer,
-			EntityType: "challenge_day",
+			EntityType: models.NotifEntityChallengeDay,
 			EntityKey:  fmt.Sprintf("%d:%s", challengeID, cheerDate),
 		},
 		&models.Notification{
@@ -1185,7 +1186,7 @@ func (s *NotificationService) NotifyChallengeEnded(
 			UserID:     recipientID,
 			ActorID:    0, // sent by the system
 			Type:       models.NotifTypeChallengeEnded,
-			EntityType: "challenge",
+			EntityType: models.NotifEntityChallenge,
 			EntityKey:  fmt.Sprintf("%d", challengeID),
 		},
 		&models.Notification{

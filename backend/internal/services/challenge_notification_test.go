@@ -34,7 +34,7 @@ func TestNotificationService_ChallengeTriggers(t *testing.T) {
 		{
 			name: "invite",
 			notify: func(s *NotificationService, recipient uint) error {
-				return s.NotifyChallengeInvite(ctx, recipient, 9, "frank", "https://img/f.jpg", 12, "Study 📚", "K7Q2M9XA")
+				return s.NotifyChallengeInvite(ctx, recipient, 9, "frank", "https://img/f.jpg", 12, 77, "Study 📚", "K7Q2M9XA")
 			},
 			typ: models.NotifTypeChallengeInvite, title: "Challenge invite 🏆", body: "frank invited you to “Study 📚”",
 			metadata: func(recipient uint) models.NotificationMetadata {
@@ -42,7 +42,7 @@ func TestNotificationService_ChallengeTriggers(t *testing.T) {
 				m["invite_code"] = "K7Q2M9XA"
 				return m
 			},
-			pushKey: "challenge_invite:%d:9:12", deepLink: "/c/K7Q2M9XA",
+			pushKey: "challenge_invite:%d:9:12:77", deepLink: "/c/K7Q2M9XA",
 		},
 		{
 			name: "joined",
@@ -149,6 +149,18 @@ func TestNotificationService_ChallengeTriggers(t *testing.T) {
 		assert.Len(t, notificationsOf(t, db, recipient), 2)
 		require.NoError(t, svc.NotifyChallengeCheer(ctx, recipient, 10, "gina", "", 12, "Study", "2026-03-10"))
 		assert.Len(t, notificationsOf(t, db, recipient), 3, "another cheerer")
+	})
+
+	t.Run("every invite is notified once", func(t *testing.T) {
+		recipient := uint(9003)
+		publisher := installPushPublisher(t, 10)
+		for _, inviteID := range []uint{77, 77, 78} {
+			require.NoError(t, svc.NotifyChallengeInvite(ctx, recipient, 9, "frank", "", 12, inviteID, "Study", "K7Q2M9XA"))
+		}
+		assert.Len(t, notificationsOf(t, db, recipient), 2, "a new invite to the same challenge, after leaving it")
+		pushes := queuedPushes(t, publisher)
+		require.Len(t, pushes, 2)
+		assert.NotEqual(t, pushes[0].DedupeKey, pushes[1].DedupeKey, "the push for the new invite is not held back")
 	})
 
 	t.Run("one ended notification per challenge", func(t *testing.T) {

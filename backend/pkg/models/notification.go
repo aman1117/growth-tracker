@@ -228,6 +228,13 @@ func (m ChallengeEndedMetadata) ToMap() NotificationMetadata {
 
 // ==================== Notification Deduplication ====================
 
+// Entity types of the deduplication records of challenge notifications
+const (
+	NotifEntityChallenge       = "challenge"        // key: challenge ID (joined, ended)
+	NotifEntityChallengeDay    = "challenge_day"    // key: challenge ID and date (cheer)
+	NotifEntityChallengeInvite = "challenge_invite" // key: invite ID (invite)
+)
+
 // NotificationDedupe ensures "only once ever" notification delivery.
 // The composite unique index prevents duplicate notifications for the same
 // (UserID, ActorID, Type, EntityType, EntityKey) combination.

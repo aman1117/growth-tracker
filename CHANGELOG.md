@@ -159,6 +159,10 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   Redis answers. Request logs recorded failed requests with the wrong status and level; a failed
   database initialisation could be reported as success on a later call; boolean environment
   variables now accept any letter case (`TRUE`, `True`).
+- Challenges: someone who joined a challenge with an invite and then left it could never be
+  invited to it again, because their used invite stayed behind. Leaving now removes it, inviting
+  them again sends a new notification, and the server clears invites left behind earlier when it
+  starts.
 
 ### Security
 - Signing out closes the live notification connection, unregisters the device's push

@@ -187,7 +187,8 @@ func TestChallengeService_LeaveAndRejoin(t *testing.T) {
 	assert.Empty(t, challengeDayDates(t, e.db, created.ID, ben.ID), "their days go")
 	assert.Len(t, challengeDayDates(t, e.db, created.ID, ann.ID), 3, "the others' days stay")
 	assert.EqualValues(t, 1, countRows(t, e.db.Where("challenge_id = ?", created.ID), &models.ChallengeCheer{}), "cheers are kept")
-	assert.EqualValues(t, 1, countRows(t, e.db.Where("challenge_id = ?", created.ID), &models.ChallengeInvite{}), "invites are kept")
+	assert.Zero(t, countRows(t, e.db.Where("challenge_id = ?", created.ID), &models.ChallengeInvite{}),
+		"their invite goes, so they can be invited again")
 	_, err = e.svc.GetDetail(ctx, ben.ID, created.ID)
 	assert.ErrorIs(t, err, ErrChallengeNotFound)
 	assert.ErrorIs(t, e.svc.Leave(ctx, ben.ID, created.ID), ErrChallengeNotFound, "leaving twice")

@@ -329,7 +329,9 @@ describe('usePullToRefresh', () => {
   });
 
   describe('mouse (pointer events)', () => {
-    it('refreshes with a mouse drag', () => {
+    it('refreshes with a mouse drag', async () => {
+      // Fake timers: the spinner's minimum time must not outlive the test as a real timer
+      vi.useFakeTimers();
       const { result, onRefresh } = renderPull();
 
       pointer.down(0);
@@ -339,6 +341,9 @@ describe('usePullToRefresh', () => {
       pointer.up();
       expect(onRefresh).toHaveBeenCalledTimes(1);
       expect(result.current.state).toBe('refreshing');
+
+      await advance(300);
+      expect(result.current.state).toBe('settling');
     });
 
     it.each([

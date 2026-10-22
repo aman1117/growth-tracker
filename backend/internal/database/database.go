@@ -82,6 +82,11 @@ func Models() []interface{} {
 		&models.CommentLike{},
 		&models.CommentMention{},
 		&models.CommentDedupe{},
+		&models.Challenge{},
+		&models.ChallengeParticipant{},
+		&models.ChallengeDay{},
+		&models.ChallengeCheer{},
+		&models.ChallengeInvite{},
 	}
 }
 

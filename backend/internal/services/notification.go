@@ -995,6 +995,219 @@ func (s *NotificationService) NotifyCommentLiked(
 	})
 }
 
+// ==================== Challenge Notification Triggers ====================
+
+// notifyOnce stores the dedupe row and the notification in one transaction (nothing is stored
+// when the dedupe row already exists), then, after the commit, invalidates the unread count,
+// delivers the notification in real time and queues a Web Push.
+func (s *NotificationService) notifyOnce(
+	ctx context.Context,
+	dedupe *models.NotificationDedupe,
+	notif *models.Notification,
+	pushDedupeKey, deepLink string,
+) error {
+	created := false
+	err := s.repo.GetDB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(dedupe)
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return nil
+		}
+		if err := tx.Create(notif).Error; err != nil {
+			return err
+		}
+		created = true
+		return nil
+	})
+	if err != nil {
+		logger.Sugar.Errorw("Failed to create notification",
+			"user_id", dedupe.UserID,
+			"actor_id", dedupe.ActorID,
+			"type", dedupe.Type,
+			"entity_key", dedupe.EntityKey,
+			"error", err,
+		)
+		return err
+	}
+	if !created {
+		logger.Sugar.Debugw("Skipping duplicate notification",
+			"user_id", dedupe.UserID,
+			"actor_id", dedupe.ActorID,
+			"type", dedupe.Type,
+			"entity_key", dedupe.EntityKey,
+		)
+		return nil
+	}
+
+	s.invalidateUnreadCache(ctx, notif.UserID)
+	s.publishNotification(ctx, notif)
+	if publisher := GetPushPublisher(); publisher != nil && publisher.IsAvailable() {
+		if err := publisher.PublishFromNotification(ctx, notif, pushDedupeKey, deepLink); err != nil {
+			logger.Sugar.Warnw("Failed to publish push notification; the in-app notification is still delivered",
+				"notif_id", notif.ID,
+				"type", notif.Type,
+				"error", err,
+			)
+		}
+	}
+
+	logger.Sugar.Infow("Notification created",
+		"id", notif.ID,
+		"user_id", notif.UserID,
+		"actor_id", dedupe.ActorID,
+		"type", notif.Type,
+	)
+	return nil
+}
+
+// NotifyChallengeInvite tells a user they were invited to a challenge. It is sent once per
+// (invitee, inviter, challenge) and links to the invite page.
+func (s *NotificationService) NotifyChallengeInvite(
+	ctx context.Context,
+	inviteeID, inviterID uint,
+	inviterUsername, inviterAvatar string,
+	challengeID uint, challengeTitle, inviteCode string,
+) error {
+	return s.notifyOnce(ctx,
+		&models.NotificationDedupe{
+			UserID:     inviteeID,
+			ActorID:    inviterID,
+			Type:       models.NotifTypeChallengeInvite,
+			EntityType: "challenge",
+			EntityKey:  fmt.Sprintf("%d", challengeID),
+		},
+		&models.Notification{
+			UserID: inviteeID,
+			Type:   models.NotifTypeChallengeInvite,
+			Title:  "Challenge invite 🏆",
+			Body:   fmt.Sprintf("%s invited you to “%s”", inviterUsername, challengeTitle),
+			Metadata: models.ChallengeInviteMetadata{
+				ChallengeActorMetadata: models.ChallengeActorMetadata{
+					ChallengeID:    challengeID,
+					ChallengeTitle: challengeTitle,
+					ActorID:        inviterID,
+					ActorUsername:  inviterUsername,
+					ActorAvatar:    inviterAvatar,
+				},
+				InviteCode: inviteCode,
+			}.ToMap(),
+		},
+		fmt.Sprintf("challenge_invite:%d:%d:%d", inviteeID, inviterID, challengeID),
+		"/c/"+inviteCode,
+	)
+}
+
+// NotifyChallengeJoined tells a challenge's creator that someone joined. It is sent once per
+// (creator, joiner, challenge), so leaving and joining again does not notify twice.
+func (s *NotificationService) NotifyChallengeJoined(
+	ctx context.Context,
+	creatorID, joinerID uint,
+	joinerUsername, joinerAvatar string,
+	challengeID uint, challengeTitle string,
+) error {
+	return s.notifyOnce(ctx,
+		&models.NotificationDedupe{
+			UserID:     creatorID,
+			ActorID:    joinerID,
+			Type:       models.NotifTypeChallengeJoined,
+			EntityType: "challenge",
+			EntityKey:  fmt.Sprintf("%d", challengeID),
+		},
+		&models.Notification{
+			UserID: creatorID,
+			Type:   models.NotifTypeChallengeJoined,
+			Title:  "New challenger 🏁",
+			Body:   fmt.Sprintf("%s joined “%s”", joinerUsername, challengeTitle),
+			Metadata: models.ChallengeActorMetadata{
+				ChallengeID:    challengeID,
+				ChallengeTitle: challengeTitle,
+				ActorID:        joinerID,
+				ActorUsername:  joinerUsername,
+				ActorAvatar:    joinerAvatar,
+			}.ToMap(),
+		},
+		fmt.Sprintf("challenge_joined:%d:%d:%d", creatorID, joinerID, challengeID),
+		fmt.Sprintf("/challenges/%d", challengeID),
+	)
+}
+
+// NotifyChallengeCheer tells a participant that another participant cheered them on. It is
+// sent once per (recipient, cheerer, challenge, date).
+func (s *NotificationService) NotifyChallengeCheer(
+	ctx context.Context,
+	recipientID, cheererID uint,
+	cheererUsername, cheererAvatar string,
+	challengeID uint, challengeTitle, cheerDate string,
+) error {
+	return s.notifyOnce(ctx,
+		&models.NotificationDedupe{
+			UserID:     recipientID,
+			ActorID:    cheererID,
+			Type:       models.NotifTypeChallengeCheer,
+			EntityType: "challenge_day",
+			EntityKey:  fmt.Sprintf("%d:%s", challengeID, cheerDate),
+		},
+		&models.Notification{
+			UserID: recipientID,
+			Type:   models.NotifTypeChallengeCheer,
+			Title:  "You got a cheer 👏",
+			Body:   fmt.Sprintf("%s cheered you on in “%s”", cheererUsername, challengeTitle),
+			Metadata: models.ChallengeActorMetadata{
+				ChallengeID:    challengeID,
+				ChallengeTitle: challengeTitle,
+				ActorID:        cheererID,
+				ActorUsername:  cheererUsername,
+				ActorAvatar:    cheererAvatar,
+			}.ToMap(),
+		},
+		fmt.Sprintf("challenge_cheer:%d:%d:%d:%s", recipientID, cheererID, challengeID, cheerDate),
+		fmt.Sprintf("/challenges/%d", challengeID),
+	)
+}
+
+// NotifyChallengeEnded tells a participant their final result once a challenge is finalized.
+// It is sent once per (recipient, challenge).
+func (s *NotificationService) NotifyChallengeEnded(
+	ctx context.Context,
+	recipientID, challengeID uint,
+	challengeTitle string,
+	rank, daysMet, daysPossible int,
+	completed bool,
+) error {
+	title := "Challenge ended"
+	if completed {
+		title = "Challenge complete 🎉"
+	}
+	return s.notifyOnce(ctx,
+		&models.NotificationDedupe{
+			UserID:     recipientID,
+			ActorID:    0, // sent by the system
+			Type:       models.NotifTypeChallengeEnded,
+			EntityType: "challenge",
+			EntityKey:  fmt.Sprintf("%d", challengeID),
+		},
+		&models.Notification{
+			UserID: recipientID,
+			Type:   models.NotifTypeChallengeEnded,
+			Title:  title,
+			Body: fmt.Sprintf("“%s” is over: you finished #%d with %d/%d days.",
+				challengeTitle, rank, daysMet, daysPossible),
+			Metadata: models.ChallengeEndedMetadata{
+				ChallengeID:    challengeID,
+				ChallengeTitle: challengeTitle,
+				Rank:           rank,
+				DaysMet:        daysMet,
+				DaysPossible:   daysPossible,
+				Completed:      completed,
+			}.ToMap(),
+		},
+		fmt.Sprintf("challenge_ended:%d:%d", recipientID, challengeID),
+		fmt.Sprintf("/challenges/%d", challengeID),
+	)
+}
+
 // ==================== Redis Pub/Sub Operations ====================
 
 // publishNotification publishes a notification to Redis pub/sub

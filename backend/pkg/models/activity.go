@@ -103,7 +103,12 @@ func (a ActivityName) IsValid() bool {
 		return a.ValidateCustomTileFormat()
 	}
 
-	// Check against predefined activities
+	return a.IsPredefined()
+}
+
+// IsPredefined checks if the activity name is one of the predefined activities (custom tiles
+// are not, as they belong to a single user)
+func (a ActivityName) IsPredefined() bool {
 	for _, allowed := range ActivityNames {
 		if a == allowed {
 			return true

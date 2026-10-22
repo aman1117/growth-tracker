@@ -123,6 +123,408 @@ definitions:
         example: true
         type: boolean
     type: object
+  dto.ChallengeCheerResponse:
+    description: Cheer result
+    properties:
+      already_cheered:
+        example: false
+        type: boolean
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.ChallengeDay:
+    description: The viewer's result on one challenge date
+    properties:
+      date:
+        example: "2026-10-23"
+        type: string
+      hours:
+        description: null for upcoming / none
+        example: 2.5
+        type: number
+      locked:
+        example: true
+        type: boolean
+      status:
+        enum:
+        - met
+        - missed
+        - pending
+        - upcoming
+        - none
+        example: met
+        type: string
+    type: object
+  dto.ChallengeDetail:
+    description: Challenge detail
+    properties:
+      activity:
+        example: study
+        type: string
+      can_delete:
+        example: false
+        type: boolean
+      can_invite:
+        example: true
+        type: boolean
+      can_leave:
+        example: false
+        type: boolean
+      completion_days:
+        example: 17
+        type: integer
+      creator:
+        $ref: '#/definitions/dto.ChallengeUser'
+      day_number:
+        description: null unless active
+        example: 6
+        type: integer
+      duration_days:
+        example: 21
+        type: integer
+      end_date:
+        example: "2026-11-12"
+        type: string
+      finalized:
+        example: false
+        type: boolean
+      goal_type:
+        enum:
+        - at_least
+        - at_most
+        example: at_least
+        type: string
+      id:
+        example: 12
+        type: integer
+      invite_code:
+        example: K7Q2M9XA
+        type: string
+      is_creator:
+        example: true
+        type: boolean
+      locked_through:
+        example: "2026-10-26"
+        type: string
+      max_participants:
+        example: 50
+        type: integer
+      me:
+        $ref: '#/definitions/dto.ChallengeProgress'
+      my_days:
+        description: one per date, start_date..end_date
+        items:
+          $ref: '#/definitions/dto.ChallengeDay'
+        type: array
+      participant_count:
+        example: 4
+        type: integer
+      participants:
+        description: by rank (nulls last), then username
+        items:
+          $ref: '#/definitions/dto.ChallengeParticipant'
+        type: array
+      results_date:
+        description: 'end_date + 2: when results become final'
+        example: "2026-11-14"
+        type: string
+      start_date:
+        example: "2026-10-23"
+        type: string
+      status:
+        enum:
+        - upcoming
+        - active
+        - ended
+        example: active
+        type: string
+      target_hours:
+        example: 2
+        type: number
+      title:
+        example: Study 2h+ a day
+        type: string
+      today:
+        example: "2026-10-28"
+        type: string
+    type: object
+  dto.ChallengeInviteResponse:
+    description: Invite result
+    properties:
+      invited:
+        example: 2
+        type: integer
+      skipped:
+        example: 1
+        type: integer
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.ChallengeListResponse:
+    description: Upcoming and active challenges plus the 20 most recently ended
+    properties:
+      challenges:
+        items:
+          $ref: '#/definitions/dto.ChallengeSummary'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.ChallengeParticipant:
+    description: Participant with progress
+    properties:
+      cheered_today:
+        description: by the viewer
+        example: false
+        type: boolean
+      completed:
+        description: null until the results are final
+        example: true
+        type: boolean
+      current_streak:
+        example: 3
+        type: integer
+      days:
+        description: 'one character per date: M met, X missed, P pending, U upcoming,
+          - not taking part yet'
+        example: MMXP-UU
+        type: string
+      days_elapsed:
+        example: 6
+        type: integer
+      days_met:
+        example: 5
+        type: integer
+      days_possible:
+        example: 21
+        type: integer
+      is_me:
+        example: false
+        type: boolean
+      joined_on:
+        example: "2026-10-22"
+        type: string
+      rank:
+        description: null for upcoming challenges
+        example: 1
+        type: integer
+      today_hours:
+        description: null unless active and today is in the participant's window
+        example: 2.25
+        type: number
+      today_status:
+        description: null like today_hours
+        enum:
+        - met
+        - missed
+        - pending
+        example: met
+        type: string
+      total_hours:
+        example: 12.5
+        type: number
+      user:
+        $ref: '#/definitions/dto.ChallengeUser'
+    type: object
+  dto.ChallengePreview:
+    description: Challenge preview for an invite code
+    properties:
+      activity:
+        example: study
+        type: string
+      can_join:
+        example: true
+        type: boolean
+      creator:
+        $ref: '#/definitions/dto.ChallengeUser'
+      duration_days:
+        example: 21
+        type: integer
+      end_date:
+        example: "2026-11-12"
+        type: string
+      finalized:
+        example: false
+        type: boolean
+      goal_type:
+        enum:
+        - at_least
+        - at_most
+        example: at_least
+        type: string
+      id:
+        example: 12
+        type: integer
+      is_participant:
+        example: false
+        type: boolean
+      join_blocked_reason:
+        enum:
+        - ended
+        - full
+        - limit
+        example: full
+        type: string
+      max_participants:
+        example: 50
+        type: integer
+      participant_count:
+        example: 4
+        type: integer
+      participants_preview:
+        description: up to 5, earliest joined first
+        items:
+          $ref: '#/definitions/dto.ChallengeUser'
+        type: array
+      start_date:
+        example: "2026-10-23"
+        type: string
+      status:
+        enum:
+        - upcoming
+        - active
+        - ended
+        example: upcoming
+        type: string
+      target_hours:
+        example: 2
+        type: number
+      title:
+        example: Study 2h+ a day
+        type: string
+    type: object
+  dto.ChallengePreviewResponse:
+    description: Challenge preview response
+    properties:
+      preview:
+        $ref: '#/definitions/dto.ChallengePreview'
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.ChallengeProgress:
+    description: Progress of one participant
+    properties:
+      completed:
+        description: null until the results are final
+        example: true
+        type: boolean
+      current_streak:
+        example: 3
+        type: integer
+      days_elapsed:
+        example: 6
+        type: integer
+      days_met:
+        example: 5
+        type: integer
+      days_possible:
+        example: 21
+        type: integer
+      rank:
+        description: null for upcoming challenges
+        example: 1
+        type: integer
+      today_hours:
+        description: null unless active and today is in the participant's window
+        example: 2.25
+        type: number
+      today_status:
+        description: null like today_hours
+        enum:
+        - met
+        - missed
+        - pending
+        example: met
+        type: string
+      total_hours:
+        example: 12.5
+        type: number
+    type: object
+  dto.ChallengeResponse:
+    description: Challenge detail response
+    properties:
+      challenge:
+        $ref: '#/definitions/dto.ChallengeDetail'
+      success:
+        example: true
+        type: boolean
+    type: object
+  dto.ChallengeSummary:
+    description: Challenge summary with the viewer's progress
+    properties:
+      activity:
+        example: study
+        type: string
+      day_number:
+        description: null unless active
+        example: 6
+        type: integer
+      duration_days:
+        example: 21
+        type: integer
+      end_date:
+        example: "2026-11-12"
+        type: string
+      finalized:
+        example: false
+        type: boolean
+      goal_type:
+        enum:
+        - at_least
+        - at_most
+        example: at_least
+        type: string
+      id:
+        example: 12
+        type: integer
+      is_creator:
+        example: true
+        type: boolean
+      me:
+        $ref: '#/definitions/dto.ChallengeProgress'
+      participant_count:
+        example: 4
+        type: integer
+      start_date:
+        example: "2026-10-23"
+        type: string
+      status:
+        enum:
+        - upcoming
+        - active
+        - ended
+        example: active
+        type: string
+      target_hours:
+        example: 2
+        type: number
+      title:
+        example: Study 2h+ a day
+        type: string
+    type: object
+  dto.ChallengeUser:
+    description: User shown in challenges
+    properties:
+      id:
+        example: 7
+        type: integer
+      is_verified:
+        example: false
+        type: boolean
+      profile_pic:
+        example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+      profile_pic_thumb:
+        example: https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
   dto.ChangePasswordRequest:
     description: Change password for authenticated user
     properties:
@@ -132,6 +534,13 @@ definitions:
       new_password:
         example: NewPass123
         type: string
+    type: object
+  dto.CheerChallengeRequest:
+    description: Cheer another participant of an active challenge (once per day)
+    properties:
+      user_id:
+        example: 42
+        type: integer
     type: object
   dto.CleanupResponse:
     description: Push notification cleanup results
@@ -261,6 +670,37 @@ definitions:
         type: string
       username:
         example: john_doe
+        type: string
+    type: object
+  dto.CreateChallengeRequest:
+    description: Create a challenge; the creator joins it automatically
+    properties:
+      activity:
+        description: a predefined activity (no custom tiles)
+        example: study
+        type: string
+      duration_days:
+        description: 3-60
+        example: 21
+        type: integer
+      goal_type:
+        description: daily hours must reach / stay within the target
+        enum:
+        - at_least
+        - at_most
+        example: at_least
+        type: string
+      start_date:
+        description: YYYY-MM-DD (IST), today .. today+30
+        example: "2026-10-23"
+        type: string
+      target_hours:
+        description: 'multiple of 0.25: 0.25-24 (at_least), 0-23.75 (at_most)'
+        example: 2
+        type: number
+      title:
+        description: 1-60 characters, trimmed
+        example: Study 2h+ a day
         type: string
     type: object
   dto.CreateCommentRequest:
@@ -524,6 +964,50 @@ definitions:
         description: 'Format: YYYY-MM-DD (Monday of the week)'
         example: "2025-12-30"
         type: string
+    type: object
+  dto.InviteCandidate:
+    description: User who can be invited
+    properties:
+      id:
+        example: 7
+        type: integer
+      invited:
+        example: false
+        type: boolean
+      is_verified:
+        example: false
+        type: boolean
+      profile_pic:
+        example: https://storage.blob.core.windows.net/pics/1/abc.jpg
+        type: string
+      profile_pic_thumb:
+        example: https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg
+        type: string
+      username:
+        example: john_doe
+        type: string
+    type: object
+  dto.InviteCandidatesResponse:
+    description: Invite candidates
+    properties:
+      success:
+        example: true
+        type: boolean
+      users:
+        items:
+          $ref: '#/definitions/dto.InviteCandidate'
+        type: array
+    type: object
+  dto.InviteToChallengeRequest:
+    description: Invite 1-20 users you follow or who follow you
+    properties:
+      user_ids:
+        example:
+        - 42
+        - 43
+        items:
+          type: integer
+        type: array
     type: object
   dto.LikeActionResponse:
     description: Response for like/unlike action
@@ -1828,6 +2312,479 @@ paths:
       summary: Get user badges by username
       tags:
       - Badges
+  /challenge-codes/{code}:
+    get:
+      description: 'What an invite link shows: the challenge, its creator, up to 5
+        participants and whether the user can join. Codes are case-insensitive.'
+      parameters:
+      - description: Invite code
+        example: '"K7Q2M9XA"'
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Preview
+          schema:
+            $ref: '#/definitions/dto.ChallengePreviewResponse'
+        "400":
+          description: Malformed invite code
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Challenge not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Preview a challenge by invite code
+      tags:
+      - Challenges
+  /challenge-codes/{code}/join:
+    post:
+      description: Join a challenge that has not ended and is not full, while taking
+        part in fewer than 10 upcoming or active challenges. Joining again succeeds
+        without changes.
+      parameters:
+      - description: Invite code
+        example: '"K7Q2M9XA"'
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Joined challenge
+          schema:
+            $ref: '#/definitions/dto.ChallengeResponse'
+        "400":
+          description: Malformed invite code
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Challenge not found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Ended (CHALLENGE_ENDED), full (CHALLENGE_FULL) or open challenge
+            limit reached (CHALLENGE_LIMIT_REACHED)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Join a challenge by invite code
+      tags:
+      - Challenges
+  /challenges:
+    get:
+      description: 'Every upcoming and active challenge the user takes part in plus
+        the 20 most recently ended: active (by end date), upcoming (by start date),
+        then ended (most recent first).'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Challenges
+          schema:
+            $ref: '#/definitions/dto.ChallengeListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List my challenges
+      tags:
+      - Challenges
+    post:
+      consumes:
+      - application/json
+      description: Create a daily time goal for one predefined activity; the creator
+        joins automatically. Fails with CHALLENGE_LIMIT_REACHED when the user already
+        takes part in 10 upcoming or active challenges.
+      parameters:
+      - description: Challenge
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateChallengeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Challenge created
+          schema:
+            $ref: '#/definitions/dto.ChallengeResponse'
+        "400":
+          description: Malformed body (INVALID_REQUEST) or invalid field (INVALID_CHALLENGE)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Open challenge limit reached (CHALLENGE_LIMIT_REACHED)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a challenge
+      tags:
+      - Challenges
+  /challenges/{id}:
+    delete:
+      description: Deletes the challenge with its participants, days, cheers and invites.
+        Creator only, while the challenge is upcoming or the creator is its only participant.
+      parameters:
+      - description: Challenge ID
+        example: 12
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Challenge deleted
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Invalid challenge ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Not the creator (NOT_AUTHORIZED)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Challenge not found (or not a participant)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Started with other participants (CHALLENGE_IN_PROGRESS)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a challenge
+      tags:
+      - Challenges
+    get:
+      description: Challenge detail with participants (by rank) and the viewer's days.
+        Participants only.
+      parameters:
+      - description: Challenge ID
+        example: 12
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Challenge
+          schema:
+            $ref: '#/definitions/dto.ChallengeResponse'
+        "400":
+          description: Invalid challenge ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Challenge not found (or not a participant)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a challenge
+      tags:
+      - Challenges
+  /challenges/{id}/cheers:
+    post:
+      consumes:
+      - application/json
+      description: Cheer another participant of an active challenge, at most once
+        per day (IST). A repeat succeeds with already_cheered=true and sends no notification.
+      parameters:
+      - description: Challenge ID
+        example: 12
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Participant to cheer
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CheerChallengeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cheered
+          schema:
+            $ref: '#/definitions/dto.ChallengeCheerResponse'
+        "400":
+          description: Invalid ID or body (INVALID_REQUEST), not a participant (INVALID_CHALLENGE)
+            or self (CANNOT_CHEER_SELF)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Challenge not found (or not a participant)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Challenge not active (CHALLENGE_NOT_ACTIVE)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Cheer a participant
+      tags:
+      - Challenges
+  /challenges/{id}/invite-candidates:
+    get:
+      description: People the user follows or who follow the user (active follows),
+        who are not participants, ordered by username. Participants only.
+      parameters:
+      - description: Challenge ID
+        example: 12
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Case-insensitive username prefix
+        example: '"jo"'
+        in: query
+        name: q
+        type: string
+      - default: 20
+        description: Maximum number of users
+        in: query
+        maximum: 50
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Candidates
+          schema:
+            $ref: '#/definitions/dto.InviteCandidatesResponse'
+        "400":
+          description: Invalid challenge ID or limit
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Challenge not found (or not a participant)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List invite candidates
+      tags:
+      - Challenges
+  /challenges/{id}/invites:
+    post:
+      consumes:
+      - application/json
+      description: Invite 1-20 users to a challenge that has not ended. Users who
+        do not exist, already take part, were invited before (by anyone) or have no
+        active follow relationship with you (either direction) are skipped. Participants
+        only.
+      parameters:
+      - description: Challenge ID
+        example: 12
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Users to invite
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InviteToChallengeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Invited and skipped counts
+          schema:
+            $ref: '#/definitions/dto.ChallengeInviteResponse'
+        "400":
+          description: Invalid ID or body (INVALID_REQUEST) or not 1-20 users (INVALID_CHALLENGE)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Challenge not found (or not a participant)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Challenge ended (CHALLENGE_ENDED)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Invite users
+      tags:
+      - Challenges
+  /challenges/{id}/leave:
+    post:
+      description: Leave a challenge that has not ended. The creator cannot leave.
+        The participant's locked days are removed; joining again starts a new window.
+      parameters:
+      - description: Challenge ID
+        example: 12
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Left the challenge
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Invalid challenge ID
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Challenge not found (or not a participant)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Creator (CREATOR_CANNOT_LEAVE) or ended (CHALLENGE_ENDED)
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "429":
+          description: Rate limit exceeded
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Leave a challenge
+      tags:
+      - Challenges
   /change-password:
     post:
       consumes:

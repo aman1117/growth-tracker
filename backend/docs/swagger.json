@@ -884,6 +884,709 @@
                 }
             }
         },
+        "/challenge-codes/{code}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "What an invite link shows: the challenge, its creator, up to 5 participants and whether the user can join. Codes are case-insensitive.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "Preview a challenge by invite code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"K7Q2M9XA\"",
+                        "description": "Invite code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Preview",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChallengePreviewResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Malformed invite code",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Challenge not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/challenge-codes/{code}/join": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Join a challenge that has not ended and is not full, while taking part in fewer than 10 upcoming or active challenges. Joining again succeeds without changes.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "Join a challenge by invite code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"K7Q2M9XA\"",
+                        "description": "Invite code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Joined challenge",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChallengeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Malformed invite code",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Challenge not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Ended (CHALLENGE_ENDED), full (CHALLENGE_FULL) or open challenge limit reached (CHALLENGE_LIMIT_REACHED)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/challenges": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Every upcoming and active challenge the user takes part in plus the 20 most recently ended: active (by end date), upcoming (by start date), then ended (most recent first).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "List my challenges",
+                "responses": {
+                    "200": {
+                        "description": "Challenges",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChallengeListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a daily time goal for one predefined activity; the creator joins automatically. Fails with CHALLENGE_LIMIT_REACHED when the user already takes part in 10 upcoming or active challenges.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "Create a challenge",
+                "parameters": [
+                    {
+                        "description": "Challenge",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateChallengeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Challenge created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChallengeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Malformed body (INVALID_REQUEST) or invalid field (INVALID_CHALLENGE)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Open challenge limit reached (CHALLENGE_LIMIT_REACHED)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/challenges/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Challenge detail with participants (by rank) and the viewer's days. Participants only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "Get a challenge",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "Challenge ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Challenge",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChallengeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid challenge ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Challenge not found (or not a participant)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes the challenge with its participants, days, cheers and invites. Creator only, while the challenge is upcoming or the creator is its only participant.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "Delete a challenge",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "Challenge ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Challenge deleted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid challenge ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Not the creator (NOT_AUTHORIZED)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Challenge not found (or not a participant)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Started with other participants (CHALLENGE_IN_PROGRESS)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/challenges/{id}/cheers": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Cheer another participant of an active challenge, at most once per day (IST). A repeat succeeds with already_cheered=true and sends no notification.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "Cheer a participant",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "Challenge ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Participant to cheer",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CheerChallengeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cheered",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChallengeCheerResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or body (INVALID_REQUEST), not a participant (INVALID_CHALLENGE) or self (CANNOT_CHEER_SELF)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Challenge not found (or not a participant)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Challenge not active (CHALLENGE_NOT_ACTIVE)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/challenges/{id}/invite-candidates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "People the user follows or who follow the user (active follows), who are not participants, ordered by username. Participants only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "List invite candidates",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "Challenge ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"jo\"",
+                        "description": "Case-insensitive username prefix",
+                        "name": "q",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 50,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Maximum number of users",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Candidates",
+                        "schema": {
+                            "$ref": "#/definitions/dto.InviteCandidatesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid challenge ID or limit",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Challenge not found (or not a participant)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/challenges/{id}/invites": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Invite 1-20 users to a challenge that has not ended. Users who do not exist, already take part, were invited before (by anyone) or have no active follow relationship with you (either direction) are skipped. Participants only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "Invite users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "Challenge ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Users to invite",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InviteToChallengeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Invited and skipped counts",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChallengeInviteResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID or body (INVALID_REQUEST) or not 1-20 users (INVALID_CHALLENGE)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Challenge not found (or not a participant)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Challenge ended (CHALLENGE_ENDED)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/challenges/{id}/leave": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Leave a challenge that has not ended. The creator cannot leave. The participant's locked days are removed; joining again starts a new window.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Challenges"
+                ],
+                "summary": "Leave a challenge",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "Challenge ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Left the challenge",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid challenge ID",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Challenge not found (or not a participant)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Creator (CREATOR_CANNOT_LEAVE) or ended (CHALLENGE_ENDED)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/change-password": {
             "post": {
                 "security": [
@@ -4036,6 +4739,545 @@
                 }
             }
         },
+        "dto.ChallengeCheerResponse": {
+            "description": "Cheer result",
+            "type": "object",
+            "properties": {
+                "already_cheered": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.ChallengeDay": {
+            "description": "The viewer's result on one challenge date",
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "example": "2026-10-23"
+                },
+                "hours": {
+                    "description": "null for upcoming / none",
+                    "type": "number",
+                    "example": 2.5
+                },
+                "locked": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "met",
+                        "missed",
+                        "pending",
+                        "upcoming",
+                        "none"
+                    ],
+                    "example": "met"
+                }
+            }
+        },
+        "dto.ChallengeDetail": {
+            "description": "Challenge detail",
+            "type": "object",
+            "properties": {
+                "activity": {
+                    "type": "string",
+                    "example": "study"
+                },
+                "can_delete": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "can_invite": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "can_leave": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "completion_days": {
+                    "type": "integer",
+                    "example": 17
+                },
+                "creator": {
+                    "$ref": "#/definitions/dto.ChallengeUser"
+                },
+                "day_number": {
+                    "description": "null unless active",
+                    "type": "integer",
+                    "example": 6
+                },
+                "duration_days": {
+                    "type": "integer",
+                    "example": 21
+                },
+                "end_date": {
+                    "type": "string",
+                    "example": "2026-11-12"
+                },
+                "finalized": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "goal_type": {
+                    "type": "string",
+                    "enum": [
+                        "at_least",
+                        "at_most"
+                    ],
+                    "example": "at_least"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "invite_code": {
+                    "type": "string",
+                    "example": "K7Q2M9XA"
+                },
+                "is_creator": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "locked_through": {
+                    "type": "string",
+                    "example": "2026-10-26"
+                },
+                "max_participants": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "me": {
+                    "$ref": "#/definitions/dto.ChallengeProgress"
+                },
+                "my_days": {
+                    "description": "one per date, start_date..end_date",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ChallengeDay"
+                    }
+                },
+                "participant_count": {
+                    "type": "integer",
+                    "example": 4
+                },
+                "participants": {
+                    "description": "by rank (nulls last), then username",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ChallengeParticipant"
+                    }
+                },
+                "results_date": {
+                    "description": "end_date + 2: when results become final",
+                    "type": "string",
+                    "example": "2026-11-14"
+                },
+                "start_date": {
+                    "type": "string",
+                    "example": "2026-10-23"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "upcoming",
+                        "active",
+                        "ended"
+                    ],
+                    "example": "active"
+                },
+                "target_hours": {
+                    "type": "number",
+                    "example": 2
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Study 2h+ a day"
+                },
+                "today": {
+                    "type": "string",
+                    "example": "2026-10-28"
+                }
+            }
+        },
+        "dto.ChallengeInviteResponse": {
+            "description": "Invite result",
+            "type": "object",
+            "properties": {
+                "invited": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "skipped": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.ChallengeListResponse": {
+            "description": "Upcoming and active challenges plus the 20 most recently ended",
+            "type": "object",
+            "properties": {
+                "challenges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ChallengeSummary"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.ChallengeParticipant": {
+            "description": "Participant with progress",
+            "type": "object",
+            "properties": {
+                "cheered_today": {
+                    "description": "by the viewer",
+                    "type": "boolean",
+                    "example": false
+                },
+                "completed": {
+                    "description": "null until the results are final",
+                    "type": "boolean",
+                    "example": true
+                },
+                "current_streak": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "days": {
+                    "description": "one character per date: M met, X missed, P pending, U upcoming, - not taking part yet",
+                    "type": "string",
+                    "example": "MMXP-UU"
+                },
+                "days_elapsed": {
+                    "type": "integer",
+                    "example": 6
+                },
+                "days_met": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "days_possible": {
+                    "type": "integer",
+                    "example": 21
+                },
+                "is_me": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "joined_on": {
+                    "type": "string",
+                    "example": "2026-10-22"
+                },
+                "rank": {
+                    "description": "null for upcoming challenges",
+                    "type": "integer",
+                    "example": 1
+                },
+                "today_hours": {
+                    "description": "null unless active and today is in the participant's window",
+                    "type": "number",
+                    "example": 2.25
+                },
+                "today_status": {
+                    "description": "null like today_hours",
+                    "type": "string",
+                    "enum": [
+                        "met",
+                        "missed",
+                        "pending"
+                    ],
+                    "example": "met"
+                },
+                "total_hours": {
+                    "type": "number",
+                    "example": 12.5
+                },
+                "user": {
+                    "$ref": "#/definitions/dto.ChallengeUser"
+                }
+            }
+        },
+        "dto.ChallengePreview": {
+            "description": "Challenge preview for an invite code",
+            "type": "object",
+            "properties": {
+                "activity": {
+                    "type": "string",
+                    "example": "study"
+                },
+                "can_join": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "creator": {
+                    "$ref": "#/definitions/dto.ChallengeUser"
+                },
+                "duration_days": {
+                    "type": "integer",
+                    "example": 21
+                },
+                "end_date": {
+                    "type": "string",
+                    "example": "2026-11-12"
+                },
+                "finalized": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "goal_type": {
+                    "type": "string",
+                    "enum": [
+                        "at_least",
+                        "at_most"
+                    ],
+                    "example": "at_least"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "is_participant": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "join_blocked_reason": {
+                    "type": "string",
+                    "enum": [
+                        "ended",
+                        "full",
+                        "limit"
+                    ],
+                    "example": "full"
+                },
+                "max_participants": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "participant_count": {
+                    "type": "integer",
+                    "example": 4
+                },
+                "participants_preview": {
+                    "description": "up to 5, earliest joined first",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ChallengeUser"
+                    }
+                },
+                "start_date": {
+                    "type": "string",
+                    "example": "2026-10-23"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "upcoming",
+                        "active",
+                        "ended"
+                    ],
+                    "example": "upcoming"
+                },
+                "target_hours": {
+                    "type": "number",
+                    "example": 2
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Study 2h+ a day"
+                }
+            }
+        },
+        "dto.ChallengePreviewResponse": {
+            "description": "Challenge preview response",
+            "type": "object",
+            "properties": {
+                "preview": {
+                    "$ref": "#/definitions/dto.ChallengePreview"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.ChallengeProgress": {
+            "description": "Progress of one participant",
+            "type": "object",
+            "properties": {
+                "completed": {
+                    "description": "null until the results are final",
+                    "type": "boolean",
+                    "example": true
+                },
+                "current_streak": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "days_elapsed": {
+                    "type": "integer",
+                    "example": 6
+                },
+                "days_met": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "days_possible": {
+                    "type": "integer",
+                    "example": 21
+                },
+                "rank": {
+                    "description": "null for upcoming challenges",
+                    "type": "integer",
+                    "example": 1
+                },
+                "today_hours": {
+                    "description": "null unless active and today is in the participant's window",
+                    "type": "number",
+                    "example": 2.25
+                },
+                "today_status": {
+                    "description": "null like today_hours",
+                    "type": "string",
+                    "enum": [
+                        "met",
+                        "missed",
+                        "pending"
+                    ],
+                    "example": "met"
+                },
+                "total_hours": {
+                    "type": "number",
+                    "example": 12.5
+                }
+            }
+        },
+        "dto.ChallengeResponse": {
+            "description": "Challenge detail response",
+            "type": "object",
+            "properties": {
+                "challenge": {
+                    "$ref": "#/definitions/dto.ChallengeDetail"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "dto.ChallengeSummary": {
+            "description": "Challenge summary with the viewer's progress",
+            "type": "object",
+            "properties": {
+                "activity": {
+                    "type": "string",
+                    "example": "study"
+                },
+                "day_number": {
+                    "description": "null unless active",
+                    "type": "integer",
+                    "example": 6
+                },
+                "duration_days": {
+                    "type": "integer",
+                    "example": 21
+                },
+                "end_date": {
+                    "type": "string",
+                    "example": "2026-11-12"
+                },
+                "finalized": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "goal_type": {
+                    "type": "string",
+                    "enum": [
+                        "at_least",
+                        "at_most"
+                    ],
+                    "example": "at_least"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "is_creator": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "me": {
+                    "$ref": "#/definitions/dto.ChallengeProgress"
+                },
+                "participant_count": {
+                    "type": "integer",
+                    "example": 4
+                },
+                "start_date": {
+                    "type": "string",
+                    "example": "2026-10-23"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "upcoming",
+                        "active",
+                        "ended"
+                    ],
+                    "example": "active"
+                },
+                "target_hours": {
+                    "type": "number",
+                    "example": 2
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Study 2h+ a day"
+                }
+            }
+        },
+        "dto.ChallengeUser": {
+            "description": "User shown in challenges",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "profile_pic": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc.jpg"
+                },
+                "profile_pic_thumb": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
         "dto.ChangePasswordRequest": {
             "description": "Change password for authenticated user",
             "type": "object",
@@ -4047,6 +5289,16 @@
                 "new_password": {
                     "type": "string",
                     "example": "NewPass123"
+                }
+            }
+        },
+        "dto.CheerChallengeRequest": {
+            "description": "Cheer another participant of an active challenge (once per day)",
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "integer",
+                    "example": 42
                 }
             }
         },
@@ -4230,6 +5482,46 @@
                 "username": {
                     "type": "string",
                     "example": "john_doe"
+                }
+            }
+        },
+        "dto.CreateChallengeRequest": {
+            "description": "Create a challenge; the creator joins it automatically",
+            "type": "object",
+            "properties": {
+                "activity": {
+                    "description": "a predefined activity (no custom tiles)",
+                    "type": "string",
+                    "example": "study"
+                },
+                "duration_days": {
+                    "description": "3-60",
+                    "type": "integer",
+                    "example": 21
+                },
+                "goal_type": {
+                    "description": "daily hours must reach / stay within the target",
+                    "type": "string",
+                    "enum": [
+                        "at_least",
+                        "at_most"
+                    ],
+                    "example": "at_least"
+                },
+                "start_date": {
+                    "description": "YYYY-MM-DD (IST), today .. today+30",
+                    "type": "string",
+                    "example": "2026-10-23"
+                },
+                "target_hours": {
+                    "description": "multiple of 0.25: 0.25-24 (at_least), 0-23.75 (at_most)",
+                    "type": "number",
+                    "example": 2
+                },
+                "title": {
+                    "description": "1-60 characters, trimmed",
+                    "type": "string",
+                    "example": "Study 2h+ a day"
                 }
             }
         },
@@ -4596,6 +5888,68 @@
                     "description": "Format: YYYY-MM-DD (Monday of the week)",
                     "type": "string",
                     "example": "2025-12-30"
+                }
+            }
+        },
+        "dto.InviteCandidate": {
+            "description": "User who can be invited",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "invited": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_verified": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "profile_pic": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc.jpg"
+                },
+                "profile_pic_thumb": {
+                    "type": "string",
+                    "example": "https://storage.blob.core.windows.net/pics/1/abc_thumb.jpg"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "john_doe"
+                }
+            }
+        },
+        "dto.InviteCandidatesResponse": {
+            "description": "Invite candidates",
+            "type": "object",
+            "properties": {
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.InviteCandidate"
+                    }
+                }
+            }
+        },
+        "dto.InviteToChallengeRequest": {
+            "description": "Invite 1-20 users you follow or who follow you",
+            "type": "object",
+            "properties": {
+                "user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        42,
+                        43
+                    ]
                 }
             }
         },

@@ -48,6 +48,11 @@ func TestTableNames(t *testing.T) {
 		{CommentMention{}, "comment_mentions"},
 		{CommentDedupe{}, "comment_dedupes"},
 		{RecentSearch{}, "recent_searches"},
+		{Challenge{}, "challenges"},
+		{ChallengeParticipant{}, "challenge_participants"},
+		{ChallengeDay{}, "challenge_days"},
+		{ChallengeCheer{}, "challenge_cheers"},
+		{ChallengeInvite{}, "challenge_invites"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.want, func(t *testing.T) {

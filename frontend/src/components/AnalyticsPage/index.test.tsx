@@ -183,6 +183,21 @@ describe('AnalyticsPage (Insights)', () => {
       expect(screen.getByRole('button', { name: 'Previous week' })).toBeEnabled();
     });
 
+    it('cancels its entrance animations when the page closes', async () => {
+      // beforeEach fakes only Date; fake the timers too so pending ones can be counted
+      vi.useRealTimers();
+      vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+      vi.setSystemTime(TODAY);
+      const { unmount } = renderInsights();
+      await act(() => vi.advanceTimersByTimeAsync(0));
+      expect(screen.getByRole('region', { name: 'Activity breakdown' })).toBeInTheDocument();
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+
+      unmount();
+
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
     it('summarises the hours, the trend and the streaks', async () => {
       await renderLoaded();
 

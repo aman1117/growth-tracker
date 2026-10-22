@@ -303,12 +303,30 @@ export const AnalyticsPage: React.FC = () => {
 
   // Guards against out-of-order responses when switching user/week quickly
   const analyticsRequestIdRef = useRef(0);
+  // Entrance animations still waiting to start; cancelled when the page closes
+  const animationTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
+
+  useEffect(() => {
+    const timers = animationTimersRef.current;
+    return () => {
+      timers.forEach(clearTimeout);
+      timers.clear();
+    };
+  }, []);
 
   const fetchAnalytics = useCallback(async () => {
     if (!targetUsername) return;
 
     const requestId = ++analyticsRequestIdRef.current;
     const isStale = () => requestId !== analyticsRequestIdRef.current;
+    const animateAfter = (delayMs: number, animate: () => void) => {
+      const timers = animationTimersRef.current;
+      const timer = setTimeout(() => {
+        timers.delete(timer);
+        if (!isStale()) animate();
+      }, delayMs);
+      timers.add(timer);
+    };
 
     setLoading(true);
     setAnimateStats(false);
@@ -335,8 +353,8 @@ export const AnalyticsPage: React.FC = () => {
         });
 
         // Trigger animations after data loads (skipped if a newer request took over)
-        setTimeout(() => !isStale() && setAnimateStats(true), 100);
-        setTimeout(() => !isStale() && setAnimateBars(true), 300);
+        animateAfter(100, () => setAnimateStats(true));
+        animateAfter(300, () => setAnimateBars(true));
       } else if (res.error_code === 'ACCOUNT_PRIVATE') {
         setIsPrivateAccount(true);
         setAnalytics(null);

@@ -1,0 +1,1862 @@
+{
+  "date_anchor": "TODAY",
+  "description": "POST /api/challenges validation (spread over users: 30 writes/min per user).",
+  "domain": "challenges",
+  "scenario": "challenge_create_validation",
+  "step_count": 30,
+  "steps": [
+    {
+      "actor": "val_a",
+      "index": 1,
+      "name": "register val_a",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "val_a@parity.test",
+          "password": "Passw0rd123",
+          "username": "val_a"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 2,
+      "name": "login val_a",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "val_a",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 3,
+      "name": "register val_b",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "val_b@parity.test",
+          "password": "Passw0rd123",
+          "username": "val_b"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 4,
+      "name": "login val_b",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "val_b",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 5,
+      "name": "invalid JSON",
+      "ratelimit": {
+        "hits": 1,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "29"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 6,
+      "name": "create: empty title",
+      "ratelimit": {
+        "hits": 1,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "   "
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "title must be between 1 and 60 characters",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "29"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 7,
+      "name": "create: 61-character title",
+      "ratelimit": {
+        "hits": 2,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "title must be between 1 and 60 characters",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "28"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 8,
+      "name": "create: missing activity",
+      "ratelimit": {
+        "hits": 2,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "activity must be one of the predefined activities",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "28"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 9,
+      "name": "create: custom tile activity",
+      "ratelimit": {
+        "hits": 3,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "custom:c0de0001-0000-4000-8000-000000000001",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "activity must be one of the predefined activities",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "27"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 10,
+      "name": "create: unknown activity",
+      "ratelimit": {
+        "hits": 3,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "coding",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "activity must be one of the predefined activities",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "27"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 11,
+      "name": "create: unknown goal type",
+      "ratelimit": {
+        "hits": 4,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "exactly",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "goal_type must be at_least or at_most",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "26"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 12,
+      "name": "create: missing target_hours",
+      "ratelimit": {
+        "hits": 4,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "target_hours is required",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "26"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 13,
+      "name": "create: target_hours not a multiple of 0.25",
+      "ratelimit": {
+        "hits": 5,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 1.3,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "target_hours must be a multiple of 0.25 between 0.25 and 24",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "25"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 14,
+      "name": "create: at_least with 0 hours",
+      "ratelimit": {
+        "hits": 5,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 0,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "target_hours must be a multiple of 0.25 between 0.25 and 24",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "25"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 15,
+      "name": "create: at_least with 24.25 hours",
+      "ratelimit": {
+        "hits": 6,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 24.25,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "target_hours must be a multiple of 0.25 between 0.25 and 24",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "24"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 16,
+      "name": "create: at_most with 24 hours",
+      "ratelimit": {
+        "hits": 6,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_most",
+          "start_date": "<TODAY>",
+          "target_hours": 24,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "target_hours must be a multiple of 0.25 between 0 and 23.75",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "24"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 17,
+      "name": "create: negative target",
+      "ratelimit": {
+        "hits": 7,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_most",
+          "start_date": "<TODAY>",
+          "target_hours": -0.25,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "target_hours must be a multiple of 0.25 between 0 and 23.75",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "23"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 18,
+      "name": "create: missing duration",
+      "ratelimit": {
+        "hits": 7,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "duration_days must be between 3 and 60",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "23"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 19,
+      "name": "create: duration 2 days",
+      "ratelimit": {
+        "hits": 8,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 2,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "duration_days must be between 3 and 60",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "22"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 20,
+      "name": "create: duration 61 days",
+      "ratelimit": {
+        "hits": 8,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 61,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "duration_days must be between 3 and 60",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "22"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 21,
+      "name": "create: missing start_date",
+      "ratelimit": {
+        "hits": 9,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "start_date must be a date in YYYY-MM-DD format",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "21"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 22,
+      "name": "create: start_date in the past",
+      "ratelimit": {
+        "hits": 9,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY-2>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "start_date must be between today and 30 days from today",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "21"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 23,
+      "name": "create: start_date 31 days ahead",
+      "ratelimit": {
+        "hits": 10,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY+31>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "start_date must be between today and 30 days from today",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "20"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 24,
+      "name": "create: start_date with time",
+      "ratelimit": {
+        "hits": 10,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 7,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>T00:00:00Z",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "start_date must be a date in YYYY-MM-DD format",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "20"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 25,
+      "name": "create: duration as a string",
+      "ratelimit": {
+        "hits": 11,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": "7",
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 2,
+          "title": "Study 2h+ a day"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "19"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 26,
+      "name": "title is trimmed, unicode counted in characters",
+      "ratelimit": {
+        "hits": 12,
+        "key": "challenge:val_a",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "workout",
+          "duration_days": 60,
+          "goal_type": "at_most",
+          "start_date": "<TODAY+30>",
+          "target_hours": 23.75,
+          "title": "  éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé  "
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "workout",
+            "can_delete": true,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 48,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "val_a"
+            },
+            "day_number": null,
+            "duration_days": 60,
+            "end_date": "<TODAY+89>",
+            "finalized": false,
+            "goal_type": "at_most",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 0,
+              "days_met": 0,
+              "days_possible": 60,
+              "rank": null,
+              "today_hours": null,
+              "today_status": null,
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY+30>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+31>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+32>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+33>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+34>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+35>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+36>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+37>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+38>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+39>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+40>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+41>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+42>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+43>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+44>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+45>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+46>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+47>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+48>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+49>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+50>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+51>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+52>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+53>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+54>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+55>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+56>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+57>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+58>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+59>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+60>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+61>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+62>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+63>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+64>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+65>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+66>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+67>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+68>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+69>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+70>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+71>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+72>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+73>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+74>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+75>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+76>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+77>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+78>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+79>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+80>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+81>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+82>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+83>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+84>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+85>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+86>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+87>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+88>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+89>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 1,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU",
+                "days_elapsed": 0,
+                "days_met": 0,
+                "days_possible": 60,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": null,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "val_a"
+                }
+              }
+            ],
+            "results_date": "<TODAY+91>",
+            "start_date": "<TODAY+30>",
+            "status": "upcoming",
+            "target_hours": 23.75,
+            "title": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "18"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 27,
+      "name": "minimal valid challenge (3 days, 0.25h, today)",
+      "ratelimit": {
+        "hits": 11,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 3,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 0.25,
+          "title": "x"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": true,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 3,
+            "creator": {
+              "id": 2,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "val_b"
+            },
+            "day_number": 1,
+            "duration_days": 3,
+            "end_date": "<TODAY+2>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 2,
+            "invite_code": "<CODE#2>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 1,
+              "days_met": 0,
+              "days_possible": 3,
+              "rank": 1,
+              "today_hours": 0,
+              "today_status": "pending",
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 1,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 3,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "val_b"
+                }
+              }
+            ],
+            "results_date": "<TODAY+4>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 0.25,
+            "title": "x",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "19"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 28,
+      "name": "at_most 0 hours (stay off reels)",
+      "ratelimit": {
+        "hits": 12,
+        "key": "challenge:val_b",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "reels",
+          "duration_days": 7,
+          "goal_type": "at_most",
+          "start_date": "<TODAY+1>",
+          "target_hours": 0,
+          "title": "No reels"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "reels",
+            "can_delete": true,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 6,
+            "creator": {
+              "id": 2,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "val_b"
+            },
+            "day_number": null,
+            "duration_days": 7,
+            "end_date": "<TODAY+7>",
+            "finalized": false,
+            "goal_type": "at_most",
+            "id": 3,
+            "invite_code": "<CODE#3>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 0,
+              "days_met": 0,
+              "days_possible": 7,
+              "rank": null,
+              "today_hours": null,
+              "today_status": null,
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+5>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+6>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+7>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 1,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "UUUUUUU",
+                "days_elapsed": 0,
+                "days_met": 0,
+                "days_possible": 7,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": null,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "val_b"
+                }
+              }
+            ],
+            "results_date": "<TODAY+9>",
+            "start_date": "<TODAY+1>",
+            "status": "upcoming",
+            "target_hours": 0,
+            "title": "No reels",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "18"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "val_b",
+      "index": 29,
+      "name": "list of the creator",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:val_b",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenges": [
+            {
+              "activity": "study",
+              "day_number": 1,
+              "duration_days": 3,
+              "end_date": "<TODAY+2>",
+              "finalized": false,
+              "goal_type": "at_least",
+              "id": 2,
+              "is_creator": true,
+              "me": {
+                "completed": null,
+                "current_streak": 0,
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 3,
+                "rank": 1,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0
+              },
+              "participant_count": 1,
+              "start_date": "<TODAY>",
+              "status": "active",
+              "target_hours": 0.25,
+              "title": "x"
+            },
+            {
+              "activity": "reels",
+              "day_number": null,
+              "duration_days": 7,
+              "end_date": "<TODAY+7>",
+              "finalized": false,
+              "goal_type": "at_most",
+              "id": 3,
+              "is_creator": true,
+              "me": {
+                "completed": null,
+                "current_streak": 0,
+                "days_elapsed": 0,
+                "days_met": 0,
+                "days_possible": 7,
+                "rank": null,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0
+              },
+              "participant_count": 1,
+              "start_date": "<TODAY+1>",
+              "status": "upcoming",
+              "target_hours": 0,
+              "title": "No reels"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "val_a",
+      "index": 30,
+      "name": "list of the other creator",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:val_a",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenges": [
+            {
+              "activity": "workout",
+              "day_number": null,
+              "duration_days": 60,
+              "end_date": "<TODAY+89>",
+              "finalized": false,
+              "goal_type": "at_most",
+              "id": 1,
+              "is_creator": true,
+              "me": {
+                "completed": null,
+                "current_streak": 0,
+                "days_elapsed": 0,
+                "days_met": 0,
+                "days_possible": 60,
+                "rank": null,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0
+              },
+              "participant_count": 1,
+              "start_date": "<TODAY+30>",
+              "status": "upcoming",
+              "target_hours": 23.75,
+              "title": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

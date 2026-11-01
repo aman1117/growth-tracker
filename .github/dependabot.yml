@@ -24,7 +24,7 @@ updates:
     labels:
       - dependencies
 
-  - package-ecosystem: gomod
+  - package-ecosystem: cargo
     directory: /backend
     schedule:
       interval: weekly

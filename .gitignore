@@ -10,19 +10,15 @@ node_modules
 .env.local
 docker-compose.override.yml
 
-# Go build artifacts
+# Native build artifacts
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
 
-# Test coverage output
-backend/coverage.out
-backend/coverage.html
-
-# Air hot-reload temp directory
-backend/tmp/
+# Test coverage output (cargo llvm-cov writes into backend/target/)
+backend/lcov.info
 
 # TWA Build - KEEP THESE PRIVATE
 twa/android.keystore
@@ -39,6 +35,10 @@ backend/image-worker/README.md
 
 # Rust build artifacts
 backend/image_worker/target/
+backend/target/
+backend/contract-tests/.work/
+backend/contract-tests/.venv/
+backend/contract-tests/**/__pycache__/
 
 # Android app build outputs
 android-app/app/build/

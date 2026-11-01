@@ -1,0 +1,205 @@
+{
+  "date_anchor": "TODAY",
+  "description": "CORS preflight and simple requests (AllowOrigins *, AllowMethods *, AllowHeaders *, ExposeHeaders *).",
+  "domain": "basics",
+  "scenario": "cors",
+  "step_count": 8,
+  "steps": [
+    {
+      "actor": "anon",
+      "index": 1,
+      "name": "preflight for POST /api/login",
+      "request": {
+        "headers": {
+          "Access-Control-Request-Headers": "content-type,authorization",
+          "Access-Control-Request-Method": "POST",
+          "Origin": "http://localhost:5173"
+        },
+        "method": "OPTIONS",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": "",
+        "body_type": "empty",
+        "headers": {
+          "access-control-allow-headers": "*",
+          "access-control-allow-methods": "*",
+          "access-control-allow-origin": "*",
+          "access-control-expose-headers": "*",
+          "vary": "Access-Control-Request-Method, Access-Control-Request-Headers, Origin"
+        },
+        "status": 204
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 2,
+      "name": "preflight for DELETE follow",
+      "request": {
+        "headers": {
+          "Access-Control-Request-Method": "DELETE",
+          "Origin": "https://growth.example.com"
+        },
+        "method": "OPTIONS",
+        "path": "/api/users/5/follow"
+      },
+      "response": {
+        "body": "",
+        "body_type": "empty",
+        "headers": {
+          "access-control-allow-headers": "*",
+          "access-control-allow-methods": "*",
+          "access-control-allow-origin": "*",
+          "access-control-expose-headers": "*",
+          "vary": "Access-Control-Request-Method, Access-Control-Request-Headers, Origin"
+        },
+        "status": 204
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 3,
+      "name": "preflight for an unknown route",
+      "request": {
+        "headers": {
+          "Access-Control-Request-Method": "GET",
+          "Origin": "http://localhost:5173"
+        },
+        "method": "OPTIONS",
+        "path": "/api/nope"
+      },
+      "response": {
+        "body": "",
+        "body_type": "empty",
+        "headers": {
+          "access-control-allow-headers": "*",
+          "access-control-allow-methods": "*",
+          "access-control-allow-origin": "*",
+          "access-control-expose-headers": "*",
+          "vary": "Access-Control-Request-Method, Access-Control-Request-Headers, Origin"
+        },
+        "status": 204
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 4,
+      "name": "OPTIONS without preflight headers",
+      "request": {
+        "method": "OPTIONS",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": "Method Not Allowed",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 405
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 5,
+      "name": "simple request with Origin (bad credentials)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "nobody",
+          "password": "whatever1"
+        },
+        "headers": {
+          "Content-Type": "application/json",
+          "Origin": "http://localhost:5173"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid credentials",
+          "error_code": "INVALID_CREDENTIALS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "access-control-allow-origin": "*",
+          "access-control-expose-headers": "*",
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 6,
+      "name": "health check with Origin",
+      "request": {
+        "headers": {
+          "Origin": "http://localhost:5173"
+        },
+        "method": "GET",
+        "path": "/"
+      },
+      "response": {
+        "body": "API is running...",
+        "body_type": "text",
+        "headers": {
+          "access-control-allow-origin": "*",
+          "access-control-expose-headers": "*",
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 7,
+      "name": "health check without Origin",
+      "request": {
+        "method": "GET",
+        "path": "/"
+      },
+      "response": {
+        "body": "API is running...",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 8,
+      "name": "401 with Origin",
+      "request": {
+        "headers": {
+          "Origin": "http://localhost:5173"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "access-control-allow-origin": "*",
+          "access-control-expose-headers": "*",
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    }
+  ]
+}

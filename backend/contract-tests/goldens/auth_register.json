@@ -1,0 +1,1076 @@
+{
+  "date_anchor": "TODAY",
+  "description": "POST /api/register: happy paths, body parsing errors, validation errors, duplicates, sanitizing.",
+  "domain": "auth",
+  "scenario": "auth_register",
+  "step_count": 30,
+  "steps": [
+    {
+      "actor": "probe-a",
+      "index": 1,
+      "name": "invalid JSON body",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{not json"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-a",
+      "index": 2,
+      "name": "empty body with JSON content type",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": ""
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-a",
+      "index": 3,
+      "name": "missing username and password",
+      "ratelimit": {
+        "hits": 3,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "x@parity.test"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "All fields are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "2"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-a",
+      "index": 4,
+      "name": "text/plain content type",
+      "ratelimit": {
+        "hits": 4,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{\"email\":\"a@b.c\"}"
+        },
+        "headers": {
+          "Content-Type": "text/plain"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "1"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-a",
+      "index": 5,
+      "name": "password too short",
+      "ratelimit": {
+        "hits": 5,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "short@parity.test",
+          "password": "abc123",
+          "username": "shorty"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Password must be at least 8 characters long",
+          "error_code": "PASSWORD_TOO_SHORT",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "0"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-b",
+      "index": 6,
+      "name": "whitespace-only password",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "ws@parity.test",
+          "password": "          ",
+          "username": "wsuser"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Password is required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-b",
+      "index": 7,
+      "name": "username too short",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "ab@parity.test",
+          "password": "Passw0rd123",
+          "username": "ab"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Username must be between 3 and 20 characters",
+          "error_code": "INVALID_USERNAME_LENGTH",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-b",
+      "index": 8,
+      "name": "username too long (21 chars)",
+      "ratelimit": {
+        "hits": 3,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "long@parity.test",
+          "password": "Passw0rd123",
+          "username": "aaaaaaaaaaaaaaaaaaaaa"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Username must be between 3 and 20 characters",
+          "error_code": "INVALID_USERNAME_LENGTH",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "2"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-b",
+      "index": 9,
+      "name": "username with invalid characters",
+      "ratelimit": {
+        "hits": 4,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bad@parity.test",
+          "password": "Passw0rd123",
+          "username": "bad name!"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Username can only contain lowercase letters, numbers, _ and .",
+          "error_code": "INVALID_USERNAME_FORMAT",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "1"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-b",
+      "index": 10,
+      "name": "mixed-case username is lower-cased",
+      "ratelimit": {
+        "hits": 5,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "Alice@Parity.test",
+          "password": "Passw0rd123",
+          "username": "Alice_01"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "0"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "probe-c",
+      "index": 11,
+      "name": "duplicate username",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "other@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice_01"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Could not create user (maybe email/username already used)",
+          "error_code": "USER_EXISTS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-c",
+      "index": 12,
+      "name": "duplicate email",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "Alice@Parity.test",
+          "password": "Passw0rd123",
+          "username": "alice_02"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Could not create user (maybe email/username already used)",
+          "error_code": "USER_EXISTS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-c",
+      "index": 13,
+      "name": "surrounding whitespace is trimmed",
+      "ratelimit": {
+        "hits": 3,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "  bob@parity.test  ",
+          "password": "Passw0rd123",
+          "username": "  Bob.Smith  "
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "2"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "probe-c",
+      "index": 14,
+      "name": "unknown extra fields are ignored",
+      "ratelimit": {
+        "hits": 4,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "admin": true,
+          "email": "carol@parity.test",
+          "password": "Passw0rd123",
+          "username": "carol"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "1"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "probe-c",
+      "index": 15,
+      "name": "wrong JSON types",
+      "ratelimit": {
+        "hits": 5,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": 42,
+          "password": true,
+          "username": [
+            "x"
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "0"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-d",
+      "index": 16,
+      "name": "21-char multi-byte username",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "uni@parity.test",
+          "password": "Passw0rd123",
+          "username": "ééééééééééééééééééééé"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "error": "Username must be between 3 and 20 characters",
+          "error_code": "INVALID_USERNAME_LENGTH",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-d",
+      "index": 17,
+      "name": "8-char multi-byte password",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "uni2@parity.test",
+          "password": "ééééééé1",
+          "username": "unicode_pw"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "probe-d",
+      "index": 18,
+      "name": "username with dots and digits",
+      "ratelimit": {
+        "hits": 3,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "dots@parity.test",
+          "password": "Passw0rd123",
+          "username": "a.b_c.123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "2"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "probe-e",
+      "index": 19,
+      "name": "login: invalid JSON",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "nope"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-e",
+      "index": 20,
+      "name": "login: missing password",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice_01"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "error": "All fields are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-e",
+      "index": 21,
+      "name": "login: unknown user",
+      "ratelimit": {
+        "hits": 3,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "nobody",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid credentials",
+          "error_code": "INVALID_CREDENTIALS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "2"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-e",
+      "index": 22,
+      "name": "login: wrong password",
+      "ratelimit": {
+        "hits": 4,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice_01",
+          "password": "wrong-pass1"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid password",
+          "error_code": "INVALID_PASSWORD",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "1"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-e",
+      "index": 23,
+      "name": "login by username",
+      "ratelimit": {
+        "hits": 5,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice_01",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "0"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "probe-f",
+      "index": 24,
+      "name": "login by email (as registered)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "Alice@Parity.test",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "probe-f",
+      "index": 25,
+      "name": "login by email with different case",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice@parity.test",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid credentials",
+          "error_code": "INVALID_CREDENTIALS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-f",
+      "index": 26,
+      "name": "login by upper-case username",
+      "ratelimit": {
+        "hits": 3,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "ALICE_01",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid credentials",
+          "error_code": "INVALID_CREDENTIALS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "2"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-f",
+      "index": 27,
+      "name": "login by trimmed email of bob",
+      "ratelimit": {
+        "hits": 4,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob@parity.test",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "1"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "probe-f",
+      "index": 28,
+      "name": "login with padded identifier",
+      "ratelimit": {
+        "hits": 5,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": " bob.smith",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid credentials",
+          "error_code": "INVALID_CREDENTIALS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "0"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "probe-g",
+      "index": 29,
+      "name": "login of the sanitized username",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#7",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob.smith",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "probe-g",
+      "index": 30,
+      "name": "profile of the sanitized registration",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:user4",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "bio": null,
+          "email": "bob@parity.test",
+          "email_verified": false,
+          "followers_count": 0,
+          "following_count": 0,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "success": true,
+          "username": "bob.smith"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

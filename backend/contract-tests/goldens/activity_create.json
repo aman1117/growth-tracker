@@ -1,0 +1,1767 @@
+{
+  "date_anchor": "TODAY",
+  "description": "POST /api/create-activity: validation, notes, custom tiles, updates, the 24h limit.",
+  "domain": "activities",
+  "scenario": "activity_create",
+  "step_count": 41,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 5,
+      "name": "invalid JSON",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 6,
+      "name": "hours as a string",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": "2",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 7,
+      "name": "missing username",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 1
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 8,
+      "name": "missing activity",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 9,
+      "name": "negative hours",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": -1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 10,
+      "name": "someone else's username",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "bob"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "You are not authorized to create activity for this username",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 11,
+      "name": "unknown activity name",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "coding",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid activity name",
+          "error_code": "INVALID_ACTIVITY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 12,
+      "name": "activity name is case-sensitive",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "Study",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid activity name",
+          "error_code": "INVALID_ACTIVITY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 13,
+      "name": "custom tile with a malformed id",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "custom:1234",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid activity name",
+          "error_code": "INVALID_ACTIVITY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "custom tile with non-hex id",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "custom:zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid activity name",
+          "error_code": "INVALID_ACTIVITY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 15,
+      "name": "custom prefix only",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "custom:",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid activity name",
+          "error_code": "INVALID_ACTIVITY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 16,
+      "name": "note longer than 500 characters",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 1,
+          "note": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Note must be 500 characters or less",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 17,
+      "name": "missing date",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 18,
+      "name": "date not zero-padded",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "2026-11-1",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 19,
+      "name": "date with a time",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TIME Z skew=far-past>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 20,
+      "name": "impossible date",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "2026-02-30",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "study 2.5h with a note",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 2.5,
+          "note": "  Read chapter 3 📖  ",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 22,
+      "name": "sleep 7.75h",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "date": "<TODAY>",
+          "hours": 7.75,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "workout 1.333h (float32 precision)",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "workout",
+          "date": "<TODAY>",
+          "hours": 1.333,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "custom tile activity",
+      "ratelimit": {
+        "hits": 20,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "custom:c0de0001-0000-4000-8000-000000000001",
+          "date": "<TODAY>",
+          "hours": 0.5,
+          "note": "guitar",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "180"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 25,
+      "name": "upper-case custom tile id is a different activity",
+      "ratelimit": {
+        "hits": 21,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "custom:<UUID#1>",
+          "date": "<TODAY>",
+          "hours": 0.25,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "179"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 26,
+      "name": "zero hours",
+      "ratelimit": {
+        "hits": 22,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "reels",
+          "date": "<TODAY>",
+          "hours": 0,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "178"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 27,
+      "name": "note of exactly 500 multi-byte characters",
+      "ratelimit": {
+        "hits": 23,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "family",
+          "date": "<TODAY>",
+          "hours": 1,
+          "note": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "177"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 28,
+      "name": "whitespace-only note",
+      "ratelimit": {
+        "hits": 24,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "rest",
+          "date": "<TODAY>",
+          "hours": 0.5,
+          "note": "   ",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "176"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 29,
+      "name": "activities of today (own: notes included)",
+      "ratelimit": {
+        "hits": 25,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "end_date": "<TODAY>",
+          "start_date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-activities"
+      },
+      "response": {
+        "body": {
+          "data": [
+            {
+              "date": "<TODAY>",
+              "hours": 2.5,
+              "id": 1,
+              "name": "study",
+              "note": "  Read chapter 3 📖  "
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 7.75,
+              "id": 2,
+              "name": "sleep"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1.33,
+              "id": 3,
+              "name": "workout"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.5,
+              "id": 4,
+              "name": "custom:c0de0001-0000-4000-8000-000000000001",
+              "note": "guitar"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.25,
+              "id": 5,
+              "name": "custom:<UUID#1>"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0,
+              "id": 6,
+              "name": "reels"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1,
+              "id": 7,
+              "name": "family",
+              "note": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.5,
+              "id": 8,
+              "name": "rest",
+              "note": "   "
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "175"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 30,
+      "name": "update study without a note clears the note",
+      "ratelimit": {
+        "hits": 26,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 3,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "174"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 31,
+      "name": "update custom tile with a new note",
+      "ratelimit": {
+        "hits": 27,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "custom:c0de0001-0000-4000-8000-000000000001",
+          "date": "<TODAY>",
+          "hours": 1,
+          "note": "piano",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "173"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 32,
+      "name": "after updates",
+      "ratelimit": {
+        "hits": 28,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "end_date": "<TODAY>",
+          "start_date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-activities"
+      },
+      "response": {
+        "body": {
+          "data": [
+            {
+              "date": "<TODAY>",
+              "hours": 3,
+              "id": 1,
+              "name": "study"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 7.75,
+              "id": 2,
+              "name": "sleep"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1.33,
+              "id": 3,
+              "name": "workout"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1,
+              "id": 4,
+              "name": "custom:c0de0001-0000-4000-8000-000000000001",
+              "note": "piano"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.25,
+              "id": 5,
+              "name": "custom:<UUID#1>"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0,
+              "id": 6,
+              "name": "reels"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1,
+              "id": 7,
+              "name": "family",
+              "note": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.5,
+              "id": 8,
+              "name": "rest",
+              "note": "   "
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "172"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 33,
+      "name": "daily totals after updates",
+      "ratelimit": {
+        "hits": 29,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "end_date": "<TODAY>",
+          "start_date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-daily-totals"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "<TODAY>": 14.83
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "171"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 34,
+      "name": "exceeding 24h in total",
+      "ratelimit": {
+        "hits": 30,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "office",
+          "date": "<TODAY>",
+          "hours": 10,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Total hours cannot be more than 24",
+          "error_code": "HOURS_EXCEEDED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "170"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 35,
+      "name": "a single entry above 24h",
+      "ratelimit": {
+        "hits": 31,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "idle",
+          "date": "<TODAY+3>",
+          "hours": 24.5,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Total hours cannot be more than 24",
+          "error_code": "HOURS_EXCEEDED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "169"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 36,
+      "name": "future date: exactly 24h",
+      "ratelimit": {
+        "hits": 32,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "date": "<TODAY+3>",
+          "hours": 24,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "168"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 37,
+      "name": "future date: replacing 24h by 23h",
+      "ratelimit": {
+        "hits": 33,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "date": "<TODAY+3>",
+          "hours": 23,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "167"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 38,
+      "name": "past date",
+      "ratelimit": {
+        "hits": 34,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "errand",
+          "date": "<TODAY-5>",
+          "hours": 1.5,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "166"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 39,
+      "name": "leap day",
+      "ratelimit": {
+        "hits": 35,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "errand",
+          "date": "2024-02-29",
+          "hours": 2,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "165"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 40,
+      "name": "range across past, today and future",
+      "ratelimit": {
+        "hits": 36,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "end_date": "<TODAY+7>",
+          "start_date": "<TODAY-7>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-activities"
+      },
+      "response": {
+        "body": {
+          "data": [
+            {
+              "date": "<TODAY-5>",
+              "hours": 1.5,
+              "id": 10,
+              "name": "errand"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 3,
+              "id": 1,
+              "name": "study"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 7.75,
+              "id": 2,
+              "name": "sleep"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1.33,
+              "id": 3,
+              "name": "workout"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1,
+              "id": 4,
+              "name": "custom:c0de0001-0000-4000-8000-000000000001",
+              "note": "piano"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.25,
+              "id": 5,
+              "name": "custom:<UUID#1>"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0,
+              "id": 6,
+              "name": "reels"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1,
+              "id": 7,
+              "name": "family",
+              "note": "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.5,
+              "id": 8,
+              "name": "rest",
+              "note": "   "
+            },
+            {
+              "date": "<TODAY+3>",
+              "hours": 23,
+              "id": 9,
+              "name": "sleep"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "164"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 41,
+      "name": "another user sees no notes",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "end_date": "<TODAY+7>",
+          "start_date": "<TODAY-7>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-activities"
+      },
+      "response": {
+        "body": {
+          "data": [
+            {
+              "date": "<TODAY-5>",
+              "hours": 1.5,
+              "id": 10,
+              "name": "errand"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 3,
+              "id": 1,
+              "name": "study"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 7.75,
+              "id": 2,
+              "name": "sleep"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1.33,
+              "id": 3,
+              "name": "workout"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1,
+              "id": 4,
+              "name": "custom:c0de0001-0000-4000-8000-000000000001"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.25,
+              "id": 5,
+              "name": "custom:<UUID#1>"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0,
+              "id": 6,
+              "name": "reels"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 1,
+              "id": 7,
+              "name": "family"
+            },
+            {
+              "date": "<TODAY>",
+              "hours": 0.5,
+              "id": 8,
+              "name": "rest"
+            },
+            {
+              "date": "<TODAY+3>",
+              "hours": 23,
+              "id": 9,
+              "name": "sleep"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

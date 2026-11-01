@@ -1,0 +1,2936 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Upload/list/stories/views/likes/interactions/delete of activity photos, label cascade, debounced notification.",
+  "domain": "photos",
+  "scenario": "activity_photos",
+  "step_count": 81,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 5,
+      "name": "register carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "carol@parity.test",
+          "password": "Passw0rd123",
+          "username": "carol"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 6,
+      "name": "login carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "carol",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 7,
+      "name": "register dave",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "dave@parity.test",
+          "password": "Passw0rd123",
+          "username": "dave"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 8,
+      "name": "login dave",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "dave",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 9,
+      "name": "carol sets is_private=True",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "is_private": true
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/update-privacy"
+      },
+      "response": {
+        "body": {
+          "is_private": true,
+          "message": "Privacy setting updated",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 10,
+      "name": "bob follows alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 11,
+      "name": "dave follows alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 12,
+      "name": "upload: missing activity_name",
+      "ratelimit": {
+        "hits": 1,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "photo_date": "<TODAY>"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "photo.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "activity_name and photo_date are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "19"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 13,
+      "name": "upload: missing photo_date",
+      "ratelimit": {
+        "hits": 2,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "study"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "photo.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "activity_name and photo_date are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "18"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "upload: invalid date",
+      "ratelimit": {
+        "hits": 3,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "study",
+            "photo_date": "today"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "photo.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "17"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 15,
+      "name": "upload: no image",
+      "ratelimit": {
+        "hits": 4,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "study",
+            "photo_date": "<TODAY>"
+          },
+          "multipart_files": {}
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "No image file provided",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "16"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 16,
+      "name": "upload: future date",
+      "ratelimit": {
+        "hits": 5,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "study",
+            "photo_date": "<TODAY+1>"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "photo.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "cannot upload photo for future date",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "15"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 17,
+      "name": "upload: 8 days ago",
+      "ratelimit": {
+        "hits": 6,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "study",
+            "photo_date": "<TODAY-8>"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "photo.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "can only upload photos for the last 7 days",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "14"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 18,
+      "name": "upload: not an image",
+      "ratelimit": {
+        "hits": 7,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "study",
+            "photo_date": "<TODAY>"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 20,
+              "content_type": "image/png",
+              "filename": "x.png",
+              "sha256": "912e0b706729815a"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "failed to process image: invalid image file: unsupported image format",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "13"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 19,
+      "name": "alice uploads a study photo for today",
+      "ratelimit": {
+        "hits": 8,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "study",
+            "photo_date": "<TODAY>"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "photo.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "photo": {
+            "activity_name": "study",
+            "created_at": "<TIME +05:30>",
+            "id": 1,
+            "photo_date": "<TODAY>T00:00:00Z",
+            "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>.jpg",
+            "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>_thumb.jpg",
+            "user_id": 1
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "12"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": null,
+      "index": 20,
+      "name": "stored photo",
+      "request": {
+        "method": "OBSERVE",
+        "path": "stored photo"
+      },
+      "response": {
+        "body": {
+          "content_type": "image/jpeg",
+          "format": "jpeg",
+          "height": 608,
+          "status": 200,
+          "width": 1080
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": null,
+      "index": 21,
+      "name": "stored photo thumbnail",
+      "request": {
+        "method": "OBSERVE",
+        "path": "stored photo thumbnail"
+      },
+      "response": {
+        "body": {
+          "content_type": "image/jpeg",
+          "format": "jpeg",
+          "height": 150,
+          "status": 200,
+          "width": 150
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 22,
+      "name": "same activity and date again (conflict)",
+      "ratelimit": {
+        "hits": 9,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "study",
+            "photo_date": "<TODAY>"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "photo.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "Photo already exists for this activity on this date",
+          "error_code": "CONFLICT",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "11"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "alice defines a custom tile",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#FF8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Guitar"
+              }
+            ],
+            "order": [
+              "custom:c0de0001-0000-4000-8000-000000000001"
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "message": "Tile configuration saved successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "photo for a custom tile with metadata",
+      "ratelimit": {
+        "hits": 10,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_color": "#FF8800",
+            "activity_icon": "Music",
+            "activity_label": "Guitar",
+            "activity_name": "custom:c0de0001-0000-4000-8000-000000000001",
+            "photo_date": "<TODAY-7>"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 101,
+              "content_type": "image/png",
+              "filename": "g.png",
+              "sha256": "f26ee2cd035efbd0"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "photo": {
+            "activity_color": "#FF8800",
+            "activity_icon": "Music",
+            "activity_label": "Guitar",
+            "activity_name": "custom:c0de0001-0000-4000-8000-000000000001",
+            "created_at": "<TIME +05:30>",
+            "id": 2,
+            "photo_date": "<TODAY-7>T00:00:00Z",
+            "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY-7>/custom:c0de0001-0000-4000-8000-000000000001/<UUID#2>.jpg",
+            "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY-7>/custom:c0de0001-0000-4000-8000-000000000001/<UUID#2>_thumb.jpg",
+            "user_id": 1
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "10"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 25,
+      "name": "carol (private) uploads a photo",
+      "ratelimit": {
+        "hits": 1,
+        "key": "upload:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "activity_name": "workout",
+            "photo_date": "<TODAY>"
+          },
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "photo.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "photo": {
+            "activity_name": "workout",
+            "created_at": "<TIME +05:30>",
+            "id": 3,
+            "photo_date": "<TODAY>T00:00:00Z",
+            "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/3/<TODAY>/workout/<UUID#3>.jpg",
+            "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/3/<TODAY>/workout/<UUID#3>_thumb.jpg",
+            "user_id": 3
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "19"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 26,
+      "name": "list: missing params",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos"
+      },
+      "response": {
+        "body": {
+          "error": "user_id and date are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 27,
+      "name": "list: invalid user_id",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=abc&date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user_id",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 28,
+      "name": "list: invalid date",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=bad"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 29,
+      "name": "own photos of today",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "photos": [
+            {
+              "activity_name": "study",
+              "created_at": "<TIME +05:30>",
+              "id": 1,
+              "photo_date": "<TODAY>T00:00:00Z",
+              "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>.jpg",
+              "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>_thumb.jpg",
+              "user_id": 1
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 30,
+      "name": "follower bob lists alice's photos",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "photos": [
+            {
+              "activity_name": "study",
+              "created_at": "<TIME +05:30>",
+              "id": 1,
+              "photo_date": "<TODAY>T00:00:00Z",
+              "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>.jpg",
+              "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>_thumb.jpg",
+              "user_id": 1
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 31,
+      "name": "non-follower carol lists public alice's photos",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "error": "You must follow this user to view their stories",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 32,
+      "name": "bob lists private carol's photos (not following)",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=3&date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "error": "You must follow this user to view their stories",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 33,
+      "name": "photos of an unknown user",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=999999&date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "error": "You must follow this user to view their stories",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 34,
+      "name": "stories: missing date",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following"
+      },
+      "response": {
+        "body": {
+          "error": "date is required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 35,
+      "name": "stories: invalid date",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=bad"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 36,
+      "name": "bob's stories from people he follows",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "stories": [
+            {
+              "has_unseen": false,
+              "photos": [
+                {
+                  "activity_name": "study",
+                  "created_at": "<TIME +05:30>",
+                  "id": 1,
+                  "photo_date": "<TODAY>T00:00:00Z",
+                  "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>.jpg",
+                  "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>_thumb.jpg",
+                  "user_id": 1,
+                  "viewed": true
+                }
+              ],
+              "user_id": 1,
+              "username": "alice"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 37,
+      "name": "stories with limit 1",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=<TODAY>&limit=1"
+      },
+      "response": {
+        "body": {
+          "stories": [
+            {
+              "has_unseen": false,
+              "photos": [
+                {
+                  "activity_name": "study",
+                  "created_at": "<TIME +05:30>",
+                  "id": 1,
+                  "photo_date": "<TODAY>T00:00:00Z",
+                  "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>.jpg",
+                  "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>_thumb.jpg",
+                  "user_id": 1,
+                  "viewed": true
+                }
+              ],
+              "user_id": 1,
+              "username": "alice"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 38,
+      "name": "stories with a non-numeric limit",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=<TODAY>&limit=abc"
+      },
+      "response": {
+        "body": {
+          "stories": [
+            {
+              "has_unseen": false,
+              "photos": [
+                {
+                  "activity_name": "study",
+                  "created_at": "<TIME +05:30>",
+                  "id": 1,
+                  "photo_date": "<TODAY>T00:00:00Z",
+                  "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>.jpg",
+                  "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>_thumb.jpg",
+                  "user_id": 1,
+                  "viewed": true
+                }
+              ],
+              "user_id": 1,
+              "username": "alice"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 39,
+      "name": "carol follows nobody",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "stories": null,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 40,
+      "name": "bob views alice's photo",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/view"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 41,
+      "name": "bob views it again",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/view"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 42,
+      "name": "alice views her own photo",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/view"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 43,
+      "name": "dave views it",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/view"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 44,
+      "name": "view: invalid id",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/abc/view"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid photo ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 45,
+      "name": "view: unknown photo",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/999999/view"
+      },
+      "response": {
+        "body": {
+          "error": "Photo not found",
+          "error_code": "PHOTO_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 46,
+      "name": "stories show what bob has viewed",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "stories": [
+            {
+              "has_unseen": false,
+              "photos": [
+                {
+                  "activity_name": "study",
+                  "created_at": "<TIME +05:30>",
+                  "id": 1,
+                  "photo_date": "<TODAY>T00:00:00Z",
+                  "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>.jpg",
+                  "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY>/study/<UUID#1>_thumb.jpg",
+                  "user_id": 1,
+                  "viewed": true
+                }
+              ],
+              "user_id": 1,
+              "username": "alice"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 47,
+      "name": "bob likes alice's photo",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 48,
+      "name": "bob likes it again",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 49,
+      "name": "alice likes her own photo",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "error": "Cannot like your own photo",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 50,
+      "name": "carol (not following) likes alice's photo",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "error": "You must follow this user to like their photos",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 51,
+      "name": "like: invalid id",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/abc/like"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid photo ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 52,
+      "name": "like: unknown photo",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/999999/like"
+      },
+      "response": {
+        "body": {
+          "error": "Photo not found",
+          "error_code": "PHOTO_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 53,
+      "name": "like status for bob",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/like-status"
+      },
+      "response": {
+        "body": {
+          "like_count": 1,
+          "liked": true,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 54,
+      "name": "like status for dave",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/like-status"
+      },
+      "response": {
+        "body": {
+          "like_count": 1,
+          "liked": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 55,
+      "name": "like status: invalid id",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/abc/like-status"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid photo ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 56,
+      "name": "like status: unknown photo",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/999999/like-status"
+      },
+      "response": {
+        "body": {
+          "like_count": 0,
+          "liked": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 57,
+      "name": "viewers (owner)",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/viewers"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "total": 2,
+          "viewers": [
+            {
+              "user_id": 4,
+              "username": "dave",
+              "viewed_at": "<TIME +05:30>"
+            },
+            {
+              "user_id": 2,
+              "username": "bob",
+              "viewed_at": "<TIME +05:30>"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 58,
+      "name": "viewers limit/offset",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/viewers?limit=1&offset=1"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "total": 2,
+          "viewers": [
+            {
+              "user_id": 2,
+              "username": "bob",
+              "viewed_at": "<TIME +05:30>"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 59,
+      "name": "viewers: not the owner",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/viewers"
+      },
+      "response": {
+        "body": {
+          "error": "Only the photo owner can view viewers",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 60,
+      "name": "viewers: unknown photo",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/999999/viewers"
+      },
+      "response": {
+        "body": {
+          "error": "Photo not found",
+          "error_code": "PHOTO_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 61,
+      "name": "viewers: invalid id",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/abc/viewers"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid photo ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 62,
+      "name": "interactions (views + likes)",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/interactions"
+      },
+      "response": {
+        "body": {
+          "interactions": [
+            {
+              "interaction_type": "both",
+              "liked_at": "<TIME Z>",
+              "user_id": 2,
+              "username": "bob",
+              "viewed_at": "<TIME +05:30>"
+            },
+            {
+              "interaction_type": "view",
+              "liked_at": "0001-01-01T00:00:00Z",
+              "user_id": 4,
+              "username": "dave",
+              "viewed_at": "<TIME +05:30>"
+            }
+          ],
+          "success": true,
+          "total": 2
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 63,
+      "name": "interactions limit 1",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/interactions?limit=1"
+      },
+      "response": {
+        "body": {
+          "interactions": [
+            {
+              "interaction_type": "both",
+              "liked_at": "<TIME Z>",
+              "user_id": 2,
+              "username": "bob",
+              "viewed_at": "<TIME +05:30>"
+            }
+          ],
+          "success": true,
+          "total": 2
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 64,
+      "name": "interactions: not the owner",
+      "ratelimit": {
+        "hits": 20,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/interactions"
+      },
+      "response": {
+        "body": {
+          "error": "Only the photo owner can view interactions",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "180"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 65,
+      "name": "interactions: unknown photo",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/999999/interactions"
+      },
+      "response": {
+        "body": {
+          "error": "Photo not found",
+          "error_code": "PHOTO_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 66,
+      "name": "bob unlikes",
+      "ratelimit": {
+        "hits": 21,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "179"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 67,
+      "name": "bob unlikes again",
+      "ratelimit": {
+        "hits": 22,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "178"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 68,
+      "name": "unlike: invalid id",
+      "ratelimit": {
+        "hits": 23,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/abc/like"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid photo ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "177"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 69,
+      "name": "unlike: unknown photo",
+      "ratelimit": {
+        "hits": 24,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/999999/like"
+      },
+      "response": {
+        "body": {
+          "error": "Photo not found",
+          "error_code": "PHOTO_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "176"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 70,
+      "name": "like status after unlike",
+      "ratelimit": {
+        "hits": 25,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/like-status"
+      },
+      "response": {
+        "body": {
+          "like_count": 0,
+          "liked": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "175"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 71,
+      "name": "alice's story-like notification",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "bob liked your story",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob",
+                "photo_date": "<TODAY>",
+                "photo_id": 1
+              },
+              "title": "New Like!",
+              "type": "story_liked"
+            },
+            {
+              "body": "dave started following you",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "actor_avatar": "",
+                "actor_id": 4,
+                "actor_username": "dave"
+              },
+              "title": "New Follower! 👋",
+              "type": "new_follower"
+            },
+            {
+              "body": "bob started following you",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "actor_avatar": "",
+                "actor_id": 2,
+                "actor_username": "bob"
+              },
+              "title": "New Follower! 👋",
+              "type": "new_follower"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 3
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 72,
+      "name": "alice renames the custom tile",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#FF8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Piano"
+              }
+            ],
+            "order": [
+              "custom:c0de0001-0000-4000-8000-000000000001"
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "message": "Tile configuration saved successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 73,
+      "name": "the photo label follows the tile name",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=<TODAY-7>"
+      },
+      "response": {
+        "body": {
+          "photos": [
+            {
+              "activity_color": "#FF8800",
+              "activity_icon": "Music",
+              "activity_label": "Piano",
+              "activity_name": "custom:c0de0001-0000-4000-8000-000000000001",
+              "created_at": "<TIME +05:30>",
+              "id": 2,
+              "photo_date": "<TODAY-7>T00:00:00Z",
+              "photo_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY-7>/custom:c0de0001-0000-4000-8000-000000000001/<UUID#2>.jpg",
+              "thumbnail_url": "http://localhost:10000/devstoreaccount1/profile-pictures/activity-photos/1/<TODAY-7>/custom:c0de0001-0000-4000-8000-000000000001/<UUID#2>_thumb.jpg",
+              "user_id": 1
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 74,
+      "name": "bob is told that alice posted photos",
+      "ratelimit": {
+        "hits": 26,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "alice shared 2 new photos",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "photo_count": 2,
+                "photo_date": "<TODAY>",
+                "uploader_avatar": "",
+                "uploader_id": 1,
+                "uploader_username": "alice"
+              },
+              "title": "New Story!",
+              "type": "photo_uploaded"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 1
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "174"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 75,
+      "name": "delete: not the owner",
+      "ratelimit": {
+        "hits": 27,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1"
+      },
+      "response": {
+        "body": {
+          "error": "Not authorized to delete this photo",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "173"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 76,
+      "name": "delete: invalid id",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/abc"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid photo ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 77,
+      "name": "delete: unknown photo",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/999999"
+      },
+      "response": {
+        "body": {
+          "error": "Photo not found",
+          "error_code": "PHOTO_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 78,
+      "name": "alice deletes her photo",
+      "ratelimit": {
+        "hits": 20,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1"
+      },
+      "response": {
+        "body": {
+          "message": "Photo deleted successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "180"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 79,
+      "name": "delete it again",
+      "ratelimit": {
+        "hits": 21,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1"
+      },
+      "response": {
+        "body": {
+          "error": "Photo not found",
+          "error_code": "PHOTO_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "179"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 80,
+      "name": "photos after deletion",
+      "ratelimit": {
+        "hits": 22,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=<TODAY>"
+      },
+      "response": {
+        "body": {
+          "photos": [],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "178"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 81,
+      "name": "like status of the other photo",
+      "ratelimit": {
+        "hits": 23,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/2/like-status"
+      },
+      "response": {
+        "body": {
+          "like_count": 0,
+          "liked": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "177"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

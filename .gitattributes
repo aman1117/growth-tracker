@@ -10,10 +10,11 @@ docker-compose*.yml text eol=lf
 *.yml text eol=lf
 .env* text eol=lf
 
-# Force LF for Go source files
-*.go text eol=lf
-go.mod text eol=lf
-go.sum text eol=lf
+# Force LF for Rust sources and manifests
+*.rs text eol=lf
+Cargo.toml text eol=lf
+Cargo.lock text eol=lf
+*.sql text eol=lf
 
 # Force LF for frontend config
 *.json text eol=lf

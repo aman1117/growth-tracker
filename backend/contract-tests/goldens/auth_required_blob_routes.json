@@ -1,0 +1,837 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Blob-backed routes (registered only with Azure storage configured) require a token too.",
+  "domain": "basics",
+  "scenario": "auth_required_blob_routes",
+  "step_count": 36,
+  "steps": [
+    {
+      "actor": "anon",
+      "index": 1,
+      "name": "POST /api/profile/upload-picture: no Authorization header",
+      "request": {
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 2,
+      "name": "POST /api/profile/upload-picture: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 3,
+      "name": "POST /api/profile/upload-picture: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 4,
+      "name": "DELETE /api/profile/picture: no Authorization header",
+      "request": {
+        "method": "DELETE",
+        "path": "/api/profile/picture"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 5,
+      "name": "DELETE /api/profile/picture: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "DELETE",
+        "path": "/api/profile/picture"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 6,
+      "name": "DELETE /api/profile/picture: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "DELETE",
+        "path": "/api/profile/picture"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 7,
+      "name": "POST /api/activity-photo: no Authorization header",
+      "request": {
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 8,
+      "name": "POST /api/activity-photo: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 9,
+      "name": "POST /api/activity-photo: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 10,
+      "name": "DELETE /api/activity-photo/1: no Authorization header",
+      "request": {
+        "method": "DELETE",
+        "path": "/api/activity-photo/1"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 11,
+      "name": "DELETE /api/activity-photo/1: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 12,
+      "name": "DELETE /api/activity-photo/1: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 13,
+      "name": "GET /api/activity-photos: no Authorization header",
+      "request": {
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=2020-01-04"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 14,
+      "name": "GET /api/activity-photos: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=2020-01-04"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 15,
+      "name": "GET /api/activity-photos: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=2020-01-04"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 16,
+      "name": "GET /api/activity-photos/following: no Authorization header",
+      "request": {
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=2020-01-04"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 17,
+      "name": "GET /api/activity-photos/following: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=2020-01-04"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 18,
+      "name": "GET /api/activity-photos/following: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos/following?date=2020-01-04"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 19,
+      "name": "POST /api/activity-photo/1/view: no Authorization header",
+      "request": {
+        "method": "POST",
+        "path": "/api/activity-photo/1/view"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 20,
+      "name": "POST /api/activity-photo/1/view: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/view"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 21,
+      "name": "POST /api/activity-photo/1/view: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/view"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 22,
+      "name": "GET /api/activity-photo/1/viewers: no Authorization header",
+      "request": {
+        "method": "GET",
+        "path": "/api/activity-photo/1/viewers"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 23,
+      "name": "GET /api/activity-photo/1/viewers: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/viewers"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 24,
+      "name": "GET /api/activity-photo/1/viewers: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/viewers"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 25,
+      "name": "POST /api/activity-photo/1/like: no Authorization header",
+      "request": {
+        "method": "POST",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 26,
+      "name": "POST /api/activity-photo/1/like: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 27,
+      "name": "POST /api/activity-photo/1/like: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 28,
+      "name": "DELETE /api/activity-photo/1/like: no Authorization header",
+      "request": {
+        "method": "DELETE",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 29,
+      "name": "DELETE /api/activity-photo/1/like: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 30,
+      "name": "DELETE /api/activity-photo/1/like: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "DELETE",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 31,
+      "name": "GET /api/activity-photo/1/like-status: no Authorization header",
+      "request": {
+        "method": "GET",
+        "path": "/api/activity-photo/1/like-status"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 32,
+      "name": "GET /api/activity-photo/1/like-status: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/like-status"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 33,
+      "name": "GET /api/activity-photo/1/like-status: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/like-status"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 34,
+      "name": "GET /api/activity-photo/1/interactions: no Authorization header",
+      "request": {
+        "method": "GET",
+        "path": "/api/activity-photo/1/interactions"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 35,
+      "name": "GET /api/activity-photo/1/interactions: non-Bearer scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Token abc.def.ghi"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/interactions"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 36,
+      "name": "GET /api/activity-photo/1/interactions: invalid token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not.a.valid-token"
+        },
+        "method": "GET",
+        "path": "/api/activity-photo/1/interactions"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    }
+  ]
+}

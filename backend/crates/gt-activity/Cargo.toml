@@ -1,0 +1,29 @@
+[package]
+name = "gt-activity"
+description = "Activities, streaks, analytics, tile configuration, day likes and badges HTTP API"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+gt-core.workspace = true
+gt-users.workspace = true
+gt-notify.workspace = true
+axum.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+redis.workspace = true
+chrono.workspace = true
+chrono-tz.workspace = true
+uuid.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+futures.workspace = true
+
+[dev-dependencies]
+tower.workspace = true
+url.workspace = true

@@ -1,0 +1,3740 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Create/reply/list/count/edit/delete with validation, mentions, duplicate detection, edit window.",
+  "domain": "comments",
+  "scenario": "comments_crud",
+  "step_count": 74,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 5,
+      "name": "register carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "carol@parity.test",
+          "password": "Passw0rd123",
+          "username": "carol"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 6,
+      "name": "login carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "carol",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 7,
+      "name": "register dave",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "dave@parity.test",
+          "password": "Passw0rd123",
+          "username": "dave"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 8,
+      "name": "login dave",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "dave",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 9,
+      "name": "register erin",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "erin@parity.test",
+          "password": "Passw0rd123",
+          "username": "erin"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 10,
+      "name": "login erin",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "erin",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 11,
+      "name": "create: invalid JSON",
+      "ratelimit": {
+        "hits": 1,
+        "key": "comment:erin",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "14"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 12,
+      "name": "create: missing body",
+      "ratelimit": {
+        "hits": 2,
+        "key": "comment:erin",
+        "window": 0
+      },
+      "request": {
+        "body": {},
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Comment cannot be empty",
+          "error_code": "COMMENT_EMPTY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "13"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 13,
+      "name": "create: whitespace body",
+      "ratelimit": {
+        "hits": 3,
+        "key": "comment:erin",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "   \n "
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Comment cannot be empty",
+          "error_code": "COMMENT_EMPTY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "12"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 14,
+      "name": "create: 201 characters",
+      "ratelimit": {
+        "hits": 4,
+        "key": "comment:erin",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Comment must be 200 characters or less",
+          "error_code": "COMMENT_TOO_LONG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "11"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 15,
+      "name": "create: unknown day owner",
+      "ratelimit": {
+        "hits": 5,
+        "key": "comment:erin",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "hi"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/ghost/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "10"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 16,
+      "name": "create: invalid date",
+      "ratelimit": {
+        "hits": 6,
+        "key": "comment:erin",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "hi"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/2026-13-40/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format (use YYYY-MM-DD)",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "9"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 17,
+      "name": "create: upper-case username in path",
+      "ratelimit": {
+        "hits": 7,
+        "key": "comment:erin",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "hi"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/ALICE/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 18,
+      "name": "bob comments on alice's day",
+      "ratelimit": {
+        "hits": 1,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "  Great work today! 🔥  "
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 2,
+            "author_username": "bob",
+            "author_verified": false,
+            "body": "Great work today! 🔥",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 1,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [],
+            "reply_count": 0
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "14"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 19,
+      "name": "same body again within 60s (duplicate)",
+      "ratelimit": {
+        "hits": 2,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "Great work today! 🔥"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Duplicate comment detected. Please wait before posting again.",
+          "error_code": "DUPLICATE_COMMENT",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "13"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 20,
+      "name": "carol mentions bob and dave",
+      "ratelimit": {
+        "hits": 1,
+        "key": "comment:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "@bob @dave @ghost @bob look at this! @ALICE"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 3,
+            "author_username": "carol",
+            "author_verified": false,
+            "body": "@bob @dave @ghost @bob look at this! @ALICE",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 2,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [
+              {
+                "user_id": 2,
+                "username": "bob"
+              },
+              {
+                "user_id": 4,
+                "username": "dave"
+              }
+            ],
+            "reply_count": 0
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "14"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "alice comments on her own day",
+      "ratelimit": {
+        "hits": 1,
+        "key": "comment:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "Thanks everyone"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 1,
+            "author_username": "alice",
+            "author_verified": false,
+            "body": "Thanks everyone",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 3,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [],
+            "reply_count": 0
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "14"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 22,
+      "name": "exactly 200 characters",
+      "ratelimit": {
+        "hits": 1,
+        "key": "comment:dave",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 4,
+            "author_username": "dave",
+            "author_verified": false,
+            "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 4,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [],
+            "reply_count": 0
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "14"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 23,
+      "name": "comment on a day without activities",
+      "ratelimit": {
+        "hits": 3,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "empty day?"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY-9>/comments"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 2,
+            "author_username": "bob",
+            "author_verified": false,
+            "body": "empty day?",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY-9>",
+            "day_owner_id": 1,
+            "id": 5,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [],
+            "reply_count": 0
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "12"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 24,
+      "name": "eleven mentions",
+      "ratelimit": {
+        "hits": 2,
+        "key": "comment:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "@user00 @user01 @user02 @user03 @user04 @user05 @user06 @user07 @user08 @user09 @user10"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Too many mentions (max 10 per comment)",
+          "error_code": "TOO_MANY_MENTIONS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "13"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 25,
+      "name": "comment count",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments/count"
+      },
+      "response": {
+        "body": {
+          "count": 4,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 26,
+      "name": "count for a day without comments",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY-1>/comments/count"
+      },
+      "response": {
+        "body": {
+          "count": 0,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 27,
+      "name": "count: unknown user",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/ghost/<TODAY>/comments/count"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 28,
+      "name": "count: invalid date",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/bad-date/comments/count"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format (use YYYY-MM-DD)",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 29,
+      "name": "list (top)",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "@bob @dave @ghost @bob look at this! @ALICE",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "Great work today! 🔥",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 30,
+      "name": "list (newest)",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments?sort=newest"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "@bob @dave @ghost @bob look at this! @ALICE",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "Great work today! 🔥",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 31,
+      "name": "list with an unknown sort",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments?sort=weird"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "@bob @dave @ghost @bob look at this! @ALICE",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "Great work today! 🔥",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 32,
+      "name": "list newest, limit 2",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments?sort=newest&limit=2"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            }
+          ],
+          "has_more": true,
+          "next_cursor": 3,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 33,
+      "name": "list newest, page 2",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments?sort=newest&limit=2&cursor=3"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "@bob @dave @ghost @bob look at this! @ALICE",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "Great work today! 🔥",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 34,
+      "name": "limit=0",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments?limit=0"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "@bob @dave @ghost @bob look at this! @ALICE",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "Great work today! 🔥",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 35,
+      "name": "limit above the maximum",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments?limit=51"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "@bob @dave @ghost @bob look at this! @ALICE",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "Great work today! 🔥",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 36,
+      "name": "non-numeric cursor",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments?cursor=abc"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "@bob @dave @ghost @bob look at this! @ALICE",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "Great work today! 🔥",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 37,
+      "name": "list: unknown user",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/ghost/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 38,
+      "name": "list: invalid date",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/2026-02-30/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format (use YYYY-MM-DD)",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 39,
+      "name": "reply: invalid JSON",
+      "ratelimit": {
+        "hits": 2,
+        "key": "comment:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments/1/replies"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "13"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 40,
+      "name": "reply: empty body",
+      "ratelimit": {
+        "hits": 3,
+        "key": "comment:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": ""
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments/1/replies"
+      },
+      "response": {
+        "body": {
+          "error": "Comment cannot be empty",
+          "error_code": "COMMENT_EMPTY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "12"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 41,
+      "name": "reply: unknown parent",
+      "ratelimit": {
+        "hits": 4,
+        "key": "comment:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "hi"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments/999999/replies"
+      },
+      "response": {
+        "body": {
+          "error": "Parent comment not found",
+          "error_code": "PARENT_COMMENT_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "11"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 42,
+      "name": "reply: invalid parent id",
+      "ratelimit": {
+        "hits": 5,
+        "key": "comment:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "hi"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments/abc/replies"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid comment ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "10"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 43,
+      "name": "reply: parent on another day",
+      "ratelimit": {
+        "hits": 6,
+        "key": "comment:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "hi"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY-9>/comments/1/replies"
+      },
+      "response": {
+        "body": {
+          "error": "Parent comment not found",
+          "error_code": "PARENT_COMMENT_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "9"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 44,
+      "name": "alice replies to bob",
+      "ratelimit": {
+        "hits": 7,
+        "key": "comment:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "Thanks @bob!"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments/1/replies"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 1,
+            "author_username": "alice",
+            "author_verified": false,
+            "body": "Thanks @bob!",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 6,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [
+              {
+                "user_id": 2,
+                "username": "bob"
+              }
+            ],
+            "parent_comment_id": 1,
+            "reply_count": 0,
+            "reply_to_user_id": 2,
+            "reply_to_username": "bob",
+            "root_comment_id": 1
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "8"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 45,
+      "name": "carol replies to bob",
+      "ratelimit": {
+        "hits": 3,
+        "key": "comment:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "+1"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments/1/replies"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 3,
+            "author_username": "carol",
+            "author_verified": false,
+            "body": "+1",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 7,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [],
+            "parent_comment_id": 1,
+            "reply_count": 0,
+            "reply_to_user_id": 2,
+            "reply_to_username": "bob",
+            "root_comment_id": 1
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "12"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 46,
+      "name": "reply to a reply",
+      "ratelimit": {
+        "hits": 2,
+        "key": "comment:dave",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "nested?"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments/6/replies"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 4,
+            "author_username": "dave",
+            "author_verified": false,
+            "body": "nested?",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 8,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [],
+            "parent_comment_id": 6,
+            "reply_count": 0,
+            "reply_to_user_id": 1,
+            "reply_to_username": "alice",
+            "root_comment_id": 1
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "13"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 47,
+      "name": "replies of bob's comment",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/comments/1/replies"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks @bob!",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 6,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                }
+              ],
+              "parent_comment_id": 1,
+              "reply_count": 1,
+              "reply_to_user_id": 2,
+              "reply_to_username": "bob",
+              "root_comment_id": 1
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "+1",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 7,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "parent_comment_id": 1,
+              "reply_count": 0,
+              "reply_to_user_id": 2,
+              "reply_to_username": "bob",
+              "root_comment_id": 1
+            },
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "nested?",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 8,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "parent_comment_id": 6,
+              "reply_count": 0,
+              "reply_to_user_id": 1,
+              "reply_to_username": "alice",
+              "root_comment_id": 1
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 48,
+      "name": "replies limit 1",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/comments/1/replies?limit=1"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks @bob!",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 6,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                }
+              ],
+              "parent_comment_id": 1,
+              "reply_count": 1,
+              "reply_to_user_id": 2,
+              "reply_to_username": "bob",
+              "root_comment_id": 1
+            }
+          ],
+          "has_more": true,
+          "next_cursor": 6,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 49,
+      "name": "replies after a cursor",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/comments/1/replies?cursor=6"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "+1",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 7,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "parent_comment_id": 1,
+              "reply_count": 0,
+              "reply_to_user_id": 2,
+              "reply_to_username": "bob",
+              "root_comment_id": 1
+            },
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "nested?",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 8,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "parent_comment_id": 6,
+              "reply_count": 0,
+              "reply_to_user_id": 1,
+              "reply_to_username": "alice",
+              "root_comment_id": 1
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 50,
+      "name": "replies: invalid id",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/comments/abc/replies"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid comment ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 51,
+      "name": "replies: unknown comment",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/comments/999999/replies"
+      },
+      "response": {
+        "body": {
+          "error": "Comment not found",
+          "error_code": "COMMENT_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 52,
+      "name": "list shows reply counts",
+      "ratelimit": {
+        "hits": 20,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "@bob @dave @ghost @bob look at this! @ALICE",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "Great work today! 🔥",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 3
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "180"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 53,
+      "name": "edit: invalid JSON",
+      "ratelimit": {
+        "hits": 4,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "11"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 54,
+      "name": "edit: empty body",
+      "ratelimit": {
+        "hits": 5,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": " "
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Comment cannot be empty",
+          "error_code": "COMMENT_EMPTY",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "10"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 55,
+      "name": "edit: too long",
+      "ratelimit": {
+        "hits": 6,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Comment must be 200 characters or less",
+          "error_code": "COMMENT_TOO_LONG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "9"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 56,
+      "name": "edit: not the author",
+      "ratelimit": {
+        "hits": 4,
+        "key": "comment:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "hijack"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Not authorized to edit this comment",
+          "error_code": "COMMENT_FORBIDDEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "11"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 57,
+      "name": "edit: day owner cannot edit others' comments",
+      "ratelimit": {
+        "hits": 8,
+        "key": "comment:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "owner edit"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Not authorized to edit this comment",
+          "error_code": "COMMENT_FORBIDDEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "7"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 58,
+      "name": "edit: invalid id",
+      "ratelimit": {
+        "hits": 7,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "x"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/abc"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid comment ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "8"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 59,
+      "name": "edit: unknown comment",
+      "ratelimit": {
+        "hits": 8,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "x"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/999999"
+      },
+      "response": {
+        "body": {
+          "error": "Comment not found",
+          "error_code": "COMMENT_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "7"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 60,
+      "name": "bob edits his comment and mentions carol",
+      "ratelimit": {
+        "hits": 9,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "Edited: great work @carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 2,
+            "author_username": "bob",
+            "author_verified": false,
+            "body": "Edited: great work @carol",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 1,
+            "is_deleted": false,
+            "is_edited": true,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [
+              {
+                "user_id": 3,
+                "username": "carol"
+              }
+            ],
+            "reply_count": 3
+          },
+          "message": "Comment edited successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "6"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 61,
+      "name": "edit after the 1h window",
+      "ratelimit": {
+        "hits": 5,
+        "key": "comment:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "too late"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/2"
+      },
+      "response": {
+        "body": {
+          "error": "Edit window has expired",
+          "error_code": "COMMENT_EDIT_EXPIRED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "10"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 62,
+      "name": "delete: neither author nor day owner",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Not authorized to delete this comment",
+          "error_code": "COMMENT_FORBIDDEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 63,
+      "name": "delete: invalid id",
+      "ratelimit": {
+        "hits": 21,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/comments/abc"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid comment ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "179"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 64,
+      "name": "delete: unknown comment",
+      "ratelimit": {
+        "hits": 22,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/comments/999999"
+      },
+      "response": {
+        "body": {
+          "error": "Comment not found",
+          "error_code": "COMMENT_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "178"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 65,
+      "name": "author deletes a comment that has replies",
+      "ratelimit": {
+        "hits": 23,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "message": "Comment deleted successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "177"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 66,
+      "name": "delete it again",
+      "ratelimit": {
+        "hits": 24,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Comment already deleted",
+          "error_code": "COMMENT_DELETED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "176"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 67,
+      "name": "edit a deleted comment",
+      "ratelimit": {
+        "hits": 10,
+        "key": "comment:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "revive"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "PUT",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Cannot edit a deleted comment",
+          "error_code": "COMMENT_DELETED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "5"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 68,
+      "name": "reply to a deleted comment",
+      "ratelimit": {
+        "hits": 3,
+        "key": "comment:dave",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "body": "anyone?"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/days/alice/<TODAY>/comments/1/replies"
+      },
+      "response": {
+        "body": {
+          "comment": {
+            "author_id": 4,
+            "author_username": "dave",
+            "author_verified": false,
+            "body": "anyone?",
+            "created_at": "<TIME Z skew=+05:30>",
+            "day_date": "<TODAY>",
+            "day_owner_id": 1,
+            "id": 9,
+            "is_deleted": false,
+            "is_edited": false,
+            "like_count": 0,
+            "liked_by_me": false,
+            "mentions": [],
+            "parent_comment_id": 1,
+            "reply_count": 0,
+            "reply_to_user_id": 2,
+            "reply_to_username": "bob",
+            "root_comment_id": 1
+          },
+          "message": "Comment created successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "15",
+          "x-ratelimit-remaining": "12"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 69,
+      "name": "replies of a deleted comment",
+      "ratelimit": {
+        "hits": 25,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/comments/1/replies"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks @bob!",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 6,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                }
+              ],
+              "parent_comment_id": 1,
+              "reply_count": 1,
+              "reply_to_user_id": 2,
+              "reply_to_username": "bob",
+              "root_comment_id": 1
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "+1",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 7,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "parent_comment_id": 1,
+              "reply_count": 0,
+              "reply_to_user_id": 2,
+              "reply_to_username": "bob",
+              "root_comment_id": 1
+            },
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "nested?",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 8,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "parent_comment_id": 6,
+              "reply_count": 0,
+              "reply_to_user_id": 1,
+              "reply_to_username": "alice",
+              "root_comment_id": 1
+            },
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "anyone?",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 9,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "parent_comment_id": 1,
+              "reply_count": 0,
+              "reply_to_user_id": 2,
+              "reply_to_username": "bob",
+              "root_comment_id": 1
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "175"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 70,
+      "name": "day owner deletes carol's comment",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/comments/2"
+      },
+      "response": {
+        "body": {
+          "message": "Comment deleted successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 71,
+      "name": "list after deletions",
+      "ratelimit": {
+        "hits": 26,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "comments": [
+            {
+              "author_id": 4,
+              "author_username": "dave",
+              "author_verified": false,
+              "body": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 4,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 1,
+              "author_username": "alice",
+              "author_verified": false,
+              "body": "Thanks everyone",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 3,
+              "is_deleted": false,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [],
+              "reply_count": 0
+            },
+            {
+              "author_id": 2,
+              "author_username": "bob",
+              "author_verified": false,
+              "body": "[Deleted]",
+              "created_at": "<TIME Z skew=+05:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 1,
+              "is_deleted": true,
+              "is_edited": true,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 3,
+                  "username": "carol"
+                }
+              ],
+              "reply_count": 4
+            },
+            {
+              "author_id": 3,
+              "author_username": "carol",
+              "author_verified": false,
+              "body": "[Deleted]",
+              "created_at": "<TIME Z skew=+03:30>",
+              "day_date": "<TODAY>",
+              "day_owner_id": 1,
+              "id": 2,
+              "is_deleted": true,
+              "is_edited": false,
+              "like_count": 0,
+              "liked_by_me": false,
+              "mentions": [
+                {
+                  "user_id": 2,
+                  "username": "bob"
+                },
+                {
+                  "user_id": 4,
+                  "username": "dave"
+                }
+              ],
+              "reply_count": 0
+            }
+          ],
+          "has_more": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "174"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 72,
+      "name": "count after deletions",
+      "ratelimit": {
+        "hits": 27,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments/count"
+      },
+      "response": {
+        "body": {
+          "count": 6,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "173"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 73,
+      "name": "bob's notifications (comment reply, mention)",
+      "ratelimit": {
+        "hits": 28,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "dave replied to your comment",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 11,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 4,
+                "author_username": "dave",
+                "comment_id": 9,
+                "comment_preview": "anyone?",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Reply",
+              "type": "comment_reply"
+            },
+            {
+              "body": "carol replied to your comment",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 8,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 3,
+                "author_username": "carol",
+                "comment_id": 7,
+                "comment_preview": "+1",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Reply",
+              "type": "comment_reply"
+            },
+            {
+              "body": "alice replied to your comment",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 7,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 1,
+                "author_username": "alice",
+                "comment_id": 6,
+                "comment_preview": "Thanks @bob!",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Reply",
+              "type": "comment_reply"
+            },
+            {
+              "body": "carol mentioned you in a comment",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 3,
+                "author_username": "carol",
+                "comment_id": 2,
+                "comment_preview": "@bob @dave @ghost @bob look at this! @ALICE",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "You were mentioned",
+              "type": "comment_mention"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "172"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 74,
+      "name": "alice's notifications (comments on her day)",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "dave commented on your day",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 12,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 4,
+                "author_username": "dave",
+                "comment_id": 9,
+                "comment_preview": "anyone?",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Comment",
+              "type": "comment_received"
+            },
+            {
+              "body": "dave replied to your comment",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 10,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 4,
+                "author_username": "dave",
+                "comment_id": 8,
+                "comment_preview": "nested?",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Reply",
+              "type": "comment_reply"
+            },
+            {
+              "body": "carol commented on your day",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 9,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 3,
+                "author_username": "carol",
+                "comment_id": 7,
+                "comment_preview": "+1",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Comment",
+              "type": "comment_received"
+            },
+            {
+              "body": "bob commented on your day",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 6,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 2,
+                "author_username": "bob",
+                "comment_id": 5,
+                "comment_preview": "empty day?",
+                "day_date": "<TODAY-9>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Comment",
+              "type": "comment_received"
+            },
+            {
+              "body": "dave commented on your day",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 5,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 4,
+                "author_username": "dave",
+                "comment_id": 4,
+                "comment_preview": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy...",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Comment",
+              "type": "comment_received"
+            },
+            {
+              "body": "carol commented on your day",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 3,
+                "author_username": "carol",
+                "comment_id": 2,
+                "comment_preview": "@bob @dave @ghost @bob look at this! @ALICE",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Comment",
+              "type": "comment_received"
+            },
+            {
+              "body": "bob commented on your day",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "author_avatar": "",
+                "author_id": 2,
+                "author_username": "bob",
+                "comment_id": 1,
+                "comment_preview": "Great work today! 🔥",
+                "day_date": "<TODAY>",
+                "day_owner_username": "alice"
+              },
+              "title": "New Comment",
+              "type": "comment_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 7
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

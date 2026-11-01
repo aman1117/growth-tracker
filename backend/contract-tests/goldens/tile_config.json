@@ -1,0 +1,1811 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Save/get tile config (validation, JSONB round-trip of unknown keys and numbers), by username with privacy.",
+  "domain": "tiles",
+  "scenario": "tile_config",
+  "step_count": 44,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 5,
+      "name": "register carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "carol@parity.test",
+          "password": "Passw0rd123",
+          "username": "carol"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 6,
+      "name": "login carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "carol",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 7,
+      "name": "no config yet (data null)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "data": null,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 8,
+      "name": "invalid JSON",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 9,
+      "name": "config is an array",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": [
+            "study"
+          ]
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 10,
+      "name": "order is not an array",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "order": "study,sleep"
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid configuration format",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 11,
+      "name": "sizes has a non-string value",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "order": [],
+            "sizes": {
+              "study": 2
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid configuration format",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 12,
+      "name": "six custom tiles",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0002-0000-4000-8000-000000000002",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0003-0000-4000-8000-000000000003",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0004-0000-4000-8000-000000000004",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0005-0000-4000-8000-000000000005",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0006-0000-4000-8000-000000000006",
+                "name": "Guitar"
+              }
+            ],
+            "order": []
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "Maximum of 5 custom tiles allowed",
+          "error_code": "TILE_LIMIT_EXCEEDED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 13,
+      "name": "custom tile without id",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "",
+                "name": "Guitar"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "custom tile ID is required",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "custom tile with a non-UUID id",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "not-a-uuid",
+                "name": "Guitar"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "custom tile ID must be a valid UUID",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 15,
+      "name": "custom tile without name",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": ""
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "custom tile name is required",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 16,
+      "name": "custom tile name of 21 characters",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "xxxxxxxxxxxxxxxxxxxxx"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "custom tile name cannot exceed 20 characters",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 17,
+      "name": "custom tile without icon",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Guitar"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "custom tile icon is required",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 18,
+      "name": "custom tile with an invalid color",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "orange",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Guitar"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "custom tile color must be a valid hex color",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 19,
+      "name": "duplicate custom tile ids",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Piano"
+              }
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "Duplicate custom tile ID found",
+          "error_code": "INVALID_TILE_CONFIG",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 20,
+      "name": "invalid color override",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "colors": {
+              "study": "#12345"
+            },
+            "order": [
+              "study"
+            ]
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid color format: #12345",
+          "error_code": "INVALID_COLOR",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "empty color override",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "colors": {
+              "study": ""
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid color format: ",
+          "error_code": "INVALID_COLOR",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 22,
+      "name": "full config with custom tiles and unknown keys",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "aFirst": 0.1,
+            "colors": {
+              "sleep": "#11223344",
+              "study": "#0F0"
+            },
+            "customTiles": [
+              {
+                "color": "#ABCDEF",
+                "icon": "Guitar",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Gitarre 🎸 üben"
+              },
+              {
+                "color": "#123",
+                "icon": "Star",
+                "id": "<UUID#1>",
+                "name": "xxxxxxxxxxxxxxxxxxxx"
+              }
+            ],
+            "hidden": [
+              "reels"
+            ],
+            "order": [
+              "study",
+              "sleep",
+              "custom:c0de0001-0000-4000-8000-000000000001",
+              "workout",
+              "reels"
+            ],
+            "sizes": {
+              "custom:c0de0001-0000-4000-8000-000000000001": "small",
+              "sleep": "medium",
+              "study": "large"
+            },
+            "zExtra": {
+              "nested": [
+                1,
+                2.50,
+                1e3,
+                12345678901234567890,
+                -0,
+                true,
+                null
+              ],
+              "s": "kept"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "message": "Tile configuration saved successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "config round-trip (key order, number formatting)",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "aFirst": 0.1,
+            "colors": {
+              "sleep": "#11223344",
+              "study": "#0F0"
+            },
+            "customTiles": [
+              {
+                "color": "#ABCDEF",
+                "icon": "Guitar",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Gitarre 🎸 üben"
+              },
+              {
+                "color": "#123",
+                "icon": "Star",
+                "id": "<UUID#1>",
+                "name": "xxxxxxxxxxxxxxxxxxxx"
+              }
+            ],
+            "hidden": [
+              "reels"
+            ],
+            "order": [
+              "study",
+              "sleep",
+              "custom:c0de0001-0000-4000-8000-000000000001",
+              "workout",
+              "reels"
+            ],
+            "sizes": {
+              "custom:c0de0001-0000-4000-8000-000000000001": "small",
+              "sleep": "medium",
+              "study": "large"
+            },
+            "zExtra": {
+              "nested": [
+                1,
+                2.5,
+                1000,
+                12345678901234567000,
+                0,
+                true,
+                null
+              ],
+              "s": "kept"
+            }
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "five custom tiles is the maximum",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0002-0000-4000-8000-000000000002",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0003-0000-4000-8000-000000000003",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0004-0000-4000-8000-000000000004",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0005-0000-4000-8000-000000000005",
+                "name": "Guitar"
+              }
+            ],
+            "order": []
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "message": "Tile configuration saved successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 25,
+      "name": "after replacing the config",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "customTiles": [
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0001-0000-4000-8000-000000000001",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0002-0000-4000-8000-000000000002",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0003-0000-4000-8000-000000000003",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0004-0000-4000-8000-000000000004",
+                "name": "Guitar"
+              },
+              {
+                "color": "#ff8800",
+                "icon": "Music",
+                "id": "c0de0005-0000-4000-8000-000000000005",
+                "name": "Guitar"
+              }
+            ],
+            "order": []
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 26,
+      "name": "empty object",
+      "ratelimit": {
+        "hits": 20,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {}
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "message": "Tile configuration saved successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "180"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 27,
+      "name": "after saving an empty object",
+      "ratelimit": {
+        "hits": 21,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "data": {},
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "179"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 28,
+      "name": "null config",
+      "ratelimit": {
+        "hits": 22,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": null
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "message": "Tile configuration saved successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "178"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 29,
+      "name": "after saving null",
+      "ratelimit": {
+        "hits": 23,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "data": null,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "177"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 30,
+      "name": "missing config key",
+      "ratelimit": {
+        "hits": 24,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {},
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "message": "Tile configuration saved successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "176"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 31,
+      "name": "after saving without a config key",
+      "ratelimit": {
+        "hits": 25,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "data": null,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "175"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 32,
+      "name": "minimal config",
+      "ratelimit": {
+        "hits": 26,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "config": {
+            "order": [
+              "sleep",
+              "study"
+            ],
+            "sizes": {}
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "message": "Tile configuration saved successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "174"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 33,
+      "name": "by username: invalid JSON",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 34,
+      "name": "by username: missing username",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {},
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "error": "Username is required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 35,
+      "name": "by username: unknown user",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "ghost"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 36,
+      "name": "by username: alice",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "order": [
+              "sleep",
+              "study"
+            ],
+            "sizes": {}
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 37,
+      "name": "by username: user without config",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "data": null,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 38,
+      "name": "by username: own config",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "bob"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "data": null,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 39,
+      "name": "alice sets is_private=True",
+      "ratelimit": {
+        "hits": 27,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "is_private": true
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/update-privacy"
+      },
+      "response": {
+        "body": {
+          "is_private": true,
+          "message": "Privacy setting updated",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "173"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 40,
+      "name": "by username: private, not following",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "error": "This account is private",
+          "error_code": "ACCOUNT_PRIVATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 41,
+      "name": "bob requests to follow alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Follow request sent",
+          "state": "PENDING",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 42,
+      "name": "alice accepts bob",
+      "ratelimit": {
+        "hits": 28,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/me/follow-requests/2/accept"
+      },
+      "response": {
+        "body": {
+          "message": "Follow request accepted",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "172"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 43,
+      "name": "by username: private, following",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "order": [
+              "sleep",
+              "study"
+            ],
+            "sizes": {}
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 44,
+      "name": "by username: upper-case username",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "ALICE"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/tile-config/user"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 404
+      }
+    }
+  ]
+}

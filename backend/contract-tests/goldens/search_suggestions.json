@@ -1,0 +1,2071 @@
+{
+  "date_anchor": "TODAY",
+  "description": "GET /api/search/suggestions: global trending, personalized trending, recent searches, caching.",
+  "domain": "search",
+  "scenario": "search_suggestions",
+  "step_count": 50,
+  "steps": [
+    {
+      "actor": "me",
+      "index": 1,
+      "name": "register me",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "searcher1@parity.test",
+          "password": "Passw0rd123",
+          "username": "searcher1"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "me",
+      "index": 2,
+      "name": "login me",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "searcher1",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 3,
+      "name": "register me2",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "searcher2@parity.test",
+          "password": "Passw0rd123",
+          "username": "searcher2"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 4,
+      "name": "login me2",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "searcher2",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "popular",
+      "index": 5,
+      "name": "register popular",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "popular@parity.test",
+          "password": "Passw0rd123",
+          "username": "popular"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "popular",
+      "index": 6,
+      "name": "login popular",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "popular",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "rising",
+      "index": 7,
+      "name": "register rising",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "rising@parity.test",
+          "password": "Passw0rd123",
+          "username": "rising"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "rising",
+      "index": 8,
+      "name": "login rising",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "rising",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "steady",
+      "index": 9,
+      "name": "register steady",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "steady@parity.test",
+          "password": "Passw0rd123",
+          "username": "steady"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "steady",
+      "index": 10,
+      "name": "login steady",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "steady",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "quiet",
+      "index": 11,
+      "name": "register quiet",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "quiet@parity.test",
+          "password": "Passw0rd123",
+          "username": "quiet"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "quiet",
+      "index": 12,
+      "name": "login quiet",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "quiet",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "hidden",
+      "index": 13,
+      "name": "register hidden",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#7",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "hidden@parity.test",
+          "password": "Passw0rd123",
+          "username": "hidden"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "hidden",
+      "index": 14,
+      "name": "login hidden",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#7",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "hidden",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "fan",
+      "index": 15,
+      "name": "register fan",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#8",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "fan@parity.test",
+          "password": "Passw0rd123",
+          "username": "fan"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "fan",
+      "index": 16,
+      "name": "login fan",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#8",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "fan",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "newbie",
+      "index": 17,
+      "name": "register newbie",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#9",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "newbie@parity.test",
+          "password": "Passw0rd123",
+          "username": "newbie"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "newbie",
+      "index": 18,
+      "name": "login newbie",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#9",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "newbie",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "verified",
+      "index": 19,
+      "name": "register verified",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#10",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "verified@parity.test",
+          "password": "Passw0rd123",
+          "username": "verified"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "verified",
+      "index": 20,
+      "name": "login verified",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#10",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "verified",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "hidden",
+      "index": 21,
+      "name": "hidden sets is_private=True",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:hidden",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "is_private": true
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/update-privacy"
+      },
+      "response": {
+        "body": {
+          "is_private": true,
+          "message": "Privacy setting updated",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me",
+      "index": 22,
+      "name": "global trending: verified first, then by followers, private excluded",
+      "ratelimit": {
+        "hits": 1,
+        "key": "autocomplete:me",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [],
+          "trending": [
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            },
+            {
+              "followersCount": 500,
+              "id": 3,
+              "isVerified": false,
+              "username": "popular"
+            },
+            {
+              "followersCount": 400,
+              "id": 4,
+              "isVerified": false,
+              "username": "rising"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            },
+            {
+              "followersCount": 200,
+              "id": 6,
+              "isVerified": false,
+              "username": "quiet"
+            },
+            {
+              "followersCount": 100,
+              "id": 8,
+              "isVerified": false,
+              "username": "fan"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "59"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "fan",
+      "index": 23,
+      "name": "fan follows me",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:fan",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "fan",
+      "index": 24,
+      "name": "my follower fan follows newbie (interaction)",
+      "ratelimit": {
+        "hits": 2,
+        "key": "follow:fan",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/9/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "118"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me",
+      "index": 25,
+      "name": "trending is cached per user for 5 minutes",
+      "ratelimit": {
+        "hits": 2,
+        "key": "autocomplete:me",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [],
+          "trending": [
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            },
+            {
+              "followersCount": 500,
+              "id": 3,
+              "isVerified": false,
+              "username": "popular"
+            },
+            {
+              "followersCount": 400,
+              "id": 4,
+              "isVerified": false,
+              "username": "rising"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            },
+            {
+              "followersCount": 200,
+              "id": 6,
+              "isVerified": false,
+              "username": "quiet"
+            },
+            {
+              "followersCount": 100,
+              "id": 8,
+              "isVerified": false,
+              "username": "fan"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "58"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "fan",
+      "index": 26,
+      "name": "fan follows me2",
+      "ratelimit": {
+        "hits": 3,
+        "key": "follow:fan",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/2/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "117"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 27,
+      "name": "personalized trending first (interactions of my followers)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "autocomplete:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [],
+          "trending": [
+            {
+              "followersCount": 1001,
+              "id": 1,
+              "isVerified": false,
+              "username": "searcher1"
+            },
+            {
+              "followersCount": 51,
+              "id": 9,
+              "isVerified": false,
+              "username": "newbie"
+            },
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            },
+            {
+              "followersCount": 500,
+              "id": 3,
+              "isVerified": false,
+              "username": "popular"
+            },
+            {
+              "followersCount": 400,
+              "id": 4,
+              "isVerified": false,
+              "username": "rising"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "59"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 28,
+      "name": "view profile of quiet (saves a recent search)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/6/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 200,
+          "following_count": 0,
+          "id": 6,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "quiet"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 29,
+      "name": "view profile of steady (saves a recent search)",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/5/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 300,
+          "following_count": 0,
+          "id": 5,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "steady"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 30,
+      "name": "view profile of hidden (saves a recent search)",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/7/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 900,
+          "following_count": 0,
+          "id": 7,
+          "is_private": true,
+          "is_verified": false,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "hidden"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 31,
+      "name": "viewing yourself is not recorded",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/2/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 1,
+          "following_count": 0,
+          "id": 2,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "searcher2"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 32,
+      "name": "recent (newest first, private included) + cached trending without duplicates",
+      "ratelimit": {
+        "hits": 2,
+        "key": "autocomplete:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [
+            {
+              "followersCount": 900,
+              "id": 7,
+              "isVerified": false,
+              "username": "hidden"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            },
+            {
+              "followersCount": 200,
+              "id": 6,
+              "isVerified": false,
+              "username": "quiet"
+            }
+          ],
+          "trending": [
+            {
+              "followersCount": 1001,
+              "id": 1,
+              "isVerified": false,
+              "username": "searcher1"
+            },
+            {
+              "followersCount": 51,
+              "id": 9,
+              "isVerified": false,
+              "username": "newbie"
+            },
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "58"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 33,
+      "name": "viewing quiet again within 60s (throttled)",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/6/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 200,
+          "following_count": 0,
+          "id": 6,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "quiet"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 34,
+      "name": "order unchanged because of the throttle",
+      "ratelimit": {
+        "hits": 3,
+        "key": "autocomplete:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [
+            {
+              "followersCount": 900,
+              "id": 7,
+              "isVerified": false,
+              "username": "hidden"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            },
+            {
+              "followersCount": 200,
+              "id": 6,
+              "isVerified": false,
+              "username": "quiet"
+            }
+          ],
+          "trending": [
+            {
+              "followersCount": 1001,
+              "id": 1,
+              "isVerified": false,
+              "username": "searcher1"
+            },
+            {
+              "followersCount": 51,
+              "id": 9,
+              "isVerified": false,
+              "username": "newbie"
+            },
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "57"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 35,
+      "name": "viewing quiet after the throttle window",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/6/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 200,
+          "following_count": 0,
+          "id": 6,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "quiet"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 36,
+      "name": "quiet moved to the top",
+      "ratelimit": {
+        "hits": 4,
+        "key": "autocomplete:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [
+            {
+              "followersCount": 200,
+              "id": 6,
+              "isVerified": false,
+              "username": "quiet"
+            },
+            {
+              "followersCount": 900,
+              "id": 7,
+              "isVerified": false,
+              "username": "hidden"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            }
+          ],
+          "trending": [
+            {
+              "followersCount": 1001,
+              "id": 1,
+              "isVerified": false,
+              "username": "searcher1"
+            },
+            {
+              "followersCount": 51,
+              "id": 9,
+              "isVerified": false,
+              "username": "newbie"
+            },
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "56"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 37,
+      "name": "view profile of popular",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/3/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 500,
+          "following_count": 0,
+          "id": 3,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "popular"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 38,
+      "name": "view profile of rising",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/4/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 400,
+          "following_count": 0,
+          "id": 4,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "rising"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 39,
+      "name": "view profile of verified",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/10/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 5,
+          "following_count": 0,
+          "id": 10,
+          "is_private": false,
+          "is_verified": true,
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "verified"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 40,
+      "name": "6 recent searches: only the 5 newest, no room for trending",
+      "ratelimit": {
+        "hits": 5,
+        "key": "autocomplete:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            },
+            {
+              "followersCount": 400,
+              "id": 4,
+              "isVerified": false,
+              "username": "rising"
+            },
+            {
+              "followersCount": 500,
+              "id": 3,
+              "isVerified": false,
+              "username": "popular"
+            },
+            {
+              "followersCount": 200,
+              "id": 6,
+              "isVerified": false,
+              "username": "quiet"
+            },
+            {
+              "followersCount": 900,
+              "id": 7,
+              "isVerified": false,
+              "username": "hidden"
+            }
+          ],
+          "trending": [
+            {
+              "followersCount": 1001,
+              "id": 1,
+              "isVerified": false,
+              "username": "searcher1"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "55"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 41,
+      "name": "delete recent: invalid id",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/search/recent/abc"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 42,
+      "name": "delete recent: id 0",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/search/recent/0"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 43,
+      "name": "delete one recent search",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/search/recent/10"
+      },
+      "response": {
+        "body": {
+          "message": "Recent search deleted",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 44,
+      "name": "delete it again (idempotent)",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/search/recent/10"
+      },
+      "response": {
+        "body": {
+          "message": "Recent search deleted",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 45,
+      "name": "delete a user never searched",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/search/recent/999999"
+      },
+      "response": {
+        "body": {
+          "message": "Recent search deleted",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 46,
+      "name": "after deleting one recent search",
+      "ratelimit": {
+        "hits": 6,
+        "key": "autocomplete:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [
+            {
+              "followersCount": 400,
+              "id": 4,
+              "isVerified": false,
+              "username": "rising"
+            },
+            {
+              "followersCount": 500,
+              "id": 3,
+              "isVerified": false,
+              "username": "popular"
+            },
+            {
+              "followersCount": 200,
+              "id": 6,
+              "isVerified": false,
+              "username": "quiet"
+            },
+            {
+              "followersCount": 900,
+              "id": 7,
+              "isVerified": false,
+              "username": "hidden"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            }
+          ],
+          "trending": [
+            {
+              "followersCount": 1001,
+              "id": 1,
+              "isVerified": false,
+              "username": "searcher1"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "54"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 47,
+      "name": "clear all recent searches",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/search/recent"
+      },
+      "response": {
+        "body": {
+          "message": "Recent searches cleared",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 48,
+      "name": "clear again (idempotent)",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/search/recent"
+      },
+      "response": {
+        "body": {
+          "message": "Recent searches cleared",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "me2",
+      "index": 49,
+      "name": "after clearing",
+      "ratelimit": {
+        "hits": 7,
+        "key": "autocomplete:me2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [],
+          "trending": [
+            {
+              "followersCount": 1001,
+              "id": 1,
+              "isVerified": false,
+              "username": "searcher1"
+            },
+            {
+              "followersCount": 51,
+              "id": 9,
+              "isVerified": false,
+              "username": "newbie"
+            },
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            },
+            {
+              "followersCount": 500,
+              "id": 3,
+              "isVerified": false,
+              "username": "popular"
+            },
+            {
+              "followersCount": 400,
+              "id": 4,
+              "isVerified": false,
+              "username": "rising"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "53"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "fan",
+      "index": 50,
+      "name": "suggestions of a user who follows others",
+      "ratelimit": {
+        "hits": 1,
+        "key": "autocomplete:fan",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [],
+          "trending": [
+            {
+              "followersCount": 5,
+              "id": 10,
+              "isVerified": true,
+              "username": "verified"
+            },
+            {
+              "followersCount": 500,
+              "id": 3,
+              "isVerified": false,
+              "username": "popular"
+            },
+            {
+              "followersCount": 400,
+              "id": 4,
+              "isVerified": false,
+              "username": "rising"
+            },
+            {
+              "followersCount": 300,
+              "id": 5,
+              "isVerified": false,
+              "username": "steady"
+            },
+            {
+              "followersCount": 200,
+              "id": 6,
+              "isVerified": false,
+              "username": "quiet"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "59"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

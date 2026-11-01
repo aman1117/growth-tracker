@@ -14,8 +14,8 @@ trim_trailing_whitespace = false
 [Makefile]
 indent_style = tab
 
-[*.go]
-indent_style = tab
+[*.rs]
+indent_style = space
 indent_size = 4
 
 [*.{json,yml,yaml,ts,tsx,js,jsx,css,html}]

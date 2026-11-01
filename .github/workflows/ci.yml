@@ -251,4 +251,6 @@ jobs:
         with:
           name: contract-logs
           path: backend/contract-tests/.work/run-*/logs
+          # .work is a hidden directory, which upload-artifact skips by default
+          include-hidden-files: true
           retention-days: 14

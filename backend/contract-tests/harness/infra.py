@@ -10,6 +10,7 @@ import hashlib
 import hmac
 import http.client
 import os
+import random
 import re
 import shutil
 import socket
@@ -39,8 +40,29 @@ CREATE INDEX IF NOT EXISTS idx_users_username_lower_pattern ON users (lower(user
 """
 
 
-def free_port(host: str = "127.0.0.1") -> int:
+# Ports handed to child processes (server under test, emulators) come from below the OS ephemeral
+# ranges (Linux 32768-60999, Windows/macOS 49152-65535). A port probed with `bind(0)` is itself
+# ephemeral, and any outbound connection (e.g. the server's own Postgres pool) could take it before
+# the child binds it, which made the server fail to start on Linux CI.
+CHILD_PORT_RANGE = (20000, 32000)
+
+
+def _can_bind(host: str, port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind((host, port))
+        except OSError:
+            return False
+    return True
+
+
+def free_port(host: str = "127.0.0.1") -> int:
+    """A currently unused TCP port outside the ephemeral range, bindable on `host` and 0.0.0.0."""
+    for _ in range(200):
+        port = random.randint(*CHILD_PORT_RANGE)
+        if _can_bind("0.0.0.0", port) and _can_bind(host, port):
+            return port
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # range exhausted: let the OS pick
         s.bind((host, 0))
         return s.getsockname()[1]
 

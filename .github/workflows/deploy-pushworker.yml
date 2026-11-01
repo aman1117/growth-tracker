@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      # Test harness and docs changes do not change the image
+      - '!backend/contract-tests/**'
+      - '!backend/**/*.md'
   workflow_dispatch:
 
 concurrency:

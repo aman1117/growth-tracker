@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import queue
+import re
 import subprocess
 import threading
 import time
@@ -12,7 +13,14 @@ from .client import http_request
 
 
 class ServerStartError(RuntimeError):
-    pass
+    def __init__(self, message: str, port_in_use: bool = False):
+        super().__init__(message)
+        # The server could not bind its port (taken by another process): worth a retry elsewhere.
+        self.port_in_use = port_in_use
+
+
+# How the Rust server and the Go/Fiber server report a port that is already taken.
+_PORT_IN_USE = re.compile(r"address already in use|Failed to bind|os error (98|48|10048)", re.IGNORECASE)
 
 
 class ServerProcess:
@@ -78,8 +86,12 @@ class ServerProcess:
         deadline = started + timeout
         while time.time() < deadline:
             if self.proc and self.proc.poll() is not None:
+                code = self.proc.returncode
+                tail = self.log_tail()
                 raise ServerStartError(
-                    f"server exited with code {self.proc.returncode} during startup (log: {self.log_path})"
+                    f"server exited with code {code} during startup (log: {self.log_path})"
+                    + "".join(f"\n      | {line}" for line in tail),
+                    port_in_use=any(_PORT_IN_USE.search(line) for line in tail),
                 )
             try:
                 res = http_request("127.0.0.1", self.port, "GET", "/", timeout=2.0)
@@ -89,6 +101,16 @@ class ServerProcess:
                 pass
             time.sleep(0.05)
         raise ServerStartError(f"server not ready after {timeout:.0f}s (log: {self.log_path})")
+
+    def log_tail(self, lines: int = 8) -> list[str]:
+        """The last lines the (exited) server wrote, once its output has been flushed to the log."""
+        self._reader.join(5)
+        self._writer.join(5)
+        try:
+            text = self.log_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return []
+        return [line for line in text.splitlines() if line.strip()][-lines:]
 
     def stop(self) -> None:
         if self.proc:

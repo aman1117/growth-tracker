@@ -83,7 +83,7 @@ jpeg-encoder = "0.6"
 
 # Web Push (gt-notify): VAPID ES256 signatures and RFC 8291 aes128gcm payload encryption
 p256 = { version = "0.13", default-features = false, features = ["ecdh", "ecdsa", "std"] }
-hkdf = "0.12"
+hkdf = "0.13"
 aes-gcm = "0.10"
 # WebSocket client for gt-notify's integration tests (same version axum uses)
 tokio-tungstenite = "0.29"

@@ -1,0 +1,530 @@
+{
+  "date_anchor": "TODAY",
+  "description": "GET / health text, unknown routes (404), wrong methods (405), swagger, group middleware on unknown sub-paths.",
+  "domain": "basics",
+  "scenario": "health_and_routing",
+  "step_count": 24,
+  "steps": [
+    {
+      "actor": "anon",
+      "index": 1,
+      "name": "health check",
+      "request": {
+        "method": "GET",
+        "path": "/"
+      },
+      "response": {
+        "body": "API is running...",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 2,
+      "name": "HEAD health check",
+      "request": {
+        "method": "HEAD",
+        "path": "/"
+      },
+      "response": {
+        "body": "",
+        "body_type": "empty",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 3,
+      "name": "wrong method on health check",
+      "request": {
+        "method": "DELETE",
+        "path": "/"
+      },
+      "response": {
+        "body": "Method Not Allowed",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 405
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 4,
+      "name": "unknown API route",
+      "request": {
+        "method": "GET",
+        "path": "/api/does-not-exist"
+      },
+      "response": {
+        "body": "Cannot GET /api/does-not-exist",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 5,
+      "name": "unknown non-API route (POST)",
+      "request": {
+        "method": "POST",
+        "path": "/totally/unknown"
+      },
+      "response": {
+        "body": "Cannot POST /totally/unknown",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 6,
+      "name": "GET on a POST-only route",
+      "request": {
+        "method": "GET",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": "Method Not Allowed",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 405
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 7,
+      "name": "PUT on a POST-only route",
+      "request": {
+        "method": "PUT",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": "Method Not Allowed",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 405
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 8,
+      "name": "PATCH read-all without auth",
+      "request": {
+        "method": "PATCH",
+        "path": "/api/notifications/read-all"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 9,
+      "name": "swagger doc.json (status/content-type only)",
+      "request": {
+        "method": "GET",
+        "path": "/swagger/doc.json"
+      },
+      "response": {
+        "body": null,
+        "body_type": "ignored",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 10,
+      "name": "swagger UI (status/content-type only)",
+      "request": {
+        "method": "GET",
+        "path": "/swagger/index.html"
+      },
+      "response": {
+        "body": null,
+        "body_type": "ignored",
+        "headers": {
+          "content-type": "text/html"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 11,
+      "name": "unknown notifications sub-route, no auth",
+      "request": {
+        "method": "GET",
+        "path": "/api/notifications/does-not-exist"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 12,
+      "name": "unknown profile sub-route, no auth",
+      "request": {
+        "method": "GET",
+        "path": "/api/profile/does-not-exist"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 13,
+      "name": "unknown push sub-route, no auth",
+      "request": {
+        "method": "GET",
+        "path": "/api/push/does-not-exist"
+      },
+      "response": {
+        "body": "Cannot GET /api/push/does-not-exist",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 15,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 16,
+      "name": "unknown notifications sub-route, with auth",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications/does-not-exist"
+      },
+      "response": {
+        "body": "Method Not Allowed",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 405
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 17,
+      "name": "unknown profile sub-route, with auth",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile/does-not-exist"
+      },
+      "response": {
+        "body": "Cannot GET /api/profile/does-not-exist",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 18,
+      "name": "profile with trailing slash",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile/"
+      },
+      "response": {
+        "body": {
+          "bio": null,
+          "email": "alice@parity.test",
+          "email_verified": false,
+          "followers_count": 0,
+          "following_count": 0,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "success": true,
+          "username": "alice"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 19,
+      "name": "profile picture upload when blob storage is disabled",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": "Cannot POST /api/profile/upload-picture",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 20,
+      "name": "profile picture delete when blob storage is disabled",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/profile/picture"
+      },
+      "response": {
+        "body": "Cannot DELETE /api/profile/picture",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "activity photos when blob storage is disabled",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/activity-photos?user_id=1&date=<TODAY>"
+      },
+      "response": {
+        "body": "Cannot GET /api/activity-photos",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 22,
+      "name": "photo like when blob storage is disabled",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/activity-photo/1/like"
+      },
+      "response": {
+        "body": "Cannot POST /api/activity-photo/1/like",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "non-numeric user id in path",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/abc/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "empty user id segment",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users//profile"
+      },
+      "response": {
+        "body": "Cannot GET /api/users//profile",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 404
+      }
+    }
+  ]
+}

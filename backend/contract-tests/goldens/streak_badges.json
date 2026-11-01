@@ -1,0 +1,757 @@
+{
+  "date_anchor": "TODAY",
+  "description": "A 7-day streak (seeded history + cron row for today) awards spark_starter; next badge progress.",
+  "domain": "streaks",
+  "scenario": "streak_badges",
+  "step_count": 14,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 3,
+      "name": "yesterday's 6-day streak (own: awards first_step from longest)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-1>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-streak"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "current": 6,
+            "date": "<TODAY-1>",
+            "id": 6,
+            "longest": 6,
+            "new_badges": [
+              {
+                "color": "#22c55e",
+                "earned": false,
+                "earned_at": "<TODAY>",
+                "icon": "Footprints",
+                "key": "first_step",
+                "name": "First Step",
+                "threshold": 1
+              }
+            ]
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 4,
+      "name": "cron-opened row for today",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-streak"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "current": 0,
+            "date": "<TODAY>",
+            "id": 7,
+            "longest": 6
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 5,
+      "name": "badges before the streak continues",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/badges"
+      },
+      "response": {
+        "body": {
+          "badges": [
+            {
+              "color": "#22c55e",
+              "earned": true,
+              "earned_at": "<TODAY>",
+              "icon": "Footprints",
+              "key": "first_step",
+              "name": "First Step",
+              "threshold": 1
+            },
+            {
+              "color": "#3b82f6",
+              "earned": false,
+              "icon": "Zap",
+              "key": "spark_starter",
+              "name": "Spark Starter",
+              "threshold": 7
+            },
+            {
+              "color": "#f97316",
+              "earned": false,
+              "icon": "Flame",
+              "key": "flame_keeper",
+              "name": "Flame Keeper",
+              "threshold": 15
+            },
+            {
+              "color": "#64748b",
+              "earned": false,
+              "icon": "Shield",
+              "key": "iron_will",
+              "name": "Iron Will",
+              "threshold": 30
+            },
+            {
+              "color": "#06b6d4",
+              "earned": false,
+              "icon": "Gem",
+              "key": "diamond_mind",
+              "name": "Diamond Mind",
+              "threshold": 90
+            },
+            {
+              "color": "#a855f7",
+              "earned": false,
+              "icon": "Crown",
+              "key": "titan",
+              "name": "Titan",
+              "threshold": 120
+            },
+            {
+              "color": "#eab308",
+              "earned": false,
+              "icon": "Star",
+              "key": "legendary",
+              "name": "Legendary",
+              "threshold": 360
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 6,
+      "name": "activity continues the streak",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 3,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 7,
+      "name": "7-day streak awards first_step and spark_starter",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-streak"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "current": 7,
+            "date": "<TODAY>",
+            "id": 7,
+            "longest": 7,
+            "new_badges": [
+              {
+                "color": "#3b82f6",
+                "earned": false,
+                "earned_at": "<TODAY>",
+                "icon": "Zap",
+                "key": "spark_starter",
+                "name": "Spark Starter",
+                "threshold": 7
+              }
+            ]
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 8,
+      "name": "badges with next badge progress",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/badges"
+      },
+      "response": {
+        "body": {
+          "badges": [
+            {
+              "color": "#22c55e",
+              "earned": true,
+              "earned_at": "<TODAY>",
+              "icon": "Footprints",
+              "key": "first_step",
+              "name": "First Step",
+              "threshold": 1
+            },
+            {
+              "color": "#3b82f6",
+              "earned": true,
+              "earned_at": "<TODAY>",
+              "icon": "Zap",
+              "key": "spark_starter",
+              "name": "Spark Starter",
+              "threshold": 7
+            },
+            {
+              "color": "#f97316",
+              "earned": false,
+              "icon": "Flame",
+              "key": "flame_keeper",
+              "name": "Flame Keeper",
+              "threshold": 15
+            },
+            {
+              "color": "#64748b",
+              "earned": false,
+              "icon": "Shield",
+              "key": "iron_will",
+              "name": "Iron Will",
+              "threshold": 30
+            },
+            {
+              "color": "#06b6d4",
+              "earned": false,
+              "icon": "Gem",
+              "key": "diamond_mind",
+              "name": "Diamond Mind",
+              "threshold": 90
+            },
+            {
+              "color": "#a855f7",
+              "earned": false,
+              "icon": "Crown",
+              "key": "titan",
+              "name": "Titan",
+              "threshold": 120
+            },
+            {
+              "color": "#eab308",
+              "earned": false,
+              "icon": "Star",
+              "key": "legendary",
+              "name": "Legendary",
+              "threshold": 360
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 9,
+      "name": "own public profile with last_logged_at",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 0,
+          "following_count": 0,
+          "id": 1,
+          "is_private": false,
+          "is_verified": false,
+          "last_logged_at": "<TODAY>T00:00:00Z",
+          "profile_pic": null,
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "alice"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 10,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 11,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 12,
+      "name": "bob logs office 8h",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "office",
+          "date": "<TODAY>",
+          "hours": 8,
+          "username": "bob"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 13,
+      "name": "33-day streak awards four badges",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "bob"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-streak"
+      },
+      "response": {
+        "body": {
+          "data": {
+            "current": 33,
+            "date": "<TODAY>",
+            "id": 9,
+            "longest": 33,
+            "new_badges": [
+              {
+                "color": "#22c55e",
+                "earned": false,
+                "earned_at": "<TODAY>",
+                "icon": "Footprints",
+                "key": "first_step",
+                "name": "First Step",
+                "threshold": 1
+              },
+              {
+                "color": "#3b82f6",
+                "earned": false,
+                "earned_at": "<TODAY>",
+                "icon": "Zap",
+                "key": "spark_starter",
+                "name": "Spark Starter",
+                "threshold": 7
+              },
+              {
+                "color": "#f97316",
+                "earned": false,
+                "earned_at": "<TODAY>",
+                "icon": "Flame",
+                "key": "flame_keeper",
+                "name": "Flame Keeper",
+                "threshold": 15
+              },
+              {
+                "color": "#64748b",
+                "earned": false,
+                "earned_at": "<TODAY>",
+                "icon": "Shield",
+                "key": "iron_will",
+                "name": "Iron Will",
+                "threshold": 30
+              }
+            ]
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "alice views bob's badges",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "bob"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/badges/user"
+      },
+      "response": {
+        "body": {
+          "badges": [
+            {
+              "color": "#22c55e",
+              "earned": true,
+              "earned_at": "<TODAY>",
+              "icon": "Footprints",
+              "key": "first_step",
+              "name": "First Step",
+              "threshold": 1
+            },
+            {
+              "color": "#3b82f6",
+              "earned": true,
+              "earned_at": "<TODAY>",
+              "icon": "Zap",
+              "key": "spark_starter",
+              "name": "Spark Starter",
+              "threshold": 7
+            },
+            {
+              "color": "#f97316",
+              "earned": true,
+              "earned_at": "<TODAY>",
+              "icon": "Flame",
+              "key": "flame_keeper",
+              "name": "Flame Keeper",
+              "threshold": 15
+            },
+            {
+              "color": "#64748b",
+              "earned": true,
+              "earned_at": "<TODAY>",
+              "icon": "Shield",
+              "key": "iron_will",
+              "name": "Iron Will",
+              "threshold": 30
+            },
+            {
+              "color": "#06b6d4",
+              "earned": false,
+              "icon": "Gem",
+              "key": "diamond_mind",
+              "name": "Diamond Mind",
+              "threshold": 90
+            },
+            {
+              "color": "#a855f7",
+              "earned": false,
+              "icon": "Crown",
+              "key": "titan",
+              "name": "Titan",
+              "threshold": 120
+            },
+            {
+              "color": "#eab308",
+              "earned": false,
+              "icon": "Star",
+              "key": "legendary",
+              "name": "Legendary",
+              "threshold": 360
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

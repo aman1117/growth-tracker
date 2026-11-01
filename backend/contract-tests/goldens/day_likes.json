@@ -1,0 +1,1947 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Like/unlike/get-likes: validation, idempotency, own day, private accounts, notification dedupe.",
+  "domain": "likes",
+  "scenario": "day_likes",
+  "step_count": 50,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 5,
+      "name": "register carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "carol@parity.test",
+          "password": "Passw0rd123",
+          "username": "carol"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 6,
+      "name": "login carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "carol",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 7,
+      "name": "register dave",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "dave@parity.test",
+          "password": "Passw0rd123",
+          "username": "dave"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 8,
+      "name": "login dave",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "dave",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 9,
+      "name": "alice logs study 2h",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 2,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 10,
+      "name": "like: invalid JSON",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 11,
+      "name": "like: missing date",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "error": "Username and date are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 12,
+      "name": "like: missing username",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "error": "Username and date are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 13,
+      "name": "like: bad date",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "yesterday",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 14,
+      "name": "like: unknown user",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "ghost"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 15,
+      "name": "bob likes alice's day",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 16,
+      "name": "bob likes it again (idempotent, no error)",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 17,
+      "name": "carol likes alice's day",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 2,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 18,
+      "name": "dave likes alice's day",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:dave",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 3,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 19,
+      "name": "alice likes her own day",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 4,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 20,
+      "name": "a day without activities can be liked",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-3>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 21,
+      "name": "a future day can be liked",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY+5>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 22,
+      "name": "alice's like notifications (deduped, not for her own like)",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "bob liked your <TODAY+5:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 5,
+              "metadata": {
+                "liked_date": "<TODAY+5>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-3:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-3>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "dave liked your <TODAY:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liked_date": "<TODAY>",
+                "liker_avatar": "",
+                "liker_id": 4,
+                "liker_username": "dave"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "carol liked your <TODAY:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 5
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "get-likes: invalid JSON",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "get-likes: missing date",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "error": "Username and date are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 25,
+      "name": "get-likes: bad date",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "2026-13-01",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 26,
+      "name": "get-likes: unknown user",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "ghost"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 27,
+      "name": "get-likes: today (newest first)",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "count": 4,
+          "data": [
+            {
+              "id": 1,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "alice"
+            },
+            {
+              "id": 4,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "dave"
+            },
+            {
+              "id": 3,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "carol"
+            },
+            {
+              "id": 2,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "bob"
+            }
+          ],
+          "success": true,
+          "user_has_liked": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 28,
+      "name": "get-likes as bob",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "count": 4,
+          "data": [
+            {
+              "id": 1,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "alice"
+            },
+            {
+              "id": 4,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "dave"
+            },
+            {
+              "id": 3,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "carol"
+            },
+            {
+              "id": 2,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "bob"
+            }
+          ],
+          "success": true,
+          "user_has_liked": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 29,
+      "name": "get-likes: past day",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-3>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "count": 1,
+          "data": [
+            {
+              "id": 2,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "bob"
+            }
+          ],
+          "success": true,
+          "user_has_liked": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 30,
+      "name": "get-likes: day without likes",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-20>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "count": 0,
+          "data": [],
+          "success": true,
+          "user_has_liked": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 31,
+      "name": "unlike: invalid JSON",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/unlike-day"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 32,
+      "name": "unlike: missing username",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/unlike-day"
+      },
+      "response": {
+        "body": {
+          "error": "Username and date are required",
+          "error_code": "MISSING_FIELDS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 33,
+      "name": "unlike: bad date",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "x",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/unlike-day"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid date format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 34,
+      "name": "unlike: unknown user",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "ghost"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/unlike-day"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 35,
+      "name": "bob unlikes",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/unlike-day"
+      },
+      "response": {
+        "body": {
+          "liked": false,
+          "new_count": 3,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 36,
+      "name": "bob unlikes again",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/unlike-day"
+      },
+      "response": {
+        "body": {
+          "liked": false,
+          "new_count": 3,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 37,
+      "name": "get-likes after unlike",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "count": 3,
+          "data": [
+            {
+              "id": 1,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "alice"
+            },
+            {
+              "id": 4,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "dave"
+            },
+            {
+              "id": 3,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "carol"
+            }
+          ],
+          "success": true,
+          "user_has_liked": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 38,
+      "name": "bob likes again (notification dedupe)",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 4,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 39,
+      "name": "no second notification for the same like",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications/unread-count"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "unread_count": 5
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 40,
+      "name": "carol sets is_private=True",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "is_private": true
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/update-privacy"
+      },
+      "response": {
+        "body": {
+          "is_private": true,
+          "message": "Privacy setting updated",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 41,
+      "name": "carol logs sleep 8h",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "date": "<TODAY>",
+          "hours": 8,
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 42,
+      "name": "like a private account's day (not following)",
+      "ratelimit": {
+        "hits": 20,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "error": "Cannot like a private account's day",
+          "error_code": "ACCOUNT_PRIVATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "180"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 43,
+      "name": "get-likes of a private account (not following)",
+      "ratelimit": {
+        "hits": 21,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "error": "Cannot view likes for a private account",
+          "error_code": "ACCOUNT_PRIVATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "179"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 44,
+      "name": "unlike on a private account (not following)",
+      "ratelimit": {
+        "hits": 22,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/unlike-day"
+      },
+      "response": {
+        "body": {
+          "liked": false,
+          "new_count": 0,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "178"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 45,
+      "name": "bob requests to follow carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/3/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Follow request sent",
+          "state": "PENDING",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 46,
+      "name": "like while the request is pending",
+      "ratelimit": {
+        "hits": 23,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "error": "Cannot like a private account's day",
+          "error_code": "ACCOUNT_PRIVATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "177"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 47,
+      "name": "carol accepts bob",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/me/follow-requests/2/accept"
+      },
+      "response": {
+        "body": {
+          "message": "Follow request accepted",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 48,
+      "name": "like a private account's day (following)",
+      "ratelimit": {
+        "hits": 24,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "176"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 49,
+      "name": "get-likes of a private account (following)",
+      "ratelimit": {
+        "hits": 25,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "count": 1,
+          "data": [
+            {
+              "id": 2,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "bob"
+            }
+          ],
+          "success": true,
+          "user_has_liked": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "175"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 50,
+      "name": "owner sees likes on her private day",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "carol"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-likes"
+      },
+      "response": {
+        "body": {
+          "count": 1,
+          "data": [
+            {
+              "id": 2,
+              "is_verified": false,
+              "liked_at": "<TIME +05:30>",
+              "username": "bob"
+            }
+          ],
+          "success": true,
+          "user_has_liked": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

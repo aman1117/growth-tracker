@@ -1,22 +1,11 @@
-# Development Dockerfile with Delve debugger for Push Worker
-ARG GO_VERSION=1.25
-FROM golang:${GO_VERSION}-alpine
+# Development image: rebuilds and restarts the push worker whenever the source changes.
+ARG RUST_VERSION=1
+FROM rust:${RUST_VERSION}-bookworm
+
+RUN cargo install cargo-watch --locked
 
 WORKDIR /app
 
-# Install git and Delve debugger
-RUN apk add --no-cache git curl ca-certificates tzdata && \
-    go install github.com/go-delve/delve/cmd/dlv@latest
+EXPOSE 8001
 
-# Copy go mod files
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy source code (will be overwritten by volume mount)
-COPY . .
-
-# Expose ports: 8001 for health check, 2346 for debugger
-EXPOSE 8001 2346
-
-# Build and run with Delve debugger (no --continue so debugger can attach first)
-CMD sh -c "go build -gcflags='all=-N -l' -o /tmp/pushworker ./cmd/pushworker && dlv exec /tmp/pushworker --headless --listen=:2346 --api-version=2 --accept-multiclient --log"
+CMD ["cargo", "watch", "--poll", "-w", "crates", "-w", "Cargo.toml", "-x", "run --bin pushworker"]

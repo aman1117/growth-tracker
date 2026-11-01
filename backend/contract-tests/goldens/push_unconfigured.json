@@ -1,0 +1,175 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Without VAPID keys / maintenance key configured.",
+  "domain": "notifications",
+  "scenario": "push_unconfigured",
+  "step_count": 5,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 3,
+      "name": "VAPID key not configured",
+      "request": {
+        "method": "GET",
+        "path": "/api/push/vapid-public-key"
+      },
+      "response": {
+        "body": {
+          "error": "Push notifications not configured",
+          "error_code": "CONFIG_ERROR",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 500
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 4,
+      "name": "maintenance endpoints disabled",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "X-Maintenance-Key": "parity-maintenance-key"
+        },
+        "method": "POST",
+        "path": "/api/push/cleanup"
+      },
+      "response": {
+        "body": {
+          "error": "Maintenance endpoints are disabled",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 5,
+      "name": "register without a configured key id",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "keyId": "anything",
+          "subscription": {
+            "endpoint": "https://push.example.com/abc",
+            "keys": {
+              "auth": "a",
+              "p256dh": "k"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/push/subscriptions"
+      },
+      "response": {
+        "body": {
+          "message": "Subscription registered successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

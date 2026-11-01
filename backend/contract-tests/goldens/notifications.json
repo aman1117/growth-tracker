@@ -1,0 +1,1770 @@
+{
+  "date_anchor": "TODAY",
+  "description": "List with page/page_size, unread count, mark read (no ownership check), read-all, delete.",
+  "domain": "notifications",
+  "scenario": "notifications",
+  "step_count": 42,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 5,
+      "name": "register carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "carol@parity.test",
+          "password": "Passw0rd123",
+          "username": "carol"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 6,
+      "name": "login carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "carol",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 7,
+      "name": "no notifications yet",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 0
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 8,
+      "name": "unread count 0",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications/unread-count"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "unread_count": 0
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 9,
+      "name": "bob likes alice's day -6",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-6>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 10,
+      "name": "bob likes alice's day -5",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-5>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 11,
+      "name": "bob likes alice's day -4",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-4>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 12,
+      "name": "carol likes alice's day -4",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-4>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 2,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 13,
+      "name": "unread count 4",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications/unread-count"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "unread_count": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "all notifications (newest first)",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "carol liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-5:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY-5>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-6:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY-6>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 15,
+      "name": "page 1 of size 2",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications?page=1&page_size=2"
+      },
+      "response": {
+        "body": {
+          "has_more": true,
+          "notifications": [
+            {
+              "body": "carol liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 2,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 16,
+      "name": "page 2 of size 2",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications?page=2&page_size=2"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "bob liked your <TODAY-5:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY-5>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-6:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY-6>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 2,
+          "page_size": 2,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 17,
+      "name": "page beyond the end",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications?page=3&page_size=2"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [],
+          "page": 3,
+          "page_size": 2,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 18,
+      "name": "page=0 and page_size=0 fall back to defaults",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications?page=0&page_size=0"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "carol liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-5:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY-5>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-6:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY-6>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 19,
+      "name": "negative values fall back to defaults",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications?page=-1&page_size=-5"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "carol liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-5:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY-5>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-6:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY-6>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 20,
+      "name": "page_size above 50 is capped",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications?page_size=51"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "carol liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-5:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY-5>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-6:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY-6>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 50,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "non-numeric values fall back to defaults",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications?page=abc&page_size=xyz"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "carol liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-5:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY-5>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-6:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY-6>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 22,
+      "name": "mark read: invalid id",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/abc/read"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid notification ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "mark read: negative id",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/-1/read"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid notification ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "mark the newest as read",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/4/read"
+      },
+      "response": {
+        "body": {
+          "message": "Notification marked as read",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 25,
+      "name": "mark it read again (idempotent)",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/4/read"
+      },
+      "response": {
+        "body": {
+          "message": "Notification marked as read",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 26,
+      "name": "mark read: unknown id (still 200)",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/999999/read"
+      },
+      "response": {
+        "body": {
+          "message": "Notification marked as read",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 27,
+      "name": "bob marks alice's notification (no effect)",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/3/read"
+      },
+      "response": {
+        "body": {
+          "message": "Notification marked as read",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 28,
+      "name": "unread count after marking one",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications/unread-count"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "unread_count": 3
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 29,
+      "name": "read_at is set on the first",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications?page_size=2"
+      },
+      "response": {
+        "body": {
+          "has_more": true,
+          "notifications": [
+            {
+              "body": "carol liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "read_at": "<TIME Z skew=+05:30>",
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 3,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 2,
+          "success": true,
+          "total": 4
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 30,
+      "name": "delete: invalid id",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/notifications/abc"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid notification ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 31,
+      "name": "delete: unknown id",
+      "ratelimit": {
+        "hits": 20,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/notifications/999999"
+      },
+      "response": {
+        "body": {
+          "error": "Notification not found",
+          "error_code": "NOTIFICATION_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "180"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 32,
+      "name": "delete: someone else's notification",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/notifications/3"
+      },
+      "response": {
+        "body": {
+          "error": "Notification not found",
+          "error_code": "NOTIFICATION_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 33,
+      "name": "delete an unread notification",
+      "ratelimit": {
+        "hits": 21,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/notifications/3"
+      },
+      "response": {
+        "body": {
+          "message": "Notification deleted",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "179"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 34,
+      "name": "delete it again",
+      "ratelimit": {
+        "hits": 22,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/notifications/3"
+      },
+      "response": {
+        "body": {
+          "error": "Notification not found",
+          "error_code": "NOTIFICATION_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "178"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 35,
+      "name": "unread count after deleting one",
+      "ratelimit": {
+        "hits": 23,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications/unread-count"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "unread_count": 2
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "177"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 36,
+      "name": "mark all as read",
+      "ratelimit": {
+        "hits": 24,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/read-all"
+      },
+      "response": {
+        "body": {
+          "message": "All notifications marked as read",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "176"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 37,
+      "name": "mark all as read again",
+      "ratelimit": {
+        "hits": 25,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/read-all"
+      },
+      "response": {
+        "body": {
+          "message": "All notifications marked as read",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "175"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 38,
+      "name": "unread count after read-all",
+      "ratelimit": {
+        "hits": 26,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications/unread-count"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "unread_count": 0
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "174"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 39,
+      "name": "everything read",
+      "ratelimit": {
+        "hits": 27,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "carol liked your <TODAY-4:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 4,
+              "metadata": {
+                "liked_date": "<TODAY-4>",
+                "liker_avatar": "",
+                "liker_id": 3,
+                "liker_username": "carol"
+              },
+              "read_at": "<TIME Z skew=+05:30>",
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-5:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY-5>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "read_at": "<TIME Z skew=+05:30>",
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY-6:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY-6>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "read_at": "<TIME Z skew=+05:30>",
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 3
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "173"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 40,
+      "name": "read-all with no notifications",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "PATCH",
+        "path": "/api/notifications/read-all"
+      },
+      "response": {
+        "body": {
+          "message": "All notifications marked as read",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 41,
+      "name": "bob has no notifications",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 0
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 42,
+      "name": "POST on a PATCH route",
+      "ratelimit": {
+        "hits": 28,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/notifications/read-all"
+      },
+      "response": {
+        "body": "Method Not Allowed",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "172"
+        },
+        "status": 405
+      }
+    }
+  ]
+}

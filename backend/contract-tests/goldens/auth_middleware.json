@@ -1,0 +1,1348 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Authorization header handling: missing, non-Bearer, malformed, expired, wrong key, alg=none, unknown user.",
+  "domain": "basics",
+  "scenario": "auth_middleware",
+  "step_count": 46,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 3,
+      "name": "GET /api/profile: missing Authorization header",
+      "request": {
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 4,
+      "name": "GET /api/profile: Basic scheme",
+      "request": {
+        "headers": {
+          "Authorization": "Basic YWxpY2U6c2VjcmV0"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 5,
+      "name": "GET /api/profile: lower-case bearer",
+      "request": {
+        "headers": {
+          "Authorization": "bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 6,
+      "name": "GET /api/profile: Bearer without space",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 7,
+      "name": "GET /api/profile: Bearer with empty token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer "
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid Authorization Header",
+          "error_code": "INVALID_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 8,
+      "name": "GET /api/profile: Bearer with garbage",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer not-a-jwt"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 9,
+      "name": "GET /api/profile: Bearer with extra spaces",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer    <JWT>   "
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "bio": null,
+          "email": "alice@parity.test",
+          "email_verified": false,
+          "followers_count": 0,
+          "following_count": 0,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "success": true,
+          "username": "alice"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 10,
+      "name": "GET /api/profile: expired token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 11,
+      "name": "GET /api/profile: token signed with another key",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 12,
+      "name": "GET /api/profile: alg=none token",
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid token",
+          "error_code": "INVALID_TOKEN",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 13,
+      "name": "GET /api/profile: HS512 token with the right key",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "bio": null,
+          "email": "alice@parity.test",
+          "email_verified": false,
+          "followers_count": 0,
+          "following_count": 0,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "success": true,
+          "username": "alice"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 14,
+      "name": "POST /api/create-activity without token",
+      "request": {
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 15,
+      "name": "GET /api/notifications without token",
+      "request": {
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 16,
+      "name": "POST /api/relationships/lookup without token",
+      "request": {
+        "method": "POST",
+        "path": "/api/relationships/lookup"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 17,
+      "name": "GET /api/challenges without token",
+      "request": {
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 18,
+      "name": "DELETE /api/comments/1 without token",
+      "request": {
+        "method": "DELETE",
+        "path": "/api/comments/1"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 19,
+      "name": "POST /api/auth/resend-verification without token",
+      "request": {
+        "method": "POST",
+        "path": "/api/auth/resend-verification"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 20,
+      "name": "PUT /api/push/preferences without token",
+      "request": {
+        "method": "PUT",
+        "path": "/api/push/preferences"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 21,
+      "name": "GET /api/autocomplete/users without token",
+      "request": {
+        "method": "GET",
+        "path": "/api/autocomplete/users?q=al"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 22,
+      "name": "POST /api/users/1/follow without token",
+      "request": {
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 23,
+      "name": "GET /api/search/suggestions without token",
+      "request": {
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 24,
+      "name": "POST /api/change-password without token",
+      "request": {
+        "method": "POST",
+        "path": "/api/change-password"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 25,
+      "name": "GET /api/me/follow-requests/incoming without token",
+      "request": {
+        "method": "GET",
+        "path": "/api/me/follow-requests/incoming"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 26,
+      "name": "GET /api/days/alice/2026-11-01/comments without token",
+      "request": {
+        "method": "GET",
+        "path": "/api/days/alice/<TODAY>/comments"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 27,
+      "name": "GET /api/challenge-codes/ABCDEFGH without token",
+      "request": {
+        "method": "GET",
+        "path": "/api/challenge-codes/ABCDEFGH"
+      },
+      "response": {
+        "body": {
+          "error": "Missing Authorization Header",
+          "error_code": "MISSING_AUTH_HEADER",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 28,
+      "name": "GET /api/profile as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 29,
+      "name": "GET /api/get-privacy as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/get-privacy"
+      },
+      "response": {
+        "body": {
+          "error": "Failed to get privacy setting",
+          "error_code": "FETCH_FAILED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 500
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 30,
+      "name": "GET /api/get-bio as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/get-bio"
+      },
+      "response": {
+        "body": {
+          "error": "Failed to get bio",
+          "error_code": "FETCH_FAILED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 500
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 31,
+      "name": "GET /api/tile-config as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/tile-config"
+      },
+      "response": {
+        "body": {
+          "data": null,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 32,
+      "name": "GET /api/badges as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/badges"
+      },
+      "response": {
+        "body": {
+          "badges": [
+            {
+              "color": "#22c55e",
+              "earned": false,
+              "icon": "Footprints",
+              "key": "first_step",
+              "name": "First Step",
+              "threshold": 1
+            },
+            {
+              "color": "#3b82f6",
+              "earned": false,
+              "icon": "Zap",
+              "key": "spark_starter",
+              "name": "Spark Starter",
+              "threshold": 7
+            },
+            {
+              "color": "#f97316",
+              "earned": false,
+              "icon": "Flame",
+              "key": "flame_keeper",
+              "name": "Flame Keeper",
+              "threshold": 15
+            },
+            {
+              "color": "#64748b",
+              "earned": false,
+              "icon": "Shield",
+              "key": "iron_will",
+              "name": "Iron Will",
+              "threshold": 30
+            },
+            {
+              "color": "#06b6d4",
+              "earned": false,
+              "icon": "Gem",
+              "key": "diamond_mind",
+              "name": "Diamond Mind",
+              "threshold": 90
+            },
+            {
+              "color": "#a855f7",
+              "earned": false,
+              "icon": "Crown",
+              "key": "titan",
+              "name": "Titan",
+              "threshold": 120
+            },
+            {
+              "color": "#eab308",
+              "earned": false,
+              "icon": "Star",
+              "key": "legendary",
+              "name": "Legendary",
+              "threshold": 360
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 33,
+      "name": "GET /api/notifications as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 0
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 34,
+      "name": "GET /api/notifications/unread-count as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications/unread-count"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "unread_count": 0
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 35,
+      "name": "POST /api/auth/resend-verification as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/auth/resend-verification"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 36,
+      "name": "GET /api/challenges as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenges": [],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 37,
+      "name": "GET /api/push/preferences as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/push/preferences"
+      },
+      "response": {
+        "body": {
+          "preferences": {
+            "preferences": {},
+            "push_enabled": true,
+            "quiet_hours_enabled": false,
+            "timezone": "Asia/Kolkata"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 38,
+      "name": "GET /api/search/suggestions as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 1,
+        "key": "autocomplete:user987654",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "recent": [],
+          "trending": [
+            {
+              "followersCount": 0,
+              "id": 1,
+              "isVerified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "59"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 39,
+      "name": "POST /api/update-bio as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "bio": "ghost bio"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/update-bio"
+      },
+      "response": {
+        "body": {
+          "bio": "ghost bio",
+          "message": "Bio updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 40,
+      "name": "POST /api/get-activities as a deleted/unknown user",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:user987654",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "end_date": "<TODAY>",
+          "start_date": "<TODAY-1>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-activities"
+      },
+      "response": {
+        "body": {
+          "data": [],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 41,
+      "name": "token username differs from the DB username",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "error": "You are not authorized to create activity for this username",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 42,
+      "name": "token username used for the ownership check",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "mallory"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 43,
+      "name": "token without user_id claim: challenges",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:ip#2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "error": "Authentication required",
+          "error_code": "UNAUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 44,
+      "name": "token without user_id claim: suggestions",
+      "ratelimit": {
+        "hits": 1,
+        "key": "autocomplete:ip#2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/search/suggestions"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user context",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "59"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "anon",
+      "index": 45,
+      "name": "token without user_id claim: followers",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:ip#2",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers"
+      },
+      "response": {
+        "body": {
+          "error": "Authentication required",
+          "error_code": "UNAUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 46,
+      "name": "valid token still works",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "bio": null,
+          "email": "alice@parity.test",
+          "email_verified": false,
+          "followers_count": 0,
+          "following_count": 0,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "success": true,
+          "username": "alice"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

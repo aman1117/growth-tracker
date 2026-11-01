@@ -24,9 +24,10 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   `ThemePicker`, `useEscapeKey` (only the top-most overlay handles Escape) and `useBodyScrollLock`
   (one reference-counted scroll lock shared by all overlays).
 - Automated unit test suites for both apps. The frontend uses Vitest, React Testing Library and
-  jsdom; the backend uses Go's `testing` package with testify, a real PostgreSQL 16 (embedded, or
-  `TEST_DATABASE_URL`), in-memory Redis, and local fakes for Azure Blob Storage, Resend and Web
-  Push. Shared helpers live in `frontend/src/test` and `backend/internal/testutil`.
+  jsdom; the backend uses `cargo test` with unit tests next to the code and integration tests
+  against a real PostgreSQL 16 and Redis (`TEST_DATABASE_URL`/`REDIS_URL`), with local fakes for
+  Azure Blob Storage, Resend and Web Push. Shared helpers live in `frontend/src/test` and each
+  backend crate's `tests/common`.
 - CI runs both suites with 90% coverage gates and publishes the coverage reports. New commands:
   `npm test`, `npm run test:coverage`, `make test`, `make frontend-coverage` and
   `make backend-coverage`; `make check` now runs the tests too.
@@ -45,6 +46,21 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   `/api/challenge-codes`.
 
 ### Changed
+- The backend is rewritten from Go (Fiber, GORM) to Rust (axum, tokio, sqlx) as a Cargo workspace
+  in `backend/crates/`. The HTTP API is unchanged: every route, status code, header, JSON body,
+  rate limit, WebSocket message and timestamp format matches the Go server, verified by a golden
+  contract suite recorded from it (`backend/contract-tests/`, `make backend-contract`). The
+  environment variables, Docker image names, ports, Compose services and deployment workflows are
+  unchanged. Other changes:
+  - The full database schema, including the extensions, indexes and tables previously added by the
+    manual `migrations/*.go` scripts, is created or brought up to date automatically at startup.
+  - The push worker and CLI tools are Rust binaries: `pushworker`, `seed`, `seed_badges`,
+    `send_reminders`, `test_reminder` and `backfill_profile_thumbs` (`cargo run --bin <name>`).
+  - Local hot reload uses `cargo watch` instead of Air, and debugging uses CodeLLDB instead of
+    Delve.
+  - The server shuts down gracefully on SIGTERM/Ctrl-C, finishing in-flight requests.
+  - JSON request keys must match exactly (the Go decoder also accepted other letter cases, e.g.
+    `Username` for `username`); the web app always sends the exact keys.
 - New original logo: a "leaf check" mark (two leaves forming a check — growth you can track) with a
   Bricolage Grotesque wordmark, in solid brand colours with no gradients. It replaces the script
   wordmark everywhere: app header, sign-in, favicon, installed-app icons, Android TWA, help center
@@ -72,6 +88,11 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
 - `GET /api/tile-config` and `POST /api/tile-config/user` return 500 (`FETCH_FAILED`) when the
   database fails, instead of `{"success": true, "data": null}`, which means "no layout saved".
 
+### Removed
+- The Go-only runtime profiling endpoints (`/debug/pprof`, `PPROF_*` variables). Use OS-level
+  profilers (`perf`, `samply`, `cargo flamegraph`) instead.
+- The manual `migrations/*.go` scripts (the schema is applied automatically; badge backfill is
+  `cargo run --bin seed_badges`).
 ### Fixed
 - Login could fail for tokens containing base64url characters (`-`/`_`).
 - Searching a user created duplicate history entries (Back appeared to do nothing).

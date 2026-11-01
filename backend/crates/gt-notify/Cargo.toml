@@ -1,0 +1,43 @@
+[package]
+name = "gt-notify"
+description = "In-app notifications, real-time WebSocket delivery and Web Push for Growth Tracker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "pushworker"
+path = "src/bin/pushworker.rs"
+
+[dependencies]
+gt-core.workspace = true
+axum.workspace = true
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+redis.workspace = true
+chrono.workspace = true
+chrono-tz.workspace = true
+uuid.workspace = true
+tracing.workspace = true
+reqwest.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+futures.workspace = true
+base64.workspace = true
+hmac.workspace = true
+sha2.workspace = true
+url.workspace = true
+arc-swap.workspace = true
+async-trait.workspace = true
+rand.workspace = true
+p256.workspace = true
+hkdf.workspace = true
+aes-gcm.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+tokio-tungstenite.workspace = true
+tower.workspace = true

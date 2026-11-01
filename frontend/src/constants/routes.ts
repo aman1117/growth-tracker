@@ -4,8 +4,8 @@
  * Centralized definition of all API endpoints used in the application.
  * This prevents typos and makes endpoint changes easier to manage.
  *
- * These routes must match the backend routes defined in:
- * backend/internal/routes/routes.go
+ * These routes must match the backend routes defined in the `routes.rs` of each
+ * feature crate under backend/crates/ (assembled in backend/crates/gt-server/src/main.rs).
  */
 
 export const API_ROUTES = {

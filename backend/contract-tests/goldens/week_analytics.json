@@ -1,0 +1,1955 @@
+{
+  "date_anchor": "WEEK",
+  "description": "Current, previous and arbitrary weeks: totals, float32 percentages, daily breakdown, summary, streak, privacy.",
+  "domain": "analytics",
+  "scenario": "week_analytics",
+  "step_count": 33,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 5,
+      "name": "alice logs study 2h",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<WEEK-14>",
+          "hours": 2,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 6,
+      "name": "alice logs study 3.5h",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<WEEK-13>",
+          "hours": 3.5,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 7,
+      "name": "alice logs sleep 7h",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "date": "<WEEK-13>",
+          "hours": 7,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 8,
+      "name": "alice logs workout 1h",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "workout",
+          "date": "<WEEK-10>",
+          "hours": 1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 9,
+      "name": "alice logs study 4h",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<WEEK-7>",
+          "hours": 4,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 10,
+      "name": "alice logs sleep 8h",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "date": "<WEEK-7>",
+          "hours": 8,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 11,
+      "name": "alice logs reels 0.5h",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "reels",
+          "date": "<WEEK-7>",
+          "hours": 0.5,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 12,
+      "name": "alice logs office 9.25h",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "office",
+          "date": "<WEEK-6>",
+          "hours": 9.25,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 13,
+      "name": "alice logs eating 1.75h",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "eating",
+          "date": "<WEEK-6>",
+          "hours": 1.75,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "alice logs sleep 6.5h",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "date": "<WEEK-5>",
+          "hours": 6.5,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 15,
+      "name": "alice logs friends 2.25h",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "friends",
+          "date": "<WEEK-4>",
+          "hours": 2.25,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 16,
+      "name": "alice logs creative 1.1h",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "creative",
+          "date": "<WEEK-3>",
+          "hours": 1.1,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 17,
+      "name": "alice logs study 0.333h",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<WEEK-2>",
+          "hours": 0.333,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 18,
+      "name": "alice logs rest 0h",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "rest",
+          "date": "<WEEK-2>",
+          "hours": 0,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 19,
+      "name": "activity on the last day of the current week",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "date": "<WEEK+6>",
+          "hours": 7.5,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 20,
+      "name": "invalid JSON",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "missing week_start",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": ""
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid week_start format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 22,
+      "name": "bad week_start",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "2026/01/05"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid week_start format, use YYYY-MM-DD",
+          "error_code": "INVALID_DATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "unknown user",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "ghost",
+          "week_start": "<WEEK>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "error": "Failed to find user",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "previous week vs the week before and the current week",
+      "ratelimit": {
+        "hits": 20,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "<WEEK-7>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "activity_summary": [
+            {
+              "name": "sleep",
+              "total_hours": 14.5
+            },
+            {
+              "name": "office",
+              "total_hours": 9.25
+            },
+            {
+              "name": "study",
+              "total_hours": 4.33
+            },
+            {
+              "name": "friends",
+              "total_hours": 2.25
+            },
+            {
+              "name": "eating",
+              "total_hours": 1.75
+            },
+            {
+              "name": "creative",
+              "total_hours": 1.1
+            },
+            {
+              "name": "reels",
+              "total_hours": 0.5
+            }
+          ],
+          "daily_breakdown": [
+            {
+              "activities": [
+                {
+                  "hours": 8,
+                  "name": "sleep"
+                },
+                {
+                  "hours": 4,
+                  "name": "study"
+                },
+                {
+                  "hours": 0.5,
+                  "name": "reels"
+                }
+              ],
+              "date": "<WEEK-7>",
+              "day_name": "Mon",
+              "total_hours": 12.5
+            },
+            {
+              "activities": [
+                {
+                  "hours": 9.25,
+                  "name": "office"
+                },
+                {
+                  "hours": 1.75,
+                  "name": "eating"
+                }
+              ],
+              "date": "<WEEK-6>",
+              "day_name": "Tue",
+              "total_hours": 11
+            },
+            {
+              "activities": [
+                {
+                  "hours": 6.5,
+                  "name": "sleep"
+                }
+              ],
+              "date": "<WEEK-5>",
+              "day_name": "Wed",
+              "total_hours": 6.5
+            },
+            {
+              "activities": [
+                {
+                  "hours": 2.25,
+                  "name": "friends"
+                }
+              ],
+              "date": "<WEEK-4>",
+              "day_name": "Thu",
+              "total_hours": 2.25
+            },
+            {
+              "activities": [
+                {
+                  "hours": 1.1,
+                  "name": "creative"
+                }
+              ],
+              "date": "<WEEK-3>",
+              "day_name": "Fri",
+              "total_hours": 1.1
+            },
+            {
+              "activities": [
+                {
+                  "hours": 0.33,
+                  "name": "study"
+                }
+              ],
+              "date": "<WEEK-2>",
+              "day_name": "Sat",
+              "total_hours": 0.33
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-1>",
+              "day_name": "Sun",
+              "total_hours": 0
+            }
+          ],
+          "is_current_week": false,
+          "percentage_change": 149.48149,
+          "percentage_vs_current": 349.06665,
+          "streak": {
+            "current": 1,
+            "longest": 1,
+            "longest_end": "<WEEK+6>",
+            "longest_start": "<WEEK+6>"
+          },
+          "success": true,
+          "total_hours_current_week": 7.5,
+          "total_hours_prev_week": 13.5,
+          "total_hours_this_week": 33.68
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "180"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 25,
+      "name": "two weeks ago (no earlier data: +100%)",
+      "ratelimit": {
+        "hits": 21,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "<WEEK-14>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "activity_summary": [
+            {
+              "name": "sleep",
+              "total_hours": 7
+            },
+            {
+              "name": "study",
+              "total_hours": 5.5
+            },
+            {
+              "name": "workout",
+              "total_hours": 1
+            }
+          ],
+          "daily_breakdown": [
+            {
+              "activities": [
+                {
+                  "hours": 2,
+                  "name": "study"
+                }
+              ],
+              "date": "<WEEK-14>",
+              "day_name": "Mon",
+              "total_hours": 2
+            },
+            {
+              "activities": [
+                {
+                  "hours": 7,
+                  "name": "sleep"
+                },
+                {
+                  "hours": 3.5,
+                  "name": "study"
+                }
+              ],
+              "date": "<WEEK-13>",
+              "day_name": "Tue",
+              "total_hours": 10.5
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-12>",
+              "day_name": "Wed",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-11>",
+              "day_name": "Thu",
+              "total_hours": 0
+            },
+            {
+              "activities": [
+                {
+                  "hours": 1,
+                  "name": "workout"
+                }
+              ],
+              "date": "<WEEK-10>",
+              "day_name": "Fri",
+              "total_hours": 1
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-9>",
+              "day_name": "Sat",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-8>",
+              "day_name": "Sun",
+              "total_hours": 0
+            }
+          ],
+          "is_current_week": false,
+          "percentage_change": 100,
+          "percentage_vs_current": 80,
+          "streak": {
+            "current": 1,
+            "longest": 1,
+            "longest_end": "<WEEK+6>",
+            "longest_start": "<WEEK+6>"
+          },
+          "success": true,
+          "total_hours_current_week": 7.5,
+          "total_hours_prev_week": 0,
+          "total_hours_this_week": 13.5
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "179"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 26,
+      "name": "current week",
+      "ratelimit": {
+        "hits": 22,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "<WEEK>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "activity_summary": [
+            {
+              "name": "sleep",
+              "total_hours": 7.5
+            }
+          ],
+          "daily_breakdown": [
+            {
+              "activities": [],
+              "date": "<WEEK>",
+              "day_name": "Mon",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK+1>",
+              "day_name": "Tue",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK+2>",
+              "day_name": "Wed",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK+3>",
+              "day_name": "Thu",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK+4>",
+              "day_name": "Fri",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK+5>",
+              "day_name": "Sat",
+              "total_hours": 0
+            },
+            {
+              "activities": [
+                {
+                  "hours": 7.5,
+                  "name": "sleep"
+                }
+              ],
+              "date": "<WEEK+6>",
+              "day_name": "Sun",
+              "total_hours": 7.5
+            }
+          ],
+          "is_current_week": true,
+          "percentage_change": -77.73159,
+          "percentage_vs_current": 0,
+          "streak": {
+            "current": 1,
+            "longest": 1,
+            "longest_end": "<WEEK+6>",
+            "longest_start": "<WEEK+6>"
+          },
+          "success": true,
+          "total_hours_current_week": 0,
+          "total_hours_prev_week": 33.68,
+          "total_hours_this_week": 7.5
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "178"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 27,
+      "name": "a week without any data",
+      "ratelimit": {
+        "hits": 23,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "<WEEK-35>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "activity_summary": [],
+          "daily_breakdown": [
+            {
+              "activities": [],
+              "date": "<WEEK-35>",
+              "day_name": "Mon",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-34>",
+              "day_name": "Tue",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-33>",
+              "day_name": "Wed",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-32>",
+              "day_name": "Thu",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-31>",
+              "day_name": "Fri",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-30>",
+              "day_name": "Sat",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-29>",
+              "day_name": "Sun",
+              "total_hours": 0
+            }
+          ],
+          "is_current_week": false,
+          "percentage_change": 0,
+          "percentage_vs_current": -100,
+          "streak": {
+            "current": 1,
+            "longest": 1,
+            "longest_end": "<WEEK+6>",
+            "longest_start": "<WEEK+6>"
+          },
+          "success": true,
+          "total_hours_current_week": 7.5,
+          "total_hours_prev_week": 0,
+          "total_hours_this_week": 0
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "177"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 28,
+      "name": "window starting on a Wednesday",
+      "ratelimit": {
+        "hits": 24,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "<WEEK-12>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "activity_summary": [
+            {
+              "name": "office",
+              "total_hours": 9.25
+            },
+            {
+              "name": "sleep",
+              "total_hours": 8
+            },
+            {
+              "name": "study",
+              "total_hours": 4
+            },
+            {
+              "name": "eating",
+              "total_hours": 1.75
+            },
+            {
+              "name": "workout",
+              "total_hours": 1
+            },
+            {
+              "name": "reels",
+              "total_hours": 0.5
+            }
+          ],
+          "daily_breakdown": [
+            {
+              "activities": [],
+              "date": "<WEEK-12>",
+              "day_name": "Mon",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-11>",
+              "day_name": "Tue",
+              "total_hours": 0
+            },
+            {
+              "activities": [
+                {
+                  "hours": 1,
+                  "name": "workout"
+                }
+              ],
+              "date": "<WEEK-10>",
+              "day_name": "Wed",
+              "total_hours": 1
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-9>",
+              "day_name": "Thu",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-8>",
+              "day_name": "Fri",
+              "total_hours": 0
+            },
+            {
+              "activities": [
+                {
+                  "hours": 8,
+                  "name": "sleep"
+                },
+                {
+                  "hours": 4,
+                  "name": "study"
+                },
+                {
+                  "hours": 0.5,
+                  "name": "reels"
+                }
+              ],
+              "date": "<WEEK-7>",
+              "day_name": "Sat",
+              "total_hours": 12.5
+            },
+            {
+              "activities": [
+                {
+                  "hours": 9.25,
+                  "name": "office"
+                },
+                {
+                  "hours": 1.75,
+                  "name": "eating"
+                }
+              ],
+              "date": "<WEEK-6>",
+              "day_name": "Sun",
+              "total_hours": 11
+            }
+          ],
+          "is_current_week": false,
+          "percentage_change": 96,
+          "percentage_vs_current": 226.66667,
+          "streak": {
+            "current": 1,
+            "longest": 1,
+            "longest_end": "<WEEK+6>",
+            "longest_start": "<WEEK+6>"
+          },
+          "success": true,
+          "total_hours_current_week": 7.5,
+          "total_hours_prev_week": 12.5,
+          "total_hours_this_week": 24.5
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "176"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 29,
+      "name": "another user views alice's analytics",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "<WEEK-7>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "activity_summary": [
+            {
+              "name": "sleep",
+              "total_hours": 14.5
+            },
+            {
+              "name": "office",
+              "total_hours": 9.25
+            },
+            {
+              "name": "study",
+              "total_hours": 4.33
+            },
+            {
+              "name": "friends",
+              "total_hours": 2.25
+            },
+            {
+              "name": "eating",
+              "total_hours": 1.75
+            },
+            {
+              "name": "creative",
+              "total_hours": 1.1
+            },
+            {
+              "name": "reels",
+              "total_hours": 0.5
+            }
+          ],
+          "daily_breakdown": [
+            {
+              "activities": [
+                {
+                  "hours": 8,
+                  "name": "sleep"
+                },
+                {
+                  "hours": 4,
+                  "name": "study"
+                },
+                {
+                  "hours": 0.5,
+                  "name": "reels"
+                }
+              ],
+              "date": "<WEEK-7>",
+              "day_name": "Mon",
+              "total_hours": 12.5
+            },
+            {
+              "activities": [
+                {
+                  "hours": 9.25,
+                  "name": "office"
+                },
+                {
+                  "hours": 1.75,
+                  "name": "eating"
+                }
+              ],
+              "date": "<WEEK-6>",
+              "day_name": "Tue",
+              "total_hours": 11
+            },
+            {
+              "activities": [
+                {
+                  "hours": 6.5,
+                  "name": "sleep"
+                }
+              ],
+              "date": "<WEEK-5>",
+              "day_name": "Wed",
+              "total_hours": 6.5
+            },
+            {
+              "activities": [
+                {
+                  "hours": 2.25,
+                  "name": "friends"
+                }
+              ],
+              "date": "<WEEK-4>",
+              "day_name": "Thu",
+              "total_hours": 2.25
+            },
+            {
+              "activities": [
+                {
+                  "hours": 1.1,
+                  "name": "creative"
+                }
+              ],
+              "date": "<WEEK-3>",
+              "day_name": "Fri",
+              "total_hours": 1.1
+            },
+            {
+              "activities": [
+                {
+                  "hours": 0.33,
+                  "name": "study"
+                }
+              ],
+              "date": "<WEEK-2>",
+              "day_name": "Sat",
+              "total_hours": 0.33
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-1>",
+              "day_name": "Sun",
+              "total_hours": 0
+            }
+          ],
+          "is_current_week": false,
+          "percentage_change": 149.48149,
+          "percentage_vs_current": 349.06665,
+          "streak": {
+            "current": 1,
+            "longest": 1,
+            "longest_end": "<WEEK+6>",
+            "longest_start": "<WEEK+6>"
+          },
+          "success": true,
+          "total_hours_current_week": 7.5,
+          "total_hours_prev_week": 13.5,
+          "total_hours_this_week": 33.68
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 30,
+      "name": "bob's own empty analytics",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "bob",
+          "week_start": "<WEEK-7>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "activity_summary": [],
+          "daily_breakdown": [
+            {
+              "activities": [],
+              "date": "<WEEK-7>",
+              "day_name": "Mon",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-6>",
+              "day_name": "Tue",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-5>",
+              "day_name": "Wed",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-4>",
+              "day_name": "Thu",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-3>",
+              "day_name": "Fri",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-2>",
+              "day_name": "Sat",
+              "total_hours": 0
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-1>",
+              "day_name": "Sun",
+              "total_hours": 0
+            }
+          ],
+          "is_current_week": false,
+          "percentage_change": 0,
+          "percentage_vs_current": 0,
+          "streak": {
+            "current": 0,
+            "longest": 0
+          },
+          "success": true,
+          "total_hours_current_week": 0,
+          "total_hours_prev_week": 0,
+          "total_hours_this_week": 0
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 31,
+      "name": "alice sets is_private=True",
+      "ratelimit": {
+        "hits": 25,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "is_private": true
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/update-privacy"
+      },
+      "response": {
+        "body": {
+          "is_private": true,
+          "message": "Privacy setting updated",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "175"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 32,
+      "name": "private account, not following",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "<WEEK-7>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "error": "This account is private",
+          "error_code": "ACCOUNT_PRIVATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 33,
+      "name": "private account, owner",
+      "ratelimit": {
+        "hits": 26,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice",
+          "week_start": "<WEEK-7>"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/get-week-analytics"
+      },
+      "response": {
+        "body": {
+          "activity_summary": [
+            {
+              "name": "sleep",
+              "total_hours": 14.5
+            },
+            {
+              "name": "office",
+              "total_hours": 9.25
+            },
+            {
+              "name": "study",
+              "total_hours": 4.33
+            },
+            {
+              "name": "friends",
+              "total_hours": 2.25
+            },
+            {
+              "name": "eating",
+              "total_hours": 1.75
+            },
+            {
+              "name": "creative",
+              "total_hours": 1.1
+            },
+            {
+              "name": "reels",
+              "total_hours": 0.5
+            }
+          ],
+          "daily_breakdown": [
+            {
+              "activities": [
+                {
+                  "hours": 8,
+                  "name": "sleep"
+                },
+                {
+                  "hours": 4,
+                  "name": "study"
+                },
+                {
+                  "hours": 0.5,
+                  "name": "reels"
+                }
+              ],
+              "date": "<WEEK-7>",
+              "day_name": "Mon",
+              "total_hours": 12.5
+            },
+            {
+              "activities": [
+                {
+                  "hours": 9.25,
+                  "name": "office"
+                },
+                {
+                  "hours": 1.75,
+                  "name": "eating"
+                }
+              ],
+              "date": "<WEEK-6>",
+              "day_name": "Tue",
+              "total_hours": 11
+            },
+            {
+              "activities": [
+                {
+                  "hours": 6.5,
+                  "name": "sleep"
+                }
+              ],
+              "date": "<WEEK-5>",
+              "day_name": "Wed",
+              "total_hours": 6.5
+            },
+            {
+              "activities": [
+                {
+                  "hours": 2.25,
+                  "name": "friends"
+                }
+              ],
+              "date": "<WEEK-4>",
+              "day_name": "Thu",
+              "total_hours": 2.25
+            },
+            {
+              "activities": [
+                {
+                  "hours": 1.1,
+                  "name": "creative"
+                }
+              ],
+              "date": "<WEEK-3>",
+              "day_name": "Fri",
+              "total_hours": 1.1
+            },
+            {
+              "activities": [
+                {
+                  "hours": 0.33,
+                  "name": "study"
+                }
+              ],
+              "date": "<WEEK-2>",
+              "day_name": "Sat",
+              "total_hours": 0.33
+            },
+            {
+              "activities": [],
+              "date": "<WEEK-1>",
+              "day_name": "Sun",
+              "total_hours": 0
+            }
+          ],
+          "is_current_week": false,
+          "percentage_change": 149.48149,
+          "percentage_vs_current": 349.06665,
+          "streak": {
+            "current": 1,
+            "longest": 1,
+            "longest_end": "<WEEK+6>",
+            "longest_start": "<WEEK+6>"
+          },
+          "success": true,
+          "total_hours_current_week": 7.5,
+          "total_hours_prev_week": 13.5,
+          "total_hours_this_week": 33.68
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "174"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

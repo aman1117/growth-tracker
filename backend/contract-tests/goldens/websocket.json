@@ -1,0 +1,834 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Handshake errors (426/401), connected message, live notifications on every tab, 5-connection limit.",
+  "domain": "websocket",
+  "scenario": "websocket",
+  "step_count": 33,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 5,
+      "name": "plain GET without Upgrade",
+      "request": {
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": "Upgrade Required",
+        "body_type": "text",
+        "headers": {
+          "content-type": "text/plain; charset=utf-8"
+        },
+        "status": 426
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 6,
+      "name": "upgrade without token",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications"
+      },
+      "response": {
+        "body": {
+          "error": "Missing authentication token"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 7,
+      "name": "upgrade with an empty token",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token="
+      },
+      "response": {
+        "body": {
+          "error": "Missing authentication token"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 8,
+      "name": "upgrade with a malformed token",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=not-a-jwt"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid or expired token"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 9,
+      "name": "upgrade with an expired token",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid or expired token"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 10,
+      "name": "upgrade with a token signed by another key",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid or expired token"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json"
+        },
+        "status": 401
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 11,
+      "name": "alice connects",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "headers": {},
+        "status": 101
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 12,
+      "name": "connected message",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "connection_id": "<UUID#1>",
+            "user_id": 1
+          },
+          "type": "connected"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 13,
+      "name": "bob likes alice's day",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "live notification pushed to alice",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "body": "bob liked your <TODAY:human> activities",
+            "created_at": "<TIME +05:30>",
+            "id": 1,
+            "metadata": {
+              "liked_date": "<TODAY>",
+              "liker_avatar": "",
+              "liker_id": 2,
+              "liker_username": "bob"
+            },
+            "read_at": null,
+            "title": "New Like!",
+            "type": "like_received",
+            "user_id": 1
+          },
+          "type": "notification"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 15,
+      "name": "alice opens a second tab",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "headers": {},
+        "status": 101
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 16,
+      "name": "connected message on the second tab",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "connection_id": "<UUID#2>",
+            "user_id": 1
+          },
+          "type": "connected"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 17,
+      "name": "bob likes another day",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY-3>",
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 18,
+      "name": "first tab receives it",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "body": "bob liked your <TODAY-3:human> activities",
+            "created_at": "<TIME +05:30>",
+            "id": 2,
+            "metadata": {
+              "liked_date": "<TODAY-3>",
+              "liker_avatar": "",
+              "liker_id": 2,
+              "liker_username": "bob"
+            },
+            "read_at": null,
+            "title": "New Like!",
+            "type": "like_received",
+            "user_id": 1
+          },
+          "type": "notification"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 19,
+      "name": "second tab receives it",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "body": "bob liked your <TODAY-3:human> activities",
+            "created_at": "<TIME +05:30>",
+            "id": 2,
+            "metadata": {
+              "liked_date": "<TODAY-3>",
+              "liker_avatar": "",
+              "liker_id": 2,
+              "liker_username": "bob"
+            },
+            "read_at": null,
+            "title": "New Like!",
+            "type": "like_received",
+            "user_id": 1
+          },
+          "type": "notification"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 20,
+      "name": "alice opens tab 3",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "headers": {},
+        "status": 101
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "connected message on tab 3",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "connection_id": "<UUID#3>",
+            "user_id": 1
+          },
+          "type": "connected"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 22,
+      "name": "alice opens tab 4",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "headers": {},
+        "status": 101
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "connected message on tab 4",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "connection_id": "<UUID#4>",
+            "user_id": 1
+          },
+          "type": "connected"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "alice opens tab 5",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "headers": {},
+        "status": 101
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 25,
+      "name": "connected message on tab 5",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "connection_id": "<UUID#5>",
+            "user_id": 1
+          },
+          "type": "connected"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 26,
+      "name": "alice opens a sixth tab (limit is 5)",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "headers": {},
+        "status": 101
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 27,
+      "name": "sixth tab gets an error message",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": "Maximum connections exceeded. Please close other tabs.",
+          "type": "error"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 28,
+      "name": "sixth tab is closed by the server",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "ws_frame": "error"
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 29,
+      "name": "bob connects (limits are per user)",
+      "request": {
+        "headers": {
+          "upgrade": "websocket"
+        },
+        "method": "GET",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "headers": {},
+        "status": 101
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 30,
+      "name": "bob's connected message",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "connection_id": "<UUID#6>",
+            "user_id": 2
+          },
+          "type": "connected"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 31,
+      "name": "alice likes bob's day",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "date": "<TODAY>",
+          "username": "bob"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/like-day"
+      },
+      "response": {
+        "body": {
+          "liked": true,
+          "new_count": 1,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 32,
+      "name": "bob receives his notification",
+      "request": {
+        "method": "WS-RECV",
+        "path": "/api/ws/notifications?token=<JWT>"
+      },
+      "response": {
+        "body": {
+          "payload": {
+            "body": "alice liked your <TODAY:human> activities",
+            "created_at": "<TIME +05:30>",
+            "id": 3,
+            "metadata": {
+              "liked_date": "<TODAY>",
+              "liker_avatar": "",
+              "liker_id": 1,
+              "liker_username": "alice"
+            },
+            "read_at": null,
+            "title": "New Like!",
+            "type": "like_received",
+            "user_id": 2
+          },
+          "type": "notification"
+        },
+        "body_type": "json",
+        "ws_frame": "text"
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 33,
+      "name": "the pushed notifications are also listed",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "bob liked your <TODAY-3:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "liked_date": "<TODAY-3>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            },
+            {
+              "body": "bob liked your <TODAY:human> activities",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 1,
+              "metadata": {
+                "liked_date": "<TODAY>",
+                "liker_avatar": "",
+                "liker_id": 2,
+                "liker_username": "bob"
+              },
+              "title": "New Like!",
+              "type": "like_received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 2
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

@@ -5,15 +5,11 @@ A complete Docker-based local development environment that mirrors production in
 ## Prerequisites
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
-- [Visual Studio Code](https://code.visualstudio.com/) with the [Go extension](https://marketplace.visualstudio.com/items?itemName=golang.Go)
-- [Go](https://go.dev/dl/) installed (for local debugging)
+- [Visual Studio Code](https://code.visualstudio.com/) with the [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) and [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) extensions
+- [Rust](https://rustup.rs/) installed (optional - for running tests and debugging on the host)
 - Git
 
-### Install Delve Debugger (Optional - for local debugging)
-
-```powershell
-go install -v github.com/go-delve/delve/cmd/dlv@latest
-```
+> **First start:** the backend containers compile the Rust workspace on first start, which takes a few minutes. Build artifacts are cached in Docker volumes, so later starts and rebuilds are incremental.
 
 ## Quick Start
 
@@ -26,9 +22,6 @@ Copy-Item .env.example .env
 
 # Start all services and seed the database
 docker compose up -d; docker compose --profile seed up seed
-
-# Run required database migrations (indexes, extensions, extra tables)
-docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; for f in migrations/*.go; do echo "=== Running $f ==="; go run "$f"; done'
 ```
 
 ### macOS / Linux (Bash)
@@ -40,10 +33,9 @@ cp .env.example .env
 
 # Start all services and seed the database
 docker compose up -d && docker compose --profile seed up seed
-
-# Run required database migrations (indexes, extensions, extra tables)
-docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; for f in migrations/*.go; do echo "=== Running $f ==="; go run "$f"; done'
 ```
+
+The backend creates and migrates the complete database schema (tables, extensions and indexes) automatically on startup, so no manual migration step is needed.
 
 ### Access Points
 
@@ -60,15 +52,11 @@ docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=gr
 │                            Host Machine                                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  localhost:5173  ──► Frontend (Vite + React)                                │
-│  localhost:8000  ──► Backend (Go + Fiber)                                   │
+│  localhost:8000  ──► Backend (Rust + axum)                                  │
 │  localhost:8025  ──► Mailpit Web UI                                         │
 │  localhost:5432  ──► PostgreSQL                                             │
 │  localhost:6379  ──► Redis                                                  │
 │  localhost:10000 ──► Azurite (Blob Storage)                                 │
-│                                                                             │
-│  Debug Ports:                                                               │
-│  localhost:2345  ──► Backend Delve Debugger                                 │
-│  localhost:2346  ──► Push Worker Delve Debugger                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -77,7 +65,7 @@ docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=gr
 | Service | URL | Description |
 |---------|-----|-------------|
 | **Frontend** | http://localhost:5173 | React app with Vite hot-reload |
-| **Backend** | http://localhost:8000 | Go API with Air hot-reload |
+| **Backend** | http://localhost:8000 | Rust API with cargo-watch hot-reload |
 | **Mailpit** | http://localhost:8025 | Email testing UI (view sent emails) |
 | **PostgreSQL** | localhost:5432 | Database |
 | **Redis** | localhost:6379 | Cache/sessions |
@@ -154,38 +142,14 @@ docker compose --profile seed up seed
 
 ### Run Migrations
 
-The database schema is managed in two layers:
+No manual migrations are needed. On startup the backend applies the complete schema (all tables plus the `pg_trgm` extension, autocomplete indexes, `activity_photos`, `story_views`, `story_likes`, `recent_searches` and `users.profile_pic_thumb`) as a single atomic batch guarded by an advisory lock (safe with several replicas). Every statement is idempotent, so restarting is always safe and existing databases created by the previous Go backend are upgraded in place without data changes.
 
-1. **AutoMigrate (automatic):** Creates all 20 base tables on server startup. No action needed.
-2. **Migration scripts (manual):** Add PostgreSQL extensions, custom indexes, and extra tables not managed by GORM. **You must run these after first setup.**
+#### Backfill Badges (optional)
 
-#### Quick: Run All Migrations at Once
-
-```powershell
-# Run ALL migration scripts inside the backend container (safe to re-run)
-docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; for f in migrations/*.go; do echo "=== Running $f ==="; go run "$f"; done'
-```
-
-#### Migration Reference
-
-Run these in order. All are idempotent (`IF NOT EXISTS` / `IF NOT`) — safe to re-run.
-
-| # | File | What it does | Why it's needed |
-|---|------|-------------|-----------------|
-| 1 | `add_autocomplete_indexes.go` | Enables `pg_trgm` extension, creates trigram GIN + prefix B-tree indexes on `users.username` | User search / autocomplete won't work without this |
-| 2 | `add_activity_photos.go` | Creates `activity_photos` and `story_views` tables with custom indexes and constraints | Stories / photo upload feature |
-| 3 | `add_story_likes.go` | Creates `story_likes` table with unique constraint and indexes | Story like/heart feature |
-| 4 | `add_recent_searches.go` | Creates `recent_searches` table with upsert constraint | Search suggestions feature |
-| 5 | `add_profile_pic_thumb.go` | Adds `profile_pic_thumb` column to `users` table | Profile picture thumbnails |
-| 6 | `seed_badges.go` | Seeds badge records for existing users based on streak data | **Optional** — only needed if you have existing users without badges |
-
-> **Note:** The seed command (`docker compose --profile seed up seed`) handles test data. The migration scripts above handle schema changes that GORM's AutoMigrate doesn't cover (extensions, custom indexes, raw SQL tables).
-
-#### Running a Single Migration
+Only needed if you have existing users without badges:
 
 ```powershell
-# Example: run just the autocomplete indexes migration
-docker exec -it growth-tracker-backend sh -c 'export DB_HOST=postgres DB_NAME=growth_tracker_dev DB_USER=localdev DB_PASSWORD=localdevpassword DB_SSL_MODE=disable; go run migrations/add_autocomplete_indexes.go'
+docker exec -it growth-tracker-backend cargo run --bin seed_badges
 ```
 
 ### Access Container Shell
@@ -200,59 +164,74 @@ docker exec -it growth-tracker-frontend sh
 
 ### Run Unit Tests
 
-Unit tests run on the host and don't need the stack, but the backend suite can reuse the Compose
-database to skip starting an embedded PostgreSQL. Each test package creates and drops its own
-temporary database, so `growth_tracker_dev` is never touched.
+Unit tests run on the host and don't need the stack, but the backend integration tests need a
+PostgreSQL and Redis server, and can reuse the Compose ones. Each test creates and drops its own
+temporary database, so `growth_tracker_dev` is never touched. Without `TEST_DATABASE_URL` the
+database-backed tests are skipped.
 
 ```powershell
 # Frontend
 cd frontend; npm test
 
-# Backend, against the Compose database (omit TEST_DATABASE_URL to use an embedded PostgreSQL)
-cd backend; $env:TEST_DATABASE_URL = 'postgres://localdev:localdevpassword@localhost:5432/postgres?sslmode=disable'; go test ./...
+# Backend, against the Compose database and Redis
+cd backend; $env:TEST_DATABASE_URL = 'postgres://localdev:localdevpassword@localhost:5432/postgres?sslmode=disable'; $env:REDIS_URL = 'redis://localhost:6379'; cargo test --workspace
+```
+
+### Run Contract Tests
+
+The golden HTTP contract suite starts the release server against throwaway databases and
+compares every response with the recorded goldens (see `backend/contract-tests/README.md`):
+
+```powershell
+make backend-contract
 ```
 
 ## Hot Reload
 
 Both backend and frontend support hot-reload:
 
-- **Backend (Go)**: Uses [Air](https://github.com/air-verse/air). Edit any `.go` file and it auto-rebuilds.
+- **Backend (Rust)**: Uses [cargo-watch](https://github.com/watchexec/cargo-watch). Edit any file under `backend/crates/` and the server is rebuilt (incrementally) and restarted.
 - **Frontend (React)**: Uses Vite. Edit any file in `frontend/src/` and it auto-refreshes.
 
-## Debugging Go Services
+## Debugging the Backend
 
-The development environment includes full debugging support using [Delve](https://github.com/go-delve/delve), the Go debugger.
+Debugging uses [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) with the server running natively on the host, against the Compose databases.
 
 ### Debug Configuration
 
 VS Code launch configurations are pre-configured in `.vscode/launch.json`:
 
-| Configuration | Port | Description |
-|--------------|------|-------------|
-| **Backend (Docker)** | 2345 | Debug the main API server |
-| **Push Worker (Docker)** | 2346 | Debug the push notification worker |
-| **All Services** | - | Attach to both services simultaneously |
+| Configuration | Description |
+|--------------|-------------|
+| **Backend (local)** | Build and debug the main API server (`--bin server`) |
+| **Push Worker (local)** | Build and debug the push notification worker (`--bin pushworker`) |
+| **All Services** | Debug both at once |
+
+Both read their environment from `backend/.env` (copy `backend/.env.example`) and run from `backend/`.
 
 ### How to Debug
 
-1. **Start the containers** (if not already running):
+1. **Start the infrastructure and free port 8000** (the API container would otherwise own it):
    ```powershell
    docker compose up -d
+   docker compose stop backend pushworker
    ```
 
-2. **Set breakpoints** in VS Code by clicking in the gutter next to line numbers in any Go file under `backend/`
+2. **Point `backend/.env` at the Compose services** (`DB_HOST=localhost`, `DB_PORT=5432`, `DB_NAME=growth_tracker_dev`, `DB_USERNAME=localdev`, `DB_PASSWORD=localdevpassword`, `DB_SSLMODE=disable`, `REDIS_URL=redis://localhost:6379`, `PORT=8000`, `ENV=development`).
 
-3. **Attach the debugger**:
+3. **Set breakpoints** in VS Code by clicking in the gutter next to line numbers in any Rust file under `backend/crates/`
+
+4. **Start the debugger**:
    - Press `F5` or go to **Run and Debug** panel (Ctrl+Shift+D)
-   - Select **Backend (Docker)** or **Push Worker (Docker)**
-   - Click the green play button
+   - Select **Backend (local)** or **Push Worker (local)**
+   - Click the green play button (the binary is built in debug mode first)
 
-4. **Trigger your breakpoint** by making a request to the API:
+5. **Trigger your breakpoint** by making a request to the API:
    ```powershell
    curl http://localhost:8000/
    ```
 
-5. **Debug** using VS Code's debug controls:
+6. **Debug** using VS Code's debug controls:
    - **F10** - Step Over
    - **F11** - Step Into
    - **Shift+F11** - Step Out
@@ -260,20 +239,20 @@ VS Code launch configurations are pre-configured in `.vscode/launch.json`:
    - Inspect variables in the **Variables** panel
    - Evaluate expressions in the **Debug Console**
 
+When you are done, run `docker compose start backend pushworker` to go back to the containers.
+
 ### Troubleshooting Debugging
 
 **Hollow breakpoints (not binding):**
-- Ensure containers are running: `docker compose ps`
-- Rebuild containers: `docker compose up -d --build backend`
-- Check Delve is listening: `docker logs growth-tracker-backend`
+- Make sure you launched a debug build (the launch configurations do this) and not a `--release` binary
+- Check the **Debug Console** for build errors
 
-**"Failed to attach" error:**
-- The app may have crashed. Check logs: `docker compose logs backend`
-- Restart the container: `docker compose restart backend`
+**"Address already in use" on start:**
+- The `backend` container is still running: `docker compose stop backend`
 
 **Breakpoint not hit:**
 - Verify the code path is being executed
-- Check substitutePath mapping in `.vscode/launch.json`
+- Async handlers run on Tokio worker threads; use the **Call Stack** panel to switch threads
 
 ## Email Testing
 
@@ -364,9 +343,9 @@ docker compose ps
 
 ### Changes Not Reflecting
 
-For backend Go changes:
+For backend Rust changes:
 ```powershell
-# Check Air is detecting changes
+# Check cargo-watch is rebuilding (compile errors show up here too)
 docker compose logs -f backend
 ```
 
@@ -392,16 +371,17 @@ growth-tracker/
 ├── docker-compose.yml          # Main orchestration file
 ├── LOCAL_DEV_README.md         # This file
 ├── backend/
-│   ├── Dockerfile              # Production build
-│   ├── Dockerfile.dev          # Development with Delve debugger
+│   ├── Dockerfile              # Production build (static musl binary)
+│   ├── Dockerfile.dev          # Development with cargo-watch hot reload
 │   ├── Dockerfile.pushworker   # Production push worker
-│   ├── Dockerfile.pushworker.dev # Development push worker with debugger
-│   ├── air.toml                # Air hot-reload config
-│   ├── cmd/
-│   │   ├── server/             # Main API entry point
-│   │   ├── pushworker/         # Push notification worker
-│   │   └── seed/               # Database seeder
-│   └── internal/               # Application code
+│   ├── Dockerfile.pushworker.dev # Development push worker with cargo-watch
+│   ├── Cargo.toml              # Rust workspace
+│   ├── crates/
+│   │   ├── gt-server/          # Main API entry point (`server` binary)
+│   │   ├── gt-notify/          # Notifications + push worker (`pushworker` binary)
+│   │   ├── gt-jobs/            # Cron jobs + database seeder (`seed` binary)
+│   │   └── gt-*/               # Shared core and feature crates
+│   └── contract-tests/         # Golden HTTP contract suite
 └── frontend/
     ├── Dockerfile.dev          # Development with Vite
     └── src/                    # React application
@@ -416,7 +396,7 @@ growth-tracker/
 | **Email** | Mailpit (SMTP) | Resend API |
 | **Redis** | Redis 7 (container) | Azure Redis |
 | **Frontend** | Vite dev server | Vercel |
-| **Backend** | Air hot-reload | Azure Container Apps |
+| **Backend** | cargo-watch hot-reload | Azure Container Apps |
 
 The code automatically detects the environment (`ENV=development` vs `ENV=production`) and uses the appropriate service:
 - **Blob URLs**: `http://localhost:10000/...` (local) vs `https://*.blob.core.windows.net/...` (prod)

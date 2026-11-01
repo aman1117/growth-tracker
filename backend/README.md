@@ -1,80 +1,67 @@
 # Growth Tracker Backend
 
-A professional Go backend service for the Growth Tracker application, featuring clean architecture, dependency injection, and enterprise-grade code organization.
+The Growth Tracker API, written in **Rust** (axum + tokio + sqlx + redis). It is a Cargo workspace of small, focused crates with clear separation between HTTP handlers, business services and data access.
+
+> The backend was ported from Go (Fiber/GORM) to Rust with a byte-for-byte compatible HTTP contract. Every route, status code, header and JSON body matches the previous implementation. This is proven by the golden contract suite in [`contract-tests/`](contract-tests/README.md).
 
 ## 🏗️ Architecture
 
-The application follows a clean architecture pattern with clear separation of concerns:
-
 ```
 backend/
-├── cmd/
-│   └── server/
-│       └── main.go           # Application entry point
-├── internal/                  # Private application code
-│   ├── config/               # Configuration management
-│   ├── constants/            # Application-wide constants
-│   ├── container/            # Dependency injection
-│   ├── database/             # Database connection & migrations
-│   ├── dto/                  # Data Transfer Objects
-│   │   ├── requests.go       # Request payloads
-│   │   └── responses.go      # Response payloads
-│   ├── handlers/             # HTTP handlers (controllers)
-│   │   ├── activity.go
-│   │   ├── analytics.go
-│   │   ├── auth.go
-│   │   ├── blob.go
-│   │   ├── password_reset.go
-│   │   ├── profile.go
-│   │   ├── streak.go
-│   │   ├── tile_config.go
-│   │   └── token.go
-│   ├── logger/               # Structured logging with Axiom
-│   ├── middleware/           # HTTP middleware
-│   ├── repository/           # Data access layer
-│   ├── response/             # Standardized API responses
-│   ├── routes/               # Route definitions
-│   ├── services/             # Business logic layer
-│   │   ├── analytics.go
-│   │   ├── email.go
-│   │   └── services.go
-│   └── validator/            # Input validation
-├── pkg/                      # Public/reusable packages
-│   ├── models/               # Domain models (GORM entities)
-│   └── redis/                # Redis client wrapper
-├── migrations/               # SQL migration files
-├── go.mod
-├── go.sum
-├── .env.example              # Environment template
-└── Dockerfile
+├── Cargo.toml                 # Workspace definition + shared dependency versions
+├── Cargo.lock
+├── crates/
+│   ├── gt-core/               # Shared foundation used by every other crate
+│   │   ├── config.rs          #   environment configuration (same variables as before)
+│   │   ├── logging.rs         #   structured JSON logging (+ optional Axiom shipping)
+│   │   ├── db.rs, schema.sql  #   Postgres pool + idempotent schema migration at startup
+│   │   ├── redis.rs           #   optional Redis client (auto-reconnect) + cache helpers
+│   │   ├── jwt.rs, guard.rs   #   JWT auth and per-route auth / rate-limit guards
+│   │   ├── ratelimit.rs       #   fixed-window limiter (X-RateLimit-* headers)
+│   │   ├── gojson.rs          #   wire-compatible JSON / time formatting
+│   │   ├── error.rs, response.rs, extract.rs, body.rs, validator.rs, timeutil.rs
+│   │   └── models/            #   database entities
+│   ├── gt-users/              # Users, auth, profiles, follows, streaks, badges, email
+│   ├── gt-accounts/           # Auth/profile/follow/badge HTTP routes
+│   ├── gt-notify/             # Notifications, WebSocket, web-push (+ `pushworker` binary)
+│   ├── gt-activity/           # Activities, analytics, tile config, likes, stories
+│   ├── gt-photos/             # Blob storage, image processing, activity photos
+│   ├── gt-comments/           # Comments and comment likes
+│   ├── gt-challenges/         # Challenges, invites, leaderboards
+│   ├── gt-jobs/               # Daily cron jobs + seed / reminder CLI binaries
+│   └── gt-server/             # HTTP server: routing, CORS, middleware, swagger, scheduler
+├── contract-tests/            # Golden HTTP contract suite (Python)
+├── docs/swagger.json          # OpenAPI document served at /swagger
+├── Dockerfile, Dockerfile.pushworker          # Production images (static musl binaries)
+└── Dockerfile.dev, Dockerfile.pushworker.dev  # Hot-reload dev images (cargo-watch)
 ```
 
-## 🔄 Request Flow
+Each feature crate follows the same layering:
 
 ```
 HTTP Request
     ↓
-Middleware (Logging, CORS, Auth)
+gt-server (CORS, request logging, trace id, panic recovery, routing)
     ↓
-Router → Handler
+Route guards (JWT auth, rate limiting)
     ↓
 Handler (HTTP concerns, validation)
     ↓
-Service (Business logic)
+Service (business logic)
     ↓
-Repository (Data access)
+Repository (sqlx queries)
     ↓
-Database
+PostgreSQL / Redis
 ```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Go 1.23+
+- Rust (stable, via [rustup](https://rustup.rs))
 - PostgreSQL (or Neon serverless)
-- Redis (optional, for password reset)
-- Azure Storage (optional, for profile pictures)
+- Redis (optional: caching, password reset, rate-limit sharing, pub/sub)
+- Azure Storage or Azurite (optional: profile pictures and activity photos)
 
 ### Installation
 
@@ -91,101 +78,46 @@ cp .env.example .env
 
 3. Configure your environment variables in `.env`
 
-4. Run the server:
+4. Run the server (the schema is created/migrated automatically on startup):
 ```bash
-go run ./cmd/server
+cargo run --bin server
 ```
 
 ### Building
 
 ```bash
-# Build binary
-go build -o server ./cmd/server
+# Optimised binaries in target/release/
+cargo build --release --bin server --bin pushworker
 
 # Run binary
-./server
+./target/release/server
 ```
 
-## 📦 Package Responsibilities
+### Binaries
 
-### `cmd/server`
-Application entry point. Initializes all dependencies and starts the server.
+| Binary | Crate | Purpose |
+|--------|-------|---------|
+| `server` | `gt-server` | HTTP API + WebSocket + scheduled jobs |
+| `pushworker` | `gt-notify` | Web-push delivery worker (Azure Service Bus consumer) |
+| `seed` | `gt-jobs` | Seed development data |
+| `seed_badges` | `gt-jobs` | Backfill badges for existing users |
+| `send_reminders` | `gt-jobs` | Send streak reminder emails now |
+| `test_reminder` | `gt-jobs` | Send a test reminder email |
+| `backfill_profile_thumbs` | `gt-photos` | Generate missing profile picture thumbnails |
 
-### `internal/config`
-- Environment variable loading
-- Configuration structs with sensible defaults
-- Validation of required settings
+Run any of them with `cargo run --bin <name>`.
 
-### `internal/constants`
-- All magic strings and numbers
-- Error codes and messages
-- Date formats and validation limits
+## ⏰ Scheduled Jobs
 
-### `internal/container`
-- Dependency injection container
-- Wires all components together
-- Single source of truth for dependencies
+The server runs these daily jobs (Asia/Kolkata time):
 
-### `internal/database`
-- Database connection management
-- Auto-migrations
-- Transaction helpers
-
-### `internal/dto`
-- Request/Response DTOs
-- Decoupled from domain models
-- Input/output contracts
-
-### `internal/handlers`
-- HTTP request handling
-- Input validation
-- Response formatting
-- No business logic
-
-### `internal/logger`
-- Structured logging with Zap
-- Axiom integration for cloud logging
-- Context-aware loggers with trace IDs
-
-### `internal/middleware`
-- Request logging with trace IDs
-- JWT authentication
-- User context injection
-
-### `internal/repository`
-- Data access layer
-- GORM query abstractions
-- No business logic
-
-### `internal/response`
-- Standardized API responses
-- Helper functions for common responses
-- Consistent error formatting
-
-### `internal/routes`
-- Route definitions
-- Endpoint grouping
-- Middleware application
-
-### `internal/services`
-- Business logic
-- Domain rules enforcement
-- Cross-cutting concerns
-
-### `internal/validator`
-- Input validation
-- Business rule validation
-- Error aggregation
-
-### `pkg/models`
-- GORM entity definitions
-- Domain model constants
-- Database schema
-
-### `pkg/redis`
-- Redis client wrapper
-- Password reset tokens
-- Secure token handling
+| Time | Job |
+|------|-----|
+| 00:00 | Streak processing |
+| 00:05 | Challenge completion + stale invite cleanup |
+| 03:00 | Old notification cleanup |
+| 04:00 | Follow tombstone cleanup |
+| 22:00 | Streak reminder emails |
 
 ## 🔐 API Endpoints
 
@@ -204,7 +136,7 @@ Application entry point. Initializes all dependencies and starts the server.
 | PUT | `/api/profile/username` | Update username |
 | PUT | `/api/profile/password` | Change password |
 | GET | `/api/profile/search` | Search users |
-| GET | `/api/profile/:username` | Get user by username |
+| GET | `/api/profile/{username}` | Get user by username |
 
 ### Activities
 | Method | Endpoint | Description |
@@ -216,7 +148,7 @@ Application entry point. Initializes all dependencies and starts the server.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/streaks` | Get user streaks |
-| GET | `/api/streaks/user/:username` | Get user streaks by username |
+| GET | `/api/streaks/user/{username}` | Get user streaks by username |
 
 ### Analytics
 | Method | Endpoint | Description |
@@ -241,88 +173,69 @@ Application entry point. Initializes all dependencies and starts the server.
 | POST | `/api/profile/picture` | Upload profile picture |
 | DELETE | `/api/profile/picture` | Delete profile picture |
 
+## 🔁 Compatibility With the Go Backend
+
+The Rust server is a drop-in replacement: same routes, status codes, headers, JSON bodies
+(including key order, `null` vs `[]`, number and timestamp formats), rate limits, WebSocket
+messages, emails, blob names, database schema and environment variables. Existing databases are
+used as-is. The golden contract suite (`make backend-contract`) proves this for every route.
+
+Deliberate differences, none visible to the web app:
+
+- **JSON request keys must match exactly.** Go's decoder also accepted other letter cases
+  (`Username` for `username`) and duplicate keys (last one wins); these requests now get the
+  usual `400` invalid-body response.
+- **No `/debug/pprof` endpoints** (`PPROF_*` variables are ignored); use OS-level profilers.
+- **Graceful shutdown:** SIGTERM finishes in-flight requests (up to 10 s) and flushes logs and
+  queued push messages instead of exiting immediately.
+- **Read timeout** applies to the request head and idle keep-alive connections, not to the
+  body, so slow photo uploads on mobile networks are no longer cut off after 30 s.
+- **Paths starting with `/api/profile` but not followed by `/`** (e.g. `/api/profilex`) return
+  `404` instead of Fiber's prefix-matched `401`.
+- **Internal error details** in a few `500` messages differ (Azure Blob SDK and image decoder
+  texts), as do log field layouts; log messages are unchanged.
+- **Ties that Go resolved randomly** (map iteration order) are now deterministic: activity
+  summaries with equal totals and the order in which invalid tile colours are reported.
+- **IDs and cursors above 2^63−1** are treated as not found / first page (same responses as Go
+  except a cursor that large, which returned `500`).
+- `test_reminder` no longer panics after storing the first notification.
 ## 🔧 Configuration
 
-All configuration is done via environment variables:
+All configuration is done via environment variables. These are the same variables as the previous Go service, so existing deployments need no changes.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `PORT` | No | Server port (default: 8080) |
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `JWT_SECRET` | Yes | JWT signing secret |
-| `JWT_EXPIRY_HOURS` | No | Token expiry (default: 168) |
+| `PORT` | No | Server port (default: 8000) |
+| `ENV` | No | `development` or `production` (default: `development`) |
+| `DATABASE_URL` | Yes* | PostgreSQL connection string (*or the `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `DB_SSLMODE` parts) |
+| `JWT_SECRET_KEY` | Yes | JWT signing secret (every token is rejected while unset) |
+| `TTL_ACCESS_TOKEN` | No | Access token lifetime in minutes (default: 1440) |
+| `SERVER_READ_TIMEOUT` / `SERVER_WRITE_TIMEOUT` | No | Connection timeouts as Go durations (default: `30s`) |
 | `REDIS_URL` | No | Redis connection string |
-| `AZURE_STORAGE_CONNECTION_STRING` | No | Azure Blob storage |
-| `RESEND_API_KEY` | No | Resend API key for emails |
-| `AXIOM_TOKEN` | No | Axiom logging token |
-
+| `AZURE_STORAGE_CONNECTION_STRING` | No | Azure Blob storage (profile pictures, activity photos) |
+| `AZURE_SERVICEBUS_CONNECTION_STRING` | No | Service Bus queue for web push |
+| `RESEND_API_KEY` | No | Resend API key for emails (SMTP via `SMTP_HOST`/`SMTP_PORT` otherwise) |
+| `AXIOM_API_TOKEN` / `AXIOM_DATASET` | No | Ship production logs to Axiom |
+| `MAINTENANCE_API_KEY` | No | Enables `POST /api/push/cleanup` |
+| `RUST_LOG` | No | Optional log filter override (e.g. `info,sqlx=warn`) |
 See `.env.example` for full configuration options.
 
-## 🔧 Runtime Profiling (pprof)
-
-The backend includes optional pprof endpoints for runtime profiling, useful for debugging performance issues in production.
-
-### Configuration
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PPROF_ENABLED` | `true` | Enable/disable pprof endpoints. Set to `false` to fully disable (routes return 404). |
-| `PPROF_PREFIX` | `/debug/pprof` | URL prefix for pprof endpoints. |
-| `PPROF_TOKEN` | (empty) | Optional auth token. If set, requests must include `Authorization: Bearer <token>` or `X-PPROF-Token: <token>` header. |
-
-### Usage Examples
-
-**Browser (when no token set):**
-```
-https://<container-app-url>/debug/pprof/
-```
-
-**With token protection:**
-```bash
-# Using curl with Authorization header
-curl -H "Authorization: Bearer YOUR_TOKEN" https://<container-app-url>/debug/pprof/
-
-# Using curl with X-PPROF-Token header
-curl -H "X-PPROF-Token: YOUR_TOKEN" https://<container-app-url>/debug/pprof/heap
-```
-
-**Using go tool pprof:**
-```bash
-# CPU profile (30 second sample)
-go tool pprof -http=:8080 "https://<container-app-url>/debug/pprof/profile?seconds=30"
-
-# Heap profile
-go tool pprof -http=:8080 https://<container-app-url>/debug/pprof/heap
-
-# Goroutine profile
-go tool pprof -http=:8080 https://<container-app-url>/debug/pprof/goroutine
-
-# With token (set in URL or use -http_header flag if supported)
-go tool pprof -http=:8080 -http_header "Authorization: Bearer YOUR_TOKEN" \
-  "https://<container-app-url>/debug/pprof/profile?seconds=30"
-```
-
-### Security Notes
-
-- **pprof can be CPU/memory intensive** - profile endpoints sample the runtime and may impact performance.
-- **Rate limited** - endpoints are limited to 1 request per 10 seconds per IP to prevent abuse.
-- **Recommend setting PPROF_TOKEN** in production to prevent unauthorized access.
-- **Disable if not needed** - set `PPROF_ENABLED=false` to completely remove the endpoints.
+> **Runtime profiling:** the Go-specific `/debug/pprof` endpoints (`PPROF_*` variables) were removed with the Go runtime. Use OS-level profilers such as `perf`, `samply` or `cargo flamegraph` instead.
 
 ## 🏛️ Design Principles
 
 ### Clean Architecture
-- Dependencies point inward
+- Dependencies point inward (`gt-core` ← feature crates ← `gt-server`)
 - Business logic is framework-agnostic
 - External concerns are abstracted
 
 ### Dependency Injection
-- All dependencies injected via constructor
-- No global state (except logger for convenience)
-- Easy to test and mock
+- Each crate exposes a `*Context` struct built from shared dependencies
+- No hidden global state (except the logger and the optional Redis client)
+- Easy to test with a real Postgres/Redis or pure unit tests
 
 ### Single Responsibility
-- Each package has one job
+- Each crate and module has one job
 - Handlers don't do business logic
 - Services don't do HTTP
 
@@ -333,27 +246,33 @@ go tool pprof -http=:8080 -http_header "Authorization: Bearer YOUR_TOKEN" \
 
 ### Graceful Degradation
 - Optional features fail gracefully
-- Missing Redis disables password reset
+- Missing Redis disables password reset and caching
 - Missing email service disables notifications
+- Graceful shutdown on SIGTERM/Ctrl-C
 
 ## 📝 Code Style
 
-- Follow Go conventions and idioms
-- Use descriptive variable names
-- Document all exported types and functions
-- Handle all errors explicitly
+- `cargo fmt` formatting (configured in `rustfmt.toml`) and `cargo clippy -D warnings`
+- Use descriptive names and document public items
+- Handle every error explicitly (no `unwrap` in request paths)
 
 ## 🧪 Testing
 
 ```bash
-# Run all tests
-go test ./...
+# Run all tests (integration tests use TEST_DATABASE_URL / REDIS_URL when set)
+cargo test --workspace
 
-# Run with coverage
-go test -cover ./...
+# Run a single crate's tests
+cargo test -p gt-users
 
-# Run specific package tests
-go test ./internal/services/...
+# Lint
+cargo clippy --workspace --all-targets -- -D warnings
+
+# Coverage (requires cargo-llvm-cov; CI fails below 90% of lines)
+cargo llvm-cov --workspace --html --fail-under-lines 90
+
+# HTTP contract tests against the golden responses
+cd contract-tests && python parity.py check --server-bin ../target/release/server --goldens goldens
 ```
 
 ## 📄 License

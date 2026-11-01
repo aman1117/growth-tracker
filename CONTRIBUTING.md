@@ -81,10 +81,10 @@ Backend-only commands:
 
 ```bash
 cd backend
-go fmt ./...
-go vet ./...
-go test ./...
-go build ./...
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+cargo build --workspace --bins
 ```
 
 ## Coding Standards
@@ -106,10 +106,11 @@ go build ./...
 
 ### Backend
 
-- Follow existing package boundaries in internal/ and pkg/.
+- Follow existing crate boundaries in `crates/` (shared code in `gt-core`, one crate per feature area).
 - Keep handlers thin and business logic in services/repositories.
 - Use structured logging and consistent error responses.
-- Run go fmt, go vet, go test, and go build locally before opening a PR.
+- Run cargo fmt, cargo clippy, cargo test, and cargo build locally before opening a PR.
+- Keep the HTTP contract stable: run `make backend-contract` when touching handlers, and re-record goldens only for intentional API changes (see `backend/contract-tests/README.md`).
 
 ## Commit Messages
 
@@ -143,19 +144,21 @@ A good PR should:
 
 Both apps have automated unit tests that CI runs on every pull request. Pull requests must keep
 them passing and stay above the coverage minimums: 90% of frontend statements, branches,
-functions and lines (thresholds in `frontend/vitest.config.ts`), and 90% of backend statements
-in `internal/` and `pkg/`. New code should come with tests for its behaviour, including error
-and edge cases.
+functions and lines (thresholds in `frontend/vitest.config.ts`), 90% of backend lines across the
+workspace crates, and the backend HTTP contract suite must report zero differences. New code
+should come with tests for its behaviour, including error and edge cases.
 
 ```bash
 make check              # format, lint, typecheck, tests and builds for both apps
 make test               # unit tests only
 make frontend-coverage  # frontend tests with coverage thresholds (report: frontend/coverage/)
-make backend-coverage   # backend tests with the coverage minimum (report: backend/coverage.html)
+make backend-coverage   # backend tests with the coverage minimum (report: backend/target/llvm-cov/html/)
+make backend-contract   # golden HTTP contract tests against the Rust server
 ```
 
-Backend tests run against a real PostgreSQL 16. Each test package starts an embedded server
-automatically; set `TEST_DATABASE_URL` to use an existing one instead (see README.md).
+Backend integration tests run against a real PostgreSQL 16 and Redis. Set `TEST_DATABASE_URL`
+(and `REDIS_URL`) to point at them, for example the Docker Compose services (see README.md);
+without them those tests are skipped.
 
 When writing tests:
 
@@ -167,10 +170,10 @@ When writing tests:
   Library and drive interactions with `user-event`. Mock the API layer (`src/services/api`)
   instead of the network. `fetch` fails by default, and every zustand store resets after each
   test. Helpers live in `src/test/utils.tsx`.
-- Backend: put `foo_test.go` next to `foo.go`. Database-backed packages call
-  `testutil.RunWithDatabase` from `TestMain` and use `testutil.DB(t)`, which empties every table
-  after the test. Use `testutil.StartRedis` for Redis and local `httptest` servers for external
-  APIs. Tests never call real cloud services.
+- Backend: put unit tests in a `#[cfg(test)] mod tests` next to the code, and database-backed
+  tests in the crate's `tests/` directory. Use the crate's `tests/common::TestDb`, which creates
+  a freshly migrated database per test and drops it afterwards. Use local mock HTTP servers for
+  external APIs. Tests never call real cloud services.
 - Keep tests deterministic: use fixed dates, don't sleep to wait for asynchronous work, and don't
   depend on test order.
 

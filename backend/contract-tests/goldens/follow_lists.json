@@ -1,0 +1,2086 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Followers/following/mutuals lists with limit and cursor pagination, privacy, invalid params.",
+  "domain": "follow",
+  "scenario": "follow_lists",
+  "step_count": 54,
+  "steps": [
+    {
+      "actor": "star",
+      "index": 1,
+      "name": "register star",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "star@parity.test",
+          "password": "Passw0rd123",
+          "username": "star"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "star",
+      "index": 2,
+      "name": "login star",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "star",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 3,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 4,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 5,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 6,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 7,
+      "name": "register carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "carol@parity.test",
+          "password": "Passw0rd123",
+          "username": "carol"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 8,
+      "name": "login carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "carol",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 9,
+      "name": "register dave",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "dave@parity.test",
+          "password": "Passw0rd123",
+          "username": "dave"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 10,
+      "name": "login dave",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "dave",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 11,
+      "name": "register erin",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "erin@parity.test",
+          "password": "Passw0rd123",
+          "username": "erin"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 12,
+      "name": "login erin",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#6",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "erin",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 13,
+      "name": "alice follows star",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 14,
+      "name": "bob follows star",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 15,
+      "name": "carol follows star",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 16,
+      "name": "dave follows star",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 17,
+      "name": "erin follows star",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:erin",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "star",
+      "index": 18,
+      "name": "star follows alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:star",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/2/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "star",
+      "index": 19,
+      "name": "star follows carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "follow:star",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/4/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "118"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 20,
+      "name": "alice follows bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "follow:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/3/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "118"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "alice follows carol",
+      "ratelimit": {
+        "hits": 3,
+        "key": "follow:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/4/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "117"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 22,
+      "name": "bob follows carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "follow:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/4/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "118"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 23,
+      "name": "followers of star (default limit)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 6,
+              "is_private": false,
+              "is_verified": false,
+              "username": "erin"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 5,
+              "is_private": false,
+              "is_verified": false,
+              "username": "dave"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 2,
+              "is_private": false,
+              "is_verified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 24,
+      "name": "followers page 1 (limit=2)",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers?limit=2"
+      },
+      "response": {
+        "body": {
+          "has_more": true,
+          "next_cursor": "<CURSOR#1>",
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 6,
+              "is_private": false,
+              "is_verified": false,
+              "username": "erin"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 5,
+              "is_private": false,
+              "is_verified": false,
+              "username": "dave"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 25,
+      "name": "followers page 2",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers?limit=2&cursor=<CURSOR#1>"
+      },
+      "response": {
+        "body": {
+          "has_more": true,
+          "next_cursor": "<CURSOR#2>",
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 26,
+      "name": "followers page 3 (last)",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers?limit=2&cursor=<CURSOR#2>"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 2,
+              "is_private": false,
+              "is_verified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 27,
+      "name": "limit=0 uses the default",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers?limit=0"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 6,
+              "is_private": false,
+              "is_verified": false,
+              "username": "erin"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 5,
+              "is_private": false,
+              "is_verified": false,
+              "username": "dave"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 2,
+              "is_private": false,
+              "is_verified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 28,
+      "name": "limit above the maximum uses the default",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers?limit=101"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 6,
+              "is_private": false,
+              "is_verified": false,
+              "username": "erin"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 5,
+              "is_private": false,
+              "is_verified": false,
+              "username": "dave"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 2,
+              "is_private": false,
+              "is_verified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 29,
+      "name": "non-numeric limit",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers?limit=abc"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 6,
+              "is_private": false,
+              "is_verified": false,
+              "username": "erin"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 5,
+              "is_private": false,
+              "is_verified": false,
+              "username": "dave"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 2,
+              "is_private": false,
+              "is_verified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 30,
+      "name": "invalid cursor starts from the beginning",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers?limit=2&cursor=not-base64!"
+      },
+      "response": {
+        "body": {
+          "has_more": true,
+          "next_cursor": "<CURSOR#1>",
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 6,
+              "is_private": false,
+              "is_verified": false,
+              "username": "erin"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 5,
+              "is_private": false,
+              "is_verified": false,
+              "username": "dave"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 31,
+      "name": "cursor with an empty JSON object",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers?cursor=e30="
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": []
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 32,
+      "name": "followers: invalid id",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/abc/followers"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 33,
+      "name": "followers of an unknown user",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/999999/followers"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 34,
+      "name": "followers of a user without followers",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/6/followers"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": []
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 35,
+      "name": "alice's following",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/2/following"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 1,
+              "is_private": false,
+              "is_verified": false,
+              "username": "star"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 36,
+      "name": "following page 1 (limit=1)",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/2/following?limit=1"
+      },
+      "response": {
+        "body": {
+          "has_more": true,
+          "next_cursor": "<CURSOR#3>",
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 37,
+      "name": "following: invalid id",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/abc/following"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 38,
+      "name": "following of an unknown user",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/999999/following"
+      },
+      "response": {
+        "body": {
+          "error": "User not found",
+          "error_code": "USER_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 39,
+      "name": "alice: who of the people she follows also follow star",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/mutuals"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 40,
+      "name": "mutuals page 1 (limit=1)",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/mutuals?limit=1"
+      },
+      "response": {
+        "body": {
+          "has_more": true,
+          "next_cursor": "<CURSOR#3>",
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "star",
+      "index": 41,
+      "name": "star: mutual connections with carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:star",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/4/mutuals"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 2,
+              "is_private": false,
+              "is_verified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 42,
+      "name": "mutuals: invalid id",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/abc/mutuals"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 43,
+      "name": "mutuals of an unknown user",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/999999/mutuals"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": []
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 44,
+      "name": "mutuals with yourself",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/2/mutuals"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 1,
+              "is_private": false,
+              "is_verified": false,
+              "username": "star"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "star",
+      "index": 45,
+      "name": "star sets is_private=True",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:star",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "is_private": true
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/update-privacy"
+      },
+      "response": {
+        "body": {
+          "is_private": true,
+          "message": "Privacy setting updated",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 46,
+      "name": "private star: follower erin can see followers",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:erin",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 6,
+              "is_private": false,
+              "is_verified": false,
+              "username": "erin"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 5,
+              "is_private": false,
+              "is_verified": false,
+              "username": "dave"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 2,
+              "is_private": false,
+              "is_verified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "star",
+      "index": 47,
+      "name": "star removes erin",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:star",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/me/followers/6"
+      },
+      "response": {
+        "body": {
+          "message": "Follower removed",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 48,
+      "name": "private star: non-follower erin is blocked",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:erin",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers"
+      },
+      "response": {
+        "body": {
+          "error": "This account is private",
+          "error_code": "ACCOUNT_PRIVATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 49,
+      "name": "private star: following blocked too",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:erin",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/following"
+      },
+      "response": {
+        "body": {
+          "error": "This account is private",
+          "error_code": "ACCOUNT_PRIVATE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 50,
+      "name": "private star: mutuals blocked too",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:erin",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/mutuals"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": []
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 51,
+      "name": "counts of a private user are visible",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:erin",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/follow-counts"
+      },
+      "response": {
+        "body": {
+          "counts": {
+            "followers_count": 4,
+            "following_count": 2
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "star",
+      "index": 52,
+      "name": "owner sees own followers",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:star",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/followers"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "success": true,
+          "users": [
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 5,
+              "is_private": false,
+              "is_verified": false,
+              "username": "dave"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 4,
+              "is_private": false,
+              "is_verified": false,
+              "username": "carol"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 3,
+              "is_private": false,
+              "is_verified": false,
+              "username": "bob"
+            },
+            {
+              "followed_at": "<TIME +05:30>",
+              "id": 2,
+              "is_private": false,
+              "is_verified": false,
+              "username": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 53,
+      "name": "follow-counts: invalid id",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:erin",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/abc/follow-counts"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid user ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 54,
+      "name": "follow-counts of an unknown user",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:erin",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/999999/follow-counts"
+      },
+      "response": {
+        "body": {
+          "counts": {
+            "followers_count": 0,
+            "following_count": 0
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

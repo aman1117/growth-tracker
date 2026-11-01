@@ -1,35 +1,35 @@
-# Build stage
-ARG GO_VERSION=1.25
-FROM golang:${GO_VERSION}-alpine AS builder
+# syntax=docker/dockerfile:1
+# Production image for the Growth Tracker API server (Rust).
+
+# Build stage: a static musl binary (TLS via rustls, no OpenSSL needed)
+ARG RUST_VERSION=1
+FROM rust:${RUST_VERSION}-alpine AS builder
+
+RUN apk add --no-cache musl-dev
 
 WORKDIR /app
 
-# Install git for fetching dependencies
-RUN apk add --no-cache git
+# Copy the workspace (docs/ holds the OpenAPI document embedded into the binary)
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+COPY docs ./docs
 
-# Copy go mod files
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy source code
-COPY . .
-
-# Build the binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server ./cmd/server
+# Cache the registry and build directory between builds
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --release --locked --bin server && \
+    cp target/release/server /usr/local/bin/server
 
 # Runtime stage
-FROM alpine:3.19
+FROM alpine:3.20
 
 WORKDIR /app
 
-# Install ca-certificates for HTTPS and tzdata for timezones
+# ca-certificates for HTTPS (Postgres TLS, Resend, Azure); tzdata for completeness
 RUN apk --no-cache add ca-certificates tzdata
 
-# Copy binary from builder
-COPY --from=builder /app/server .
+COPY --from=builder /usr/local/bin/server ./server
 
-# Expose port
 EXPOSE 8000
 
-# Run the binary
 CMD ["./server"]

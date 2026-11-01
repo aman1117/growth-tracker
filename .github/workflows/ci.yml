@@ -92,63 +92,163 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        # Same major version as docker-compose.yml.
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
-      # Tests create and drop their own database per package on this server.
+      CARGO_TERM_COLOR: always
+      REDIS_URL: redis://localhost:6379
+      # Tests create and drop their own database per test binary on this server.
       TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup Go
-        uses: actions/setup-go@v7
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          go-version-file: backend/go.mod
+          components: rustfmt, clippy, llvm-tools-preview
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
 
       - name: Check formatting
-        run: |
-          unformatted=$(gofmt -l .)
-          if [ -n "$unformatted" ]; then
-            echo "The following files need gofmt:"
-            echo "$unformatted"
-            exit 1
-          fi
+        run: cargo fmt --all --check
 
-      - name: Vet
-        run: go vet ./...
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
-      - name: Unit tests with coverage
-        run: sh scripts/test-coverage.sh 90
+      - name: Unit and integration tests with coverage
+        run: cargo llvm-cov --workspace --locked --fail-under-lines 90
 
       - name: Coverage summary
-        if: ${{ !cancelled() && hashFiles('backend/coverage.out') != '' }}
+        if: ${{ !cancelled() }}
         run: |
           {
             echo '### Backend coverage'
             echo
-            echo '| Package | Statements |'
+            echo '| Crate | Lines |'
             echo '| --- | --- |'
-            # Each test binary reports every block, so count a block once and treat it as
-            # covered when any binary executed it.
-            awk 'NR > 1 { stmts[$1] = $2; if ($3 > 0) hit[$1] = 1 }
+            # Per-file rows: $1 file (crate/src/...), $8 lines, $9 missed lines; TOTAL row: $10 line cover.
+            cargo llvm-cov report --summary-only | awk '
+              $1 ~ /\// { split($1, p, "/"); lines[p[1]] += $8; missed[p[1]] += $9 }
+              $1 == "TOTAL" { total = $10 }
               END {
-                for (block in stmts) {
-                  pkg = block; sub(/\/[^\/]*:.*$/, "", pkg); sub(/^github.com\/aman1117\/backend\//, "", pkg)
-                  total[pkg] += stmts[block]; if (hit[block]) covered[pkg] += stmts[block]
-                }
-                for (pkg in total) printf "| %s | %.1f%% |\n", pkg, 100 * covered[pkg] / total[pkg]
-              }' coverage.out | sort
-            go tool cover -func=coverage.out | awk '/^total:/ { print "| **total** | **" $3 "** |" }'
+                for (c in lines) if (lines[c] > 0) printf "| %s | %.1f%% |\n", c, 100 * (lines[c] - missed[c]) / lines[c] | "sort"
+                close("sort")
+                print "| **total** | **" total "** |"
+              }'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Coverage report
+        if: ${{ !cancelled() }}
+        run: cargo llvm-cov report --html
+
       - name: Upload coverage report
-        if: ${{ !cancelled() && hashFiles('backend/coverage.html') != '' }}
+        if: ${{ !cancelled() && hashFiles('backend/target/llvm-cov/html/index.html') != '' }}
         uses: actions/upload-artifact@v7
         with:
           name: backend-coverage
-          path: |
-            backend/coverage.out
-            backend/coverage.html
+          path: backend/target/llvm-cov/html
           retention-days: 14
 
-      - name: Build
-        run: go build ./...
+      - name: Build release binaries
+        run: cargo build --release --locked --bins
+
+  docker:
+    name: Docker images
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build API image
+        run: docker build -f Dockerfile -t growth-tracker-backend:ci .
+
+      - name: Build push worker image
+        run: docker build -f Dockerfile.pushworker -t growth-tracker-pushworker:ci .
+
+  contract:
+    name: API contract (golden parity)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+
+      - name: Build release server
+        run: cargo build --release --locked --bin server
+
+      - name: Install harness dependencies
+        run: |
+          python3 -m venv contract-tests/.venv
+          contract-tests/.venv/bin/pip install --quiet -r contract-tests/requirements.txt
+
+      # Replays every recorded request (all API routes) against the Rust server and fails on any
+      # difference in status, headers or body. Azurite is installed by the harness via npm.
+      - name: Check API against goldens
+        run: >-
+          contract-tests/.venv/bin/python contract-tests/parity.py check
+          --server-bin target/release/server
+          --goldens contract-tests/goldens
+          --keep-going --fail-on-skip
+          --pg-host 127.0.0.1 --pg-port 5432 --pg-user postgres --pg-password postgres
+          --redis-url redis://127.0.0.1:6379
+
+      - name: Upload server logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: contract-logs
+          path: backend/contract-tests/.work/run-*/logs
+          retention-days: 14

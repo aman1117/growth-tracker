@@ -1,35 +1,32 @@
-# Build stage
-ARG GO_VERSION=1.25
-FROM golang:${GO_VERSION}-alpine AS builder
+# syntax=docker/dockerfile:1
+# Production image for the Web Push delivery worker (Rust).
+
+ARG RUST_VERSION=1
+FROM rust:${RUST_VERSION}-alpine AS builder
+
+RUN apk add --no-cache musl-dev
 
 WORKDIR /app
 
-# Install git for fetching dependencies
-RUN apk add --no-cache git
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+COPY docs ./docs
 
-# Copy go mod files
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy source code
-COPY . .
-
-# Build the binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o pushworker ./cmd/pushworker
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/app/target \
+    cargo build --release --locked --bin pushworker && \
+    cp target/release/pushworker /usr/local/bin/pushworker
 
 # Runtime stage
-FROM alpine:3.19
+FROM alpine:3.20
 
 WORKDIR /app
 
-# Install ca-certificates for HTTPS and tzdata for timezones
 RUN apk --no-cache add ca-certificates tzdata
 
-# Copy binary from builder
-COPY --from=builder /app/pushworker .
+COPY --from=builder /usr/local/bin/pushworker ./pushworker
 
-# Expose port for health/metrics
+# Health endpoint
 EXPOSE 8001
 
-# Run the binary
 CMD ["./pushworker"]

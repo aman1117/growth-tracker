@@ -1,6 +1,11 @@
 SHELL := /bin/sh
 
-.PHONY: help setup dev up down logs seed check test frontend-install frontend-lint frontend-format-check frontend-typecheck frontend-test frontend-coverage frontend-build backend-fmt backend-vet backend-test backend-coverage backend-build
+# Postgres (superuser) and Redis used by the contract tests; defaults match docker-compose.yml.
+# The harness creates its own gtparity_* databases and FLUSHALLs Redis before every scenario.
+CONTRACT_PG_ARGS ?= --pg-host 127.0.0.1 --pg-port 5432 --pg-user localdev --pg-password localdevpassword
+CONTRACT_REDIS_URL ?= redis://127.0.0.1:6379
+
+.PHONY: help setup dev up down logs seed check test frontend-install frontend-lint frontend-format-check frontend-typecheck frontend-test frontend-coverage frontend-build backend-fmt backend-lint backend-test backend-coverage backend-build backend-contract
 
 help:
 	@echo "Available targets:"
@@ -20,10 +25,11 @@ help:
 	@echo "  frontend-coverage     Run frontend unit tests with coverage thresholds"
 	@echo "  frontend-build        Run frontend production build"
 	@echo "  backend-fmt           Check backend formatting"
-	@echo "  backend-vet           Run backend vet"
+	@echo "  backend-lint          Run backend clippy lints"
 	@echo "  backend-test          Run backend unit tests"
-	@echo "  backend-coverage      Run backend unit tests with the coverage minimum"
-	@echo "  backend-build         Build backend packages"
+	@echo "  backend-coverage      Run backend tests with the 90% line coverage minimum (needs cargo-llvm-cov)"
+	@echo "  backend-build         Build backend binaries"
+	@echo "  backend-contract      Run the API contract tests against a release build"
 
 setup: frontend-install
 
@@ -49,23 +55,26 @@ frontend-build:
 	cd frontend && npm run build
 
 backend-fmt:
-	cd backend && test -z "`gofmt -l .`"
+	cd backend && cargo fmt --all --check
 
-backend-vet:
-	cd backend && go vet ./...
+backend-lint:
+	cd backend && cargo clippy --workspace --all-targets -- -D warnings
 
 backend-test:
-	cd backend && go test ./...
+	cd backend && cargo test --workspace
 
 backend-coverage:
-	cd backend && sh scripts/test-coverage.sh
+	cd backend && cargo llvm-cov --workspace --html --fail-under-lines 90
 
 backend-build:
-	cd backend && go build ./...
+	cd backend && cargo build --workspace --bins
+
+backend-contract:
+	cd backend && cargo build --release --bin server && python contract-tests/parity.py check --server-bin target/release/server --goldens contract-tests/goldens --keep-going $(CONTRACT_PG_ARGS) --redis-url $(CONTRACT_REDIS_URL)
 
 test: frontend-test backend-test
 
-check: frontend-format-check frontend-lint frontend-typecheck frontend-test frontend-build backend-fmt backend-vet backend-test backend-build
+check: frontend-format-check frontend-lint frontend-typecheck frontend-test frontend-build backend-fmt backend-lint backend-test backend-build
 
 dev:
 	docker compose up --build

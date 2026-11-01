@@ -1,0 +1,4671 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Create, preview/join by code, progress, cheers, invites, leave, delete, ended challenges.",
+  "domain": "challenges",
+  "scenario": "challenge_lifecycle",
+  "step_count": 89,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 3,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 4,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 5,
+      "name": "register carol",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "carol@parity.test",
+          "password": "Passw0rd123",
+          "username": "carol"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 6,
+      "name": "login carol",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#3",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "carol",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 7,
+      "name": "register dave",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "dave@parity.test",
+          "password": "Passw0rd123",
+          "username": "dave"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 8,
+      "name": "login dave",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#4",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "dave",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 9,
+      "name": "register erin",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "erin@parity.test",
+          "password": "Passw0rd123",
+          "username": "erin"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "erin",
+      "index": 10,
+      "name": "login erin",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#5",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "erin",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 11,
+      "name": "no challenges yet",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenges": [],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 12,
+      "name": "alice creates an active challenge (starts today)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "duration_days": 5,
+          "goal_type": "at_least",
+          "start_date": "<TODAY>",
+          "target_hours": 1.5,
+          "title": "Daily study"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": true,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": 1,
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 1,
+              "days_met": 0,
+              "days_possible": 5,
+              "rank": 1,
+              "today_hours": 0,
+              "today_status": "pending",
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 1,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              }
+            ],
+            "results_date": "<TODAY+6>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "29"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 13,
+      "name": "alice creates an upcoming challenge",
+      "ratelimit": {
+        "hits": 2,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "sleep",
+          "duration_days": 14,
+          "goal_type": "at_least",
+          "start_date": "<TODAY+3>",
+          "target_hours": 7.5,
+          "title": "Sleep well"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "sleep",
+            "can_delete": true,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 12,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": null,
+            "duration_days": 14,
+            "end_date": "<TODAY+16>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 2,
+            "invite_code": "<CODE#2>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 0,
+              "days_met": 0,
+              "days_possible": 14,
+              "rank": null,
+              "today_hours": null,
+              "today_status": null,
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+5>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+6>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+7>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+8>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+9>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+10>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+11>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+12>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+13>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+14>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+15>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+16>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 1,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "UUUUUUUUUUUUUU",
+                "days_elapsed": 0,
+                "days_met": 0,
+                "days_possible": 14,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": null,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              }
+            ],
+            "results_date": "<TODAY+18>",
+            "start_date": "<TODAY+3>",
+            "status": "upcoming",
+            "target_hours": 7.5,
+            "title": "Sleep well",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "28"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 14,
+      "name": "detail as the creator",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": true,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": 1,
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 1,
+              "days_met": 0,
+              "days_possible": 5,
+              "rank": 1,
+              "today_hours": 0,
+              "today_status": "pending",
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 1,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              }
+            ],
+            "results_date": "<TODAY+6>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 15,
+      "name": "detail as a non-participant (not found)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 16,
+      "name": "detail: invalid id",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/abc"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid challenge ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 17,
+      "name": "detail: id 0",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/0"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid challenge ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 18,
+      "name": "detail: unknown id",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/999999"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 19,
+      "name": "preview by code",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/<CODE#1>"
+      },
+      "response": {
+        "body": {
+          "preview": {
+            "activity": "study",
+            "can_join": true,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "is_participant": false,
+            "join_blocked_reason": null,
+            "max_participants": 50,
+            "participant_count": 1,
+            "participants_preview": [
+              {
+                "id": 1,
+                "is_verified": false,
+                "profile_pic": null,
+                "profile_pic_thumb": null,
+                "username": "alice"
+              }
+            ],
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 20,
+      "name": "preview with a lower-case code",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/<CODE#1:lower>"
+      },
+      "response": {
+        "body": {
+          "preview": {
+            "activity": "study",
+            "can_join": true,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "is_participant": false,
+            "join_blocked_reason": null,
+            "max_participants": 50,
+            "participant_count": 1,
+            "participants_preview": [
+              {
+                "id": 1,
+                "is_verified": false,
+                "profile_pic": null,
+                "profile_pic_thumb": null,
+                "username": "alice"
+              }
+            ],
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 21,
+      "name": "preview with surrounding spaces",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/%20<CODE#1>%20"
+      },
+      "response": {
+        "body": {
+          "preview": {
+            "activity": "study",
+            "can_join": true,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "is_participant": false,
+            "join_blocked_reason": null,
+            "max_participants": 50,
+            "participant_count": 1,
+            "participants_preview": [
+              {
+                "id": 1,
+                "is_verified": false,
+                "profile_pic": null,
+                "profile_pic_thumb": null,
+                "username": "alice"
+              }
+            ],
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 22,
+      "name": "preview: code too short",
+      "ratelimit": {
+        "hits": 5,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/ABC"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid invite code",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "195"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 23,
+      "name": "preview: invalid character",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/ABCDEFG1"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid invite code",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 24,
+      "name": "preview: unknown code",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/ZZZZZZZZ"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 25,
+      "name": "bob joins by lower-case code",
+      "ratelimit": {
+        "hits": 1,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenge-codes/<CODE#1:lower>/join"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": false,
+            "can_invite": true,
+            "can_leave": true,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": 1,
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": false,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 1,
+              "days_met": 0,
+              "days_possible": 5,
+              "rank": 1,
+              "today_hours": 0,
+              "today_status": "pending",
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 2,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              },
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "bob"
+                }
+              }
+            ],
+            "results_date": "<TODAY+6>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "29"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 26,
+      "name": "bob joins again (no-op)",
+      "ratelimit": {
+        "hits": 2,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenge-codes/<CODE#1>/join"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": false,
+            "can_invite": true,
+            "can_leave": true,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": 1,
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": false,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 1,
+              "days_met": 0,
+              "days_possible": 5,
+              "rank": 1,
+              "today_hours": 0,
+              "today_status": "pending",
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 2,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              },
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "bob"
+                }
+              }
+            ],
+            "results_date": "<TODAY+6>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "28"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 27,
+      "name": "join: unknown code",
+      "ratelimit": {
+        "hits": 3,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenge-codes/ZZZZZZZZ/join"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "27"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 28,
+      "name": "join: malformed code",
+      "ratelimit": {
+        "hits": 4,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenge-codes/bad/join"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid invite code",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "26"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 29,
+      "name": "preview by a third user (2 participants)",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/<CODE#1>"
+      },
+      "response": {
+        "body": {
+          "preview": {
+            "activity": "study",
+            "can_join": true,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "is_participant": false,
+            "join_blocked_reason": null,
+            "max_participants": 50,
+            "participant_count": 2,
+            "participants_preview": [
+              {
+                "id": 1,
+                "is_verified": false,
+                "profile_pic": null,
+                "profile_pic_thumb": null,
+                "username": "alice"
+              },
+              {
+                "id": 2,
+                "is_verified": false,
+                "profile_pic": null,
+                "profile_pic_thumb": null,
+                "username": "bob"
+              }
+            ],
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 30,
+      "name": "alice meets today's goal",
+      "ratelimit": {
+        "hits": 6,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 2,
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "194"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 31,
+      "name": "bob logs less than the goal",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "activity": "study",
+          "date": "<TODAY>",
+          "hours": 1,
+          "username": "bob"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/create-activity"
+      },
+      "response": {
+        "body": {
+          "message": "Activity updated successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 32,
+      "name": "detail with today's progress",
+      "ratelimit": {
+        "hits": 7,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": false,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": 1,
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 1,
+              "days_elapsed": 1,
+              "days_met": 1,
+              "days_possible": 5,
+              "rank": 1,
+              "today_hours": 2,
+              "today_status": "met",
+              "total_hours": 2
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 2,
+                "locked": false,
+                "status": "met"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 2,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 1,
+                "days": "MUUUU",
+                "days_elapsed": 1,
+                "days_met": 1,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 2,
+                "today_status": "met",
+                "total_hours": 2,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              },
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": 2,
+                "today_hours": 1,
+                "today_status": "pending",
+                "total_hours": 1,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "bob"
+                }
+              }
+            ],
+            "results_date": "<TODAY+6>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "193"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 33,
+      "name": "bob's list",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenges": [
+            {
+              "activity": "study",
+              "day_number": 1,
+              "duration_days": 5,
+              "end_date": "<TODAY+4>",
+              "finalized": false,
+              "goal_type": "at_least",
+              "id": 1,
+              "is_creator": false,
+              "me": {
+                "completed": null,
+                "current_streak": 0,
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "rank": 2,
+                "today_hours": 1,
+                "today_status": "pending",
+                "total_hours": 1
+              },
+              "participant_count": 2,
+              "start_date": "<TODAY>",
+              "status": "active",
+              "target_hours": 1.5,
+              "title": "Daily study"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 34,
+      "name": "cheer: invalid JSON",
+      "ratelimit": {
+        "hits": 3,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/cheers"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "27"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 35,
+      "name": "cheer: missing user_id",
+      "ratelimit": {
+        "hits": 4,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {},
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/cheers"
+      },
+      "response": {
+        "body": {
+          "error": "user_id is required",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "26"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 36,
+      "name": "cheer: yourself",
+      "ratelimit": {
+        "hits": 5,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_id": 1
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/cheers"
+      },
+      "response": {
+        "body": {
+          "error": "You cannot cheer yourself",
+          "error_code": "CANNOT_CHEER_SELF",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "25"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 37,
+      "name": "cheer: not a participant",
+      "ratelimit": {
+        "hits": 6,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_id": 3
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/cheers"
+      },
+      "response": {
+        "body": {
+          "error": "user_id must be a participant of this challenge",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "24"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 38,
+      "name": "alice cheers bob",
+      "ratelimit": {
+        "hits": 7,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_id": 2
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/cheers"
+      },
+      "response": {
+        "body": {
+          "already_cheered": false,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "23"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 39,
+      "name": "alice cheers bob again today",
+      "ratelimit": {
+        "hits": 8,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_id": 2
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/cheers"
+      },
+      "response": {
+        "body": {
+          "already_cheered": true,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "22"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 40,
+      "name": "cheer by a non-participant",
+      "ratelimit": {
+        "hits": 1,
+        "key": "challenge:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_id": 2
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/cheers"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "29"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 41,
+      "name": "cheer: invalid challenge id",
+      "ratelimit": {
+        "hits": 9,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_id": 2
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/abc/cheers"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid challenge ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "21"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 42,
+      "name": "bob's notifications (cheer)",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "alice cheered you on in “Daily study”",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 2,
+              "metadata": {
+                "actor_avatar": "",
+                "actor_id": 1,
+                "actor_username": "alice",
+                "challenge_id": 1,
+                "challenge_title": "Daily study"
+              },
+              "title": "You got a cheer 👏",
+              "type": "challenge_cheer"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 1
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 43,
+      "name": "detail shows cheered_today",
+      "ratelimit": {
+        "hits": 8,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": false,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": 1,
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 1,
+              "days_elapsed": 1,
+              "days_met": 1,
+              "days_possible": 5,
+              "rank": 1,
+              "today_hours": 2,
+              "today_status": "met",
+              "total_hours": 2
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 2,
+                "locked": false,
+                "status": "met"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 2,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 1,
+                "days": "MUUUU",
+                "days_elapsed": 1,
+                "days_met": 1,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 2,
+                "today_status": "met",
+                "total_hours": 2,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              },
+              {
+                "cheered_today": true,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": 2,
+                "today_hours": 1,
+                "today_status": "pending",
+                "total_hours": 1,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "bob"
+                }
+              }
+            ],
+            "results_date": "<TODAY+6>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "192"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 44,
+      "name": "carol follows alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/1/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 45,
+      "name": "alice follows dave",
+      "ratelimit": {
+        "hits": 1,
+        "key": "follow:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/4/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "119"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 46,
+      "name": "alice follows erin",
+      "ratelimit": {
+        "hits": 2,
+        "key": "follow:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/users/5/follow"
+      },
+      "response": {
+        "body": {
+          "message": "Now following",
+          "state": "ACTIVE",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "120",
+          "x-ratelimit-remaining": "118"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 47,
+      "name": "invite candidates",
+      "ratelimit": {
+        "hits": 9,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1/invite-candidates"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "users": [
+            {
+              "id": 3,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "carol"
+            },
+            {
+              "id": 4,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "dave"
+            },
+            {
+              "id": 5,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "erin"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "191"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 48,
+      "name": "candidates filtered by prefix (case-insensitive)",
+      "ratelimit": {
+        "hits": 10,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1/invite-candidates?q=CA"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "users": [
+            {
+              "id": 3,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "carol"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "190"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 49,
+      "name": "candidates limit 1",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1/invite-candidates?limit=1"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "users": [
+            {
+              "id": 3,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "carol"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 50,
+      "name": "candidates limit 0",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1/invite-candidates?limit=0"
+      },
+      "response": {
+        "body": {
+          "error": "limit must be a positive integer",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 51,
+      "name": "candidates non-numeric limit",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1/invite-candidates?limit=x"
+      },
+      "response": {
+        "body": {
+          "error": "limit must be a positive integer",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 52,
+      "name": "candidates limit above the maximum",
+      "ratelimit": {
+        "hits": 14,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1/invite-candidates?limit=500"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "users": [
+            {
+              "id": 3,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "carol"
+            },
+            {
+              "id": 4,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "dave"
+            },
+            {
+              "id": 5,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "erin"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "186"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 53,
+      "name": "candidates for a non-participant",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1/invite-candidates"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 54,
+      "name": "candidates: invalid id",
+      "ratelimit": {
+        "hits": 15,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/abc/invite-candidates"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid challenge ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "185"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 55,
+      "name": "invite: invalid JSON",
+      "ratelimit": {
+        "hits": 10,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "raw": "{"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/invites"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid request body",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "20"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 56,
+      "name": "invite: empty list",
+      "ratelimit": {
+        "hits": 11,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_ids": []
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/invites"
+      },
+      "response": {
+        "body": {
+          "error": "user_ids must contain between 1 and 20 users",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "19"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 57,
+      "name": "invite: 21 users",
+      "ratelimit": {
+        "hits": 12,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ]
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/invites"
+      },
+      "response": {
+        "body": {
+          "error": "user_ids must contain between 1 and 20 users",
+          "error_code": "INVALID_CHALLENGE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "18"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 58,
+      "name": "invite carol, dave, self, bob (participant), unknown, duplicate",
+      "ratelimit": {
+        "hits": 13,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_ids": [
+            3,
+            4,
+            1,
+            2,
+            999999,
+            3
+          ]
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/invites"
+      },
+      "response": {
+        "body": {
+          "invited": 2,
+          "skipped": 4,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "17"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 59,
+      "name": "bob invites carol (already invited) and erin (no relationship with bob)",
+      "ratelimit": {
+        "hits": 5,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_ids": [
+            3,
+            5
+          ]
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/invites"
+      },
+      "response": {
+        "body": {
+          "invited": 0,
+          "skipped": 2,
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "25"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 60,
+      "name": "invite by a non-participant",
+      "ratelimit": {
+        "hits": 2,
+        "key": "challenge:carol",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_ids": [
+            5
+          ]
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/invites"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "28"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 61,
+      "name": "candidates after inviting (invited flag)",
+      "ratelimit": {
+        "hits": 16,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1/invite-candidates"
+      },
+      "response": {
+        "body": {
+          "success": true,
+          "users": [
+            {
+              "id": 3,
+              "invited": true,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "carol"
+            },
+            {
+              "id": 4,
+              "invited": true,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "dave"
+            },
+            {
+              "id": 5,
+              "invited": false,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "erin"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "184"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 62,
+      "name": "carol's invite notification",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/notifications"
+      },
+      "response": {
+        "body": {
+          "has_more": false,
+          "notifications": [
+            {
+              "body": "alice invited you to “Daily study”",
+              "created_at": "<TIME Z skew=+05:30>",
+              "id": 6,
+              "metadata": {
+                "actor_avatar": "",
+                "actor_id": 1,
+                "actor_username": "alice",
+                "challenge_id": 1,
+                "challenge_title": "Daily study",
+                "invite_code": "<CODE#1>"
+              },
+              "title": "Challenge invite 🏆",
+              "type": "challenge_invite"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "success": true,
+          "total": 1
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 63,
+      "name": "carol's list (pending invite)",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenges": [],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 64,
+      "name": "carol joins with the code",
+      "ratelimit": {
+        "hits": 3,
+        "key": "challenge:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenge-codes/<CODE#1>/join"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": false,
+            "can_invite": true,
+            "can_leave": true,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": 1,
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": false,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 1,
+              "days_met": 0,
+              "days_possible": 5,
+              "rank": 3,
+              "today_hours": 0,
+              "today_status": "pending",
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 3,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 1,
+                "days": "MUUUU",
+                "days_elapsed": 1,
+                "days_met": 1,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 2,
+                "today_status": "met",
+                "total_hours": 2,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              },
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": 2,
+                "today_hours": 1,
+                "today_status": "pending",
+                "total_hours": 1,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "bob"
+                }
+              },
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 3,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 3,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "carol"
+                }
+              }
+            ],
+            "results_date": "<TODAY+6>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "27"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 65,
+      "name": "detail with three participants",
+      "ratelimit": {
+        "hits": 17,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": false,
+            "can_invite": true,
+            "can_leave": false,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": 1,
+            "duration_days": 5,
+            "end_date": "<TODAY+4>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 1,
+              "days_elapsed": 1,
+              "days_met": 1,
+              "days_possible": 5,
+              "rank": 1,
+              "today_hours": 2,
+              "today_status": "met",
+              "total_hours": 2
+            },
+            "my_days": [
+              {
+                "date": "<TODAY>",
+                "hours": 2,
+                "locked": false,
+                "status": "met"
+              },
+              {
+                "date": "<TODAY+1>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+2>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 3,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 1,
+                "days": "MUUUU",
+                "days_elapsed": 1,
+                "days_met": 1,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": 1,
+                "today_hours": 2,
+                "today_status": "met",
+                "total_hours": 2,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              },
+              {
+                "cheered_today": true,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": 2,
+                "today_hours": 1,
+                "today_status": "pending",
+                "total_hours": 1,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "bob"
+                }
+              },
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PUUUU",
+                "days_elapsed": 1,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": 3,
+                "today_hours": 0,
+                "today_status": "pending",
+                "total_hours": 0,
+                "user": {
+                  "id": 3,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "carol"
+                }
+              }
+            ],
+            "results_date": "<TODAY+6>",
+            "start_date": "<TODAY>",
+            "status": "active",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "183"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 66,
+      "name": "creator cannot leave",
+      "ratelimit": {
+        "hits": 14,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/leave"
+      },
+      "response": {
+        "body": {
+          "error": "The creator cannot leave the challenge",
+          "error_code": "CREATOR_CANNOT_LEAVE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "16"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 67,
+      "name": "leave: not a participant",
+      "ratelimit": {
+        "hits": 1,
+        "key": "challenge:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/leave"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "29"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 68,
+      "name": "leave: invalid id",
+      "ratelimit": {
+        "hits": 6,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenges/abc/leave"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid challenge ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "24"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 69,
+      "name": "bob leaves",
+      "ratelimit": {
+        "hits": 7,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/leave"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "23"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 70,
+      "name": "bob leaves again",
+      "ratelimit": {
+        "hits": 8,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/leave"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "22"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 71,
+      "name": "bob can no longer see the challenge",
+      "ratelimit": {
+        "hits": 11,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "189"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 72,
+      "name": "delete: not a participant",
+      "ratelimit": {
+        "hits": 9,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/challenges/2"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "21"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 73,
+      "name": "bob joins the upcoming challenge",
+      "ratelimit": {
+        "hits": 10,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenge-codes/<CODE#2>/join"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "sleep",
+            "can_delete": false,
+            "can_invite": true,
+            "can_leave": true,
+            "completion_days": 12,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": null,
+            "duration_days": 14,
+            "end_date": "<TODAY+16>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 2,
+            "invite_code": "<CODE#2>",
+            "is_creator": false,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 0,
+              "days_met": 0,
+              "days_possible": 14,
+              "rank": null,
+              "today_hours": null,
+              "today_status": null,
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY+3>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+4>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+5>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+6>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+7>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+8>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+9>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+10>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+11>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+12>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+13>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+14>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+15>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              },
+              {
+                "date": "<TODAY+16>",
+                "hours": null,
+                "locked": false,
+                "status": "upcoming"
+              }
+            ],
+            "participant_count": 2,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "UUUUUUUUUUUUUU",
+                "days_elapsed": 0,
+                "days_met": 0,
+                "days_possible": 14,
+                "is_me": false,
+                "joined_on": "<TODAY>",
+                "rank": null,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              },
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "UUUUUUUUUUUUUU",
+                "days_elapsed": 0,
+                "days_met": 0,
+                "days_possible": 14,
+                "is_me": true,
+                "joined_on": "<TODAY>",
+                "rank": null,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0,
+                "user": {
+                  "id": 2,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "bob"
+                }
+              }
+            ],
+            "results_date": "<TODAY+18>",
+            "start_date": "<TODAY+3>",
+            "status": "upcoming",
+            "target_hours": 7.5,
+            "title": "Sleep well",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "20"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 74,
+      "name": "cheer in an upcoming challenge",
+      "ratelimit": {
+        "hits": 15,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_id": 2
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/2/cheers"
+      },
+      "response": {
+        "body": {
+          "error": "You can only cheer while the challenge is active",
+          "error_code": "CHALLENGE_NOT_ACTIVE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "15"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 75,
+      "name": "delete: participant but not the creator",
+      "ratelimit": {
+        "hits": 11,
+        "key": "challenge:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/challenges/2"
+      },
+      "response": {
+        "body": {
+          "error": "Only the creator can delete this challenge",
+          "error_code": "NOT_AUTHORIZED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "19"
+        },
+        "status": 403
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 76,
+      "name": "delete an active challenge with other participants",
+      "ratelimit": {
+        "hits": 16,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "error": "A challenge can only be deleted before it starts or while you are its only participant",
+          "error_code": "CHALLENGE_IN_PROGRESS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "14"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 77,
+      "name": "delete: invalid id",
+      "ratelimit": {
+        "hits": 17,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/challenges/abc"
+      },
+      "response": {
+        "body": {
+          "error": "Invalid challenge ID",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "13"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 78,
+      "name": "creator deletes the upcoming challenge",
+      "ratelimit": {
+        "hits": 18,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/challenges/2"
+      },
+      "response": {
+        "body": {
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "12"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 79,
+      "name": "delete it again",
+      "ratelimit": {
+        "hits": 19,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/challenges/2"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "11"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 80,
+      "name": "preview of a deleted challenge",
+      "ratelimit": {
+        "hits": 12,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/<CODE#2>"
+      },
+      "response": {
+        "body": {
+          "error": "Challenge not found",
+          "error_code": "CHALLENGE_NOT_FOUND",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "188"
+        },
+        "status": 404
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 81,
+      "name": "bob's list after the deletion",
+      "ratelimit": {
+        "hits": 13,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenges": [],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "187"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 82,
+      "name": "detail of an ended challenge",
+      "ratelimit": {
+        "hits": 18,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "challenge": {
+            "activity": "study",
+            "can_delete": false,
+            "can_invite": false,
+            "can_leave": false,
+            "completion_days": 4,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "day_number": null,
+            "duration_days": 5,
+            "end_date": "<TODAY-6>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "invite_code": "<CODE#1>",
+            "is_creator": true,
+            "locked_through": null,
+            "max_participants": 50,
+            "me": {
+              "completed": null,
+              "current_streak": 0,
+              "days_elapsed": 5,
+              "days_met": 0,
+              "days_possible": 5,
+              "rank": 1,
+              "today_hours": null,
+              "today_status": null,
+              "total_hours": 0
+            },
+            "my_days": [
+              {
+                "date": "<TODAY-10>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY-9>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY-8>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY-7>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              },
+              {
+                "date": "<TODAY-6>",
+                "hours": 0,
+                "locked": false,
+                "status": "pending"
+              }
+            ],
+            "participant_count": 2,
+            "participants": [
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PPPPP",
+                "days_elapsed": 5,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": true,
+                "joined_on": "<TODAY-10>",
+                "rank": 1,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0,
+                "user": {
+                  "id": 1,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "alice"
+                }
+              },
+              {
+                "cheered_today": false,
+                "completed": null,
+                "current_streak": 0,
+                "days": "PPPPP",
+                "days_elapsed": 5,
+                "days_met": 0,
+                "days_possible": 5,
+                "is_me": false,
+                "joined_on": "<TODAY-10>",
+                "rank": 1,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0,
+                "user": {
+                  "id": 3,
+                  "is_verified": false,
+                  "profile_pic": null,
+                  "profile_pic_thumb": null,
+                  "username": "carol"
+                }
+              }
+            ],
+            "results_date": "<TODAY-4>",
+            "start_date": "<TODAY-10>",
+            "status": "ended",
+            "target_hours": 1.5,
+            "title": "Daily study",
+            "today": "<TODAY>"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "182"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 83,
+      "name": "ended challenges are listed as recent",
+      "ratelimit": {
+        "hits": 19,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenges"
+      },
+      "response": {
+        "body": {
+          "challenges": [
+            {
+              "activity": "study",
+              "day_number": null,
+              "duration_days": 5,
+              "end_date": "<TODAY-6>",
+              "finalized": false,
+              "goal_type": "at_least",
+              "id": 1,
+              "is_creator": true,
+              "me": {
+                "completed": null,
+                "current_streak": 0,
+                "days_elapsed": 5,
+                "days_met": 0,
+                "days_possible": 5,
+                "rank": 1,
+                "today_hours": null,
+                "today_status": null,
+                "total_hours": 0
+              },
+              "participant_count": 2,
+              "start_date": "<TODAY-10>",
+              "status": "ended",
+              "target_hours": 1.5,
+              "title": "Daily study"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "181"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 84,
+      "name": "join an ended challenge",
+      "ratelimit": {
+        "hits": 2,
+        "key": "challenge:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenge-codes/<CODE#1>/join"
+      },
+      "response": {
+        "body": {
+          "error": "This challenge has ended",
+          "error_code": "CHALLENGE_ENDED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "28"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "dave",
+      "index": 85,
+      "name": "preview of an ended challenge",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:dave",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/challenge-codes/<CODE#1>"
+      },
+      "response": {
+        "body": {
+          "preview": {
+            "activity": "study",
+            "can_join": false,
+            "creator": {
+              "id": 1,
+              "is_verified": false,
+              "profile_pic": null,
+              "profile_pic_thumb": null,
+              "username": "alice"
+            },
+            "duration_days": 5,
+            "end_date": "<TODAY-6>",
+            "finalized": false,
+            "goal_type": "at_least",
+            "id": 1,
+            "is_participant": false,
+            "join_blocked_reason": "ended",
+            "max_participants": 50,
+            "participant_count": 2,
+            "participants_preview": [
+              {
+                "id": 1,
+                "is_verified": false,
+                "profile_pic": null,
+                "profile_pic_thumb": null,
+                "username": "alice"
+              },
+              {
+                "id": 3,
+                "is_verified": false,
+                "profile_pic": null,
+                "profile_pic_thumb": null,
+                "username": "carol"
+              }
+            ],
+            "start_date": "<TODAY-10>",
+            "status": "ended",
+            "target_hours": 1.5,
+            "title": "Daily study"
+          },
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "carol",
+      "index": 86,
+      "name": "leave an ended challenge",
+      "ratelimit": {
+        "hits": 4,
+        "key": "challenge:carol",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/leave"
+      },
+      "response": {
+        "body": {
+          "error": "This challenge has ended",
+          "error_code": "CHALLENGE_ENDED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "26"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 87,
+      "name": "cheer in an ended challenge",
+      "ratelimit": {
+        "hits": 20,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_id": 3
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/cheers"
+      },
+      "response": {
+        "body": {
+          "error": "You can only cheer while the challenge is active",
+          "error_code": "CHALLENGE_NOT_ACTIVE",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "10"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 88,
+      "name": "invite to an ended challenge",
+      "ratelimit": {
+        "hits": 21,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "user_ids": [
+            4
+          ]
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/challenges/1/invites"
+      },
+      "response": {
+        "body": {
+          "error": "This challenge has ended",
+          "error_code": "CHALLENGE_ENDED",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "9"
+        },
+        "status": 409
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 89,
+      "name": "delete an ended challenge",
+      "ratelimit": {
+        "hits": 22,
+        "key": "challenge:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/challenges/1"
+      },
+      "response": {
+        "body": {
+          "error": "A challenge can only be deleted before it starts or while you are its only participant",
+          "error_code": "CHALLENGE_IN_PROGRESS",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "30",
+          "x-ratelimit-remaining": "8"
+        },
+        "status": 409
+      }
+    }
+  ]
+}

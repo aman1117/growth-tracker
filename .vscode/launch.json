@@ -2,36 +2,32 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Backend (Docker)",
-            "type": "go",
-            "request": "attach",
-            "mode": "remote",
-            "port": 2345,
-            "host": "localhost",
-            "substitutePath": [
-                { "from": "${workspaceFolder}\\backend", "to": "/app" },
-                { "from": "${workspaceFolder}/backend", "to": "/app" }
-            ],
-            "showLog": true
+            "name": "Backend (local)",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": ["build", "--manifest-path", "backend/Cargo.toml", "--bin", "server"],
+                "filter": { "name": "server", "kind": "bin" }
+            },
+            "cwd": "${workspaceFolder}/backend",
+            "envFile": "${workspaceFolder}/backend/.env"
         },
         {
-            "name": "Push Worker (Docker)",
-            "type": "go",
-            "request": "attach",
-            "mode": "remote",
-            "port": 2346,
-            "host": "localhost",
-            "substitutePath": [
-                { "from": "${workspaceFolder}\\backend", "to": "/app" },
-                { "from": "${workspaceFolder}/backend", "to": "/app" }
-            ],
-            "showLog": true
+            "name": "Push Worker (local)",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": ["build", "--manifest-path", "backend/Cargo.toml", "--bin", "pushworker"],
+                "filter": { "name": "pushworker", "kind": "bin" }
+            },
+            "cwd": "${workspaceFolder}/backend",
+            "envFile": "${workspaceFolder}/backend/.env"
         }
     ],
     "compounds": [
         {
             "name": "All Services",
-            "configurations": ["Backend (Docker)", "Push Worker (Docker)"]
+            "configurations": ["Backend (local)", "Push Worker (local)"]
         }
     ]
 }

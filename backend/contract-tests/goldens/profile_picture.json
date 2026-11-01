@@ -1,0 +1,794 @@
+{
+  "date_anchor": "TODAY",
+  "description": "Upload (validation, resize, thumbnail, replace deletes old blobs) and delete the profile picture.",
+  "domain": "photos",
+  "scenario": "profile_picture",
+  "step_count": 24,
+  "steps": [
+    {
+      "actor": "alice",
+      "index": 1,
+      "name": "register alice",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "alice@parity.test",
+          "password": "Passw0rd123",
+          "username": "alice"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 2,
+      "name": "login alice",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#1",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "alice",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 3,
+      "name": "upload: JSON body instead of multipart",
+      "ratelimit": {
+        "hits": 1,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "image": "x"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "error": "No image file provided",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "19"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 4,
+      "name": "upload: multipart without image",
+      "ratelimit": {
+        "hits": 2,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {
+            "other": "1"
+          },
+          "multipart_files": {}
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "error": "No image file provided",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "18"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 5,
+      "name": "upload: .gif extension",
+      "ratelimit": {
+        "hits": 3,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {},
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/gif",
+              "filename": "pic.gif",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "error": "Only JPG, PNG, WebP, and HEIC images are allowed",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "17"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 6,
+      "name": "upload: not an image",
+      "ratelimit": {
+        "hits": 4,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {},
+          "multipart_files": {
+            "image": {
+              "bytes": 20,
+              "content_type": "image/png",
+              "filename": "pic.png",
+              "sha256": "912e0b706729815a"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "error": "Failed to process image: invalid image file: unsupported image format",
+          "error_code": "INVALID_REQUEST",
+          "success": false
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "16"
+        },
+        "status": 400
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 7,
+      "name": "upload a 1600x900 PNG",
+      "ratelimit": {
+        "hits": 5,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {},
+          "multipart_files": {
+            "image": {
+              "bytes": 5649,
+              "content_type": "image/png",
+              "filename": "me.png",
+              "sha256": "eb70bad40245b6bd"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "profile_pic": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#1>.jpg",
+          "profile_pic_thumb": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#1>_thumb.jpg",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "15"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": null,
+      "index": 8,
+      "name": "stored full-size picture",
+      "request": {
+        "method": "OBSERVE",
+        "path": "stored full-size picture"
+      },
+      "response": {
+        "body": {
+          "content_type": "image/jpeg",
+          "format": "jpeg",
+          "height": 608,
+          "status": 200,
+          "width": 1080
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": null,
+      "index": 9,
+      "name": "stored thumbnail",
+      "request": {
+        "method": "OBSERVE",
+        "path": "stored thumbnail"
+      },
+      "response": {
+        "body": {
+          "content_type": "image/jpeg",
+          "format": "jpeg",
+          "height": 200,
+          "status": 200,
+          "width": 200
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 10,
+      "name": "profile has picture URLs",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "bio": null,
+          "email": "alice@parity.test",
+          "email_verified": false,
+          "followers_count": 0,
+          "following_count": 0,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#1>.jpg",
+          "profile_pic_thumb": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#1>_thumb.jpg",
+          "success": true,
+          "username": "alice"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 11,
+      "name": "replace with a small PNG (upper-case extension)",
+      "ratelimit": {
+        "hits": 6,
+        "key": "upload:alice",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "multipart_fields": {},
+          "multipart_files": {
+            "image": {
+              "bytes": 101,
+              "content_type": "image/png",
+              "filename": "SMALL.PNG",
+              "sha256": "f26ee2cd035efbd0"
+            }
+          }
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "multipart/form-data; boundary=----gtParityBoundary7MA4YWxkTrZu0gW"
+        },
+        "method": "POST",
+        "path": "/api/profile/upload-picture"
+      },
+      "response": {
+        "body": {
+          "profile_pic": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#2>.jpg",
+          "profile_pic_thumb": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#2>_thumb.jpg",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "20",
+          "x-ratelimit-remaining": "14"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": null,
+      "index": 12,
+      "name": "old full-size picture was deleted",
+      "request": {
+        "method": "OBSERVE",
+        "path": "old full-size picture was deleted"
+      },
+      "response": {
+        "body": {
+          "status": 404
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": null,
+      "index": 13,
+      "name": "old thumbnail was deleted",
+      "request": {
+        "method": "OBSERVE",
+        "path": "old thumbnail was deleted"
+      },
+      "response": {
+        "body": {
+          "status": 404
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": null,
+      "index": 14,
+      "name": "new full-size picture (not upscaled)",
+      "request": {
+        "method": "OBSERVE",
+        "path": "new full-size picture (not upscaled)"
+      },
+      "response": {
+        "body": {
+          "content_type": "image/jpeg",
+          "format": "jpeg",
+          "height": 30,
+          "status": 200,
+          "width": 40
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": null,
+      "index": 15,
+      "name": "new thumbnail",
+      "request": {
+        "method": "OBSERVE",
+        "path": "new thumbnail"
+      },
+      "response": {
+        "body": {
+          "content_type": "image/jpeg",
+          "format": "jpeg",
+          "height": 200,
+          "status": 200,
+          "width": 200
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 16,
+      "name": "register bob",
+      "ratelimit": {
+        "hits": 1,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "email": "bob@parity.test",
+          "password": "Passw0rd123",
+          "username": "bob"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/register"
+      },
+      "response": {
+        "body": {
+          "message": "User created successfully.",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "4"
+        },
+        "status": 201
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 17,
+      "name": "login bob",
+      "ratelimit": {
+        "hits": 2,
+        "key": "auth:ip#2",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "identifier": "bob",
+          "password": "Passw0rd123"
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/login"
+      },
+      "response": {
+        "body": {
+          "access_token": "<JWT>",
+          "expires_at": "<TIME Z skew=+24:00>",
+          "expires_in": 86400,
+          "success": true,
+          "token_type": "Bearer"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "5",
+          "x-ratelimit-remaining": "3"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 18,
+      "name": "public profile shows the picture",
+      "ratelimit": {
+        "hits": 1,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/users/1/profile"
+      },
+      "response": {
+        "body": {
+          "followers_count": 0,
+          "following_count": 0,
+          "id": 1,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#2>.jpg",
+          "profile_pic_thumb": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#2>_thumb.jpg",
+          "relationship_state": "NONE",
+          "success": true,
+          "username": "alice"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "199"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 19,
+      "name": "autocomplete shows the picture",
+      "ratelimit": {
+        "hits": 1,
+        "key": "autocomplete:bob",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/autocomplete/users?q=alice"
+      },
+      "response": {
+        "body": {
+          "query": "alice",
+          "requestId": "<UUID#3>",
+          "suggestions": [
+            {
+              "kind": "user",
+              "meta": {
+                "followersCount": 0,
+                "isVerified": false,
+                "profilePic": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#2>.jpg",
+                "profilePicThumb": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#2>_thumb.jpg"
+              },
+              "score": 100,
+              "text": "alice"
+            }
+          ]
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "60",
+          "x-ratelimit-remaining": "59"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "bob",
+      "index": 20,
+      "name": "search shows the picture",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:bob",
+        "window": 0
+      },
+      "request": {
+        "body": {
+          "username": "alice"
+        },
+        "headers": {
+          "Authorization": "Bearer <JWT>",
+          "Content-Type": "application/json"
+        },
+        "method": "POST",
+        "path": "/api/users"
+      },
+      "response": {
+        "body": {
+          "data": [
+            {
+              "id": 1,
+              "is_private": false,
+              "is_verified": false,
+              "profile_pic": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#2>.jpg",
+              "profile_pic_thumb": "http://localhost:10000/devstoreaccount1/profile-pictures/1/<UUID#2>_thumb.jpg",
+              "username": "alice"
+            }
+          ],
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 21,
+      "name": "delete the picture",
+      "ratelimit": {
+        "hits": 2,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/profile/picture"
+      },
+      "response": {
+        "body": {
+          "message": "Profile picture deleted successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "198"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": null,
+      "index": 22,
+      "name": "deleted picture is gone",
+      "request": {
+        "method": "OBSERVE",
+        "path": "deleted picture is gone"
+      },
+      "response": {
+        "body": {
+          "status": 404
+        },
+        "body_type": "json",
+        "headers": {},
+        "status": 0
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 23,
+      "name": "profile without picture",
+      "ratelimit": {
+        "hits": 3,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "GET",
+        "path": "/api/profile"
+      },
+      "response": {
+        "body": {
+          "bio": null,
+          "email": "alice@parity.test",
+          "email_verified": false,
+          "followers_count": 0,
+          "following_count": 0,
+          "is_private": false,
+          "is_verified": false,
+          "profile_pic": null,
+          "success": true,
+          "username": "alice"
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "197"
+        },
+        "status": 200
+      }
+    },
+    {
+      "actor": "alice",
+      "index": 24,
+      "name": "delete again",
+      "ratelimit": {
+        "hits": 4,
+        "key": "api:alice",
+        "window": 0
+      },
+      "request": {
+        "headers": {
+          "Authorization": "Bearer <JWT>"
+        },
+        "method": "DELETE",
+        "path": "/api/profile/picture"
+      },
+      "response": {
+        "body": {
+          "message": "Profile picture deleted successfully",
+          "success": true
+        },
+        "body_type": "json",
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-limit": "200",
+          "x-ratelimit-remaining": "196"
+        },
+        "status": 200
+      }
+    }
+  ]
+}

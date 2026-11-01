@@ -1,7 +1,7 @@
 //! Shared fixtures of the integration tests.
 //!
 //! Database tests run only when `TEST_DATABASE_URL` points at a PostgreSQL server whose role
-//! may create databases (each test gets its own database). Redis checks use `TEST_REDIS_URL`
+//! may create databases (each test gets its own database). Redis checks use `REDIS_URL`
 //! (default `redis://127.0.0.1:56379`) and are skipped when it is unreachable.
 //!
 //! Everything runs on one shared runtime (the Redis connection is a process-wide global whose
@@ -443,7 +443,7 @@ pub async fn redis_ready() -> bool {
     static READY: OnceCell<bool> = OnceCell::const_new();
     *READY
         .get_or_init(|| async {
-            let url = std::env::var("TEST_REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:56379".into());
+            let url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:56379".into());
             match gt_core::redis::init(&url).await {
                 Ok(()) => gt_core::redis::is_available(),
                 Err(err) => {

@@ -92,7 +92,11 @@ class PgAdmin:
             )
 
     def create_db(self, name: str, template: str | None = None) -> None:
-        stmt = pgsql.SQL("CREATE DATABASE {}").format(pgsql.Identifier(name))
+        # The goldens were recorded on a C-locale server; pg_trgm and ILIKE split non-ASCII text
+        # by LC_CTYPE, so pin it instead of inheriting the server default (e.g. en_US.utf8).
+        stmt = pgsql.SQL(
+            "CREATE DATABASE {} TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'"
+        ).format(pgsql.Identifier(name))
         if template:
             stmt = pgsql.SQL("CREATE DATABASE {} TEMPLATE {}").format(pgsql.Identifier(name), pgsql.Identifier(template))
         last: Exception | None = None

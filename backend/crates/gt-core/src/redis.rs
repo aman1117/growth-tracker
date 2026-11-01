@@ -410,6 +410,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn accepts_tls_urls() {
+        // Azure Cache for Redis only accepts TLS (rediss://), which go-redis supported.
+        assert!(::redis::Client::open("rediss://:secret@example.redis.cache.windows.net:6380/0").is_ok());
+    }
+
+    #[test]
     fn tokens_are_hex_and_hashed() {
         let (raw, hash) = generate_reset_token();
         assert_eq!(raw.len(), 64);

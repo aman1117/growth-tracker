@@ -43,7 +43,8 @@ base64 = "0.22"
 
 # Storage
 sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "chrono", "json", "uuid", "derive", "macros"] }
-redis = { version = "0.27", features = ["tokio-comp", "connection-manager", "aio"] }
+# TLS (rediss://, e.g. Azure Cache for Redis) via rustls + ring, like the rest of the stack
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager", "aio", "tokio-rustls-comp", "tls-rustls-webpki-roots"] }
 
 # Time
 chrono = { version = "0.4", features = ["serde"] }

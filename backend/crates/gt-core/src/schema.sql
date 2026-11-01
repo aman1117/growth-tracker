@@ -4,8 +4,9 @@
 -- scripts it shipped in backend/migrations (pg_trgm indexes, story_likes, recent_searches,
 -- activity photo columns, profile_pic_thumb). Every statement is idempotent, so running this on
 -- startup creates a fresh database and is a no-op on an existing production database.
-
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- The pg_trgm extension and its trigram index are applied separately and best-effort by
+-- `db::migrate` (`OPTIONAL_SCHEMA`), so a server that may not create extensions still starts,
+-- like Go.
 
 CREATE TABLE IF NOT EXISTS users (
     id bigserial NOT NULL,
@@ -26,7 +27,6 @@ CREATE TABLE IF NOT EXISTS users (
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_pic_thumb text;
 CREATE INDEX IF NOT EXISTS idx_users_username_lower_pattern ON users USING btree (lower(username) text_pattern_ops);
-CREATE INDEX IF NOT EXISTS idx_users_username_trgm ON users USING gin (username gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS activities (
     id bigserial NOT NULL,

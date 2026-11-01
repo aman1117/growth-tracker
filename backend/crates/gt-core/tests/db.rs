@@ -38,6 +38,16 @@ async fn schema_is_idempotent_and_session_is_utc() {
         .unwrap();
     assert_eq!(tables, 28);
 
+    // The optional autocomplete steps ran too.
+    let trigram: i64 = sqlx::query_scalar(
+        "SELECT (SELECT count(*) FROM pg_extension WHERE extname = 'pg_trgm') \
+              + (SELECT count(*) FROM pg_indexes WHERE indexname = 'idx_users_username_trgm')",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(trigram, 2);
+
     let tz: String = sqlx::query_scalar("SHOW TimeZone").fetch_one(&pool).await.unwrap();
     assert_eq!(tz, "UTC");
 

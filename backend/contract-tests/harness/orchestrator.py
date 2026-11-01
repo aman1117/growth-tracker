@@ -149,17 +149,33 @@ class Orchestrator:
         if self.managed:
             self.build_template()
 
+    def start_server(self, db_url: str, sdef: ScenarioDef | None, log_path: Path) -> tuple[ServerProcess, int, float]:
+        """Starts the server under test on a free port; returns it, its port and the startup time.
+
+        Retries on another port when the chosen one was taken before the server could bind it."""
+        attempts = 3
+        for attempt in range(1, attempts + 1):
+            port = free_port()
+            server = ServerProcess(self.cfg.server_bin, self.server_env(db_url, port, sdef),
+                                   self.work / "server-cwd", log_path, port)
+            server.start()
+            try:
+                return server, port, server.wait_ready()
+            except ServerStartError as exc:
+                server.stop()
+                if not exc.port_in_use or attempt == attempts:
+                    raise
+                self.log(f"  port {port} was taken before the server bound it; retrying on another port")
+        raise AssertionError("unreachable")
+
     def build_template(self) -> None:
         """Fresh DB -> server migrates it -> extra SQL -> reused as TEMPLATE for every scenario."""
         self.template_db = f"{self.db_prefix}_tpl"
         self.log(f"building schema template {self.template_db} with {self.cfg.server_bin}")
         self.pg.create_db(self.template_db)
-        port = free_port()
-        server = ServerProcess(self.cfg.server_bin, self.server_env(self.cfg.pg.url(self.template_db), port, None),
-                               self.work / "server-cwd", self.work / "logs" / "_template.log", port)
-        server.start()
+        server, _, took = self.start_server(self.cfg.pg.url(self.template_db), None,
+                                            self.work / "logs" / "_template.log")
         try:
-            took = server.wait_ready()
             self.pg.execute_script(self.template_db, EXTRA_SCHEMA_SQL)
             self.log(f"  server migrated the schema in {took:.1f}s")
         finally:
@@ -208,12 +224,8 @@ class Orchestrator:
                 db_name = f"{self.db_prefix}_{idx:03d}"
                 self.pg.create_db(db_name, template=self.template_db)
                 redis_flushall(self.cfg.redis_url)
-                port = free_port()
                 result.log_path = self.work / "logs" / f"{sdef.name}.log"
-                server = ServerProcess(self.cfg.server_bin, self.server_env(self.cfg.pg.url(db_name), port, sdef),
-                                       self.work / "server-cwd", result.log_path, port)
-                server.start()
-                server.wait_ready()
+                server, port, _ = self.start_server(self.cfg.pg.url(db_name), sdef, result.log_path)
                 db_conn = self.pg.connect(db_name)
                 host = "127.0.0.1"
                 ip_base = (0, 1)

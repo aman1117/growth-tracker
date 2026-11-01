@@ -79,7 +79,7 @@ async-trait = "0.1"
 # Media (gt-photos): image decoding/resizing/JPEG encoding and multipart form parsing
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 multer = "3"
-jpeg-encoder = "0.6"
+jpeg-encoder = "0.7"
 
 # Web Push (gt-notify): VAPID ES256 signatures and RFC 8291 aes128gcm payload encryption
 p256 = { version = "0.13", default-features = false, features = ["ecdh", "ecdsa", "std"] }

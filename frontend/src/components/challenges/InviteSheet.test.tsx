@@ -304,7 +304,8 @@ describe('InviteSheet', () => {
       expect(inviteButton()).toHaveTextContent('Invite 20');
       expect(checkbox('friend21')).toBeDisabled();
       expect(screen.getByText('You can invite up to 20 people at a time')).toBeInTheDocument();
-    });
+      // Twenty sequential simulated clicks exceed the default 5 s timeout when the suite runs in parallel
+    }, 15_000);
 
     it('sends the invites once and reports the result', async () => {
       const response = deferred<ChallengeInvitesResponse>();

@@ -929,3 +929,97 @@ export const challengeApi = {
       return res;
     }),
 };
+
+// ============================================================================
+// Direct messages (1:1 chats) API
+// ============================================================================
+
+import type {
+  ChatConversationResponse,
+  ChatDeliveredResponse,
+  ChatInboxResponse,
+  ChatMessageResponse,
+  ChatMessagesQuery,
+  ChatMessagesResponse,
+  ChatReactionsResponse,
+  ChatReadResponse,
+  ChatStartResponse,
+  ChatUnreadCountResponse,
+  SendChatMessageRequest,
+} from '../types/chat';
+
+const toQueryString = (params: Record<string, string | number | undefined>): string => {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') search.set(key, String(value));
+  });
+  const text = search.toString();
+  return text ? `?${text}` : '';
+};
+
+/** Reads give up after this long, so a hung request ends in a retry instead of a spinner */
+export const CHAT_READ_TIMEOUT_MS = 20_000;
+
+const readSignal = (signal?: AbortSignal): AbortSignal | undefined =>
+  signal ?? AbortSignal.timeout?.(CHAT_READ_TIMEOUT_MS);
+
+/**
+ * Direct messages. Requests never log message bodies or usernames; the chat store logs
+ * outcomes with ids only.
+ */
+export const chatApi = {
+  /** Inbox, newest activity first; also marks the listed conversations delivered */
+  list: (
+    { cursor, limit }: { cursor?: string | null; limit?: number } = {},
+    signal?: AbortSignal
+  ) =>
+    apiClient.get<ChatInboxResponse>(
+      `${API_ROUTES.CHATS.LIST}${toQueryString({ limit, cursor: cursor ?? undefined })}`,
+      { signal: readSignal(signal) }
+    ),
+
+  unreadCount: () =>
+    apiClient.get<ChatUnreadCountResponse>(API_ROUTES.CHATS.UNREAD_COUNT, {
+      signal: readSignal(),
+    }),
+
+  /** Get-or-create the conversation with a user (403 CHAT_NOT_ALLOWED without a follow edge) */
+  start: (userId: number) =>
+    apiClient.post<ChatStartResponse>(API_ROUTES.CHATS.LIST, { user_id: userId }),
+
+  get: (id: number, signal?: AbortSignal) =>
+    apiClient.get<ChatConversationResponse>(API_ROUTES.CHATS.DETAIL(id), {
+      signal: readSignal(signal),
+    }),
+
+  /** A page of messages, oldest first (`before` for history, `after` for gap fill) */
+  messages: (id: number, query: ChatMessagesQuery = {}, signal?: AbortSignal) =>
+    apiClient.get<ChatMessagesResponse>(
+      `${API_ROUTES.CHATS.MESSAGES(id)}${toQueryString({ ...query })}`,
+      { signal: readSignal(signal) }
+    ),
+
+  /** Idempotent per client_message_id: a retry returns the message already sent */
+  send: (id: number, request: SendChatMessageRequest) =>
+    apiClient.post<ChatMessageResponse>(API_ROUTES.CHATS.MESSAGES(id), request),
+
+  unsend: (id: number, messageId: number) =>
+    apiClient.delete<ChatMessageResponse>(API_ROUTES.CHATS.MESSAGE(id, messageId)),
+
+  react: (id: number, messageId: number, emoji: string) =>
+    apiClient.put<ChatReactionsResponse>(API_ROUTES.CHATS.REACTION(id, messageId), { emoji }),
+
+  unreact: (id: number, messageId: number) =>
+    apiClient.delete<ChatReactionsResponse>(API_ROUTES.CHATS.REACTION(id, messageId)),
+
+  markRead: (id: number, messageId: number) =>
+    apiClient.post<ChatReadResponse>(API_ROUTES.CHATS.READ(id), { message_id: messageId }),
+
+  markDelivered: (id: number, messageId: number) =>
+    apiClient.post<ChatDeliveredResponse>(API_ROUTES.CHATS.DELIVERED(id), {
+      message_id: messageId,
+    }),
+
+  typing: (id: number, isTyping: boolean) =>
+    apiClient.post<{ success: boolean }>(API_ROUTES.CHATS.TYPING(id), { is_typing: isTyping }),
+};

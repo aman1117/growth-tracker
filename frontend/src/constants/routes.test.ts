@@ -90,6 +90,13 @@ describe('API_ROUTES', () => {
       API_ROUTES.CHALLENGE.PREVIEW('a/b?c d'),
       '/challenge-codes/a%2Fb%3Fc%20d',
     ],
+    ['CHATS.DETAIL', API_ROUTES.CHATS.DETAIL(7), '/chats/7'],
+    ['CHATS.MESSAGES', API_ROUTES.CHATS.MESSAGES(7), '/chats/7/messages'],
+    ['CHATS.MESSAGE', API_ROUTES.CHATS.MESSAGE(7, 3), '/chats/7/messages/3'],
+    ['CHATS.REACTION', API_ROUTES.CHATS.REACTION(7, 3), '/chats/7/messages/3/reaction'],
+    ['CHATS.READ', API_ROUTES.CHATS.READ(7), '/chats/7/read'],
+    ['CHATS.DELIVERED', API_ROUTES.CHATS.DELIVERED(7), '/chats/7/delivered'],
+    ['CHATS.TYPING', API_ROUTES.CHATS.TYPING(7), '/chats/7/typing'],
   ])('%s builds %s', (_name, actual, expected) => {
     expect(actual).toBe(expected);
   });
@@ -137,5 +144,10 @@ describe('APP_ROUTES', () => {
     ]) {
       expect(getActiveTab(path, '', 'alice')).toBe('challenges');
     }
+  });
+
+  it('builds chat links that match the push deep link', () => {
+    expect(APP_ROUTES.CHATS).toBe('/chats');
+    expect(APP_ROUTES.CHAT(12)).toBe('/chats/12');
   });
 });

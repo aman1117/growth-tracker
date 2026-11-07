@@ -1,0 +1,445 @@
+/**
+ * MessageBubble — WhatsApp-style bubbles on the app's glass design.
+ * Mine: right, accent gradient. Theirs: left, glass surface. Runs of messages from one
+ * sender sit closer together with tighter inner corners.
+ */
+
+.row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 2px;
+  /* Vertical scrolling stays native; horizontal drags become swipe-to-reply */
+  touch-action: pan-y;
+}
+
+.first {
+  margin-top: var(--space-2-5);
+}
+
+.mine {
+  align-items: flex-end;
+  --bubble-radius: 18px;
+  --read-tick-color: var(--sky-400);
+}
+
+.theirs {
+  align-items: flex-start;
+  --bubble-radius: 18px;
+}
+
+.hasReactions {
+  margin-bottom: 14px;
+}
+
+/* ---------- Track (moves while swiping) ---------- */
+
+.track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: min(78%, 560px);
+  transition: transform 0.2s var(--ease-out);
+}
+
+.mine .track {
+  flex-direction: row-reverse;
+}
+
+.swiping .track {
+  transition: none;
+}
+
+.swipeIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  border-radius: var(--radius-full);
+  background: var(--chip-bg);
+  color: var(--accent-text);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s var(--ease-bounce);
+}
+
+/* ---------- Bubble ---------- */
+
+.bubble {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  padding: 7px 10px 7px 12px;
+  border-radius: var(--bubble-radius);
+  font-size: var(--text-base);
+  line-height: 1.38;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  cursor: default;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+.bubble:focus-visible {
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.mine .bubble {
+  background: var(--gradient-primary);
+  color: var(--text-on-color);
+  box-shadow: 0 6px 16px -10px var(--accent-glow);
+}
+
+.theirs .bubble {
+  background: var(--glass-surface-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-surface-border);
+  color: var(--text-primary);
+  box-shadow: var(--glass-surface-shadow);
+}
+
+/* Grouped runs: tighter corners on the sender's side between messages */
+.mine:not(.first) .bubble {
+  border-top-right-radius: 6px;
+}
+
+.mine:not(.last) .bubble {
+  border-bottom-right-radius: 6px;
+}
+
+.theirs:not(.first) .bubble {
+  border-top-left-radius: 6px;
+}
+
+.theirs:not(.last) .bubble {
+  border-bottom-left-radius: 6px;
+}
+
+.pendingBubble {
+  filter: saturate(0.75);
+  opacity: 0.85;
+}
+
+.deletedBubble,
+.mine .deletedBubble {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-strong);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.emojiBubble,
+.mine .emojiBubble,
+.theirs .emojiBubble {
+  padding: 2px 4px 14px;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--text-primary);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.content {
+  position: relative;
+}
+
+.text {
+  white-space: pre-wrap;
+}
+
+.emojiText {
+  font-size: 2.5rem;
+  line-height: 1.15;
+  white-space: pre-wrap;
+}
+
+.deletedText {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+}
+
+.italic {
+  font-style: italic;
+}
+
+/* Room at the end of the last line for the time + ticks (WhatsApp's trick) */
+.metaSpacer,
+.metaSpacerMine {
+  display: inline-block;
+  height: 1px;
+  vertical-align: bottom;
+}
+
+.metaSpacer {
+  width: 44px;
+}
+
+.metaSpacerMine {
+  width: 66px;
+}
+
+.meta {
+  position: absolute;
+  right: 0;
+  bottom: -3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.mine .meta {
+  color: var(--text-on-color);
+}
+
+.theirs .meta {
+  color: var(--text-muted);
+}
+
+.emojiBubble .meta,
+.deletedBubble .meta {
+  color: var(--text-muted);
+}
+
+.emojiBubble .meta {
+  bottom: -12px;
+}
+
+.time {
+  font-weight: var(--font-medium);
+}
+
+/* ---------- Quote (reply) ---------- */
+
+.quote {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 100%;
+  min-width: 140px;
+  margin: 1px 0 5px -4px;
+  padding: 5px 9px;
+  border: none;
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  background: var(--chip-bg);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mine .quote {
+  border-left-color: var(--text-on-color);
+  background: color-mix(in srgb, var(--text-on-color) 18%, transparent);
+}
+
+.quote:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.quoteAuthor {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--accent-text);
+}
+
+.mine .quoteAuthor {
+  color: var(--text-on-color);
+}
+
+.quoteText {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  line-height: 1.3;
+  opacity: 0.85;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* ---------- More button (hover / keyboard) ---------- */
+
+.moreButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--chip-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.row:hover .moreButton,
+.row:focus-within .moreButton {
+  opacity: 1;
+}
+
+.moreButton:focus-visible {
+  opacity: 1;
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+/* Touch screens use long-press instead */
+@media (hover: none) {
+  .moreButton {
+    display: none;
+  }
+}
+
+/* ---------- Reactions ---------- */
+
+.reactions {
+  position: absolute;
+  bottom: -16px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  min-height: 24px;
+  padding: 1px 7px;
+  border: 1px solid var(--glass-floating-border);
+  border-radius: var(--radius-full);
+  background: var(--glass-floating-bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+  animation: popIn 0.25s var(--ease-bounce);
+}
+
+.mine .reactions {
+  right: 10px;
+}
+
+.theirs .reactions {
+  left: 10px;
+}
+
+.reactions:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.myReaction {
+  filter: drop-shadow(0 0 2px var(--accent-glow));
+}
+
+.reactionCount {
+  margin-left: 3px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Failed ---------- */
+
+.retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  color: var(--error);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+}
+
+.retry:focus-visible {
+  outline: none;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+/* ---------- Jump highlight ---------- */
+
+.highlighted .bubble {
+  animation: highlight 1.6s ease-out;
+}
+
+@keyframes highlight {
+  0%,
+  35% {
+    box-shadow: 0 0 0 4px var(--ring-color);
+    filter: brightness(1.08);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    filter: none;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Long-press shouldn't select text or open the iOS callout */
+@media (pointer: coarse) {
+  .bubble {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .swipeIcon,
+  .bubble,
+  .moreButton {
+    transition: none;
+  }
+
+  .reactions,
+  .highlighted .bubble {
+    animation: none;
+  }
+
+  .highlighted .bubble {
+    box-shadow: 0 0 0 4px var(--ring-color);
+  }
+}

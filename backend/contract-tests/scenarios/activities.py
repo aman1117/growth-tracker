@@ -37,7 +37,9 @@ def activity_create(t: Ctx) -> None:
     create("note longer than 500 characters", {"username": "alice", "activity": "study", "hours": 1, "date": today,
                                                 "note": "n" * 501})
     create("missing date", {"username": "alice", "activity": "study", "hours": 1})
-    create("date not zero-padded", {"username": "alice", "activity": "study", "hours": 1, "date": today.replace("-0", "-")})
+    # A fixed date: today with its zeros stripped is not mapped back to the date anchor, so it only
+    # matched the golden on the day it was recorded.
+    create("date not zero-padded", {"username": "alice", "activity": "study", "hours": 1, "date": "2026-11-1"})
     create("date with a time", {"username": "alice", "activity": "study", "hours": 1, "date": "2020-01-04T10:00:00Z"})
     create("impossible date", {"username": "alice", "activity": "study", "hours": 1, "date": "2026-02-30"})
 

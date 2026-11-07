@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { env } from '../config/env';
 import { STORAGE_KEYS } from '../constants';
 import { useFollowStore, useNotificationStore } from '../store';
+import { isChatEventType, useChatStore } from '../store/useChatStore';
 import { showNotificationPreview } from '../store/useNotificationPreviewStore';
 import type { Notification, WSConnectedPayload, WSMessage } from '../types';
 import { isFollowMetadata } from '../types/notification';
@@ -124,6 +125,8 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
             setWSStatus('connected');
             stopFallbackPolling();
             reconnectAttemptRef.current = 0;
+            // Chat events are not queued while offline: catch up on what was missed
+            useChatStore.getState().onSocketConnected();
             break;
           }
 
@@ -131,8 +134,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
             const notification = message.payload as Notification;
             console.log('[WS] New notification:', notification.id);
             addNotification(notification);
-            // Show rich notification preview toast
-            showNotificationPreview(notification);
+            // Show rich notification preview toast (chats have their own badge and screen)
+            if ((notification.type as string) !== 'chat_message') {
+              showNotificationPreview(notification);
+            }
 
             // Update follow relationship state for follow_accepted notifications
             if (
@@ -188,6 +193,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
           }
 
           default:
+            // Direct-message events go to the chat store, which validates their payloads
+            if (isChatEventType(message.type)) {
+              useChatStore.getState().handleSocketEvent(message.type, message.payload);
+              break;
+            }
             console.log('[WS] Unknown message type:', message.type);
         }
       } catch (error) {

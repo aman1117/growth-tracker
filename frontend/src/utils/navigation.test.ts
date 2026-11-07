@@ -11,6 +11,7 @@ import {
   getSafeRedirectPath,
   hasInAppHistory,
   isAuthFlowRoute,
+  isChatConversationRoute,
   isLoginRoute,
   scrollToTop,
   TAB_RESELECT_EVENT,
@@ -114,6 +115,8 @@ describe('getRouteTitle', () => {
     ['/challenges/42', '', 'alice', 'Challenge · Growth Tracker'],
     ['/c/ABCD2345', '', 'alice', 'Join challenge · Growth Tracker'],
     ['/c/ABCD2345', '', undefined, 'Join challenge · Growth Tracker'],
+    ['/chats', '', 'alice', 'Messages · Growth Tracker'],
+    ['/chats/42', '', 'alice', 'Chat · Growth Tracker'],
     ['/analytics', '', 'alice', 'Insights · Growth Tracker'],
     ['/analytics', '?user=Alice', 'alice', 'Insights · Growth Tracker'],
     ['/analytics', '?user=bob', 'alice', '@bob · Insights · Growth Tracker'],
@@ -176,6 +179,8 @@ describe('toRoutePattern', () => {
     ['/challenges/42', '/challenges/:id'],
     ['/challenges/42/extra', '/challenges/:id'],
     ['/c/ABCD2345', '/c/:code'],
+    ['/chats/42', '/chats/:id'],
+    ['/chats', '/chats'],
   ])('%s → %s', (pathname, pattern) => {
     expect(toRoutePattern(pathname)).toBe(pattern);
   });
@@ -210,4 +215,21 @@ describe('scrollToTop', () => {
 it('namespaces the app-level window events', () => {
   expect(TAB_RESELECT_EVENT).toBe('app:tab-reselect');
   expect(EXTERNAL_NAVIGATE_EVENT).toBe('app:navigate');
+});
+
+describe('isChatConversationRoute', () => {
+  it.each([
+    ['/chats/42', true],
+    ['/chats/abc', true],
+    ['/chats', false],
+    ['/chats/', false],
+    ['/chatsx/1', false],
+  ])('%s → %s', (pathname, expected) => {
+    expect(isChatConversationRoute(pathname)).toBe(expected);
+  });
+
+  it('highlights no tab on the chat screens', () => {
+    expect(getActiveTab('/chats', '', 'alice')).toBeNull();
+    expect(getActiveTab('/chats/42', '', 'alice')).toBeNull();
+  });
 });

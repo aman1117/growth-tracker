@@ -60,6 +60,16 @@ vi.mock('./components/challenges/JoinChallengePage', async () => {
     },
   };
 });
+vi.mock('./components/chat/ChatsPage', () => ({ ChatsPage: () => <h1>Your messages</h1> }));
+vi.mock('./components/chat/ChatConversationPage', async () => {
+  const { useParams } = await import('react-router-dom');
+  return {
+    ChatConversationPage: () => {
+      const { id } = useParams();
+      return <h1>{`Chat ${id}`}</h1>;
+    },
+  };
+});
 vi.mock('./components/VerifyEmail', async (importOriginal) => {
   chunks.load('VerifyEmail');
   return importOriginal();
@@ -73,6 +83,14 @@ vi.mock('./hooks/useWebSocket', () => ({ useWebSocket: vi.fn() }));
 vi.mock('./services/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./services/api')>()),
   api: { get: vi.fn(), post: vi.fn(), delete: vi.fn() },
+  // The header's chat button asks for the unread count
+  chatApi: {
+    unreadCount: vi.fn(async () => ({
+      success: true,
+      unread_conversations: 0,
+      unread_messages: 0,
+    })),
+  },
 }));
 
 const get = vi.mocked(api.get);
@@ -166,6 +184,25 @@ describe('App', () => {
 
       expect(await findHeading('Forgot your password?')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Growth Tracker home' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('direct messages', () => {
+    it.each([
+      ['/chats', 'Your messages', 'Messages · Growth Tracker'],
+      ['/chats/42', 'Chat 42', 'Chat · Growth Tracker'],
+    ])('opens %s for signed-in users', async (url, heading, title) => {
+      signIn();
+      renderAppAt(url);
+
+      expect(await findHeading(heading)).toBeInTheDocument();
+      expect(currentUrl()).toBe(url);
+      await waitFor(() => expect(document.title).toBe(title));
+    });
+
+    it('sends signed-out visitors from a chat push link to log in', async () => {
+      renderAppAt('/chats/42');
+      expect(await findHeading('Welcome back')).toBeInTheDocument();
     });
   });
 

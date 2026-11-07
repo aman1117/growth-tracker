@@ -422,3 +422,60 @@ CREATE TABLE IF NOT EXISTS challenge_invites (
 );
 CREATE INDEX IF NOT EXISTS idx_challenge_invite_invitee ON challenge_invites USING btree (invitee_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_challenge_invite ON challenge_invites USING btree (challenge_id, invitee_id);
+
+-- Direct messages: one conversation per pair of users (user_a_id < user_b_id), a row per
+-- member with their read/delivered pointers, the messages and one reaction per user and message.
+CREATE TABLE IF NOT EXISTS chat_conversations (
+    id bigserial NOT NULL,
+    user_a_id bigint NOT NULL,
+    user_b_id bigint NOT NULL,
+    last_message_id bigint,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT chat_conversations_pkey PRIMARY KEY (id),
+    CONSTRAINT chk_chat_conversations_pair CHECK (user_a_id < user_b_id),
+    CONSTRAINT fk_chat_conversations_user_a FOREIGN KEY (user_a_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_chat_conversations_user_b FOREIGN KEY (user_b_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_conversation_pair ON chat_conversations USING btree (user_a_id, user_b_id);
+CREATE INDEX IF NOT EXISTS idx_chat_conversation_user_b ON chat_conversations USING btree (user_b_id);
+
+CREATE TABLE IF NOT EXISTS chat_members (
+    conversation_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    last_read_message_id bigint NOT NULL DEFAULT 0,
+    last_delivered_message_id bigint NOT NULL DEFAULT 0,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT chat_members_pkey PRIMARY KEY (conversation_id, user_id),
+    CONSTRAINT fk_chat_members_conversation FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_chat_members_user FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_chat_member_user ON chat_members USING btree (user_id);
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id bigserial NOT NULL,
+    conversation_id bigint NOT NULL,
+    sender_id bigint NOT NULL,
+    body text NOT NULL,
+    reply_to_message_id bigint,
+    client_message_id character varying(64),
+    is_deleted boolean NOT NULL DEFAULT false,
+    deleted_at timestamp with time zone,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT chat_messages_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_chat_messages_conversation FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_chat_messages_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_chat_messages_reply_to FOREIGN KEY (reply_to_message_id) REFERENCES chat_messages(id) ON DELETE SET NULL
+);
+CREATE INDEX IF NOT EXISTS idx_chat_message_conversation ON chat_messages USING btree (conversation_id, id DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_message_client_id ON chat_messages USING btree (sender_id, client_message_id);
+
+CREATE TABLE IF NOT EXISTS chat_reactions (
+    message_id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    emoji character varying(64) NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT chat_reactions_pkey PRIMARY KEY (message_id, user_id),
+    CONSTRAINT fk_chat_reactions_message FOREIGN KEY (message_id) REFERENCES chat_messages(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    CONSTRAINT fk_chat_reactions_user FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
+);

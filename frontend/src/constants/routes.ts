@@ -231,6 +231,30 @@ export const API_ROUTES = {
     /** POST - Join a challenge with its invite code */
     JOIN: (code: string) => `/challenge-codes/${encodeURIComponent(code)}/join`,
   },
+
+  // ============================================================================
+  // Direct messages (1:1 chats)
+  // ============================================================================
+  CHATS: {
+    /** GET - Inbox (?limit=&cursor=), newest activity first; POST - get-or-create by user_id */
+    LIST: '/chats',
+    /** GET - Unread conversations and messages */
+    UNREAD_COUNT: '/chats/unread-count',
+    /** GET - One conversation */
+    DETAIL: (id: number) => `/chats/${id}`,
+    /** GET - Messages (?before=|after=&limit=), oldest first; POST - send a message */
+    MESSAGES: (id: number) => `/chats/${id}/messages`,
+    /** DELETE - Unsend one of my messages */
+    MESSAGE: (id: number, messageId: number) => `/chats/${id}/messages/${messageId}`,
+    /** PUT - Set my reaction; DELETE - remove it */
+    REACTION: (id: number, messageId: number) => `/chats/${id}/messages/${messageId}/reaction`,
+    /** POST - Move my read pointer */
+    READ: (id: number) => `/chats/${id}/read`,
+    /** POST - Move my delivered pointer */
+    DELIVERED: (id: number) => `/chats/${id}/delivered`,
+    /** POST - Typing indicator */
+    TYPING: (id: number) => `/chats/${id}/typing`,
+  },
 } as const;
 
 /**
@@ -250,6 +274,10 @@ export const APP_ROUTES = {
   CHALLENGE: (id: number) => `/challenges/${id}`,
   /** Invite link landing page; shared as `${origin}/c/<code>` */
   JOIN_CHALLENGE: (code: string) => `/c/${encodeURIComponent(code)}`,
+  /** Direct messages inbox */
+  CHATS: '/chats',
+  /** One conversation; also the deep link of chat push notifications */
+  CHAT: (id: number) => `/chats/${id}`,
 } as const;
 
 // Type for API route values

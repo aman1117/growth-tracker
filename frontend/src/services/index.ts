@@ -10,6 +10,7 @@ export {
   ApiError,
   authApi,
   challengeApi,
+  chatApi,
   streakApi,
   tileConfigApi,
   userApi,

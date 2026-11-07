@@ -60,6 +60,17 @@ const ChallengeDetailPage = lazyWithRetry(
     })),
   'ChallengeDetailPage'
 );
+const ChatsPage = lazyWithRetry(
+  () => import('./components/chat/ChatsPage').then((m) => ({ default: m.ChatsPage })),
+  'ChatsPage'
+);
+const ChatConversationPage = lazyWithRetry(
+  () =>
+    import('./components/chat/ChatConversationPage').then((m) => ({
+      default: m.ChatConversationPage,
+    })),
+  'ChatConversationPage'
+);
 const JoinChallengePage = lazyWithRetry(
   () =>
     import('./components/challenges/JoinChallengePage').then((m) => ({
@@ -226,6 +237,23 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <ChallengeDetailPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path={APP_ROUTES.CHATS}
+                      element={
+                        <ProtectedRoute>
+                          <ChatsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* Also the deep link of chat push notifications */}
+                    <Route
+                      path="/chats/:id"
+                      element={
+                        <ProtectedRoute>
+                          <ChatConversationPage />
                         </ProtectedRoute>
                       }
                     />

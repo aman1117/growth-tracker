@@ -89,6 +89,9 @@ beforeEach(async () => {
   ({ useNotificationPreviewStore } = await import('../store/useNotificationPreviewStore'));
   fetchUnreadCount = vi.fn().mockResolvedValue(undefined);
   useNotificationStore.setState({ fetchUnreadCount });
+  // Each handshake lets the chat store catch up over HTTP; that has its own tests
+  const { useChatStore } = await import('../store/useChatStore');
+  useChatStore.setState({ onSocketConnected: vi.fn() });
 });
 
 const signIn = (token = 'header.payload.signature') =>
@@ -307,6 +310,47 @@ describe('useWebSocket', () => {
       receive({ type: 'ping' });
 
       expect(socket().send).toHaveBeenCalledWith(JSON.stringify({ type: 'pong' }));
+    });
+
+    describe('direct messages', () => {
+      let chatStore: typeof import('../store/useChatStore').useChatStore;
+      let handleSocketEvent: ReturnType<typeof vi.fn>;
+      let onSocketConnected: ReturnType<typeof vi.fn>;
+
+      beforeEach(async () => {
+        ({ useChatStore: chatStore } = await import('../store/useChatStore'));
+        handleSocketEvent = vi.fn(() => true);
+        onSocketConnected = vi.fn();
+        chatStore.setState({ handleSocketEvent, onSocketConnected });
+      });
+
+      it.each([
+        'chat_message',
+        'chat_message_deleted',
+        'chat_reaction',
+        'chat_receipt',
+        'chat_typing',
+      ])('hands %s events to the chat store', (type) => {
+        const payload = { conversation_id: 3 };
+        receive({ type, payload });
+
+        expect(handleSocketEvent).toHaveBeenCalledWith(type, payload);
+        expect(useNotificationStore.getState().notifications).toEqual([]);
+        expect(console.log).not.toHaveBeenCalledWith('[WS] Unknown message type:', type);
+      });
+
+      it('lets the chat store catch up after each handshake', () => {
+        handshake();
+        expect(onSocketConnected).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not preview chat notifications (chats have their own badge)', () => {
+        const notification = makeNotification({ id: 8, type: 'chat_message' as never });
+        receive({ type: 'notification', payload: notification });
+
+        expect(useNotificationStore.getState().notifications).toEqual([notification]);
+        expect(useNotificationPreviewStore.getState().preview).toBeNull();
+      });
     });
 
     it('logs server errors, unknown types and malformed messages without crashing', () => {

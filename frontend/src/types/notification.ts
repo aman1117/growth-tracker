@@ -5,6 +5,8 @@
  * WebSocket messages, notification data, and metadata types.
  */
 
+import type { ChatWSEventType } from './chat';
+
 // ==================== Notification Types ====================
 
 export type NotificationType =
@@ -162,7 +164,8 @@ export type WSMessageType =
   | 'pong'
   | 'connected'
   | 'error'
-  | 'pending_delivery';
+  | 'pending_delivery'
+  | ChatWSEventType;
 
 export interface WSMessage<T = unknown> {
   type: WSMessageType;

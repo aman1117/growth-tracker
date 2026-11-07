@@ -299,3 +299,59 @@ fn connection_limit_heartbeat_and_read_timeout() {
         db.finish().await;
     });
 }
+
+async fn wait_events_subscribed(user_id: i64) {
+    let mut conn = gt_core::redis::conn().unwrap();
+    let channel = format!("notif:events:{user_id}");
+    for _ in 0..500 {
+        let (_, count): (String, i64) =
+            redis::cmd("PUBSUB").arg("NUMSUB").arg(&channel).query_async(&mut conn).await.unwrap();
+        if count > 0 {
+            return;
+        }
+        tokio::time::sleep(Duration::from_millis(10)).await;
+    }
+    panic!("never subscribed to events");
+}
+
+#[test]
+fn user_events_reach_every_connection_through_redis() {
+    run(async {
+        let Some(db) = TestDb::new("ws_user_events").await else { return };
+        if !redis_ready().await {
+            db.finish().await;
+            return;
+        }
+        let core = core(&db.pool);
+        let notify = NotifyContext::new(&core);
+        let addr = serve(routes(&core, &notify)).await;
+        let user = unique_user_id();
+        let other = unique_user_id();
+        assert!(!notify.ws_handler.is_user_connected(user).await);
+
+        let url = format!("ws://{addr}/api/ws/notifications?token={}", token(&core, user));
+        let (mut client, _) = tokio_tungstenite::connect_async(&url).await.unwrap();
+        assert_eq!(next_text(&mut client).await["type"], "connected");
+        wait_events_subscribed(user).await;
+        assert!(notify.ws_handler.is_user_connected(user).await);
+        assert!(!notify.ws_handler.is_user_connected(other).await);
+
+        // Payloads that are not typed messages are dropped; typed ones are forwarded verbatim.
+        let mut conn = gt_core::redis::conn().unwrap();
+        let channel = format!("notif:events:{user}");
+        let _: i64 = conn.publish(&channel, "not json").await.unwrap();
+        let _: i64 = conn.publish(&channel, r#"{"payload":{}}"#).await.unwrap();
+        let payload = serde_json::json!({"conversation_id": 4, "user_id": other, "is_typing": true});
+        notify.ws_handler.send_user_event(user, "chat_typing", &payload).await;
+        let msg = tokio::time::timeout(Duration::from_secs(5), client.next()).await.unwrap().unwrap().unwrap();
+        let Message::Text(text) = msg else { panic!("expected text, got {msg:?}") };
+        assert_eq!(
+            serde_json::from_str::<Value>(&text).unwrap(),
+            serde_json::json!({"type": "chat_typing", "payload": payload})
+        );
+
+        // A user without connections simply misses the event.
+        notify.ws_handler.send_user_event(other, "chat_typing", &payload).await;
+        db.finish().await;
+    });
+}

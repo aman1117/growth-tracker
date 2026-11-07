@@ -20,6 +20,7 @@ gt-activity = { path = "crates/gt-activity" }
 gt-photos = { path = "crates/gt-photos" }
 gt-comments = { path = "crates/gt-comments" }
 gt-challenges = { path = "crates/gt-challenges" }
+gt-chat = { path = "crates/gt-chat" }
 gt-jobs = { path = "crates/gt-jobs" }
 
 # Web

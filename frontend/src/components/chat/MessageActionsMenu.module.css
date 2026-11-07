@@ -1,0 +1,165 @@
+/**
+ * MessageActionsMenu — floating glass panel next to the pressed message.
+ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-popover);
+  background: var(--modal-overlay);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.panel {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: calc(100vw - 24px);
+  overflow-y: auto;
+  animation: menuIn 0.18s var(--ease-bounce);
+}
+
+.alignEnd {
+  align-items: flex-end;
+}
+
+.centered {
+  top: 50%;
+  left: 50%;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.reactions,
+.actions {
+  background: var(--glass-floating-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-floating-border);
+  box-shadow: var(--glass-floating-shadow), var(--glass-floating-glow);
+}
+
+.reactions {
+  display: flex;
+  gap: 2px;
+  padding: 5px;
+  border-radius: var(--radius-full);
+}
+
+.reaction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.15s var(--ease-bounce),
+    background-color 0.15s ease;
+}
+
+.reaction:hover {
+  transform: scale(1.18);
+}
+
+.reaction:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.reactionSelected {
+  background: var(--accent-soft-strong);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: var(--space-1);
+  border-radius: var(--radius-xl);
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  text-align: left;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: var(--chip-bg);
+}
+
+.action:focus-visible {
+  outline: none;
+  background: var(--chip-bg);
+  box-shadow: inset 0 0 0 2px var(--ring-color);
+}
+
+.actionIcon {
+  display: flex;
+  color: var(--text-secondary);
+}
+
+.danger,
+.danger .actionIcon {
+  color: var(--error);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .panel,
+  .centered {
+    animation: none;
+  }
+
+  .reaction {
+    transition: none;
+  }
+
+  .reaction:hover {
+    transform: none;
+  }
+}

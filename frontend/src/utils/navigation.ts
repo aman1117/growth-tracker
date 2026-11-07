@@ -47,6 +47,7 @@ const PROFILE_PATH_PREFIX = '/user/';
 const ANALYTICS_PATH_PREFIX = `${APP_ROUTES.ANALYTICS}/`;
 const CHALLENGE_PATH_PREFIX = `${APP_ROUTES.CHALLENGES}/`;
 const JOIN_CHALLENGE_PATH_PREFIX = '/c/';
+const CHAT_PATH_PREFIX = `${APP_ROUTES.CHATS}/`;
 
 export const isAuthFlowRoute = (pathname: string): boolean => AUTH_FLOW_ROUTES.includes(pathname);
 
@@ -69,6 +70,10 @@ const isChallengesRoute = (pathname: string): boolean =>
   pathname === APP_ROUTES.CHALLENGES ||
   pathname.startsWith(CHALLENGE_PATH_PREFIX) ||
   isJoinChallengeRoute(pathname);
+
+/** `/chats/:id` — one conversation (any id; the screen validates it) */
+export const isChatConversationRoute = (pathname: string): boolean =>
+  segmentAfter(pathname, CHAT_PATH_PREFIX) !== null;
 
 /** Extracts the username from `/user/:username`, or null for other paths */
 export const getProfileUsername = (pathname: string): string | null => {
@@ -147,6 +152,8 @@ export const getRouteTitle = (
   if (isChallengeDetailRoute(pathname)) return withApp('Challenge');
   if (isJoinChallengeRoute(pathname)) return withApp('Join challenge');
   if (isChallengesRoute(pathname)) return withApp('Challenges');
+  if (isChatConversationRoute(pathname)) return withApp('Chat');
+  if (pathname === APP_ROUTES.CHATS) return withApp('Messages');
 
   const analyticsUser = getAnalyticsUsername(pathname, search);
   if (pathname === APP_ROUTES.ANALYTICS || analyticsUser) {
@@ -195,6 +202,7 @@ export const toRoutePattern = (pathname: string): string => {
   if (pathname.startsWith(ANALYTICS_PATH_PREFIX)) return '/analytics/:username';
   if (isChallengeDetailRoute(pathname)) return '/challenges/:id';
   if (isJoinChallengeRoute(pathname)) return '/c/:code';
+  if (isChatConversationRoute(pathname)) return '/chats/:id';
   return pathname;
 };
 

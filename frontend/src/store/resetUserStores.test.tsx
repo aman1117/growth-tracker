@@ -9,6 +9,7 @@ import { STORAGE_KEYS } from '../constants/storage';
 import { api, apiClient } from '../services/api';
 import { pushService } from '../services/pushService';
 import { makeChallengeSummary } from '../test/fixtures/challenges';
+import { makeConversation } from '../test/fixtures/chat';
 import { makeCustomTile, routeApi } from '../test/fixtures/dashboard';
 import {
   deferred,
@@ -24,6 +25,7 @@ import {
   showToast,
   useAuthStore,
   useChallengeStore,
+  useChatStore,
   useCommentStore,
   useCompletionStore,
   useFollowStore,
@@ -80,6 +82,7 @@ const USER_STORES = {
   useCommentStore,
   useCompletionStore,
   useChallengeStore,
+  useChatStore,
   usePushStore,
 };
 
@@ -143,6 +146,14 @@ async function browseAsAlice() {
       revision: 2,
     });
     usePushStore.setState({ isSupported: true, permission: 'granted', isSubscribed: true });
+    useChatStore.setState({
+      conversations: { 10: makeConversation() },
+      inboxStatus: 'ready',
+      typing: { 10: true },
+      unreadConversations: 1,
+      unreadMessages: 2,
+      activeConversationId: 10,
+    });
   });
   saveAliceDashboard();
   push.getPreferences.mockResolvedValue({ success: true, preferences: ALICE_PREFERENCES });
@@ -175,6 +186,7 @@ function expectNoUserData() {
     lastFetchedAt: null,
   });
   expect(usePushStore.getState()).toMatchObject({ isSubscribed: false, preferences: null });
+  expect(useChatStore.getState()).toMatchObject({ conversations: {}, unreadConversations: 0 });
   expect(JSON.parse(localStorage.getItem(PUSH_STORAGE_KEY) ?? 'null')).toEqual({
     state: { isSubscribed: false },
     version: 0,

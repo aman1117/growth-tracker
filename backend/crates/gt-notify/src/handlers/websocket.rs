@@ -2,7 +2,8 @@
 //!
 //! `GET /api/ws/notifications?token=<jwt>`. Messages are JSON `{"type": .., "payload": ..}`:
 //! the server sends `connected`, `pending_delivery` (queued notifications as DTOs),
-//! `notification` (the published notification JSON) and `error`; clients may send `pong`.
+//! `notification` (the published notification JSON), `error` and feature events published on
+//! the user's event channel (e.g. `chat_message`, forwarded verbatim); clients may send `pong`.
 //! The server pings every 30 s and drops connections that send nothing (data or pong) for 60 s.
 
 use std::collections::HashMap;
@@ -28,7 +29,7 @@ use tracing::Instrument;
 use super::{fiber, NotifyState};
 use crate::dto::notifications_to_dtos;
 use crate::json::{go_compact, null_default};
-use crate::service::{NotificationService, NotificationSubscription};
+use crate::service::{NotificationService, NotificationSubscription, Published, PublishedKind};
 
 /// Message types.
 pub const WS_TYPE_NOTIFICATION: &str = "notification";
@@ -175,6 +176,38 @@ impl NotificationWsHandler {
         map.get(&user_id).map_or(0, HashMap::len)
     }
 
+    /// Sends a real-time event (`{"type": msg_type, "payload": payload}`) to every connection of
+    /// the user on any instance: through Redis when available, otherwise (or when publishing
+    /// fails) to this instance's connections. Best-effort: users without a connection miss it.
+    pub async fn send_user_event<P: Serialize + ?Sized>(&self, user_id: i64, msg_type: &str, payload: &P) {
+        let message = match encode_message(msg_type, Some(payload)) {
+            Ok(message) => message,
+            Err(err) => {
+                tracing::error!(user_id, msg_type, error = %err, "Failed to encode realtime event; dropping it");
+                return;
+            }
+        };
+        if self.notifications.publish_user_event(user_id, &message).await {
+            return;
+        }
+        let conns: Vec<Arc<WsConn>> = {
+            let map = self.connections.read().unwrap_or_else(|e| e.into_inner());
+            map.get(&user_id).map(|c| c.values().cloned().collect()).unwrap_or_default()
+        };
+        for conn in conns {
+            let _ = conn.write_text(message.clone()).await;
+        }
+    }
+
+    /// Whether the user has an open WebSocket on any instance (tracked in Redis) or, without
+    /// Redis, on this one. Errors count as "not connected" so callers fall back to Web Push.
+    pub async fn is_user_connected(&self, user_id: i64) -> bool {
+        if self.local_connection_count(user_id) > 0 {
+            return true;
+        }
+        matches!(self.notifications.get_ws_connection_count(user_id).await, Ok(count) if count > 0)
+    }
+
     fn add_connection(&self, user_id: i64, conn_id: &str, conn: Arc<WsConn>) {
         let mut map = self.connections.write().unwrap_or_else(|e| e.into_inner());
         map.entry(user_id).or_default().insert(conn_id.to_string(), conn);
@@ -221,7 +254,7 @@ impl NotificationWsHandler {
         send_message(&wc, WS_TYPE_CONNECTED, Some(&ConnectedPayload { connection_id: &conn_id, user_id })).await;
         self.deliver_pending_notifications(&wc, user_id).await;
 
-        let mut subscription = self.notifications.subscribe_to_notifications(user_id);
+        let mut subscription = self.notifications.subscribe_to_realtime(user_id);
         let mut reader = tokio::spawn(read_loop(stream, wc.clone(), self.read_timeout).in_current_span());
         let start = tokio::time::Instant::now() + self.ping_interval;
         let mut ping = tokio::time::interval_at(start, self.ping_interval);
@@ -278,9 +311,9 @@ impl NotificationWsHandler {
     }
 }
 
-async fn next_published(subscription: &mut Option<NotificationSubscription>) -> Option<Vec<u8>> {
+async fn next_published(subscription: &mut Option<NotificationSubscription>) -> Option<Published> {
     match subscription {
-        Some(sub) => sub.recv().await,
+        Some(sub) => sub.recv_published().await,
         None => std::future::pending().await,
     }
 }
@@ -291,14 +324,26 @@ async fn send_message<P: Serialize + ?Sized>(wc: &WsConn, msg_type: &str, payloa
     }
 }
 
-async fn forward_published(wc: &WsConn, payload: &[u8]) {
-    let Some(data) = encode_notification_message(payload) else {
-        tracing::error!(error = "invalid JSON payload", "Failed to marshal WebSocket message");
+async fn forward_published(wc: &WsConn, published: &Published) {
+    let data = match published.kind {
+        PublishedKind::Notification => encode_notification_message(&published.payload),
+        PublishedKind::Event => encode_event_message(&published.payload),
+    };
+    let Some(data) = data else {
+        tracing::error!(error = "invalid JSON payload", kind = ?published.kind, "Failed to marshal WebSocket message");
         return;
     };
     if let Err(err) = wc.write_text(data).await {
-        tracing::warn!(error = %err, "Failed to send notification via WebSocket");
+        tracing::warn!(error = %err, kind = ?published.kind, "Failed to send realtime message via WebSocket");
     }
+}
+
+/// An event published on an event channel is already a complete WebSocket message; it is
+/// forwarded as is when it is a JSON object with a string `type`.
+pub fn encode_event_message(raw: &[u8]) -> Option<String> {
+    let value: serde_json::Value = serde_json::from_slice(raw).ok()?;
+    value.get("type")?.as_str()?;
+    std::str::from_utf8(raw).ok().map(str::to_string)
 }
 
 /// Reads client frames until the connection fails, closes or stays silent for `read_timeout`.
@@ -488,6 +533,16 @@ mod tests {
         );
         assert!(encode_notification_message(b"").is_none());
         assert!(encode_notification_message(b"{not json").is_none());
+    }
+
+    #[test]
+    fn events_are_forwarded_verbatim_when_typed() {
+        let event = r#"{"type":"chat_typing","payload":{"conversation_id":1,"user_id":2,"is_typing":true}}"#;
+        assert_eq!(encode_event_message(event.as_bytes()).as_deref(), Some(event));
+        assert!(encode_event_message(b"{not json").is_none());
+        assert!(encode_event_message(br#"{"payload":{}}"#).is_none());
+        assert!(encode_event_message(br#"{"type":1}"#).is_none());
+        assert!(encode_event_message(b"[1]").is_none());
     }
 
     #[test]

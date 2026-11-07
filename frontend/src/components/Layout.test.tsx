@@ -54,6 +54,15 @@ vi.mock('./search', () => ({
   ),
 }));
 
+// The real button loads the unread count over HTTP (covered by its own tests)
+vi.mock('./chat/ChatHeaderButton', () => ({
+  ChatHeaderButton: () => (
+    <button type="button" aria-label="Messages">
+      Chats
+    </button>
+  ),
+}));
+
 vi.mock('./ui', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./ui')>()),
   NotificationCenter: (props: {
@@ -143,8 +152,20 @@ describe('Layout', () => {
     expect(logoButton()).toBeInTheDocument();
     expect(searchButton()).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Open like notification' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Messages' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Primary' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /switch to/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('main')).toHaveClass(styles.mainWithNav);
+  });
+
+  it('gives an open chat the full height and hides the tab bar on phones', () => {
+    signIn();
+    renderLayout('/chats/42');
+
+    expect(screen.getByRole('main')).toHaveClass(styles.mainChat);
+    expect(screen.getByRole('navigation', { name: 'Primary' }).parentElement).toHaveClass(
+      styles.navHiddenOnPhones
+    );
   });
 
   describe('search', () => {

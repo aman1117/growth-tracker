@@ -12,6 +12,7 @@ import {
   ApiError,
   authApi,
   challengeApi,
+  chatApi,
   commentApi,
   likeApi,
   searchApi,
@@ -1206,6 +1207,106 @@ describe('challengeApi', () => {
   });
 });
 
+describe('chatApi', () => {
+  it.each<[string, EndpointCase]>([
+    ['list', { call: () => chatApi.list(), method: 'GET', path: '/chats' }],
+    [
+      'list (page)',
+      {
+        call: () => chatApi.list({ cursor: 'a b', limit: 20 }),
+        method: 'GET',
+        path: '/chats?limit=20&cursor=a+b',
+      },
+    ],
+    [
+      'unreadCount',
+      { call: () => chatApi.unreadCount(), method: 'GET', path: '/chats/unread-count' },
+    ],
+    [
+      'start',
+      { call: () => chatApi.start(7), method: 'POST', path: '/chats', body: { user_id: 7 } },
+    ],
+    ['get', { call: () => chatApi.get(42), method: 'GET', path: '/chats/42' }],
+    ['messages', { call: () => chatApi.messages(42), method: 'GET', path: '/chats/42/messages' }],
+    [
+      'messages (history)',
+      {
+        call: () => chatApi.messages(42, { before: 9, limit: 30 }),
+        method: 'GET',
+        path: '/chats/42/messages?before=9&limit=30',
+      },
+    ],
+    [
+      'messages (gap fill)',
+      {
+        call: () => chatApi.messages(42, { after: 9, limit: 100 }),
+        method: 'GET',
+        path: '/chats/42/messages?after=9&limit=100',
+      },
+    ],
+    [
+      'send',
+      {
+        call: () =>
+          chatApi.send(42, { body: 'Hi', client_message_id: 'c1', reply_to_message_id: 3 }),
+        method: 'POST',
+        path: '/chats/42/messages',
+        body: { body: 'Hi', client_message_id: 'c1', reply_to_message_id: 3 },
+      },
+    ],
+    [
+      'unsend',
+      { call: () => chatApi.unsend(42, 3), method: 'DELETE', path: '/chats/42/messages/3' },
+    ],
+    [
+      'react',
+      {
+        call: () => chatApi.react(42, 3, '❤️'),
+        method: 'PUT',
+        path: '/chats/42/messages/3/reaction',
+        body: { emoji: '❤️' },
+      },
+    ],
+    [
+      'unreact',
+      {
+        call: () => chatApi.unreact(42, 3),
+        method: 'DELETE',
+        path: '/chats/42/messages/3/reaction',
+      },
+    ],
+    [
+      'markRead',
+      {
+        call: () => chatApi.markRead(42, 3),
+        method: 'POST',
+        path: '/chats/42/read',
+        body: { message_id: 3 },
+      },
+    ],
+    [
+      'markDelivered',
+      {
+        call: () => chatApi.markDelivered(42, 3),
+        method: 'POST',
+        path: '/chats/42/delivered',
+        body: { message_id: 3 },
+      },
+    ],
+    [
+      'typing',
+      {
+        call: () => chatApi.typing(42, true),
+        method: 'POST',
+        path: '/chats/42/typing',
+        body: { is_typing: true },
+      },
+    ],
+  ])('%s', async (_name, endpoint) => {
+    await expectEndpoint(endpoint);
+  });
+});
+
 describe('services barrel', () => {
   it('re-exports the API client and typed APIs', () => {
     expect(services.apiClient).toBe(apiClient);
@@ -1218,5 +1319,6 @@ describe('services barrel', () => {
     expect(services.analyticsApi).toBe(analyticsApi);
     expect(services.tileConfigApi).toBe(tileConfigApi);
     expect(services.challengeApi).toBe(challengeApi);
+    expect(services.chatApi).toBe(chatApi);
   });
 });

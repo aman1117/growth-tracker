@@ -5,7 +5,7 @@
  * fetched for, or about, the signed-in user, so it is reset whenever a session ends or a new
  * one starts; otherwise the next person to sign in on the same tab would briefly see the
  * previous user's notifications, follow state, comments ("liked by me"), calendar data,
- * challenges and push preferences. The user's data kept in localStorage (dashboard layout,
+ * challenges, chats and push preferences. The user's data kept in localStorage (dashboard layout,
  * custom tiles and per-day activity caches) is cleared at the same moments.
  *
  * App-wide state is deliberately not reset: the theme preference (persisted per device),
@@ -18,6 +18,7 @@ import type { StoreApi } from 'zustand';
 
 import { ACTIVITY_CACHE_KEY_PREFIX, USER_STORAGE_KEYS } from '../constants/storage';
 import { useChallengeStore } from './useChallengeStore';
+import { useChatStore } from './useChatStore';
 import { useCommentStore } from './useCommentStore';
 import { useCompletionStore } from './useCompletionStore';
 import { useFollowStore } from './useFollowStore';
@@ -56,6 +57,8 @@ export function resetUserStores(): void {
   restoreInitialState(useCompletionStore);
   // Also forgets a list load still in flight, so its response can't reach the next user
   useChallengeStore.getState().reset();
+  // Also drops chat requests in flight and peer-typing timers
+  useChatStore.getState().reset();
   // reset() also clears the "preferences fetched" flag so the next user's preferences load,
   // and persists isSubscribed: false. It never touches the browser's push subscription:
   // an explicit logout unregisters it (useAuthStore), otherwise the next session confirms

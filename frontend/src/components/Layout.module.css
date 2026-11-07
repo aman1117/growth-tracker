@@ -136,6 +136,18 @@
   padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
 }
 
+/* An open chat fills the viewport below the header; its composer handles the bottom inset */
+.mainChat {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+@media (max-width: 1023px) {
+  .navHiddenOnPhones {
+    display: none;
+  }
+}
+
 /* Minimal brand bar for auth-flow pages (no navigation) */
 .brandBar {
   display: flex;

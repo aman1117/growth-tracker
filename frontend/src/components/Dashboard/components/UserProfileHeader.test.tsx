@@ -78,6 +78,16 @@ describe('UserProfileHeader', () => {
     expect(screen.getByRole('img', { name: 'Verified account' })).toBeInTheDocument();
   });
 
+  it('offers to message the user, next to Follow', () => {
+    renderHeader();
+    expect(screen.getByRole('button', { name: 'Message bob' })).toBeEnabled();
+  });
+
+  it('offers no Message button before the user is known', () => {
+    renderHeader({ targetUserId: null });
+    expect(screen.queryByRole('button', { name: 'Message bob' })).not.toBeInTheDocument();
+  });
+
   describe('avatar', () => {
     it('shows initials and is not interactive without a photo or stories', () => {
       renderHeader();

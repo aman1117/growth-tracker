@@ -1,0 +1,188 @@
+/**
+ * ChatComposer — glass bar pinned to the bottom of the conversation, above the home indicator.
+ */
+
+.composer {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-3) calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--divider);
+  background: var(--glass-panel-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+}
+
+/* ---------- Reply preview ---------- */
+
+.replyBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  animation: slideUp 0.18s var(--ease-out);
+}
+
+.replyText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.replyAuthor {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--accent-text);
+}
+
+.replySnippet {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.replyCancel {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--segment-active-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.replyCancel:hover {
+  color: var(--text-primary);
+}
+
+.replyCancel:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+/* ---------- Input ---------- */
+
+.inputRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 132px;
+  padding: 0.6rem var(--space-4);
+  resize: none;
+  overflow-y: hidden;
+  border: 1.5px solid var(--input-border);
+  border-radius: 22px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  /* 16px prevents iOS auto-zoom on focus */
+  font-size: 16px;
+  line-height: 1.35;
+  outline: none;
+  overflow-wrap: anywhere;
+  transition:
+    border-color var(--transition-fast) var(--ease-default),
+    box-shadow var(--transition-fast) var(--ease-default);
+}
+
+.input::placeholder {
+  color: var(--input-placeholder);
+}
+
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.send {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  color: var(--text-on-color);
+  cursor: pointer;
+  box-shadow:
+    0 2px 0 0 var(--accent-ledge),
+    0 6px 14px -6px var(--accent-glow);
+  transition:
+    transform 0.12s var(--ease-default),
+    background var(--transition-fast) var(--ease-default);
+}
+
+.send:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.send:active:not(:disabled) {
+  transform: translateY(1px) scale(0.96);
+}
+
+.send:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+}
+
+.send:disabled {
+  background: var(--chip-bg);
+  color: var(--text-faint);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.counter {
+  margin: var(--space-1) var(--space-2) 0 0;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-semibold);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-muted);
+}
+
+.counterOver {
+  color: var(--error);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .replyBar {
+    animation: none;
+  }
+
+  .input,
+  .send {
+    transition: none;
+  }
+}

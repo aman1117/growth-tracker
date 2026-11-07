@@ -16,6 +16,13 @@ export {
   type FetchChallengesOptions,
   useChallengeStore,
 } from './useChallengeStore';
+export {
+  type ChatLoadStatus,
+  type ChatStore,
+  type ChatThreadState,
+  useChatStore,
+  useChatUnreadConversations,
+} from './useChatStore';
 export { useCommentStore } from './useCommentStore';
 export {
   type MonthCompletionData,

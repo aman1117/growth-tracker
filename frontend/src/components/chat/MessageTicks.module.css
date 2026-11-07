@@ -1,0 +1,25 @@
+.ticks {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.pending,
+.sent,
+.delivered {
+  opacity: 0.7;
+}
+
+.read {
+  /* On my (accent) bubble the ticks sit on color: use a bright tint there */
+  color: var(--read-tick-color, var(--accent-text));
+  opacity: 1;
+}
+
+.failed {
+  color: var(--error);
+  opacity: 1;
+}

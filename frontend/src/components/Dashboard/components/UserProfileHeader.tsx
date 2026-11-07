@@ -2,7 +2,7 @@
  * UserProfileHeader Component
  *
  * Displays the profile header when viewing another user's dashboard.
- * Shows avatar, stats, bio, follow button, and analytics link.
+ * Shows avatar, stats, bio, follow and message buttons, and analytics link.
  */
 
 import { BarChart3, Clock } from 'lucide-react';
@@ -10,6 +10,7 @@ import React from 'react';
 
 import type { ActivityPhoto } from '../../../types';
 import { formatLastLogged } from '../../../types';
+import { MessageButton } from '../../chat/MessageButton';
 import { FollowButton, FollowStats, MutualFollowers } from '../../social';
 import { Avatar, VerifiedBadge } from '../../ui';
 import styles from './UserProfileHeader.module.css';
@@ -108,7 +109,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         {targetUserId && <MutualFollowers userId={targetUserId} username={targetUsername} />}
       </div>
 
-      {/* Row 3: Follow Button + Analytics */}
+      {/* Row 3: Follow + Message + Analytics */}
       <div className={styles.actionRow}>
         {targetUserId && (
           <div className={styles.followCol}>
@@ -121,6 +122,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
             />
           </div>
         )}
+        {targetUserId && <MessageButton userId={targetUserId} username={targetUsername} />}
         {!isPrivateAccount && (
           <button
             type="button"

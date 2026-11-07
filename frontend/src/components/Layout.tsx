@@ -12,11 +12,13 @@ import type { AutocompleteSuggestion } from '../types';
 import {
   APP_NAME,
   isAuthFlowRoute,
+  isChatConversationRoute,
   scrollToTop,
   TAB_RESELECT_EVENT,
   type TabReselectDetail,
 } from '../utils/navigation';
 import { BottomNavigation } from './BottomNavigation';
+import { ChatHeaderButton } from './chat/ChatHeaderButton';
 import styles from './Layout.module.css';
 import { UserSearchAutocomplete } from './search';
 import { ThemeToggle } from './ThemeToggle';
@@ -35,6 +37,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   // Search is tied to the screen it was opened on, so any navigation closes it
   const [searchOpenOnKey, setSearchOpenOnKey] = useState<string | null>(null);
   const isSearchOpen = searchOpenOnKey === location.key;
+  const isChatThread = isChatConversationRoute(location.pathname);
 
   const openSearch = useCallback(() => {
     setSearchOpenOnKey(location.key);
@@ -128,6 +131,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 </div>
               )}
 
+              {/* Direct messages - hide when search is open */}
+              {!isSearchOpen && <ChatHeaderButton />}
+
               {/* Notifications - hide when search is open */}
               {!isSearchOpen && (
                 <NotificationCenter
@@ -148,13 +154,23 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
       <main
         id="main-content"
-        className={`${styles.main} ${user ? styles.mainWithNav : styles.mainNoNav}`}
+        className={`${styles.main} ${
+          user ? (isChatThread ? styles.mainChat : styles.mainWithNav) : styles.mainNoNav
+        }`}
       >
         {children}
       </main>
 
-      {/* Bottom tab bar - always available once signed in so no screen is a dead end */}
-      {user && <BottomNavigation />}
+      {/* Bottom tab bar - always available once signed in so no screen is a dead end. An open
+          chat hides it on phones (like native messengers) so the composer sits at the bottom. */}
+      {user &&
+        (isChatThread ? (
+          <div className={styles.navHiddenOnPhones}>
+            <BottomNavigation />
+          </div>
+        ) : (
+          <BottomNavigation />
+        ))}
 
       {/* Notification Preview Toast */}
       {preview && (

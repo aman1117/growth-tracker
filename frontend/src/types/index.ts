@@ -22,6 +22,9 @@ export * from './story';
 // Re-export challenge types
 export * from './challenge';
 
+// Re-export direct message (chat) types
+export * from './chat';
+
 export interface AuthResponse {
   success: boolean;
   access_token?: string;

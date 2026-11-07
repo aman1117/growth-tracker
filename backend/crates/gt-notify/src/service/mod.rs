@@ -20,4 +20,4 @@ mod triggers;
 
 pub use error::NotificationError;
 pub use notification::NotificationService;
-pub use realtime::{decode_notification, NotificationSubscription};
+pub use realtime::{decode_notification, NotificationSubscription, Published, PublishedKind};

@@ -36,7 +36,7 @@ async fn schema_is_idempotent_and_session_is_utc() {
         .fetch_one(&pool)
         .await
         .unwrap();
-    assert_eq!(tables, 28);
+    assert_eq!(tables, 32);
 
     // The optional autocomplete steps ran too.
     let trigram: i64 = sqlx::query_scalar(

@@ -104,6 +104,7 @@ struct Features {
     photos: gt_photos::PhotosContext,
     comments: gt_comments::CommentsContext,
     challenges: gt_challenges::ChallengesContext,
+    chat: gt_chat::ChatContext,
     jobs: Arc<gt_jobs::JobsContext>,
 }
 
@@ -117,8 +118,9 @@ impl Features {
         photos.init().await;
         let comments = gt_comments::CommentsContext::new(core, &users, &notify);
         let challenges = gt_challenges::ChallengesContext::new(core, &users, &notify);
+        let chat = gt_chat::ChatContext::new(core, &notify);
         let jobs = Arc::new(gt_jobs::JobsContext::new(core, &users, &notify));
-        Self { users, notify, activity, photos, comments, challenges, jobs }
+        Self { users, notify, activity, photos, comments, challenges, chat, jobs }
     }
 
     /// All routes (Go: `routes.Router.Setup`).
@@ -131,6 +133,7 @@ impl Features {
             .merge(gt_photos::routes(core, &self.users, &self.notify, &self.photos))
             .merge(gt_comments::routes(core, &self.users, &self.notify, &self.comments))
             .merge(gt_challenges::routes(core, &self.users, &self.notify, &self.challenges))
+            .merge(gt_chat::routes(core, &self.chat))
     }
 }
 

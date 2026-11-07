@@ -24,4 +24,4 @@ pub use context::NotifyContext;
 pub use handlers::websocket::NotificationWsHandler;
 pub use repository::{NewNotification, NewNotificationDedupe, NotificationRepository, PushRepository};
 pub use routes::routes;
-pub use service::{NotificationError, NotificationService, NotificationSubscription};
+pub use service::{NotificationError, NotificationService, NotificationSubscription, Published, PublishedKind};

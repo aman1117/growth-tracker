@@ -64,6 +64,8 @@ pub const NOTIF_CHANNEL_PREFIX: &str = "notif:channel:";
 pub const NOTIF_PENDING_PREFIX: &str = "notif:pending:";
 pub const NOTIF_WS_CONN_PREFIX: &str = "notif:ws:conn:";
 pub const NOTIF_UNREAD_PREFIX: &str = "notif:unread:";
+/// Per-user channel carrying ready-to-send WebSocket messages (chat events).
+pub const NOTIF_EVENTS_PREFIX: &str = "notif:events:";
 // Notifications: TTLs
 pub const NOTIF_PENDING_TTL: Duration = hours(24);
 pub const NOTIF_UNREAD_CACHE_TTL: Duration = minutes(5);
@@ -182,6 +184,10 @@ pub const RATE_LIMIT_COMMENT_LIKE_WINDOW: Duration = minutes(1);
 pub const RATE_LIMIT_COMMENT_LIKE_MAX_REQUESTS: u32 = 60;
 pub const RATE_LIMIT_CHALLENGE_WRITE_WINDOW: Duration = minutes(1);
 pub const RATE_LIMIT_CHALLENGE_WRITE_MAX_REQUESTS: u32 = 30;
+pub const RATE_LIMIT_CHAT_SEND_WINDOW: Duration = minutes(1);
+pub const RATE_LIMIT_CHAT_SEND_MAX_REQUESTS: u32 = 60;
+pub const RATE_LIMIT_CHAT_SIGNAL_WINDOW: Duration = minutes(1);
+pub const RATE_LIMIT_CHAT_SIGNAL_MAX_REQUESTS: u32 = 180;
 
 // Rate limiting messages
 pub const MSG_RATE_LIMIT_AUTH: &str = "Too many attempts. Please wait a minute before trying again.";
@@ -192,6 +198,8 @@ pub const MSG_RATE_LIMIT_AUTOCOMPLETE: &str = "Too many search requests. Please 
 pub const MSG_RATE_LIMIT_COMMENT: &str = "Too many comments. Please slow down.";
 pub const MSG_RATE_LIMIT_COMMENT_LIKE: &str = "Too many like actions. Please slow down.";
 pub const MSG_RATE_LIMIT_CHALLENGE_WRITE: &str = "Too many challenge actions. Please slow down.";
+pub const MSG_RATE_LIMIT_CHAT_SEND: &str = "You're sending messages too fast. Please slow down.";
+pub const MSG_RATE_LIMIT_CHAT_SIGNAL: &str = "Too many chat actions. Please slow down.";
 pub const MSG_RATE_LIMIT_FOLLOW: &str = "Too many follow actions. Please slow down.";
 
 // Follow system
@@ -288,3 +296,23 @@ pub fn image_content_type(ext: &str) -> Option<&'static str> {
 pub fn is_allowed_image_extension(ext: &str) -> bool {
     ALLOWED_IMAGE_EXTENSIONS.contains(&ext)
 }
+
+// Chat (direct messages): limits
+pub const CHAT_MESSAGE_MAX_LENGTH: usize = 4000;
+pub const CHAT_CLIENT_MESSAGE_ID_MAX_LENGTH: usize = 64;
+pub const CHAT_REACTION_MAX_CHARS: usize = 16;
+pub const CHAT_REPLY_PREVIEW_LENGTH: usize = 200;
+pub const CHAT_CONVERSATIONS_DEFAULT_LIMIT: i64 = 20;
+pub const CHAT_CONVERSATIONS_MAX_LIMIT: i64 = 50;
+pub const CHAT_MESSAGES_DEFAULT_LIMIT: i64 = 30;
+pub const CHAT_MESSAGES_MAX_LIMIT: i64 = 100;
+// Chat: error codes
+pub const ERR_CODE_CONVERSATION_NOT_FOUND: &str = "CONVERSATION_NOT_FOUND";
+pub const ERR_CODE_MESSAGE_NOT_FOUND: &str = "MESSAGE_NOT_FOUND";
+pub const ERR_CODE_MESSAGE_EMPTY: &str = "MESSAGE_EMPTY";
+pub const ERR_CODE_MESSAGE_TOO_LONG: &str = "MESSAGE_TOO_LONG";
+pub const ERR_CODE_MESSAGE_FORBIDDEN: &str = "MESSAGE_FORBIDDEN";
+pub const ERR_CODE_REPLY_TARGET_NOT_FOUND: &str = "REPLY_TARGET_NOT_FOUND";
+pub const ERR_CODE_INVALID_REACTION: &str = "INVALID_REACTION";
+pub const ERR_CODE_CHAT_NOT_ALLOWED: &str = "CHAT_NOT_ALLOWED";
+pub const ERR_CODE_CANNOT_MESSAGE_SELF: &str = "CANNOT_MESSAGE_SELF";

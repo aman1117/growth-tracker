@@ -36,6 +36,26 @@ fn ws_conn_key(user_id: i64) -> String {
     format!("{}{user_id}", c::NOTIF_WS_CONN_PREFIX)
 }
 
+fn events_channel_name(user_id: i64) -> String {
+    format!("{}{user_id}", c::NOTIF_EVENTS_PREFIX)
+}
+
+/// The channel a published payload arrived on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PublishedKind {
+    /// `notif:channel:<user_id>`: the JSON of a stored notification.
+    Notification,
+    /// `notif:events:<user_id>`: a complete WebSocket message (`{"type":..,"payload":..}`).
+    Event,
+}
+
+/// One payload received by a [`NotificationSubscription`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Published {
+    pub kind: PublishedKind,
+    pub payload: Vec<u8>,
+}
+
 impl NotificationService {
     /// Publishes the notification (its Go JSON encoding) on `notif:channel:<user_id>`; when
     /// publishing fails it is queued on `notif:pending:<user_id>` for the next WebSocket
@@ -99,7 +119,37 @@ impl NotificationService {
     /// the Redis connection drops.
     pub fn subscribe_to_notifications(&self, user_id: i64) -> Option<NotificationSubscription> {
         let handle = gt_core::redis::get()?;
-        Some(NotificationSubscription::start(handle.client.clone(), channel_name(user_id)))
+        Some(NotificationSubscription::start(
+            handle.client.clone(),
+            vec![(channel_name(user_id), PublishedKind::Notification)],
+        ))
+    }
+
+    /// Subscribes to both the user's notification channel and their event channel (what a
+    /// WebSocket connection forwards); `None` without Redis.
+    pub fn subscribe_to_realtime(&self, user_id: i64) -> Option<NotificationSubscription> {
+        let handle = gt_core::redis::get()?;
+        Some(NotificationSubscription::start(
+            handle.client.clone(),
+            vec![
+                (channel_name(user_id), PublishedKind::Notification),
+                (events_channel_name(user_id), PublishedKind::Event),
+            ],
+        ))
+    }
+
+    /// Publishes a complete WebSocket message on `notif:events:<user_id>`, delivered to every
+    /// connection of the user on any instance. Events are best-effort and never queued: `false`
+    /// without Redis or when publishing fails, so the caller can fall back to local delivery.
+    pub async fn publish_user_event(&self, user_id: i64, message: &str) -> bool {
+        let Some(mut conn) = gt_core::redis::conn() else { return false };
+        match conn.publish::<_, _, i64>(events_channel_name(user_id), message).await {
+            Ok(_) => true,
+            Err(err) => {
+                tracing::warn!(user_id, error = %err, "Failed to publish realtime event; delivering locally only");
+                false
+            }
+        }
     }
 
     // ==================== WebSocket connection tracking ====================
@@ -146,24 +196,30 @@ impl NotificationService {
     }
 }
 
-/// A live subscription to one user's notification channel. Messages are the raw payloads
-/// published on the channel (the Go JSON of a notification). Dropping it unsubscribes.
+/// A live subscription to one user's realtime channels. Messages are the raw payloads
+/// published on them (the Go JSON of a notification, or a complete WebSocket message for
+/// events). Dropping it unsubscribes.
 pub struct NotificationSubscription {
-    rx: mpsc::Receiver<Vec<u8>>,
+    rx: mpsc::Receiver<Published>,
     subscribed: Arc<AtomicBool>,
     task: JoinHandle<()>,
 }
 
 impl NotificationSubscription {
-    fn start(client: redis::Client, channel: String) -> Self {
+    fn start(client: redis::Client, channels: Vec<(String, PublishedKind)>) -> Self {
         let (tx, rx) = mpsc::channel(SUBSCRIPTION_BUFFER);
         let subscribed = Arc::new(AtomicBool::new(false));
-        let task = tokio::spawn(run_subscription(client, channel, tx, subscribed.clone()));
+        let task = tokio::spawn(run_subscription(client, channels, tx, subscribed.clone()));
         Self { rx, subscribed, task }
     }
 
     /// The next published payload; `None` once the subscription has ended.
     pub async fn recv(&mut self) -> Option<Vec<u8>> {
+        self.rx.recv().await.map(|published| published.payload)
+    }
+
+    /// The next published payload with the channel it arrived on.
+    pub async fn recv_published(&mut self) -> Option<Published> {
         self.rx.recv().await
     }
 
@@ -182,20 +238,28 @@ impl Drop for NotificationSubscription {
 
 async fn run_subscription(
     client: redis::Client,
-    channel: String,
-    tx: mpsc::Sender<Vec<u8>>,
+    channels: Vec<(String, PublishedKind)>,
+    tx: mpsc::Sender<Published>,
     subscribed: Arc<AtomicBool>,
 ) {
+    let names: Vec<&str> = channels.iter().map(|(name, _)| name.as_str()).collect();
+    let channel = names.join(",");
+    let kind_of =
+        |name: &str| channels.iter().find(|(n, _)| n == name).map_or(PublishedKind::Notification, |(_, kind)| *kind);
     let mut delay = RESUBSCRIBE_MIN_DELAY;
     loop {
         match client.get_async_pubsub().await {
-            Ok(mut pubsub) => match pubsub.subscribe(&channel).await {
+            Ok(mut pubsub) => match pubsub.subscribe(&names).await {
                 Ok(()) => {
                     subscribed.store(true, Ordering::Release);
                     delay = RESUBSCRIBE_MIN_DELAY;
                     let mut messages = pubsub.on_message();
                     while let Some(msg) = messages.next().await {
-                        if tx.send(msg.get_payload_bytes().to_vec()).await.is_err() {
+                        let published = Published {
+                            kind: kind_of(msg.get_channel_name()),
+                            payload: msg.get_payload_bytes().to_vec(),
+                        };
+                        if tx.send(published).await.is_err() {
                             return;
                         }
                     }

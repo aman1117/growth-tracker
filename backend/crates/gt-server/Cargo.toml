@@ -22,6 +22,7 @@ gt-activity.workspace = true
 gt-photos.workspace = true
 gt-comments.workspace = true
 gt-challenges.workspace = true
+gt-chat.workspace = true
 gt-jobs.workspace = true
 axum.workspace = true
 tokio.workspace = true

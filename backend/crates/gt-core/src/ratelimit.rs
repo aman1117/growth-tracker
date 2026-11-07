@@ -128,6 +128,10 @@ pub struct RateLimiters {
     pub comment_like: Arc<RateLimiter>,
     /// Challenge writes: 30/min per user.
     pub challenge_write: Arc<RateLimiter>,
+    /// Chat sends and unsends: 60/min per user.
+    pub chat_send: Arc<RateLimiter>,
+    /// Chat typing, read/delivered receipts and reactions: 180/min per user.
+    pub chat_signal: Arc<RateLimiter>,
 }
 
 impl RateLimiters {
@@ -190,6 +194,20 @@ impl RateLimiters {
                 c::RATE_LIMIT_CHALLENGE_WRITE_WINDOW,
                 c::MSG_RATE_LIMIT_CHALLENGE_WRITE,
                 Some("challenge"),
+            ),
+            chat_send: l(
+                "chat_send",
+                c::RATE_LIMIT_CHAT_SEND_MAX_REQUESTS,
+                c::RATE_LIMIT_CHAT_SEND_WINDOW,
+                c::MSG_RATE_LIMIT_CHAT_SEND,
+                Some("chat_send"),
+            ),
+            chat_signal: l(
+                "chat_signal",
+                c::RATE_LIMIT_CHAT_SIGNAL_MAX_REQUESTS,
+                c::RATE_LIMIT_CHAT_SIGNAL_WINDOW,
+                c::MSG_RATE_LIMIT_CHAT_SIGNAL,
+                Some("chat_signal"),
             ),
         }
     }

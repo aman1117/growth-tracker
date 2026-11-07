@@ -28,10 +28,12 @@ backend/
 │   ├── gt-photos/             # Blob storage, image processing, activity photos
 │   ├── gt-comments/           # Comments and comment likes
 │   ├── gt-challenges/         # Challenges, invites, leaderboards
+│   ├── gt-chat/               # Direct messages: conversations, replies, reactions, receipts (docs/chat.md)
 │   ├── gt-jobs/               # Daily cron jobs + seed / reminder CLI binaries
 │   └── gt-server/             # HTTP server: routing, CORS, middleware, swagger, scheduler
 ├── contract-tests/            # Golden HTTP contract suite (Python)
 ├── docs/swagger.json          # OpenAPI document served at /swagger
+├── docs/chat.md               # Direct messages API and WebSocket events
 ├── Dockerfile, Dockerfile.pushworker          # Production images (static musl binaries)
 └── Dockerfile.dev, Dockerfile.pushworker.dev  # Hot-reload dev images (cargo-watch)
 ```

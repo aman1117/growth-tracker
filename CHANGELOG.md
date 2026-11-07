@@ -44,6 +44,14 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
   invites, joins, cheers and results. A challenge lasts 3–60 days and takes up to 50 people; you
   can be in up to 10 upcoming or active challenges at once. New API: `/api/challenges` and
   `/api/challenge-codes`.
+- Direct messages: real-time 1:1 chats with people you follow or who follow you. Reply to (quote)
+  a message, react with an emoji, unsend your own messages, and see sent / delivered / read ticks
+  and typing indicators live. Open chats from the new chat button in the header or the Message
+  button on a profile; the inbox shows unread counts and offline users get a push notification.
+  New API: `/api/chats` (see `backend/docs/chat.md`); events (`chat_message`,
+  `chat_message_deleted`, `chat_reaction`, `chat_receipt`, `chat_typing`) arrive over the existing
+  notifications WebSocket, which now also forwards per-user events published on
+  `notif:events:<user_id>`. New tables are created automatically at startup.
 
 ### Changed
 - The backend is rewritten from Go (Fiber, GORM) to Rust (axum, tokio, sqlx) as a Cargo workspace

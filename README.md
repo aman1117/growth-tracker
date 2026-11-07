@@ -61,6 +61,8 @@ Growth Tracker helps you account for your day across meaningful categories like 
 - 24-hour day tracking across built-in and custom categories.
 - Challenges with friends: shared daily goals for an activity, with a live leaderboard, cheers and
   invite links.
+- Direct messages: real-time 1:1 chats with replies, emoji reactions, read receipts and typing
+  indicators.
 - Streaks and badges for consistency and milestone progress.
 - Social features including profiles, follows, likes, comments, and story-style activity photos.
 - Push notifications for streak reminders and account activity.

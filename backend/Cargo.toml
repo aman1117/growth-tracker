@@ -52,7 +52,7 @@ chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10"
 
 # Security
-jsonwebtoken = "9"
+jsonwebtoken = "12"
 bcrypt = "0.19"
 sha2 = "0.10"
 hmac = "0.12"
